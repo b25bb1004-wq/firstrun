@@ -64,3 +64,18 @@ test('patch ops: env append is idempotent, compose add keeps existing services',
   assert.match(compose, /# keep me/);
   assert.match(compose, /redis:\n\s+image: redis:7-alpine/);
 });
+
+test('unknown failures go to IBM Bob (Bob Shell headless), and its fix is validated', async () => {
+  process.env.FIRSTRUN_BOB_JS = path.join(here, 'fixtures', 'fake-bob.js');
+  const { bobStatus } = await import('../src/brain/bob.js');
+  await bobStatus({ force: true });
+  const ctx = await ctxFor(acme, 'npm run build:native', 'make: not a recognised build system here (exit 2)');
+  const spent = [];
+  const { diagnosis, fix } = await diagnose(ctx, { brain: 'auto', bobBudget: { perCall: 1, remaining: () => 5, spend: (x) => spent.push(x) } });
+  assert.equal(diagnosis.by, 'bob');
+  assert.equal(diagnosis.class, 'missing-tool');
+  assert.equal(diagnosis.bobcoins, 0.42);
+  assert.deepEqual(spent, [0.42]);
+  assert.equal(fix.actions[0].command, 'apt-get install -y make');
+  delete process.env.FIRSTRUN_BOB_JS;
+});
