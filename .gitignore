@@ -1,0 +1,7 @@
+node_modules/
+.firstrun-work/
+.firstrun/
+!fixtures/**/.firstrun/
+audit/runs/
+*.log
+.env

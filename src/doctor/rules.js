@@ -1,0 +1,387 @@
+import crypto from 'node:crypto';
+import { closest, shq } from '../util.js';
+import { imageFor } from '../plan.js';
+import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './services.js';
+
+/**
+ * Deterministic diagnosis rules. Each rule looks at a failed step's output and
+ * returns { ruleId, class, cause, confidence, fix } or null. A fix has sandbox
+ * `actions` (to repair this run), repo `patches` (files FirstRun will change in
+ * the PR) and a `doc` change (what the README must say instead).
+ *
+ * Rules only claim failures they understand; everything else goes to IBM Bob.
+ */
+
+const npmRun = (facts, script) => {
+  const pm = facts.node?.packageManager || 'npm';
+  if (pm === 'yarn') return `yarn ${script}`;
+  if (pm === 'pnpm') return `pnpm ${script}`;
+  if (pm === 'bun') return `bun run ${script}`;
+  return script === 'test' || script === 'start' ? `npm ${script}` : `npm run ${script}`;
+};
+
+const installCmd = (facts) => {
+  const pm = facts.node?.packageManager || 'npm';
+  if (pm === 'yarn') return 'yarn install';
+  if (pm === 'pnpm') return 'pnpm install';
+  if (pm === 'bun') return 'bun install';
+  return facts.node?.lockfile === 'package-lock.json' ? 'npm install' : 'npm install';
+};
+
+function devValue(name, { facts, sandboxEnv }) {
+  const n = name.toUpperCase();
+  const pgUrl = sandboxEnv.DATABASE_URL || facts.envExample?.keys?.DATABASE_URL;
+  if (/^(DATABASE_URL|DB_URL|POSTGRES_URL)$/.test(n)) return { value: pgUrl || 'postgres://postgres:postgres@localhost:5432/postgres', kind: 'local' };
+  if (/REDIS_(URL|URI)/.test(n)) return { value: 'redis://localhost:6379', kind: 'local' };
+  if (/MONGO(DB)?_(URL|URI)/.test(n)) return { value: 'mongodb://localhost:27017/app', kind: 'local' };
+  if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
+  if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
+  if (/(^|_)(URL|URI|ORIGIN|ENDPOINT)$/.test(n)) return { value: 'http://localhost:3000', kind: 'local' };
+  if (/^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY)/.test(n)) {
+    return { value: 'changeme', kind: 'secret' };
+  }
+  if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: `dev-${crypto.randomBytes(12).toString('hex')}`, kind: 'generated' };
+  if (/(ENABLED|DEBUG|VERBOSE)$/.test(n)) return { value: 'false', kind: 'local' };
+  return { value: 'changeme', kind: 'unknown' };
+}
+
+const ENV_PATTERNS = [
+  /missing (?:required )?(?:environment|env)(?:ironment)? variables?[:\s]+[`'"]?([A-Z][A-Z0-9_]{2,})/i,
+  /(?:environment|env) variable[s]? [`'"]?([A-Z][A-Z0-9_]{2,})[`'"]? (?:is |was )?(?:not set|not defined|missing|required|undefined|must be (?:set|defined|provided))/i,
+  /\b([A-Z][A-Z0-9_]{2,})\b (?:is not set|is not defined|is required|must be set|must be defined|must be provided|is undefined|environment variable (?:is )?(?:not set|missing|required))/,
+  /(?:set|define|provide) (?:the )?[`'"]?([A-Z][A-Z0-9_]{2,})[`'"]? (?:environment|env) variable/i,
+  /KeyError: ['"]([A-Z][A-Z0-9_]{2,})['"]/,
+  /"path":\s*\[\s*"([A-Z][A-Z0-9_]{2,})"\s*\][\s\S]{0,80}"message":\s*"Required"/,
+  /✖?\s*([A-Z][A-Z0-9_]{2,}):\s*(?:Required|Invalid input: expected string, received undefined)/,
+  /([A-Z][A-Z0-9_]{2,})\s*\n\s*Field required \[type=missing/,
+];
+
+export const RULES = [
+  // ── runtime version ────────────────────────────────────────────────
+  {
+    id: 'node-engine',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'node' || !facts.node) return null;
+      const m = log.match(/EBADENGINE|Unsupported engine|engine "node" is incompatible|The engine "node" is incompatible|requires? (?:a )?Node(?:\.js)? (?:version )?(?:>=?\s*)?v?(\d+)|node: bad option: --(?:watch|env-file|experimental-strip-types)|process\.loadEnvFile is not a function|structuredClone is not defined|(?:fetch|File|Blob|ReadableStream) is not defined|SyntaxError: Unexpected token '(?:\?\?=|\?\.|\|\|=|&&=|\?\?)'|ERR_REQUIRE_ESM|ERR_UNKNOWN_FILE_EXTENSION|Cannot find module 'node:(?:test|fs\/promises|stream\/web)'|toSorted is not a function|findLast is not a function|Object\.hasOwn is not a function|error: unknown option '--env-file'|Wanted: \{"node":"([^"]+)"\}/);
+      if (!m) return null;
+      const wanted = m[2] ? (m[2].match(/(\d+)/) || [])[1] : m[1];
+      const target = facts.node.truth?.version || wanted || '22';
+      const current = plan.runtime.version;
+      if (String(target) === String(current)) return null;
+      const src = facts.node.truth?.source || `the error ("${m[0]}")`;
+      return {
+        ruleId: 'node-engine', class: 'runtime-version', confidence: 0.95,
+        cause: `The README's Node.js ${current} is too old: the project needs Node.js ${target} (${src}).`,
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: String(target), source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target} (see ${facts.node.truth?.source || 'package.json engines'})`, runtime: { name: 'node', version: String(target) } },
+        },
+      };
+    },
+  },
+  {
+    id: 'python-version',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'python' || !facts.python) return null;
+      const m = log.match(/requires a different Python|Requires-Python|ERROR: Package '[^']+' requires a different Python|No module named '(?:tomllib|zoneinfo|graphlib)'|TypeError: unsupported operand type\(s\) for \|: 'type'|SyntaxError: (?:invalid syntax|expected ':')[\s\S]{0,200}(?:match |case |:=|\|)|cannot import name '(?:Self|TypeAlias|override|StrEnum|ExceptionGroup|UTC)'|is not a supported wheel on this platform|Could not find a version that satisfies the requirement[\s\S]{0,300}Requires-Python/);
+      if (!m) return null;
+      const target = facts.python.truth?.version || '3.12';
+      if (target === plan.runtime.version) return null;
+      const src = facts.python.truth?.source || 'the error';
+      return {
+        ruleId: 'python-version', class: 'runtime-version', confidence: 0.9,
+        cause: `The README's Python ${plan.runtime.version} is too old: the project needs Python ${target} (${src}).`,
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('python', target), runtime: { name: 'python', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Python ${target} (see ${src})`, runtime: { name: 'python', version: target } },
+        },
+      };
+    },
+  },
+  // ── renamed / missing scripts and files ─────────────────────────────
+  {
+    id: 'missing-npm-script',
+    test({ log, step, facts }) {
+      const m = log.match(/Missing script: "?([\w:.-]+)"?|Command "([\w:.-]+)" not found|ERR_PNPM_NO_SCRIPT[^\n]*?"?([\w:.-]+)"?|None of the selected packages has a "([\w:.-]+)" script|error Command "([\w:.-]+)" not found/);
+      if (!m || !facts.node) return null;
+      const wanted = m.slice(1).find(Boolean);
+      const scripts = Object.keys(facts.node.scripts);
+      const best = closest(wanted, scripts);
+      if (!best) return null;
+      const cmd = step.command.replace(new RegExp(`\\b${wanted.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`), best.value);
+      const newCmd = cmd === step.command ? npmRun(facts, best.value) : cmd;
+      return {
+        ruleId: 'missing-npm-script', class: 'missing-script', confidence: best.contains ? 0.93 : 0.75,
+        cause: `The script "${wanted}" no longer exists; package.json has "${best.value}" (${facts.node.scripts[best.value]}).`,
+        fix: { actions: [{ type: 'replace-step', command: newCmd }], patches: [], doc: { kind: 'replace-command', text: newCmd } },
+      };
+    },
+  },
+  {
+    id: 'missing-copy-source',
+    test({ log, step, facts }) {
+      const m = step.command.match(/^(cp|mv)\s+(?:-\w+\s+)*(\S+)\s+(\S+)/);
+      if (!m || !/No such file|cannot stat|cannot find/i.test(log)) return null;
+      const src = m[2].replace(/^\.\//, '');
+      const dir = src.includes('/') ? src.slice(0, src.lastIndexOf('/') + 1) : '';
+      const candidates = facts.files.filter((f) => f.startsWith(dir) && !f.slice(dir.length).includes('/'));
+      const envish = /env/i.test(src) ? candidates.filter((f) => /env/i.test(f)) : candidates;
+      const best = closest(src, envish.length ? envish : candidates);
+      if (!best) return null;
+      const newCmd = step.command.replace(m[2], best.value);
+      return {
+        ruleId: 'missing-copy-source', class: 'missing-file', confidence: 0.92,
+        cause: `${src} does not exist; the repo ships ${best.value}.`,
+        fix: { actions: [{ type: 'replace-step', command: newCmd }], patches: [], doc: { kind: 'replace-command', text: newCmd } },
+      };
+    },
+  },
+  {
+    id: 'missing-requirements-file',
+    test({ log, step, facts }) {
+      const m = step.command.match(/-r\s+(\S+)/);
+      if (!m || !/Could not open requirements file|No such file or directory/i.test(log) || !facts.python) return null;
+      const wanted = m[1].replace(/^\.\//, '');
+      const best = closest(wanted, facts.python.requirementsFiles) || closest(wanted.replace(/\//g, '-'), facts.python.requirementsFiles);
+      if (!best) return null;
+      const newCmd = step.command.replace(m[1], best.value);
+      return {
+        ruleId: 'missing-requirements-file', class: 'missing-file', confidence: 0.9,
+        cause: `${wanted} does not exist; the repo has ${best.value}.`,
+        fix: { actions: [{ type: 'replace-step', command: newCmd }], patches: [], doc: { kind: 'replace-command', text: newCmd } },
+      };
+    },
+  },
+  {
+    id: 'moved-entrypoint',
+    test({ log, step, facts, plan }) {
+      const py = step.command.match(/^python3?\s+(\S+\.py)\b/);
+      const pyMissing = py && /can't open file|No such file or directory/.test(log);
+      const node = step.command.match(/^node\s+(\S+\.(?:m?js|cjs))\b/);
+      const nodeMissing = node && /Cannot find module '\/workspace\//.test(log);
+      if (!pyMissing && !nodeMissing) return null;
+      if (nodeMissing && facts.node) {
+        const s = facts.node.scripts;
+        const pick = s.dev ? 'dev' : s.start ? 'start' : null;
+        if (!pick) return null;
+        const newCmd = npmRun(facts, pick);
+        return {
+          ruleId: 'moved-entrypoint', class: 'missing-file', confidence: 0.8,
+          cause: `${node[1]} no longer exists; the app now starts with the "${pick}" script (${s[pick]}).`,
+          fix: { actions: [{ type: 'replace-step', command: newCmd }], patches: [], doc: { kind: 'replace-command', text: newCmd } },
+        };
+      }
+      const app = facts.python?.apps?.[0];
+      if (!app) return null;
+      const port = step.serve?.port || plan.steps.find((s) => s.serve)?.serve?.port || 8000;
+      const newCmd = app.framework === 'flask'
+        ? `flask --app ${app.module} run --port ${port}`
+        : `uvicorn ${app.module}:${app.variable} --port ${port}`;
+      return {
+        ruleId: 'moved-entrypoint', class: 'missing-file', confidence: 0.85,
+        cause: `${py[1]} no longer exists; the ${app.framework} app is now defined in ${app.file}.`,
+        fix: { actions: [{ type: 'replace-step', command: newCmd }], patches: [], doc: { kind: 'replace-command', text: newCmd } },
+      };
+    },
+  },
+  // ── configuration ──────────────────────────────────────────────────
+  {
+    id: 'missing-env-var',
+    async test(ctx) {
+      const { log, facts, plan, sandboxEnv } = ctx;
+      let name = null;
+      for (const re of ENV_PATTERNS) {
+        const m = log.match(re);
+        if (m && !/^(NODE_ENV|PATH|HOME|ERROR|WARN|INFO|DEBUG|TypeError|SyntaxError)$/.test(m[1])) { name = m[1]; break; }
+      }
+      if (!name) return null;
+      if (sandboxEnv[name]) return null; // already set; something else is wrong
+      const { value, kind } = devValue(name, ctx);
+      const envFile = facts.envExample?.file;
+      const copyStep = plan.steps.find((s) => !s.skip && /^(cp|mv)\s+\S*\.?env\S*\s+\.env\b/.test(s.command));
+      const actions = [];
+      const patches = [];
+      let doc;
+      const loads = facts.loadsDotenv || copyStep;
+      if (envFile && loads) {
+        patches.push({ path: envFile, op: 'append-env', key: name, value, comment: kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
+        actions.push({ type: 'exec', command: `touch .env && printf '\\n%s=%s\\n' ${shq(name)} ${shq(value)} >> .env` });
+        doc = { kind: 'note', text: `${envFile} now includes ${name} (required at startup).`, envVar: name };
+        if (!copyStep) {
+          actions.unshift({ type: 'insert-before', command: `cp ${envFile} .env`, kind: 'env' });
+        }
+      } else {
+        actions.push({ type: 'insert-before', command: `export ${name}=${/\s/.test(value) ? shq(value) : value}`, kind: 'env' });
+        doc = { kind: 'insert-step', text: `export ${name}=${value}`, envVar: name };
+      }
+      return {
+        ruleId: 'missing-env-var', class: kind === 'secret' ? 'needs-secret' : 'missing-env', confidence: 0.9,
+        cause: `The app requires ${name} at startup, but the docs never mention it${envFile ? ` and ${envFile} doesn't include it` : ''}.`,
+        fix: { actions, patches, doc },
+      };
+    },
+  },
+  {
+    id: 'missing-service',
+    async test(ctx) {
+      const { log, facts, sandbox, sandboxEnv } = ctx;
+      const m = log.match(/ECONNREFUSED (?:127\.0\.0\.1|::1|localhost|0\.0\.0\.0):(\d+)|connect(?:ion)? (?:to )?(?:server at )?"?(?:127\.0\.0\.1|localhost|::1)"?(?: \([\d.:a-f]+\))?,? (?:on )?port (\d+) failed|Error 111 connecting to (?:localhost|127\.0\.0\.1):(\d+)|Connection refused[\s\S]{0,120}?(?:port |:)(\d{4,5})|could not connect to server[\s\S]{0,200}?port (\d+)|Can't connect to (?:local )?MySQL server on '[^']+'? ?\(?(?:111)?|MongoNetworkError[\s\S]{0,100}?:(\d+)|Redis connection to [\w.]+:(\d+) failed|connect ECONNREFUSED [\d.]+:(\d+)|dial tcp [\d.:]+:(\d+): connect: connection refused|ConnectionRefusedError[\s\S]{0,200}?(\d{4,5})|Is the server running on (?:host|that host) "?(?:localhost|127\.0\.0\.1)"?[\s\S]{0,80}?port (\d+)|connection to server at "?(?:localhost|127\.0\.0\.1)"?[^\n]*port (\d+) failed/i);
+      const socket = /could not connect to server: No such file or directory[\s\S]{0,200}\/var\/run\/postgresql|connection to server on socket "\/var\/run\/postgresql/.test(log);
+      let port = m ? Number(m.slice(1).find(Boolean)) : null;
+      if (!port && m && /MySQL/.test(m[0])) port = 3306;
+      if (!port && socket) port = 5432;
+      if (!port && /redis/i.test(log) && /ECONNREFUSED|connection refused/i.test(log)) port = 6379;
+      const kind = PORT_TO_SERVICE[port];
+      if (!kind) return null;
+      if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
+      const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv } });
+      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port }];
+      if (socket) actions.push({ type: 'exec', command: `printf 'export PGHOST=127.0.0.1 PGUSER=%s PGPASSWORD=%s\\n' ${shq(def.env.POSTGRES_USER || 'postgres')} ${shq(def.env.POSTGRES_PASSWORD || 'postgres')} >> ~/.bashrc; export PGHOST=127.0.0.1 PGUSER=${def.env.POSTGRES_USER || 'postgres'} PGPASSWORD=${def.env.POSTGRES_PASSWORD || 'postgres'}` });
+      const patches = [];
+      let doc;
+      const composeStep = ctx.plan.steps.find((s) => !s.skip && s.kind === 'services' && /compose/.test(s.command));
+      if (facts.compose && !def.fromCompose) {
+        patches.push({ path: facts.compose.file, op: 'compose-add-service', name: def.name, image: def.image, port: def.port, env: def.env });
+        doc = composeStep
+          ? { kind: 'note', text: `${facts.compose.file} now also starts ${label(kind)}; \`${composeStep.command}\` brings up everything the app needs.`, service: kind }
+          : { kind: 'insert-step', text: 'docker compose up -d', service: kind };
+        if (!composeStep) actions.push({ type: 'insert-before', command: 'docker compose up -d', kind: 'services', silent: true });
+      } else if (def.fromCompose) {
+        doc = { kind: 'insert-step', text: `docker compose up -d ${def.name}`, service: kind };
+        actions.push({ type: 'insert-before', command: `docker compose up -d ${def.name}`, kind: 'services', silent: true });
+      } else {
+        const line = dockerRunLine(def);
+        doc = { kind: 'insert-step', text: line, service: kind };
+        actions.push({ type: 'insert-before', command: line, kind: 'services', silent: true });
+      }
+      return {
+        ruleId: 'missing-service', class: 'missing-service', confidence: 0.92,
+        cause: `The app connects to ${label(kind)} on localhost:${port}, but the docs never start it${facts.compose && !def.fromCompose ? ` and ${facts.compose.file} doesn't define it` : ''}.`,
+        fix: { actions, patches, doc },
+      };
+    },
+  },
+  // ── order of operations ─────────────────────────────────────────────
+  {
+    id: 'missing-migrations',
+    test({ log, facts, plan }) {
+      if (!/relation "[\w.]+" does not exist|no such table: \w+|Table '[\w.]+' doesn't exist|The table `[\w.]+` does not exist|P2021|SQLITE_ERROR: no such table|UndefinedTable|django\.db\.utils\.(?:OperationalError|ProgrammingError): (?:no such table|relation)/.test(log)) return null;
+      let cmd = null;
+      const scripts = facts.node ? Object.keys(facts.node.scripts) : [];
+      const mig = scripts.find((s) => /^(db:)?migrat(e|ion)(s)?(:(up|latest|dev|deploy|run))?$/.test(s)) || scripts.find((s) => /migrat/.test(s) && !/(make|create|new|rollback|down|reset|generate)/.test(s));
+      if (mig) cmd = npmRun(facts, mig);
+      else if (facts.node?.deps.includes('prisma') || facts.files.some((f) => f.endsWith('schema.prisma'))) cmd = 'npx prisma migrate deploy';
+      else if (facts.python?.django) cmd = 'python manage.py migrate';
+      else if (facts.files.includes('alembic.ini')) cmd = 'alembic upgrade head';
+      if (!cmd || plan.steps.some((s) => s.command === cmd && s.status === 'passed')) return null;
+      return {
+        ruleId: 'missing-migrations', class: 'wrong-order', confidence: 0.85,
+        cause: `The database schema was never created: the docs skip the migration step (${cmd}).`,
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'migrate' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    id: 'prisma-generate',
+    test({ log }) {
+      if (!/@prisma\/client did not initialize yet|Please run "prisma generate"|Prisma Client could not locate|run `prisma generate`/.test(log)) return null;
+      return {
+        ruleId: 'prisma-generate', class: 'wrong-order', confidence: 0.95,
+        cause: 'The Prisma client was never generated; the docs skip `prisma generate`.',
+        fix: { actions: [{ type: 'insert-before', command: 'npx prisma generate', kind: 'build' }], patches: [], doc: { kind: 'insert-step', text: 'npx prisma generate' } },
+      };
+    },
+  },
+  {
+    id: 'deps-not-installed',
+    test({ log, facts, plan, step }) {
+      const m = log.match(/(?:sh|bash): (?:\d+: )?([\w.-]+): (?:command )?not found|Cannot find module '([^./][^']*)'|Error: Cannot find package '([^']+)'|ModuleNotFoundError: No module named '([\w.]+)'/);
+      if (!m) return null;
+      const bin = m[1];
+      const mod = (m[2] || m[3] || '').split('/').slice(0, (m[2] || m[3] || '').startsWith('@') ? 2 : 1).join('/');
+      const pymod = m[4]?.split('.')[0];
+      const nodeBins = ['tsc', 'ts-node', 'tsx', 'nodemon', 'next', 'vite', 'jest', 'vitest', 'mocha', 'eslint', 'prisma', 'knex', 'sequelize', 'nest', 'react-scripts', 'webpack', 'rollup', 'concurrently', 'cross-env', 'turbo', 'nx', 'astro', 'nuxt', 'svelte-kit', 'remix', 'playwright', 'drizzle-kit', 'typeorm'];
+      const installed = plan.steps.some((s) => s.kind === 'install' && s.status === 'passed' && /(npm|yarn|pnpm|bun)\s+(i|install|ci)\b|^yarn$/.test(s.command));
+      if (facts.node && !installed && ((bin && nodeBins.includes(bin)) || (mod && facts.node.deps.includes(mod)))) {
+        const cmd = installCmd(facts);
+        return {
+          ruleId: 'deps-not-installed', class: 'wrong-order', confidence: 0.9,
+          cause: `Dependencies were never installed before "${step.command}"; the docs skip \`${cmd}\`.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+        };
+      }
+      const pyInstalled = plan.steps.some((s) => s.kind === 'install' && s.status === 'passed' && /pip3? install|poetry install|uv sync|pipenv install/.test(s.command));
+      if (facts.python && pymod && !pyInstalled && facts.python.deps.some((d) => d.replace(/-/g, '_') === pymod.toLowerCase() || d === pymod.toLowerCase())) {
+        const req = facts.python.requirementsFiles.find((f) => /^requirements\.txt$/.test(f)) || facts.python.requirementsFiles[0];
+        const cmd = facts.python.manager === 'poetry' ? 'poetry install' : facts.python.manager === 'uv' ? 'uv sync' : req ? `pip install -r ${req}` : 'pip install -e .';
+        return {
+          ruleId: 'deps-not-installed', class: 'wrong-order', confidence: 0.85,
+          cause: `Python dependencies were never installed before "${step.command}"; the docs skip \`${cmd}\`.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+        };
+      }
+      return null;
+    },
+  },
+  {
+    id: 'missing-tool',
+    test({ log, facts }) {
+      const m = log.match(/(?:sh|bash): (?:line \d+: |\d+: )?([\w.-]+): (?:command )?not found/);
+      if (!m) return null;
+      const tool = m[1];
+      const installs = {
+        yarn: 'corepack enable', pnpm: 'corepack enable',
+        poetry: 'pip install poetry', pipenv: 'pip install pipenv', uv: 'pip install uv', tox: 'pip install tox', nox: 'pip install nox',
+        make: 'apt-get update && apt-get install -y make', psql: 'apt-get update && apt-get install -y postgresql-client',
+        createdb: 'apt-get update && apt-get install -y postgresql-client', redis_cli: 'apt-get update && apt-get install -y redis-tools',
+        'redis-cli': 'apt-get update && apt-get install -y redis-tools', jq: 'apt-get update && apt-get install -y jq',
+        python: 'ln -sf "$(command -v python3)" /usr/local/bin/python', pip: 'apt-get update && apt-get install -y python3-pip python3-venv',
+        node: 'apt-get update && apt-get install -y nodejs npm', npm: 'apt-get update && apt-get install -y nodejs npm', npx: 'apt-get update && apt-get install -y nodejs npm',
+        uvicorn: 'pip install uvicorn', gunicorn: 'pip install gunicorn', flask: 'pip install flask', pytest: 'pip install pytest',
+        'docker-compose': null, docker: null,
+      };
+      if (!(tool in installs) || installs[tool] === null) return null;
+      const human = { yarn: 'Yarn (via `corepack enable`)', pnpm: 'pnpm (via `corepack enable`)', python: 'a `python` command (python3)', psql: 'the PostgreSQL client (psql)', createdb: 'the PostgreSQL client (createdb)' }[tool] || tool;
+      const inPy = ['uvicorn', 'gunicorn', 'flask', 'pytest'].includes(tool);
+      return {
+        ruleId: 'missing-tool', class: inPy ? 'wrong-order' : 'missing-tool', confidence: 0.8,
+        cause: `\`${tool}\` is not installed; the docs assume it is.`,
+        fix: {
+          actions: [{ type: 'exec', command: installs[tool] }],
+          patches: [],
+          doc: inPy ? { kind: 'insert-step', text: installs[tool] } : { kind: 'prerequisite', text: human, command: installs[tool] },
+        },
+      };
+    },
+  },
+  {
+    id: 'python-venv-required',
+    test({ log }) {
+      if (!/externally-managed-environment/.test(log)) return null;
+      const cmd = 'python3 -m venv .venv && . .venv/bin/activate';
+      return {
+        ruleId: 'python-venv-required', class: 'platform-specific', confidence: 0.9,
+        cause: 'The system Python refuses global installs (PEP 668); the docs need a virtual environment step.',
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    id: 'secret-required',
+    test({ log }) {
+      const m = log.match(/(?:Invalid|Incorrect|missing) API key|401 Unauthorized|AuthenticationError|invalid_api_key|No API key provided|You didn't provide an API key/i);
+      if (!m) return null;
+      return {
+        ruleId: 'secret-required', class: 'needs-secret', confidence: 0.7,
+        cause: 'This step needs a real third-party credential; FirstRun will not invent one.',
+        fix: null,
+      };
+    },
+  },
+];
+
+function label(kind) {
+  return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO' }[kind] || kind;
+}

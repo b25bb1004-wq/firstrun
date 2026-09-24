@@ -1,0 +1,333 @@
+{
+  "generatedAt": "2026-09-25T00:00:00Z",
+  "repos": [
+    {
+      "slug": "GeekyAnts__express-typescript",
+      "url": "https://github.com/GeekyAnts/express-typescript",
+      "ref": "6b9bb70e23f304e2bb243d076a567b8454eb05e8",
+      "stack": "node",
+      "services": ["mongodb", "redis"],
+      "stars": 1262,
+      "lastCommit": "2026-01-31",
+      "readmeSetupSection": "Install, Configure & Run",
+      "suspectedDrift": [
+        {
+          "what": "README clone-then-cd instructions reference a directory name that doesn't exist",
+          "evidence": "README.md 'Install, Configure & Run': `git clone https://github.com/GeekyAnts/express-typescript.git;` immediately followed by `cd nodets;` — the cloned folder is named `express-typescript`, not `nodets`, so the very next command fails."
+        },
+        {
+          "what": "Stated Node floor is far below what the toolchain actually needs, with nothing to verify either number",
+          "evidence": "README.md 'Global Requisites' says `node (>= 10.5.0)`; package.json devDependencies pin `typescript: 5.0.3` and `@types/node: ^12.12.17`; there is no CI workflow in .github/workflows at all, so neither claim is ever exercised."
+        },
+        {
+          "what": "Non-Docker instructions omit the Redis dependency that the app actually needs",
+          "evidence": "README.md 'Without Docker' block's only prerequisite note is 'It is assumed here that you have MongoDB running'; package.json depends on `kue` (a Redis-backed queue) and the committed `.env` ships REDIS_QUEUE_* variables, but Redis is only mentioned in the separate 'Global Requisites' bullet list, not in the run steps themselves."
+        }
+      ],
+      "risk": "high",
+      "why": "Guaranteed literal command failure (cd into a nonexistent directory) makes this the fastest, cleanest 'the README is just wrong' demo, plus two more independent real gaps behind it."
+    },
+    {
+      "slug": "mdn__express-locallibrary-tutorial",
+      "url": "https://github.com/mdn/express-locallibrary-tutorial",
+      "ref": "b378f3dd48a41c6ab9b06aa6af6caa4a967296f6",
+      "stack": "node",
+      "services": ["mongodb"],
+      "stars": 1276,
+      "lastCommit": "2026-09-17",
+      "readmeSetupSection": "Quick Start",
+      "suspectedDrift": [
+        {
+          "what": "The running server never actually opens a MongoDB connection",
+          "evidence": "app.js (66 lines total) has no `mongoose.connect()` call anywhere; the only `mongoose.connect(mongoDB)` in the whole repo is in populatedb.js:28, a standalone script that takes the URI as a CLI argument and is never invoked from app.js/bin/www. models/author.js, book.js, bookinstance.js, genre.js all `require('mongoose')` and define schemas that will hang or error on first query since nothing initializes the connection."
+        },
+        {
+          "what": "README's Quick Start never asks for a Mongo URI at all",
+          "evidence": "README.md lines 17-35 list only `npm install` then `npm run devstart` / `npm start`; no .env step, no connection-string prompt. The only DB guidance is the note at README.md:39-40 that 'the library uses a default MongoDB database hosted on MongoDB Atlas' — no URI given, no .env.example shipped in the repo."
+        }
+      ],
+      "risk": "high",
+      "why": "Actively-maintained MDN teaching repo (pushed days ago) whose own catalog pages will 500 on first visit because nothing in app.js ever connects to Mongo — a strong 'well-maintained but drifted' story."
+    },
+    {
+      "slug": "Louis3797__express-ts-auth-service",
+      "url": "https://github.com/Louis3797/express-ts-auth-service",
+      "ref": "fc6722badf8b43c02adba9de7e11bb342c09a6f1",
+      "stack": "node",
+      "services": ["mysql"],
+      "stars": 254,
+      "lastCommit": "2024-11-09",
+      "readmeSetupSection": "Getting Started (Run Locally / Run with Docker)",
+      "suspectedDrift": [
+        {
+          "what": "docker-compose points the app at the wrong internal MySQL port",
+          "evidence": "docker-compose.yml: the `mysql` service maps `'3307:3306'` (host:container) but `auth-service`'s DATABASE_URL is hardcoded to `mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3307/${MYSQL_DATABASE}`. Container-to-container traffic on the compose network must hit the container's actual listening port (3306); 3307 is only the host-side remap, so `docker-compose up` boots but the app can never reach the DB."
+        },
+        {
+          "what": "README never mentions applying Prisma migrations",
+          "evidence": "README.md 'Run Locally' / 'Run with Docker' sections go straight from 'define the .env variables' to `yarn dev` / `docker-compose up`. package.json has no `prisma migrate` or `postinstall` script, and prisma/schema.prisma defines real models, but no step anywhere creates the tables before the app starts."
+        }
+      ],
+      "risk": "high",
+      "why": "Two independent, concrete, container-specific bugs (wrong port + missing migration step) that only surface once someone actually tries the Docker path — exactly FirstRun's use case."
+    },
+    {
+      "slug": "JKHeadley__rest-hapi",
+      "url": "https://github.com/JKHeadley/rest-hapi",
+      "ref": "708ecbcd4f5d3ec1d11c987a4741d505358e7de9",
+      "stack": "node",
+      "services": ["mongodb"],
+      "stars": 1181,
+      "lastCommit": "2023-03-26",
+      "readmeSetupSection": "Quick Start",
+      "suspectedDrift": [
+        {
+          "what": "The repo's own 'Quick Start' doesn't set up this repo at all — it clones a different repo",
+          "evidence": "README.md lines 82-90, 'Quick Start' step 1: `git clone https://github.com/JKHeadley/rest-hapi-demo.git` then `cd rest-hapi-demo`, not this repository (rest-hapi). rest-hapi-demo was itself last pushed 2022-12-02, over two years before this README's last update, and is a separate scaffolded project, not this library's source."
+        }
+      ],
+      "risk": "high",
+      "why": "A maximally clean example of README drift: following the literal 'Quick Start' takes a newcomer out of the audited repo entirely, into a second, differently-maintained repo."
+    },
+    {
+      "slug": "teamhide__fastapi-boilerplate",
+      "url": "https://github.com/teamhide/fastapi-boilerplate",
+      "ref": "df4e6d4f817ec187eeaf2d1c5a877b27c06bb77b",
+      "stack": "python",
+      "services": ["mysql", "redis", "rabbitmq"],
+      "stars": 1494,
+      "lastCommit": "2026-05-08",
+      "readmeSetupSection": "Run",
+      "suspectedDrift": [
+        {
+          "what": "Celery's broker defaults to RabbitMQ, which nothing in the setup path provisions or mentions",
+          "evidence": "core/config.py:17 default `CELERY_BROKER_URL: str = \"amqp://user:bitnami@localhost:5672/\"` (RabbitMQ/AMQP); docker/docker-compose.yml only defines `mysql` and `redis` services; README.md 'Run' section's only infra step is `docker-compose -f docker/docker-compose.yml up` — RabbitMQ is never mentioned anywhere in the README."
+        }
+      ],
+      "risk": "medium",
+      "why": "Real missing-service gap (code wants RabbitMQ, compose/README only give Redis+MySQL) on an actively maintained, very popular FastAPI boilerplate."
+    },
+    {
+      "slug": "zhanymkanov__fastapi_production_template",
+      "url": "https://github.com/zhanymkanov/fastapi_production_template",
+      "ref": "8e82353ff3430c77fb77ead7de0d680f0229a667",
+      "stack": "python",
+      "services": ["postgres"],
+      "stars": 1258,
+      "lastCommit": "2026-03-19",
+      "readmeSetupSection": "Local Development",
+      "suspectedDrift": [
+        {
+          "what": "README skips the Alembic migration step entirely",
+          "evidence": "README.md 'Local Development' order is `just up` (start Postgres) -> `cp .env.example .env` + `poetry install` -> `just run` (uvicorn). alembic/versions/ contains real migrations and the justfile defines a `migrate` recipe (`just migrate` -> `alembic upgrade head`), but the README never references it."
+        },
+        {
+          "what": "Setup depends on the `just` command runner, not preinstalled on a base Linux image",
+          "evidence": "README.md 'Setup just' assumes `apt install just` (Debian/Ubuntu); the `just` apt package isn't present on every minimal Debian/Ubuntu base image/release by default, so this step can silently fail depending on the container's base image."
+        }
+      ],
+      "risk": "medium",
+      "why": "Clean, modern, well-maintained template whose only real gaps are a skipped migration step and a non-default tool dependency — a useful mid-severity contrast to the higher-drift repos."
+    },
+    {
+      "slug": "madhums__node-express-mongoose",
+      "url": "https://github.com/madhums/node-express-mongoose",
+      "ref": "86e569617f8e5a382e524bc6f3eed99ad3772a2a",
+      "stack": "node",
+      "services": ["mongodb"],
+      "stars": 1443,
+      "lastCommit": "2024-12-06",
+      "readmeSetupSection": "Usage",
+      "suspectedDrift": [
+        {
+          "what": "Stated Node floor is far older than what's actually CI-tested",
+          "evidence": "package.json: `\"engines\": { \"node\": \">=10.x\" }`; .github/workflows/test.yml matrix is `node-version: [18.x, 20.x]` — the version the package.json advertises as a floor has never been exercised in CI, and a container defaulting to a modern Node (22+) is equally untested against `mongoose ~5.13.20`."
+        }
+      ],
+      "risk": "medium",
+      "why": "1.8-year-stale, popular repo with a concrete, file-quotable version-floor vs CI-matrix mismatch — the canonical 'drifted engines field' case."
+    },
+    {
+      "slug": "przemek-nowicki__node-express-template.ts",
+      "url": "https://github.com/przemek-nowicki/node-express-template.ts",
+      "ref": "d731e5cef4509064df94db8cd10fccbd981693e5",
+      "stack": "node",
+      "services": [],
+      "stars": 103,
+      "lastCommit": "2024-03-24",
+      "readmeSetupSection": "Getting started / Getting started, standard way (no containerization)",
+      "suspectedDrift": [
+        {
+          "what": "Stated Node version contradicts package.json's engines field",
+          "evidence": "package.json: `\"engines\": { \"node\": \">=8.10.0\" }`; README.md (standard-way section) says 'I develop the NET.ts project on node version 16' — two different floors, neither enforced, and no .nvmrc anywhere."
+        },
+        {
+          "what": "A real env file is committed instead of an example template",
+          "evidence": "The repo tracks `.env.local` directly (not `.env.example`); the README's standard-way section tells you to 'set env variables defined in the .env.local file' and even suggests `export $(cat .env.local)`, treating a committed file as the secrets source."
+        }
+      ],
+      "risk": "medium",
+      "why": "Small, stale (2.5y) boilerplate with two concrete, low-effort-to-spot version/secrets inconsistencies; fast install since the audited (master) branch needs no external services — MongoDB support only exists on a separate add_mongo branch."
+    },
+    {
+      "slug": "maitraysuthar__rest-api-nodejs-mongodb",
+      "url": "https://github.com/maitraysuthar/rest-api-nodejs-mongodb",
+      "ref": "6a1ba2da70a26b010d5aa1791a778a69b8ce7396",
+      "stack": "node",
+      "services": ["mongodb"],
+      "stars": 1184,
+      "lastCommit": "2023-05-08",
+      "readmeSetupSection": "How to install",
+      "suspectedDrift": [
+        {
+          "what": "OTP/email feature needs real SMTP creds that .env.example only stubs with placeholders",
+          "evidence": ".env.example ships `EMAIL_SMTP_HOST=YourSMTPHost`, `EMAIL_SMTP_USERNAME=YourSMTPUsername`, etc. as literal placeholder strings (not blank); helpers/mailer.js and the register-with-OTP flow described in the README's Features list depend on them, but 'Setting up environments' never says these can be left as placeholders or are optional for basic server startup."
+        },
+        {
+          "what": "Stated Node/Mongo floor is unverifiable — no engines field, dead CI badge",
+          "evidence": "README.md 'Software Requirements': 'Node.js 8+', 'MongoDB 3.6+ (Recommended 4+)'; package.json has no `engines` field at all; the README's Travis CI badge points at travis-ci.com, a service most open-source projects migrated off years ago, so there's no working CI confirming either claim."
+        }
+      ],
+      "risk": "medium",
+      "why": "3.4-year-stale, popular repo with an env-var-looks-mandatory-but-isn't gap that's a classic real-world false-blocker for a newcomer."
+    },
+    {
+      "slug": "vargasjona__fastapi-alembic-sqlmodel-async",
+      "url": "https://github.com/vargasjona/fastapi-alembic-sqlmodel-async",
+      "ref": "96f10870e7a9cd0fb7fcc678674d7b409545b942",
+      "stack": "python",
+      "services": ["postgres", "redis", "minio"],
+      "stars": 1266,
+      "lastCommit": "2026-03-09",
+      "readmeSetupSection": "Prerequisites / Run project using Docker containers",
+      "suspectedDrift": [
+        {
+          "what": "A required settings field has no safe default; .env.example only ships an empty stub",
+          "evidence": "backend/app/app/core/config.py:23 declares `OPENAI_API_KEY: str` (required, no default); backend/app/app/main.py:173 does `ChatOpenAI(temperature=0, openai_api_key=settings.OPENAI_API_KEY)`; .env.example:50 ships `OPENAI_API_KEY=` empty, and the README never flags the Langchain/chatbot feature (Table of Contents item 18) as optional or the key as skippable."
+        },
+        {
+          "what": "README states three slightly different Python version ranges in one document",
+          "evidence": "README.md intro: 'fully compatible with Python >=3.10' and 'Python 3.10 and later versions'; the 'Prerequisites' section header itself is literally `## Python \">3.9,<3.12\"`; backend/app/pyproject.toml:42 pins `python = \">3.9,<3.12\"`."
+        }
+      ],
+      "risk": "medium",
+      "why": "Heaviest stack in the set (Postgres+Redis+MinIO+Celery+Caddy) with a genuinely required-looking API key field — a good stress test of FirstRun's missing-secret handling, though setup takes longer than the others."
+    },
+    {
+      "slug": "erev0s__VAmPI",
+      "url": "https://github.com/erev0s/VAmPI",
+      "ref": "f16052dce83f05847133ec98f01c5193a41de7d8",
+      "stack": "python",
+      "services": [],
+      "stars": 1330,
+      "lastCommit": "2026-04-07",
+      "readmeSetupSection": "Run it",
+      "suspectedDrift": [
+        {
+          "what": "Pinned 2022-era dependency set with no transitive upper bounds",
+          "evidence": "requirements.txt exact-pins `flask==2.2.2`, `flask-sqlalchemy==3.0.3`, `connexion[swagger-ui]==2.14.2`, `markupsafe==2.1.2` with nothing bounding transitive deps like Werkzeug/Jinja2 — a fresh pip install in 2026 can resolve incompatible newer versions of those."
+        },
+        {
+          "what": "A required manual DB-seed step lives only in the FAQ, not the Run section",
+          "evidence": "README.md's own FAQ ('There is a database error upon reaching endpoints!') says you must first `GET /createdb`; this step is absent from the 'Run it' section itself, so following just that section literally leaves every endpoint erroring until you happen to read the FAQ."
+        }
+      ],
+      "risk": "low",
+      "why": "Small, actively maintained, mostly-works repo — a useful low-drift control point in the set, with only a soft dependency-pinning risk and an easy-to-miss FAQ-only step."
+    },
+    {
+      "slug": "edwinhern__express-typescript",
+      "url": "https://github.com/edwinhern/express-typescript",
+      "ref": "983fa0413659cd921c5754b00f7817903eb91364",
+      "stack": "node",
+      "services": [],
+      "stars": 1252,
+      "lastCommit": "2026-09-22",
+      "readmeSetupSection": "Getting Started (Step-by-Step Guide)",
+      "suspectedDrift": [
+        {
+          "what": "CI badge links through to a differently-named repo",
+          "evidence": "README.md's CI badge target is `.../express-typescript/actions/workflows/ci.yml?branch=master`, but the badge's href resolves through `express-typescript-2024` (an older name/fork of this same project) — cosmetic, but a real inconsistency in the doc."
+        }
+      ],
+      "risk": "low",
+      "why": "Actively maintained (pushed days ago); `.tool-versions` and `.env.template` are both accurate and correctly referenced — best available 'should mostly just work' control example on the Node/TS side."
+    },
+    {
+      "slug": "kellyjonbrazil__jello",
+      "url": "https://github.com/kellyjonbrazil/jello",
+      "ref": "b43c9b24605ce2fca7bb303cdd845f8e814c15fa",
+      "stack": "python",
+      "services": [],
+      "stars": 534,
+      "lastCommit": "2025-05-30",
+      "readmeSetupSection": "Install",
+      "suspectedDrift": [
+        {
+          "what": "README's primary install path never exercises the checked-out commit",
+          "evidence": "README.md 'Pip' section says `pip3 install jello`, which pulls the latest PyPI release rather than the code at this SHA; setup.py:18 pins `python_requires='>=3.6'`, generous enough that this is unlikely to be a real break, just a fidelity gap for the audit."
+        }
+      ],
+      "risk": "low",
+      "why": "Trivial, fast, near-guaranteed-pass control target; keeps the audit's total runtime down and contrasts with the higher-severity repos."
+    },
+    {
+      "slug": "NayamAmarshe__please",
+      "url": "https://github.com/NayamAmarshe/please",
+      "ref": "10e94b3e7ea929037bcbe68bbc2567404be0aa27",
+      "stack": "python",
+      "services": [],
+      "stars": 618,
+      "lastCommit": "2023-11-07",
+      "readmeSetupSection": "Installation",
+      "suspectedDrift": [
+        {
+          "what": "Shell-profile-editing steps assume an interactive login shell a container run doesn't provide",
+          "evidence": "README.md Method 1 steps 3-4: `echo 'please' >> ~/.bashrc` then 'restart the terminal' to verify success; a non-interactive container test never sources ~/.bashrc that way, so the documented success check (a new terminal showing the please banner) can't fire even though the underlying `pip install please-cli` succeeded."
+        },
+        {
+          "what": "No pyproject-based local dev path documented despite one existing in the repo",
+          "evidence": "pyproject.toml + poetry.lock exist for local development, but README.md 'Installation' only documents installing the published `please-cli` PyPI package or a downloaded release .whl — never `poetry install` against this checkout."
+        }
+      ],
+      "risk": "low",
+      "why": "2.9-year-stale, trivial CLI, but the bashrc/interactive-shell assumption is a realistic 'works for a human, ambiguous for a container' case worth including."
+    },
+    {
+      "slug": "addyosmani__git2txt",
+      "url": "https://github.com/addyosmani/git2txt",
+      "ref": "e8db771b976d1f463d6b5492beb5ec1c9687328d",
+      "stack": "node",
+      "services": [],
+      "stars": 566,
+      "lastCommit": "2024-11-22",
+      "readmeSetupSection": "Installation",
+      "suspectedDrift": [
+        {
+          "what": "Stated install path differs from how the repo is actually built/tested",
+          "evidence": "README.md 'Installation' says `npm install -g git2txt` (a registry install of the published package); package.json's own `engines.node: >=18` and its `test` script (`chmod +x index.js && ava`) are never surfaced in the README, so a contributor following only the README wouldn't discover the Node 18 floor or how to run tests against this checkout."
+        }
+      ],
+      "risk": "low",
+      "why": "Tiny, fast clone; a clean low-risk control alongside jello and add-gitignore."
+    },
+    {
+      "slug": "TejasQ__add-gitignore",
+      "url": "https://github.com/TejasQ/add-gitignore",
+      "ref": "055263530693c4339e82b16a8e8a89e66e02e871",
+      "stack": "node",
+      "services": [],
+      "stars": 732,
+      "lastCommit": "2023-11-20",
+      "readmeSetupSection": "Usage",
+      "suspectedDrift": [
+        {
+          "what": "Depends on the long-deprecated `request` package with no Node version floor documented anywhere",
+          "evidence": "package.json dependencies include `request: ^2.85.0` (deprecated by its maintainers Feb 2020, no updates since) and `inquirer: ^5.2.0` (five major versions behind current); there is no `engines` field in package.json, and README.md's only guidance is 'make sure you have NodeJS installed', with no version floor for either a very old or very new Node."
+        }
+      ],
+      "risk": "low",
+      "why": "2.9-year-stale, trivial `npx` one-liner setup — fast and cheap, with plausible-but-low-severity drift that rounds out the mix."
+    }
+  ]
+}

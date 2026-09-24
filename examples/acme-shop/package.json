@@ -1,0 +1,23 @@
+{
+  "name": "acme-shop",
+  "version": "1.4.0",
+  "description": "Small product catalogue API for the Acme storefront (Express + Postgres + Redis)",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.13.1",
+    "redis": "^4.7.0"
+  },
+  "license": "MIT"
+}
