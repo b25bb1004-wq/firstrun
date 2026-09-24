@@ -5,6 +5,7 @@ import { Sandbox } from './sandbox.js';
 import { Recorder } from './recorder.js';
 import { diagnose, fixSignature } from './doctor/index.js';
 import { RULES } from './doctor/rules.js';
+import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
@@ -71,6 +72,29 @@ export async function verifyRepo(repoDir, opts = {}) {
     // ── Plan ──────────────────────────────────────────────────────────
     rec.phase('plan', 'planner');
     const plan = buildPlan(facts, { repo, commit: git.commit });
+    if (brain !== 'rules' && needsBobPlanner(plan, facts) && budget.remaining() > 0) {
+      say('planner', `asking IBM Bob to read the onboarding docs${facts.extraDocs?.length ? ` (${facts.extraDocs.join(', ')})` : ''}`);
+      const bp = await bobPlan({ facts, plan, budget });
+      rec.state.bobcoins = budget.spent();
+      rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', bobcoins: bp.bobcoins, ok: bp.ok, taskId: bp.taskId, error: bp.error });
+      if (bp.ok && plan.steps.filter((s) => !s.skip).length < 2) {
+        plan.steps = bp.steps;
+        plan.plannedBy = 'bob';
+        plan.steps.forEach((s, k) => { s.id = `S${k + 1}`; });
+        const serve = plan.steps.find((s) => !s.skip && (s.kind === 'serve' || (bp.serve?.command && s.command === bp.serve.command)));
+        if (serve) {
+          serve.kind = 'serve';
+          serve.serve = { port: Number(bp.serve?.port) || facts.ports[0] || 3000 };
+          plan.verify = { kind: 'http', target: `http://127.0.0.1:${serve.serve.port}${bp.serve?.healthPath || '/'}` };
+        }
+        if (bp.notes) say('planner', `IBM Bob: ${bp.notes}`);
+      } else if (bp.ok) {
+        const known = new Set(plan.steps.map((s) => s.command));
+        for (const s of bp.steps.filter((x) => !known.has(x.command) && !x.skip)) {
+          plan.conflicts.push({ what: 'step only in other docs', docs: s.command, truth: `found by IBM Bob in ${s.source.file}${s.source.where ? ` ${s.source.where}` : ''}`, source: s.source.file });
+        }
+      }
+    }
     plan.originalImage = plan.image;
     plan.originalRuntime = { ...plan.runtime };
     for (const s of plan.steps) s.status = s.skip ? 'skipped' : 'pending';

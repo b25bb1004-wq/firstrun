@@ -63,6 +63,10 @@ export async function scout(root) {
     else if (/^docs?\/(.*\/)?(setup|development|developing|getting[-_]started|install(ation)?|local[-_]dev(elopment)?|contributing|quick[-_]?start)\.md$/i.test(f)) facts.docs.push(f);
   }
 
+  // Onboarding material that isn't Markdown (PDF handbooks, reStructuredText, wiki exports):
+  // the rule-based planner can't read these; IBM Bob's document understanding can.
+  facts.extraDocs = files.filter((f) => /\.(pdf|rst|adoc|docx|txt)$/i.test(f) && /(onboard|setup|install|getting[-_]?started|develop|contribut|readme|handbook|guide|wiki)/i.test(f) && !/node_modules|test|fixture/i.test(f)).slice(0, 10);
+
   // Node
   if (has('package.json')) {
     let pkg = {};

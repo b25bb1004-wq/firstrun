@@ -38,7 +38,7 @@ export async function publish({ root, outDir, facts, plan, evidence, patched, re
   const files = {}; // repo-relative path → { original, content }
 
   // Corrected docs
-  const docFiles = [...new Set(plan.steps.map((s) => s.source?.file).filter(Boolean))];
+  const docFiles = [...new Set(plan.steps.map((s) => s.source?.file).filter((f) => f && /\.(md|markdown)$/i.test(f)))];
   for (const d of docFiles) {
     const r = rewriteDoc({ root, docFile: d, plan, evidence, passport: d === facts.docs[0] ? passport : null });
     if (r && r.content !== r.original) files[d] = r;
