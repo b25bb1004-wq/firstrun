@@ -23,6 +23,7 @@ ${bold('Usage')}
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
+  firstrun guide  [path]                 walk through the verified setup on your own machine
   firstrun apply  [path]                 copy the corrected files from .firstrun/out/pr into the repo
   firstrun pr     [path]                 apply on a new branch and open a pull request (gh)
   firstrun ui     [--port 4173] [--root <dir>...]
@@ -120,6 +121,10 @@ export async function main(argv) {
         if (r.code !== 0) console.error(r.out);
       }
       return drift.introduced.length || replay?.status === 'failed' ? 1 : 0;
+    }
+    case 'guide': {
+      const { guide } = await import('./guide.js');
+      return guide(path.resolve(args._[0] || '.'), { yes: !!args.yes });
     }
     case 'apply': {
       const root = path.resolve(args._[0] || '.');

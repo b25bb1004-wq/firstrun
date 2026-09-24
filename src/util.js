@@ -113,6 +113,21 @@ export function closest(wanted, candidates) {
   return plausible ? best : null;
 }
 
+/** The single most telling error line in a log tail (skips log paths, stack frames, boilerplate). */
+export function errorSignature(logTail = '') {
+  let best = null;
+  for (const raw of String(logTail).split('\n')) {
+    const l = raw.trim();
+    if (!l || l.length < 8) continue;
+    let score = 0;
+    if (/EBADENGINE|Missing script|Missing required|ECONNREFUSED|cannot stat|No such file|not found|is required|ImportError|ModuleNotFoundError|Cannot find module|Unsupported engine|ERESOLVE|Unable to locate|does not exist|KeyError|RuntimeError|Error:/.test(l)) score += 5;
+    if (/error|ERR!|refused|missing|cannot|failed/i.test(l)) score += 2;
+    if (/_logs|complete log|full report|For a full|^at\s|^\s*at\s|node:internal|^npm (error|ERR!)\s*$|To see a list|Did you mean|^code: /i.test(l)) score -= 8;
+    if (score > 0 && (!best || score >= best.score)) best = { line: l, score };
+  }
+  return best ? best.line.slice(0, 200) : '';
+}
+
 export function fmtDuration(ms) {
   const s = Math.round(ms / 1000);
   if (s < 60) return `${s}s`;

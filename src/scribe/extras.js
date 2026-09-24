@@ -1,5 +1,6 @@
 import YAML from 'yaml';
 import { serviceKind } from '../doctor/services.js';
+import { errorSignature } from '../util.js';
 
 const REPO = process.env.FIRSTRUN_GITHUB || 'b25bb1004-wq/firstrun';
 
@@ -67,7 +68,7 @@ on:
       - 'compose*.yml'
       - '.env.example'
       - '.env.sample'
-      - '.firstrun/plan.json'
+      - '.github/firstrun/plan.json'
       - '**/*.py'
       - 'src/**'
 permissions:

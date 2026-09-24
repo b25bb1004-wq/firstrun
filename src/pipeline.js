@@ -36,8 +36,10 @@ export function makeBudget(total = 4, perCall = 1.5) {
 
 async function gitInfo(dir) {
   const sha = await run('git', ['-C', dir, 'rev-parse', '--short=10', 'HEAD']);
-  const remote = await run('git', ['-C', dir, 'config', '--get', 'remote.origin.url']);
-  const dirty = await run('git', ['-C', dir, 'status', '--porcelain']);
+  const top = (await run('git', ['-C', dir, 'rev-parse', '--show-toplevel'])).out.trim();
+  const nested = top && path.resolve(top) !== path.resolve(dir);
+  const remote = nested ? { code: 1 } : await run('git', ['-C', dir, 'config', '--get', 'remote.origin.url']);
+  const dirty = await run('git', ['-C', dir, 'status', '--porcelain', '--', '.']);
   return {
     commit: sha.code === 0 ? sha.out.trim() + (dirty.out.trim() ? '+dirty' : '') : 'working-tree',
     remote: remote.code === 0 ? remote.out.trim().replace(/\.git$/, '').replace(/^git@github\.com:/, 'https://github.com/') : null,

@@ -117,7 +117,7 @@ request (it never opens one without being asked).
   out/FIRSTRUN.md                        the Setup Passport + all evidence
   out/pr/                                everything for the pull request:
       README.md, .env.example, docker-compose.yml   (only if they needed fixing)
-      FIRSTRUN.md, .firstrun/passport.svg, .firstrun/plan.json
+      FIRSTRUN.md, .github/firstrun/passport.svg, .github/firstrun/plan.json
       .devcontainer/, .github/workflows/firstrun.yml
       .bob/custom_modes.yaml, .bob/rules-firstrun-guide/verified-setup.md
 ```

@@ -34,10 +34,10 @@ export async function staticDrift(root, base) {
   return { introduced, resolved, changed, headPlan };
 }
 
-/** Replay a committed, verified plan (.firstrun/plan.json) on a clean machine. */
+/** Replay a committed, verified plan (.github/firstrun/plan.json) on a clean machine. */
 export async function replayVerifiedPlan(root, { onStep } = {}) {
-  const plan = readJson(path.join(root, '.firstrun', 'plan.json'));
-  if (!plan?.steps?.length) return { status: 'skipped', reason: 'no .firstrun/plan.json in this repo yet' };
+  const plan = readJson(path.join(root, '.github', 'firstrun', 'plan.json'));
+  if (!plan?.steps?.length) return { status: 'skipped', reason: 'no .github/firstrun/plan.json in this repo yet' };
   const facts = await scout(root);
   const box = new Sandbox({ image: plan.image, repoDir: root, label: 'guard' });
   const t0 = Date.now();

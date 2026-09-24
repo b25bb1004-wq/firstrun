@@ -322,8 +322,13 @@ export function startServer({ port = 4173, host = '127.0.0.1', roots = [process.
           return ev ? send(res, 200, ev) : notFound(res, `evidence ${parts[4]} not found`);
         }
         if (parts[3] === 'file' && parts.length === 4) {
-          const file = safeJoin(dir, url.searchParams.get('path') || '');
-          if (!file) return send(res, 403, { error: 'path outside run directory or missing' });
+          const rel = url.searchParams.get('path') || '';
+          const file = safeJoin(dir, rel);
+          if (!file) {
+            const lexical = path.resolve(dir, rel);
+            const inside = rel && !rel.includes('\0') && lexical.startsWith(path.resolve(dir) + path.sep);
+            return inside && !fs.existsSync(lexical) ? notFound(res, `${rel} not written yet`) : send(res, 403, { error: 'path is outside the run directory' });
+          }
           let st; try { st = fs.statSync(file); } catch { return notFound(res); }
           if (!st.isFile()) return notFound(res);
           const ext = path.extname(file).toLowerCase();

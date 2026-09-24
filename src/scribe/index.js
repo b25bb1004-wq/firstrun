@@ -7,7 +7,7 @@ import { buildPassport, passportBadge } from './passport.js';
 import { renderReport } from './report.js';
 import { devcontainer, workflow, bobGuide } from './extras.js';
 import { serviceKind } from '../doctor/services.js';
-import { ensureDir, writeJson, run, readText } from '../util.js';
+import { ensureDir, writeJson, run, readText, errorSignature } from '../util.js';
 
 /** Unified diff between two texts, via git (always available where FirstRun runs). */
 export async function unifiedDiff(a, b, label) {
@@ -61,14 +61,16 @@ export async function publish({ root, outDir, facts, plan, evidence, patched, re
 
   const extra = {
     'FIRSTRUN.md': renderReport({ passport, plan, evidence, firstFailure, conflicts: plan.conflicts }),
-    '.firstrun/passport.svg': passportBadge(passport),
-    '.firstrun/passport.json': JSON.stringify(passport, null, 2) + '\n',
-    '.firstrun/plan.json': JSON.stringify(verifiedPlan(plan, passport), null, 2) + '\n',
+    '.github/firstrun/passport.svg': passportBadge(passport),
+    '.github/firstrun/passport.json': JSON.stringify(passport, null, 2) + '\n',
+    '.github/firstrun/plan.json': JSON.stringify(verifiedPlan(plan, passport, evidence), null, 2) + '\n',
     '.github/workflows/firstrun.yml': workflow(),
     ...bobGuide({ plan, evidence, passport }),
   };
   if (!facts.files.some((f) => f.startsWith('.devcontainer/'))) Object.assign(extra, devcontainer({ plan, services, name: plan.repo.split('/').pop() }).files);
   for (const [p, content] of Object.entries(extra)) files[p] = { original: readText(path.join(root, p)), content };
+  const gi = withGitignore(readText(path.join(root, '.gitignore')));
+  if (gi) files['.gitignore'] = { original: readText(path.join(root, '.gitignore')), content: gi };
 
   // Write the PR tree + diffs
   let allDiff = '';
@@ -86,7 +88,7 @@ export async function publish({ root, outDir, facts, plan, evidence, patched, re
   }
   fs.writeFileSync(path.join(out, 'changes.diff'), allDiff);
   fs.writeFileSync(path.join(out, 'FIRSTRUN.md'), files['FIRSTRUN.md'].content);
-  fs.writeFileSync(path.join(out, 'passport.svg'), files['.firstrun/passport.svg'].content);
+  fs.writeFileSync(path.join(out, 'passport.svg'), files['.github/firstrun/passport.svg'].content);
   writeJson(path.join(out, 'passport.json'), passport);
   writeJson(path.join(out, 'files.json'), Object.keys(files));
   for (const [name, rel] of [['changes.diff', 'out/changes.diff'], ['FIRSTRUN.md', 'out/FIRSTRUN.md'], ['passport.svg', 'out/passport.svg'], ['pr', 'out/pr']]) rec.artifact(name, rel);
@@ -95,7 +97,7 @@ export async function publish({ root, outDir, facts, plan, evidence, patched, re
 }
 
 /** The plan as committed to the repo: what the drift guard replays in CI. */
-function verifiedPlan(plan, passport) {
+function verifiedPlan(plan, passport, evidence = []) {
   return {
     firstrun: 1,
     verifiedAt: passport.verifiedAt,
@@ -106,5 +108,17 @@ function verifiedPlan(plan, passport) {
     steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').map((s) => ({
       id: s.id, command: s.command, kind: s.kind, ...(s.serve ? { serve: s.serve } : {}), ...(s.origin === 'repair' ? { origin: 'repair' } : {}),
     })),
+    // What newcomers may still hit on their own machines, and the verified fix for each.
+    knownFailures: evidence.filter((e) => e.status === 'verified').map((e) => ({
+      signature: errorSignature(e.before.logTail),
+      cause: e.diagnosis.cause,
+      fix: e.fix?.doc?.text || '',
+      evidence: e.id,
+    })).filter((k) => k.signature),
   };
+}
+
+function withGitignore(text) {
+  if (text && /^\/?\.firstrun\/?\s*$/m.test(text)) return null;
+  return `${text ? `${text.replace(/\s*$/, '')}\n\n` : ''}# FirstRun local run output (the verified plan lives in .github/firstrun/)\n.firstrun/\n`;
 }
