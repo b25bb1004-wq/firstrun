@@ -99,7 +99,7 @@ jobs:
 export function bobGuide({ plan, evidence, passport }) {
   const steps = plan.steps.filter((s) => !s.skip && s.status !== 'needs-human');
   const signatures = evidence.filter((e) => e.status === 'verified').map((e) => {
-    const sig = (e.before.logTail.split('\n').reverse().find((l) => /error|ERR|refused|not found|missing|cannot|No such/i.test(l)) || '').trim().slice(0, 200);
+    const sig = errorSignature(e.before.logTail);
     return { signature: sig, cause: e.diagnosis.cause, fix: e.fix?.doc?.text || '', evidence: e.id };
   });
   const modes = {
