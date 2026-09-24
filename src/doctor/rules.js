@@ -84,7 +84,7 @@ export const RULES = [
     id: 'python-version',
     test({ log, facts, plan }) {
       if (plan.runtime.name !== 'python' || !facts.python) return null;
-      const m = log.match(/requires a different Python|Requires-Python|ERROR: Package '[^']+' requires a different Python|No module named '(?:tomllib|zoneinfo|graphlib)'|TypeError: unsupported operand type\(s\) for \|: 'type'|SyntaxError: (?:invalid syntax|expected ':')[\s\S]{0,200}(?:match |case |:=|\|)|cannot import name '(?:Self|TypeAlias|override|StrEnum|ExceptionGroup|UTC)'|is not a supported wheel on this platform|Could not find a version that satisfies the requirement[\s\S]{0,300}Requires-Python/);
+      const m = log.match(/requires a different Python|Requires-Python|is not supported by the project|Current Python version \([\d.]+\) is not allowed by the project|python_requires|ERROR: Package '[^']+' requires a different Python|No module named '(?:tomllib|zoneinfo|graphlib)'|TypeError: unsupported operand type\(s\) for \|: 'type'|SyntaxError: (?:invalid syntax|expected ':')[\s\S]{0,200}(?:match |case |:=|\|)|cannot import name '(?:Self|TypeAlias|override|StrEnum|ExceptionGroup|UTC)'|is not a supported wheel on this platform|Could not find a version that satisfies the requirement[\s\S]{0,300}Requires-Python/);
       if (!m) return null;
       const target = facts.python.truth?.version || '3.12';
       if (target === plan.runtime.version) return null;
@@ -353,6 +353,51 @@ export const RULES = [
           patches: [],
           doc: inPy ? { kind: 'insert-step', text: installs[tool] } : { kind: 'prerequisite', text: human, command: installs[tool] },
         },
+      };
+    },
+  },
+  {
+    id: 'npm-peer-conflict',
+    test({ log, step, facts }) {
+      if (!/ERESOLVE (?:unable to resolve dependency tree|could not resolve)/.test(log) || !/^npm\s+(i|install|ci)\b/.test(step.command)) return null;
+      // A committed yarn/pnpm lockfile means the authors never resolve with npm: use their tool.
+      if (facts.node?.lockfile === 'yarn.lock' || facts.node?.lockfile === 'pnpm-lock.yaml') {
+        const tool = facts.node.lockfile === 'yarn.lock' ? 'yarn' : 'pnpm';
+        return {
+          ruleId: 'npm-peer-conflict', class: 'missing-dependency', confidence: 0.88,
+          cause: `npm cannot resolve the peer dependencies, but the repo ships ${facts.node.lockfile}: the maintainers install with ${tool}, not npm.`,
+          fix: { actions: [{ type: 'exec', command: 'corepack enable' }, { type: 'replace-step', command: `${tool} install` }], patches: [], doc: { kind: 'replace-command', text: `corepack enable && ${tool} install` } },
+        };
+      }
+      const cmd = step.command.includes('--legacy-peer-deps') ? null : `${step.command} --legacy-peer-deps`;
+      if (!cmd) return null;
+      return {
+        ruleId: 'npm-peer-conflict', class: 'missing-dependency', confidence: 0.8,
+        cause: 'Current npm refuses the project\'s conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.',
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
+    id: 'apt-package-missing',
+    test({ log, step }) {
+      const m = log.match(/Unable to locate package ([\w.+-]+)|E: Package '([\w.+-]+)' has no installation candidate/);
+      if (!m || !/^(sudo\s+)?apt(-get)?\s+install/.test(step.command)) return null;
+      const pkg = m[1] || m[2];
+      const known = {
+        just: 'curl --proto =https --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin',
+        'docker-compose': null,
+        poetry: 'pip install poetry', pipx: 'pip install pipx', uv: 'pip install uv',
+        nodejs: 'curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs',
+        yarn: 'corepack enable', pnpm: 'corepack enable',
+        'redis-server': null, postgresql: null,
+      };
+      const alt = known[pkg];
+      if (!alt) return null;
+      return {
+        ruleId: 'apt-package-missing', class: 'platform-specific', confidence: 0.8,
+        cause: `Debian/Ubuntu's apt has no "${pkg}" package on a current stable release; the docs' Linux instructions don't work as written.`,
+        fix: { actions: [{ type: 'exec', command: 'apt-get update >/dev/null && (command -v curl >/dev/null || apt-get install -y curl >/dev/null)' }, { type: 'replace-step', command: alt }], patches: [], doc: { kind: 'replace-command', text: alt } },
       };
     },
   },

@@ -21,7 +21,7 @@ ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose]
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
-  firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--brain rules]
+  firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
   firstrun apply  [path]                 copy the corrected files from .firstrun/out/pr into the repo
   firstrun pr     [path]                 apply on a new branch and open a pull request (gh)
@@ -93,7 +93,7 @@ export async function main(argv) {
       const concurrency = Number(args.concurrency || 3);
       console.log(`${bold(cyan('FirstRun swarm'))} ${dim('·')} ${list} ${dim(`· ${concurrency} repos at a time`)}`);
       const { dir, state } = await audit(path.resolve(list), {
-        concurrency, brain: args.brain || 'rules', bobBudget: Number(args['bob-budget'] ?? 0), limit: args.limit ? Number(args.limit) : undefined, only: args.only, id: args.id,
+        concurrency, brain: args.brain || 'rules', bobBudget: Number(args['bob-budget'] ?? 0), limit: args.limit ? Number(args.limit) : undefined, only: args.only, id: args.id, rerun: args.rerun,
         onEvent: (ev) => {
           if (ev.type === 'repo.start') console.log(`${cyan('▶')} ${ev.data.slug}`);
           if (ev.type === 'repo.done') {

@@ -79,7 +79,10 @@ export function isShellBlock(block) {
  */
 export function blockCommands(block) {
   const raw = block.lines;
-  const hasPrompts = raw.some((l) => /^\s*[$%]\s+\S/.test(l.text));
+  const nonEmpty = raw.filter((l) => l.text.trim() && !l.text.trim().startsWith('#'));
+  // "> cmd" is a prompt only when every line uses it (otherwise it's a redirect or quote).
+  const gtPrompts = nonEmpty.length > 0 && nonEmpty.every((l) => /^\s*>\s+\S/.test(l.text));
+  const hasPrompts = gtPrompts || raw.some((l) => /^\s*[$%]\s+\S/.test(l.text));
   const cmds = [];
   let acc = null;
   for (const { text, line } of raw) {
@@ -94,11 +97,11 @@ export function blockCommands(block) {
     if (!trimmed || trimmed.startsWith('#')) continue;
     let body = trimmed;
     if (hasPrompts) {
-      const m = trimmed.match(/^[$%]\s+(.*)$/);
+      const m = trimmed.match(gtPrompts ? /^>\s+(.*)$/ : /^[$%]\s+(.*)$/);
       if (!m) continue; // output line
       body = m[1];
     } else if (/^[$%]\s+/.test(body)) body = body.replace(/^[$%]\s+/, '');
-    body = body.replace(/\s+#\s.*$/, ''); // trailing comment
+    body = body.replace(/\s+#\s.*$/, '').replace(/\s*;\s*$/, ''); // trailing comment, stray semicolon
     if (/\\$/.test(body)) { acc = { text: body.replace(/\\$/, '').trim(), line, endLine: line }; continue; }
     cmds.push({ text: body, line, endLine: line });
   }

@@ -43,6 +43,9 @@ export class Sandbox {
       '-w', '/workspace', this.image, 'infinity']);
     this.started = true;
     await this.sh('mkdir -p /workspace /firstrun && echo /workspace > /firstrun/cwd && : > /firstrun/state.env');
+    // Official Node images bundle Yarn 1; a newcomer who installs Node from nodejs.org
+    // does not have it. Remove it so the sandbox matches a fresh machine.
+    if (/^node:/.test(this.image)) await this.sh('rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg; rm -rf /opt/yarn-*');
     await this.copyRepo();
     for (const p of this.patches) await this.writeFile(p.path, p.content);
   }

@@ -22,6 +22,12 @@ export function classify(cmd, facts) {
   const c = cmd.trim().replace(/^sudo\s+/, '');
   const ctx = {};
   if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: FirstRun starts from a fresh clone already' };
+  if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
+  if (/^(poetry|pipenv|hatch)\s+shell\b/.test(c)) return { kind: 'env', skip: 'interactive subshell: FirstRun activates the same environment after install', subshell: c.split(/\s+/)[0] };
+  if (/^(npm|yarn|pnpm|bun|make|just|npx|poetry\s+run|uv\s+run|pipenv\s+run)\s+(run\s+)?[\w:-]*(lint|prettier|format|fmt|coverage|\bcov\b|watch|storybook|husky|pre-?commit|commitlint|release|deploy|publish|typecheck|type-check|\bmm\b|makemigrations|downgrade|rollback|docs?:)/i.test(c)
+    || /^(pre-commit|eslint|prettier|black|ruff|flake8|mypy|isort|pylint)\b/.test(c)) {
+    return { kind: 'other', skip: 'developer tooling, not needed to run the project' };
+  }
   if (/^(brew|port|xcode-select|open)\s/.test(c) || /^open$/.test(c)) return { kind: 'prereq', skip: 'macOS-only command' };
   if (/\\Scripts\\|^set\s+\w+=|^\$env:|^copy\s|\.bat\b|\.ps1\b|^start\s+http|^(choco|winget|scoop)\s|^\.\\/i.test(c)) return { kind: 'prereq', skip: 'Windows-only command' };
   if (/^(nvm|fnm|n)\s+(install|use)\b|^(pyenv)\s+(install|local|global|shell)\b|^asdf\s+install\b|^volta\s+install\s+node/.test(c)) return { kind: 'prereq', skip: 'runtime selection: the base image provides the runtime', runtimeHint: true };
@@ -99,7 +105,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
       const cmds = blockCommands(b);
       const managers = new Set();
       for (const c of cmds) {
-        for (const part of splitAnd(c.text)) {
+        for (const rawPart of splitAnd(c.text)) {
+          // "--env local|dev|prod" documents choices; a newcomer picks the first.
+          const part = rawPart.replace(/(^|[\s=])([\w.-]+)((?:\|[\w.-]+)+)(?=\s|$)/g, '$1$2');
           const cls = classify(part, facts);
           if (cls.runtimeHint) runtimeHint = true;
           const step = {
@@ -110,6 +118,8 @@ export function buildPlan(facts, { repo, commit } = {}) {
             origin: 'readme',
           };
           if (cls.skip) step.skip = cls.skip;
+          if (cls.subshell) step.subshell = cls.subshell;
+          if (rawPart !== part) step.docCommand = rawPart;
           if (cls.probe) step.probe = true;
           // Alternatives such as "npm install" / "yarn" listed together: keep the project's manager.
           const mgr = managerOf(part);
@@ -152,6 +162,15 @@ export function buildPlan(facts, { repo, commit } = {}) {
   for (const s of serves.slice(0, -1)) {
     const later = serves[serves.length - 1];
     if (s.source.line !== later.source.line) s.skip = `alternative start command (using "${later.command}")`;
+  }
+  // "poetry shell" / "pipenv shell" drop the reader into the project's virtualenv; emulate it
+  // non-interactively right after the matching install step.
+  for (const sub of steps.filter((s) => s.subshell)) {
+    const tool = sub.subshell;
+    const install = steps.find((s) => !s.skip && new RegExp(`^${tool}\\s+(install|sync)\\b`).test(s.command));
+    const activate = tool === 'poetry' ? 'source "$(poetry env info --path)/bin/activate"' : tool === 'pipenv' ? 'source "$(pipenv --venv)/bin/activate"' : 'source "$(hatch env find)/bin/activate"';
+    const synthetic = { id: '', command: activate, kind: 'env', source: { ...sub.source }, origin: 'readme', synthetic: `emulates \`${sub.command}\`` };
+    steps.splice(install ? steps.indexOf(install) + 1 : steps.indexOf(sub) + 1, 0, synthetic);
   }
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 

@@ -31,7 +31,7 @@ export async function fetchRepo(url, ref, { slug } = {}) {
  * team scouts, plans, cold-starts, repairs and replays its repo independently;
  * the audit collects every Setup Passport into one scoreboard.
  */
-export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBudget = 0, limit, only, id, root = process.cwd(), onEvent, printer } = {}) {
+export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBudget = 0, limit, only, id, rerun, root = process.cwd(), onEvent, printer } = {}) {
   const list = readJson(listFile);
   if (!list?.repos?.length) throw new Error(`${listFile} has no repos`);
   let repos = list.repos;
@@ -44,7 +44,7 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
   const prev = readJson(path.join(dir, 'audit.json'));
   const state = {
     id: auditId, startedAt: prev?.startedAt || nowIso(), source: path.relative(root, listFile).replace(/\\/g, '/'), concurrency, brain,
-    repos: repos.map((r) => prev?.repos?.find((p) => p.slug === r.slug && p.status === 'done') || ({ slug: r.slug, url: r.url, ref: r.ref, stack: r.stack, status: 'queued', verdict: null, passport: null, runDir: `runs/${r.slug}` })),
+    repos: repos.map((r) => prev?.repos?.find((p) => p.slug === r.slug && p.status === 'done' && !(rerun === 'all' || (rerun === 'failed' && p.verdict !== 'VERIFIED'))) || ({ slug: r.slug, url: r.url, ref: r.ref, stack: r.stack, status: 'queued', verdict: null, passport: null, runDir: `runs/${r.slug}` })),
   };
   const save = () => writeJson(path.join(dir, 'audit.json'), { ...state, summary: summarize(state) });
   const emit = (type, data) => {

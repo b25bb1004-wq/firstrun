@@ -42,7 +42,7 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
         changed = true;
       }
       if (s.readmeCommand && s.readmeCommand !== s.command) changed = true;
-      parts.push(s.command);
+      parts.push(s.readmeCommand ? s.command : (s.docCommand || s.command));
       for (const e of evFor(s)) {
         const d = e.fix?.doc;
         if (d?.kind === 'note' && e.status === 'verified') {

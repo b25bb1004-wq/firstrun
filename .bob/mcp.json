@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "firstrun": {
+      "command": "node",
+      "args": ["bin/firstrun.js", "mcp"],
+      "alwaysAllow": ["firstrun_plan", "firstrun_status", "firstrun_evidence", "firstrun_guide", "firstrun_drift"],
+      "disabled": false
+    }
+  }
+}
