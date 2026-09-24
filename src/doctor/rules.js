@@ -81,6 +81,34 @@ export const RULES = [
     },
   },
   {
+    // Native add-ons (node-sass, old bcrypt, sqlite3 …) that have no prebuilt binary for a newer
+    // Node and fail to compile. The project's era tells us which Node it was written for.
+    id: 'node-native-build',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'node' || !facts.node) return null;
+      if (!/gyp ERR!|node-pre-gyp ERR!|prebuild-install warn install No prebuilt binaries|Node Sass does not yet support your current environment|binding\.gyp|make: \*\*\* \[.*\.o\] Error|error: no member named .* in namespace 'v8'|NODE_MODULE_VERSION \d+\. This version of Node\.js requires/.test(log)) return null;
+      const current = Number(plan.runtime.version);
+      let target = facts.node.truth?.version ? Number(facts.node.truth.version) : null;
+      let why = facts.node.truth?.source;
+      if (!target || target >= current) {
+        // No usable pin: step back through LTS lines the project could have been written for.
+        const ladder = [20, 18, 16, 14].filter((v) => v < current);
+        target = ladder[0];
+        why = 'native modules fail to build on Node.js ' + current + ' and the repo pins no version';
+      }
+      if (!target) return null;
+      return {
+        ruleId: 'node-native-build', class: 'runtime-version', confidence: facts.node.truth ? 0.85 : 0.6,
+        cause: `A native dependency does not build on Node.js ${current}; the project needs an older Node.js (${why}).`,
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', String(target)), runtime: { name: 'node', version: String(target), source: why } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target} (native dependencies do not build on newer versions)`, runtime: { name: 'node', version: String(target) } },
+        },
+      };
+    },
+  },
+  {
     id: 'python-version',
     test({ log, facts, plan }) {
       if (plan.runtime.name !== 'python' || !facts.python) return null;

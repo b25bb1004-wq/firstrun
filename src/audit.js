@@ -67,7 +67,7 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
       try {
         const src = await fetchRepo(r.url, r.ref, { slug: r.slug });
         const res = await verifyRepo(src, {
-          out: path.join(dir, r.runDir), brain, budget, repoLabel: r.url.replace(/^https:\/\/github\.com\//, ''), id: `${auditId}-${r.slug}`,
+          out: path.join(dir, r.runDir), brain, budget, maxMinutes: 20, repoLabel: r.url.replace(/^https:\/\/github\.com\//, ''), id: `${auditId}-${r.slug}`,
           onRecorder: (rec) => {
             printer?.(rec, r.slug);
             rec.on('event', (ev) => {

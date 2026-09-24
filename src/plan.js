@@ -19,7 +19,8 @@ const SERVE_RE = /^(?:(?:npm|pnpm|bun)\s+(?:run\s+)?(?:start|dev|serve|develop|w
 const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|python3?\s+manage\.py\s+test|make\s+test|go\s+test)/i;
 
 export function classify(cmd, facts) {
-  const c = cmd.trim().replace(/^sudo\s+/, '');
+  // "DEBUG=app:* npm run devstart" is still "npm run devstart"
+  const c = cmd.trim().replace(/^sudo\s+/, '').replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '');
   const ctx = {};
   if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: FirstRun starts from a fresh clone already' };
   if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };

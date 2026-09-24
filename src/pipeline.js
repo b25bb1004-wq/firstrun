@@ -11,7 +11,7 @@ import { publish } from './scribe/index.js';
 import { run, tail, nowIso, shortId, readText } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
-const MAX_REBASES = 2;
+const MAX_REBASES = 3;
 
 /** Does the error a fix targeted still occur after the fix? */
 async function stillFailing(diagnosis, before, after, ctx) {
@@ -58,6 +58,7 @@ export async function verifyRepo(repoDir, opts = {}) {
   const brain = opts.brain || 'auto';
   const budget = opts.budget || makeBudget(opts.bobBudget ?? 4, opts.bobPerCall ?? 1.5);
   const say = (agent, msg) => rec.emitEvent(agent, 'note', { message: msg });
+  const startedAt = Date.now();
   let sandbox = null;
   let replayBox = null;
   try {
@@ -109,7 +110,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           if (!p.ok) r.exitCode = 1;
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
-      } else r = await box.exec(step.command, { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000 });
+      } else r = await box.exec(step.command, { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
       const attempt = {
         stepId: step.id, n, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs,
         logTail: tail(r.out, 60), logFile: rec.writeLog(`${agent === 'verifier' ? 'replay-' : ''}${step.id}-${n}`, r.out), out: r.out,
@@ -141,6 +142,11 @@ export async function verifyRepo(repoDir, opts = {}) {
     while (i < plan.steps.length) {
       const step = plan.steps[i];
       if (step.skip) { i++; continue; }
+      if (opts.maxMinutes && Date.now() - startedAt > opts.maxMinutes * 60_000) {
+        say('runner', `time budget of ${opts.maxMinutes} min reached; stopping before ${step.id}`);
+        stopped = step.id;
+        break;
+      }
       let attempt = await execStep(step);
       if (attempt.exitCode === 0) {
         step.status = step.status === 'repairing' ? 'repaired' : 'passed';

@@ -124,14 +124,48 @@ export class Sandbox {
    * Run one step the way a person would type it. Returns
    * { exitCode, out, durationMs }. `onData` streams output.
    */
-  async exec(command, { onData, timeoutMs = 20 * 60_000 } = {}) {
+  async exec(command, { onData, timeoutMs = 20 * 60_000, detectServer = true } = {}) {
     const id = ++this.seq;
     await this.writeFile(`/firstrun/step-${id}.sh`, this.wrap(command));
     const secs = Math.ceil(timeoutMs / 1000);
-    const r = await run('docker', ['exec', this.name, 'timeout', '--kill-after=10', String(secs), 'bash', `/firstrun/step-${id}.sh`], { onData, timeoutMs: timeoutMs + 30_000 });
+    const started = Date.now();
+    let soFar = '';
+    const baseline = detectServer ? await this.listeningPorts() : [];
+    let finished = false;
+    const runP = run('docker', ['exec', this.name, 'timeout', '--kill-after=10', String(secs), 'bash', `/firstrun/step-${id}.sh`], {
+      onData: (d) => { soFar += d; onData?.(d); }, timeoutMs: timeoutMs + 30_000,
+    }).then((r) => { finished = true; return { r }; });
+    // A README step that never exits but starts listening is a server the docs
+    // didn't label as one ("npm start" hidden behind a custom script name).
+    const watcher = detectServer ? (async () => {
+      await sleep(12_000);
+      while (!finished) {
+        const svc = this.services.map((s) => s.port);
+        const fresh = (await this.listeningPorts()).filter((p) => p < 32768 && !baseline.includes(p) && !svc.includes(p));
+        if (fresh.length && !finished) return { server: fresh[0] };
+        await sleep(3000);
+      }
+      return new Promise(() => {});
+    })() : new Promise(() => {});
+    const first = await Promise.race([runP, watcher]);
+    if (first.server) {
+      return { exitCode: 0, out: `${soFar}\n[firstrun] still running and listening on port ${first.server}: treating this step as the app server\n`, durationMs: Date.now() - started, detectedServer: first.server };
+    }
+    const r = first.r;
     let out = r.out;
     if (r.code === 124) out += `\n[firstrun] step timed out after ${secs}s\n`;
     return { exitCode: r.code, out, durationMs: r.durationMs };
+  }
+
+  /** TCP ports in LISTEN state inside the sandbox (read from /proc; no tools needed). */
+  async listeningPorts() {
+    const r = await run('docker', ['exec', this.name, 'sh', '-c', 'cat /proc/net/tcp /proc/net/tcp6 2>/dev/null']);
+    const ports = new Set();
+    for (const line of r.out.split('\n')) {
+      const cols = line.trim().split(/\s+/);
+      if (cols[3] === '0A' && cols[1]?.includes(':')) ports.add(parseInt(cols[1].split(':').pop(), 16));
+    }
+    return [...ports];
   }
 
   /**
