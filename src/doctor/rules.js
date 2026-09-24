@@ -219,35 +219,57 @@ export const RULES = [
     id: 'missing-env-var',
     async test(ctx) {
       const { log, facts, plan, sandboxEnv } = ctx;
-      let name = null;
-      for (const re of ENV_PATTERNS) {
-        const m = log.match(re);
-        if (m && !/^(NODE_ENV|PATH|HOME|ERROR|WARN|INFO|DEBUG|TypeError|SyntaxError)$/.test(m[1])) { name = m[1]; break; }
+      // Validators (joi, zod, envalid, pydantic) often list every missing variable at once.
+      const names = new Set();
+      const bad = /^(NODE_ENV|PATH|HOME|ERROR|WARN|INFO|DEBUG|TypeError|SyntaxError)$/;
+      for (const re of [...ENV_PATTERNS, /"([A-Z][A-Z0-9_]{2,})" is required/, /env-var: "([A-Z][A-Z0-9_]{2,})" is a required variable/]) {
+        for (const m of log.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`))) {
+          if (m[1] && !bad.test(m[1]) && !sandboxEnv[m[1]]) names.add(m[1]);
+        }
       }
-      if (!name) return null;
-      if (sandboxEnv[name]) return null; // already set; something else is wrong
-      const { value, kind } = devValue(name, ctx);
+      if (!names.size) return null;
       const envFile = facts.envExample?.file;
+      const exampleKeys = facts.envExample?.keys || {};
       const copyStep = plan.steps.find((s) => !s.skip && /^(cp|mv)\s+\S*\.?env\S*\s+\.env\b/.test(s.command));
+      const inExample = [...names].filter((n) => n in exampleKeys);
+      const missing = [...names].filter((n) => !(n in exampleKeys));
+      const loads = facts.loadsDotenv || copyStep;
       const actions = [];
       const patches = [];
       let doc;
-      const loads = facts.loadsDotenv || copyStep;
-      if (envFile && loads) {
-        patches.push({ path: envFile, op: 'append-env', key: name, value, comment: kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
-        actions.push({ type: 'exec', command: `touch .env && printf '\\n%s=%s\\n' ${shq(name)} ${shq(value)} >> .env` });
-        doc = { kind: 'note', text: `${envFile} now includes ${name} (required at startup).`, envVar: name };
-        if (!copyStep) {
-          actions.unshift({ type: 'insert-before', command: `cp ${envFile} .env`, kind: 'env' });
-        }
-      } else {
-        actions.push({ type: 'insert-before', command: `export ${name}=${/\s/.test(value) ? shq(value) : value}`, kind: 'env' });
-        doc = { kind: 'insert-step', text: `export ${name}=${value}`, envVar: name };
+      let kinds = [];
+      // The template already has them: the docs just never say to copy it.
+      if (envFile && !copyStep && inExample.length) {
+        actions.push({ type: 'insert-before', command: `cp ${envFile} .env`, kind: 'env' });
+        doc = { kind: 'insert-step', text: `cp ${envFile} .env` };
       }
+      if (missing.length) {
+        if (envFile && loads) {
+          if (!copyStep && !actions.length) actions.push({ type: 'insert-before', command: `cp ${envFile} .env`, kind: 'env' });
+          for (const n of missing) {
+            const { value, kind } = devValue(n, ctx);
+            kinds.push(kind);
+            patches.push({ path: envFile, op: 'append-env', key: n, value, comment: kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
+            actions.push({ type: 'exec', command: `touch .env && printf '\\n%s=%s\\n' ${shq(n)} ${shq(value)} >> .env` });
+          }
+          doc = doc || { kind: 'note', text: `${envFile} now includes ${missing.join(', ')} (required at startup).`, envVar: missing.join('`, `') };
+        } else {
+          for (const n of missing) {
+            const { value, kind } = devValue(n, ctx);
+            kinds.push(kind);
+            actions.push({ type: 'insert-before', command: `export ${n}=${/\s/.test(value) ? shq(value) : value}`, kind: 'env' });
+          }
+          doc = doc || { kind: 'insert-step', text: missing.map((n) => `export ${n}=…`).join(' && '), envVar: missing.join('`, `') };
+        }
+      }
+      const list = [...names];
+      const shown = list.length > 4 ? `${list.slice(0, 4).join(', ')} and ${list.length - 4} more` : list.join(', ');
+      const cause = missing.length
+        ? `The app requires ${shown} at startup, but the docs never mention ${list.length > 1 ? 'them' : 'it'}${envFile ? ` and ${envFile} is missing ${missing.length === list.length ? (list.length > 1 ? 'them' : 'it') : missing.join(', ')}` : ''}.`
+        : `The app requires ${shown} from ${envFile}, but the docs never say to create .env from it.`;
       return {
-        ruleId: 'missing-env-var', class: kind === 'secret' ? 'needs-secret' : 'missing-env', confidence: 0.9,
-        cause: `The app requires ${name} at startup, but the docs never mention it${envFile ? ` and ${envFile} doesn't include it` : ''}.`,
-        fix: { actions, patches, doc },
+        ruleId: 'missing-env-var', class: kinds.every((k) => k === 'secret') && kinds.length ? 'needs-secret' : 'missing-env', confidence: 0.9,
+        cause, fix: { actions, patches, doc },
       };
     },
   },
@@ -331,7 +353,7 @@ export const RULES = [
       const mod = (m[2] || m[3] || '').split('/').slice(0, (m[2] || m[3] || '').startsWith('@') ? 2 : 1).join('/');
       const pymod = m[4]?.split('.')[0];
       const nodeBins = ['tsc', 'ts-node', 'tsx', 'nodemon', 'next', 'vite', 'jest', 'vitest', 'mocha', 'eslint', 'prisma', 'knex', 'sequelize', 'nest', 'react-scripts', 'webpack', 'rollup', 'concurrently', 'cross-env', 'turbo', 'nx', 'astro', 'nuxt', 'svelte-kit', 'remix', 'playwright', 'drizzle-kit', 'typeorm'];
-      const installed = plan.steps.some((s) => s.kind === 'install' && s.status === 'passed' && /(npm|yarn|pnpm|bun)\s+(i|install|ci)\b|^yarn$/.test(s.command));
+      const installed = plan.steps.some((s) => s.kind === 'install' && ['passed', 'repaired'].includes(s.status) && /(npm|yarn|pnpm|bun)\s+(i|install|ci)\b|^yarn$/.test(s.command));
       if (facts.node && !installed && ((bin && nodeBins.includes(bin)) || (mod && facts.node.deps.includes(mod)))) {
         const cmd = installCmd(facts);
         return {
@@ -340,7 +362,7 @@ export const RULES = [
           fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
         };
       }
-      const pyInstalled = plan.steps.some((s) => s.kind === 'install' && s.status === 'passed' && /pip3? install|poetry install|uv sync|pipenv install/.test(s.command));
+      const pyInstalled = plan.steps.some((s) => s.kind === 'install' && ['passed', 'repaired'].includes(s.status) && /pip3? install|poetry install|uv sync|pipenv install/.test(s.command));
       if (facts.python && pymod && !pyInstalled && facts.python.deps.some((d) => d.replace(/-/g, '_') === pymod.toLowerCase() || d === pymod.toLowerCase())) {
         const req = facts.python.requirementsFiles.find((f) => /^requirements\.txt$/.test(f)) || facts.python.requirementsFiles[0];
         const cmd = facts.python.manager === 'poetry' ? 'poetry install' : facts.python.manager === 'uv' ? 'uv sync' : req ? `pip install -r ${req}` : 'pip install -e .';
@@ -370,6 +392,16 @@ export const RULES = [
         uvicorn: 'pip install uvicorn', gunicorn: 'pip install gunicorn', flask: 'pip install flask', pytest: 'pip install pytest',
         'docker-compose': null, docker: null,
       };
+      // CLIs that READMEs assume are installed globally but the project doesn't depend on.
+      const globalNpm = { nodemon: 'nodemon', 'ts-node': 'ts-node', tsc: 'typescript', pm2: 'pm2', serve: 'serve', 'http-server': 'http-server', gulp: 'gulp-cli', grunt: 'grunt-cli', bower: 'bower', 'sequelize': 'sequelize-cli', 'knex': 'knex', 'nest': '@nestjs/cli', 'vue-cli-service': '@vue/cli-service', 'ng': '@angular/cli', 'tsx': 'tsx', 'concurrently': 'concurrently', 'cross-env': 'cross-env', 'babel-node': '@babel/node' };
+      if (facts.node && globalNpm[tool] && !facts.node.deps.includes(globalNpm[tool]) && !facts.node.deps.includes(tool)) {
+        const cmd = `npm install --global ${globalNpm[tool]}`;
+        return {
+          ruleId: 'missing-tool', class: 'missing-tool', confidence: 0.85,
+          cause: `The scripts call \`${tool}\`, but it isn't a dependency of the project: the docs assume it is installed globally.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+        };
+      }
       if (!(tool in installs) || installs[tool] === null) return null;
       const human = { yarn: 'Yarn (via `corepack enable`)', pnpm: 'pnpm (via `corepack enable`)', python: 'a `python` command (python3)', psql: 'the PostgreSQL client (psql)', createdb: 'the PostgreSQL client (createdb)' }[tool] || tool;
       const inPy = ['uvicorn', 'gunicorn', 'flask', 'pytest'].includes(tool);
