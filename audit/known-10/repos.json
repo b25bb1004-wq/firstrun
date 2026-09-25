@@ -1,0 +1,12 @@
+{ "generatedAt": "2026-09-26T01:30:00+05:30", "note": "10 well-known public repos (sahat..wagtail), pinned; chosen by Friday for the as-written vs FirstRun comparison", "repos": [
+  { "slug": "sahat__hackathon-starter", "url": "https://github.com/sahat/hackathon-starter", "ref": "410fccec23f6d4b509397b408ba7745f0f469027", "stack": "node", "stars": 35250 },
+  { "slug": "hagopj13__node-express-boilerplate", "url": "https://github.com/hagopj13/node-express-boilerplate", "ref": "179ae84efec61b14206d0305d941daed6c6d07f9", "stack": "node", "stars": 7660 },
+  { "slug": "gothinkster__node-express-realworld-example-app", "url": "https://github.com/gothinkster/node-express-realworld-example-app", "ref": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b", "stack": "node", "stars": 3796 },
+  { "slug": "expressjs__express", "url": "https://github.com/expressjs/express", "ref": "9a34acf03cb818ff3f8bc40e44176e277a25cbb9", "stack": "node", "stars": 69478 },
+  { "slug": "koajs__koa", "url": "https://github.com/koajs/koa", "ref": "824c1cf8de9a91a2941973b25dc8a3d3029b9e4f", "stack": "node", "stars": 35683 },
+  { "slug": "pallets__flask", "url": "https://github.com/pallets/flask", "ref": "d73fa1cdcbd8b1465c151db8924ba58b1dd14e35", "stack": "python", "stars": 74779 },
+  { "slug": "psf__requests", "url": "https://github.com/psf/requests", "ref": "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60", "stack": "python", "stars": 54343 },
+  { "slug": "fastapi__full-stack-fastapi-template", "url": "https://github.com/fastapi/full-stack-fastapi-template", "ref": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7", "stack": "node", "stars": 45763 },
+  { "slug": "httpie__cli", "url": "https://github.com/httpie/cli", "ref": "5b604c37c6c67e18e7c3e9aee6c88a8c22b98345", "stack": "python", "stars": 38585 },
+  { "slug": "wagtail__bakerydemo", "url": "https://github.com/wagtail/bakerydemo", "ref": "c8f8255593c0efcfab5fef2fb19d60895227748a", "stack": "python", "stars": 1084 }
+] }
