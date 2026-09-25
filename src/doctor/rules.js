@@ -428,6 +428,15 @@ export const RULES = [
   {
     id: 'deps-not-installed',
     test({ log, facts, plan, step }) {
+      // `poetry run uvicorn …` before any `poetry install`: Poetry says "Command not found: uvicorn" (often from a justfile or Makefile).
+      const poetryCmd = log.match(/Command not found: ([\w.-]+)/);
+      if (poetryCmd && facts.python?.manager === 'poetry' && !plan.steps.some((s) => ['passed', 'repaired'].includes(s.status) && /poetry install/.test(s.command))) {
+        return {
+          ruleId: 'deps-not-installed', class: 'wrong-order', confidence: 0.88,
+          cause: `\`poetry run ${poetryCmd[1]}\` can't find ${poetryCmd[1]}: the project's dependencies were never installed, because the docs skip \`poetry install\`.`,
+          fix: { actions: [{ type: 'insert-before', command: 'poetry install', kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: 'poetry install' } },
+        };
+      }
       const m = log.match(/(?:sh|bash): (?:\d+: )?([\w.-]+): (?:command )?not found|Cannot find module '([^./][^']*)'|Error: Cannot find package '([^']+)'|ModuleNotFoundError: No module named '([\w.]+)'/);
       if (!m) return null;
       const bin = m[1];
