@@ -70,17 +70,20 @@ export class Sandbox {
       '-w', '/workspace'];
     if (this.cacheVolume) {
       args.push(
-        '-v', `${this.cacheVolume}:/root/.npm`,
-        '-v', `${this.cacheVolume}:/usr/local/share/.cache/yarn`,
-        '-v', `${this.cacheVolume}:/root/.cache/yarn`,
-        '-v', `${this.cacheVolume}:/root/.cache/pip`,
-        '-v', `${this.cacheVolume}:/root/.cache/uv`,
+        '-v', `${this.cacheVolume}:/firstrun-cache`,
+        '-e', 'npm_config_cache=/firstrun-cache/npm',
+        '-e', 'YARN_CACHE_FOLDER=/firstrun-cache/yarn',
+        '-e', 'PIP_CACHE_DIR=/firstrun-cache/pip',
+        '-e', 'UV_CACHE_DIR=/firstrun-cache/uv',
       );
     }
     args.push(this.image, 'infinity');
     await must('docker', args);
     this.started = true;
     await this.sh('mkdir -p /workspace /firstrun && echo /workspace > /firstrun/cwd && : > /firstrun/state.env');
+    if (this.cacheVolume) {
+      await this.sh('mkdir -p /firstrun-cache/npm /firstrun-cache/yarn /firstrun-cache/pip /firstrun-cache/uv /root/.cache && { [ -e /root/.npm ] || ln -sf /firstrun-cache/npm /root/.npm; }');
+    }
     await this.installShims();
     // Official Node images bundle Yarn 1; a newcomer who installs Node from nodejs.org
     // does not have it. Remove it so the sandbox matches a fresh machine.

@@ -5,7 +5,7 @@ import { buildPassport } from '../src/scribe/passport.js';
 import { renderReport } from '../src/scribe/report.js';
 import { run } from '../src/util.js';
 
-test('buildPassport and renderReport include package cache note when replay reuses downloads', () => {
+test('buildPassport and renderReport include package cache note and relabel when replay reuses downloads', () => {
   const plan = {
     repo: 'acme/shop',
     commit: 'abc1234',
@@ -38,6 +38,37 @@ test('buildPassport and renderReport include package cache note when replay reus
   });
 
   assert.match(report, /Replay reused this run's package downloads from cold start \(npm, yarn, pip, uv cache\)\./);
+  assert.match(report, /Clone to running \(cached packages\)/);
+});
+
+test('renderReport omits package cache note on old-shape passports where packageCache is undefined', () => {
+  // Existing runs like real-16-v2 have replaySeconds but never had packageCache field
+  const passport = {
+    repo: 'acme/shop',
+    commit: 'abc1234',
+    verifiedAt: '2026-09-25T12:00:00Z',
+    verdict: 'VERIFIED',
+    image: 'node:20-slim',
+    runtime: 'Node.js 20',
+    stepsTotal: 3,
+    stepsFromReadme: 3,
+    breaksFound: 0,
+    breaksFixed: 0,
+    needsHuman: 0,
+    replaySeconds: 45,
+    verify: { kind: 'command', target: 'npm test' },
+  };
+
+  const report = renderReport({
+    passport,
+    plan: { steps: [] },
+    evidence: [],
+    firstFailure: null,
+    conflicts: [],
+  });
+
+  assert.doesNotMatch(report, /Replay reused this run's package downloads/);
+  assert.match(report, /Clone to running, from zero/);
 });
 
 test('renderReport omits package cache note when packageCache is explicitly false and no replay', () => {
@@ -91,8 +122,8 @@ test('Sandbox per-run package cache mounts and shares cached downloads across co
 
   try {
     await box1.start();
-    // Simulate npm storing files in /root/.npm
-    await box1.sh('echo "cached-artifact-data" > /root/.npm/cached-pkg.txt');
+    // Simulate npm / pip storing files in /firstrun-cache or via symlink
+    await box1.sh('echo "cached-artifact-data" > /firstrun-cache/npm/cached-pkg.txt');
     await box1.stop();
 
     // Replay box starts with the same cacheVolume
@@ -104,8 +135,11 @@ test('Sandbox per-run package cache mounts and shares cached downloads across co
     });
 
     await box2.start();
-    const result = await box2.sh('cat /root/.npm/cached-pkg.txt');
-    assert.equal(result.out.trim(), 'cached-artifact-data', 'replay sandbox should see packages cached by the cold start');
+    // Verify both via direct path and via /root/.npm symlink
+    const resultDirect = await box2.sh('cat /firstrun-cache/npm/cached-pkg.txt');
+    assert.equal(resultDirect.out.trim(), 'cached-artifact-data', 'replay sandbox should see packages in /firstrun-cache');
+    const resultSymlink = await box2.sh('cat /root/.npm/cached-pkg.txt');
+    assert.equal(resultSymlink.out.trim(), 'cached-artifact-data', 'symlink to /root/.npm should also work');
     await box2.stop();
   } finally {
     await removeCacheVolume(volName);

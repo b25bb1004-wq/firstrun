@@ -81,7 +81,10 @@ export function printPassport(d, p = console.log) {
   p(`  │ ${bold(d.repo)} @ ${d.commit}`);
   p(`  │ ${color(bold(d.verdict))}  ·  ${d.runtime} (${d.image})`);
   p(`  │ breaks found ${bold(d.breaksFound)} · fixed ${bold(d.breaksFixed)} · needs a human ${bold(d.needsHuman)}`);
-  if (d.replaySeconds) p(`  │ clone → running, from zero: ${bold(fmtDuration(d.replaySeconds * 1000))}`);
+  if (d.replaySeconds) {
+    const label = d.packageCache ? 'clone → running (cached packages)' : 'clone → running, from zero';
+    p(`  │ ${label}: ${bold(fmtDuration(d.replaySeconds * 1000))}`);
+  }
   if (d.diagnosedByBob || d.bobcoins) p(`  │ IBM Bob: ${d.diagnosedByBob} diagnoses · ${d.bobcoins} Bobcoins`);
   p(color(bold(`  └${'─'.repeat(57)}`)));
 }
