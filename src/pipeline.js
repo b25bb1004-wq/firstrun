@@ -362,7 +362,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         };
         rec.evidence(record);
         stepEvidence.push(record);
-        history.push({ cause: diagnosis.cause, actions: fix.actions });
+        history.push({ cause: diagnosis.cause, actions: fix.actions, worked: progressed });
         if (verified) {
           repaired = true;
           for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
@@ -375,7 +375,11 @@ export async function verifyRepo(repoDir, opts = {}) {
         }
       }
       if (!repaired) {
-        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) rec.evidence({ ...r, status: 'failed' });
+        // A fix that cleared its own error still worked, even if the step later failed on
+        // something else: keep it as "progressed" (not counted as fixed) and link what it revealed.
+        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
+          rec.evidence({ ...r, revealed: stepEvidence[stepEvidence.indexOf(r) + 1]?.id });
+        }
       }
       if (repaired) {
         step.status = 'repaired';

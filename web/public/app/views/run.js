@@ -149,7 +149,7 @@ export function evidenceDrawerHTML(runId, e) {
   return h`<div class="drawer-backdrop" data-close></div>
   <aside class="drawer" role="dialog" aria-modal="true" aria-label="Evidence ${e.id}">
     <header class="dr-head">
-      <div class="dr-title"><span class="dr-id">${e.id}</span><span>Step ${e.stepId}</span><span class="chip c-${e.status === 'verified' ? 'passed' : e.status === 'needs-human' ? 'needs-human' : 'failed'}">${e.status === 'verified' ? 'Verified' : e.status === 'needs-human' ? 'Needs a human' : 'Failed'}</span></div>
+      <div class="dr-title"><span class="dr-id">${e.id}</span><span>Step ${e.stepId}</span><span class="chip c-${e.status === 'verified' ? 'passed' : e.status === 'needs-human' ? 'needs-human' : e.status === 'progressed' ? 'repaired' : 'failed'}">${e.status === 'verified' ? 'Verified' : e.status === 'needs-human' ? 'Needs a human' : e.status === 'progressed' ? 'Worked, next error' : 'Failed'}</span></div>
       <button class="icon-btn" data-close aria-label="Close evidence">${icon('close')}</button>
     </header>
     <div class="dr-diag ${bob ? 'by-bob' : ''}">
