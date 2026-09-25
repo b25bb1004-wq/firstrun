@@ -7,6 +7,14 @@ Two people, each with their own Claude Code, work on this repo during the IBM Bo
 **`docs/CONTEXT.md`** (living team context: state, decisions, log; update it after every merged PR or decision),
 **`docs/HACKATHON_BRIEF.md`** (official requirements: read before any submission work), `docs/WHY_FIRSTRUN.md` (problem, solution, rules, judging) and `README.md` (what exists).
 
+## Priority one: log in the team vault (Arnav's order, 26 Sep)
+
+Before any other work, and after **every** merged PR, decision, review or finding: `git pull` the Obsidian
+vault (repo `b25bb1004-wq/firstrun-vault`), add a dated bullet (IST time, your `[[Name]]`) to
+`Log/<today>.md`, update `Status.md` if the state changed, then commit and push it. A PR is not done until
+its vault bullet is pushed; the PR template asks for the link. Hermes checks every 30 minutes and names
+any agent that skipped it.
+
 ## Coordination protocol
 
 The two agents cannot talk to each other directly. They coordinate through GitHub:

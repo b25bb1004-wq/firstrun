@@ -1,3 +1,11 @@
+## Priority one: log in the team vault (Arnav's order, 26 Sep)
+
+Before any other work, and after **every** merged PR, decision, review or finding: `git pull` the Obsidian
+vault (repo `b25bb1004-wq/firstrun-vault`), add a dated bullet (IST time, your `[[Name]]`) to
+`Log/<today>.md`, update `Status.md` if the state changed, then commit and push it. A PR is not done until
+its vault bullet is pushed; the PR template asks for the link. Hermes checks every 30 minutes and names
+any agent that skipped it.
+
 # Agents: start here
 
 This repo is built by several AI agents working with two humans (Arnav, Karmanya). **Read
