@@ -172,6 +172,20 @@ export async function verifyRepo(repoDir, opts = {}) {
       return env;
     };
 
+    // Environment a fix set up for a step (installed a tool, wrote .env, exported PG vars, started a
+    // service). A new machine (rebase) and the from-zero replay must redo these before the step.
+    const applyPrereqs = async (box, step) => {
+      for (const a of step.prereqs || []) {
+        if (a.type === 'exec') await box.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
+        else if (a.type === 'write') await box.writeFile(a.path, a.content);
+        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+      }
+    };
+    const addPrereq = (step, a) => {
+      step.prereqs = step.prereqs || [];
+      if (!step.prereqs.some((p) => JSON.stringify(p) === JSON.stringify(a))) step.prereqs.push(a);
+    };
+
     let repairSeq = 0;
     const newStep = (command, kind, before) => ({
       id: `R${++repairSeq}`, command, kind, origin: 'repair', status: 'pending',
@@ -226,6 +240,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         tried.add(fixSignature(step.id, fix));
         rec.emitEvent('doctor', 'fix', { stepId: step.id, fix });
         const fixLog = [];
+        let fixFailed = null; // a fix whose own command fails was not applied (F3)
         // Repo patches (PR content) land in the sandbox first so the fix's commands see them.
         for (const p of fix.patches || []) {
           patchOps.push(p);
@@ -248,18 +263,30 @@ export async function verifyRepo(repoDir, opts = {}) {
           } else if (a.type === 'service') {
             const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
             fixLog.push(`started ${a.image} as "${a.name}" on localhost:${a.port}${r.ready === false ? ' (not ready!)' : ''}`);
+            addPrereq(step, a);
           } else if (a.type === 'exec') {
-            const r = await sandbox.exec(a.command, { timeoutMs: 10 * 60_000 });
+            const r = await sandbox.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
             fixLog.push(`$ ${a.command}\n${tail(r.out, 15)}${r.exitCode ? `\n(exit ${r.exitCode})` : ''}`);
+            if (r.exitCode !== 0) { fixFailed = { command: a.command, exitCode: r.exitCode, out: r.out, durationMs: r.durationMs }; break; }
+            addPrereq(step, a);
           } else if (a.type === 'write') {
             await sandbox.writeFile(a.path, a.content);
             fixLog.push(`wrote ${a.path}`);
+            addPrereq(step, a);
           } else if (a.type === 'replace-step') {
             step.readmeCommand = step.readmeCommand || step.command;
             step.command = a.command;
             fixLog.push(`step command → ${a.command}`);
           } else if (a.type === 'insert-before') {
-            const ns = newStep(a.command, a.kind || 'other', step);
+            // An inserted install must reuse the install command as already repaired (e.g. --legacy-peer-deps).
+            let command = a.command;
+            // Only a bare project install ("npm install"), not "npm install --global nodemon" or "pip install poetry".
+            if ((a.kind || '') === 'install' && /^(npm\s+(i|install|ci)|yarn(\s+install)?|pnpm\s+(i|install)|bun\s+install)$/.test(command.trim())) {
+              const mgr = command.split(/\s+/)[0];
+              const repairedInstall = plan.steps.slice(0, i).find((s) => s.kind === 'install' && s.readmeCommand && s.command.split(/\s+/)[0] === mgr && s.status === 'repaired');
+              if (repairedInstall) command = repairedInstall.command;
+            }
+            const ns = newStep(command, a.kind || 'other', step);
             if (a.silent) ns.silent = true;
             plan.steps.splice(i, 0, ns);
             i++;
@@ -272,6 +299,7 @@ export async function verifyRepo(repoDir, opts = {}) {
               ns.status = ia.exitCode === 0 ? 'passed' : 'failed';
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
+              if (ia.exitCode !== 0) { fixFailed = { command: ns.command, exitCode: ia.exitCode, out: ia.out, durationMs: ia.durationMs }; break; }
             }
           }
         }
@@ -279,24 +307,31 @@ export async function verifyRepo(repoDir, opts = {}) {
         step.evidence = [...(step.evidence || []), evId];
         rec.savePlan(plan);
         if (restart) {
-          // A new machine: replay everything that already passed, then retry this step.
+          // A new machine: replay everything that already passed, with what earlier fixes set up
+          // (a tool installed by a previous fix is gone after a rebase), then retry this step.
           say('runner', 'replaying earlier steps on the new machine');
           for (let j = 0; j < i; j++) {
             const prev = plan.steps[j];
             if (prev.skip || prev.status === 'failed') continue;
+            await applyPrereqs(sandbox, prev);
             const pa = await execStep(prev, { quiet: true });
             if (pa.exitCode !== 0) fixLog.push(`warning: ${prev.id} failed on the new machine (exit ${pa.exitCode})`);
           }
+          await applyPrereqs(sandbox, step);
           restart = false;
         }
+        if (fixFailed) fixLog.push(`fix not applied: \`${fixFailed.command}\` exited ${fixFailed.exitCode}`);
         rec.phase('coldstart', 'runner');
-        const after = await execStep(step);
+        // A fix whose own command failed was not applied: don't retry the step as if it had been.
+        const after = fixFailed
+          ? { stepId: step.id, n: attempts[step.id], command: fixFailed.command, exitCode: fixFailed.exitCode, durationMs: fixFailed.durationMs || 0, logTail: tail(fixFailed.out || '', 60), out: fixFailed.out || '' }
+          : await execStep(step);
         const { out: _a, ...afterPub } = after;
         const verified = after.exitCode === 0;
         // A fix can clear its own error and reveal the next one (a renamed script
         // that now runs and hits a missing env var). That fix worked: record it as
         // "progressed" and promote it once the step finally passes.
-        const progressed = !verified && !(await stillFailing(diagnosis, attempt, after, ctx));
+        const progressed = !verified && !fixFailed && !(await stillFailing(diagnosis, attempt, after, ctx));
         const record = {
           id: evId, stepId: step.id, before, diagnosis, fix: { ...fix, log: fixLog.join('\n') },
           after: afterPub, status: verified ? 'verified' : progressed ? 'progressed' : 'failed', at: nowIso(),
@@ -350,6 +385,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       let failed = null;
       for (const step of plan.steps) {
         if (step.skip || step.status === 'needs-human') continue;
+        await applyPrereqs(replayBox, step);
         const a = await execStep(step, { agent: 'verifier', box: replayBox });
         if (a.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
         if (a.exitCode !== 0) failed = failed || step.id;
