@@ -100,7 +100,9 @@ async function main() {
   let after = state.after || latest[0]?.id; // start from now, never replay old questions
   console.log('IBM Bob bridge listening for "!bob <question>"');
   for (;;) {
-    const msgs = (await api('GET', `/channels/${CHANNEL}/messages?after=${after}&limit=50`)).reverse();
+    let msgs;
+    try { msgs = (await api('GET', `/channels/${CHANNEL}/messages?after=${after}&limit=50`)).reverse(); }
+    catch (e) { console.error(`${e.message}; retrying in 15s`); await sleep(15000); continue; } // Discord 5xx blips must not stop Bob
     for (const m of msgs) {
       after = state.after = m.id; save();
       const q = m.content.match(/^!bob\s+([\s\S]+)/i)?.[1]?.trim();
