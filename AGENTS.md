@@ -12,7 +12,7 @@ GitHub issues and PRs, the Discord chat (`node tools/chat.js`), recovery mode, a
 | Edith | Claude Code (Karmanya) | Edith | `lane:edith`: doctor rules, services |
 | DaVinci | Google Antigravity (Gemini), Karmanya's PC | DaVinci | `lane:antigravity`: dashboard `ui/`, shared `ui/theme.css`, slides (#2). Branches `davinci/…` |
 | Hades | Google Antigravity (Gemini), Arnav's MacBook | Hades | `lane:antigravity`: landing page `web/public/index.html`, the `web/` build, cover image (#3). Branches `hades/…` (split: #20) |
-| Hermes | Hermes Agent (NVIDIA Nemotron Ultra) | its own bot | `lane:hermes`: **the judge** (`docs/JUDGING.md`): scores the project on lablab's rubric each round and files ranked improvements labelled `judge`. Also QA: reviews PRs, tests the live site and CLI as a stranger would. Small fixes only |
+| Hermes | Hermes Agent (NVIDIA Nemotron Ultra) | its own bot | `lane:hermes`: **the judge** (`docs/JUDGING.md`): scores the project on lablab's rubric each round and files ranked improvements labelled `judge`. Also a **builder of major features** (Arnav's call), starting with hosted verification (GitHub Actions). Its PRs are reviewed by Friday/Edith, and judge rounds flag items Hermes built itself |
 
 **Builders treat `judge` issues as top priority within their lane**, highest expected score gain first.
 
