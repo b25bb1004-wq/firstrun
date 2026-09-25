@@ -1,140 +1,0 @@
-# Setup Passport: teamhide/fastapi-boilerplate
-
-❌ **FAILED**: FirstRun followed this project's setup docs on a clean `python:3.11` machine, repaired what broke, then replayed the corrected guide from zero.
-
-| | |
-|---|---|
-| Commit | `df4e6d4f81` |
-| Verified | 2026-09-24 22:18 UTC |
-| Runtime | Python 3.11 (`python:3.11`) |
-| Clone to running, from zero | **n/a** |
-| Steps followed | 5 from the docs, 0 added by FirstRun |
-| Breaks found / fixed | 3 / 0 |
-| Needs a human | 1 |
-| Done when | `GET http://127.0.0.1:3000/` answers |
-
-**Before FirstRun**, a newcomer following the docs got stuck at `poetry install` (README.md:22).
-
-## Verified setup
-
-```bash
-source "$(poetry env info --path)/bin/activate"
-alembic upgrade head
-python3 main.py --env local --debug
-make test
-```
-
-## Evidence
-
-Every change to the docs is backed by a command that failed before the fix and passed after it.
-
-### E1: Missing tool <a id="e1"></a>
-
-- **Docs said:** `poetry install` (README.md:22)
-- **Cause:** `poetry` is not installed; the docs assume it is.
-- **Diagnosed by:** FirstRun rule `missing-tool`, confidence 80%
-- **Doc change:** poetry
-- **Result:** fix did not work
-
-<details><summary>Before (failing output)</summary>
-
-```
-/firstrun/step-1.sh: line 4: poetry: command not found
-```
-</details>
-
-<details><summary>Fix applied</summary>
-
-```
-Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
-Downloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)
-Downloading jaraco_context-6.1.2-py3-none-any.whl (7.9 kB)
-Downloading jaraco_functools-4.6.0-py3-none-any.whl (11 kB)
-Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/4.7 MB ? eta -:--:--   ━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.3/4.7 MB ? eta -:--:--   ━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.5/4.7 MB 2.4 MB/s eta 0:00:02   ━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.8/4.7 MB 1.3 MB/s eta 0:00:04   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/4.7 MB 1.6 MB/s eta 0:00:03   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/4.7 MB 1.4 MB/s eta 0:00:03   ━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/4.7 MB 1.7 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━ 2.4/4.7 MB 1.7 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━ 2.6/4.7 MB 1.8 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━ 2.6/4.7 MB 1.8 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━ 2.9/4.7 MB 1.5 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 3.4/4.7 MB 1.6 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━ 3.7/4.7 MB 1.6 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 4.5/4.7 MB 1.7 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸ 4.7/4.7 MB 1.7 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 1.7 MB/s eta 0:00:00
-Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
-Downloading more_itertools-11.1.0-py3-none-any.whl (72 kB)
-Downloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
-Downloading h11-0.16.0-py3-none-any.whl (37 kB)
-Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
-Downloading pycparser-3.0-py3-none-any.whl (48 kB)
-Installing collected packages: trove-classifiers, distlib, urllib3, typing_extensions, tomlkit, shellingham, rapidfuzz, pyproject-hooks, pycparser, poetry-core, platformdirs, pkginfo, pbs-installer, packaging, msgpack, more-itertools, jeepney, jaraco.context, installer, idna, h11, filelock, fastjsonschema, crashtest, charset_normalizer, certifi, backports.zstd, requests, python-discovery, jaraco.functools, jaraco.classes, httpcore, findpython, dulwich, cleo, cffi, build, anyio, virtualenv, requests-toolbelt, httpx, cryptography, cachecontrol, SecretStorage, keyring, poetry
-Successfully installed SecretStorage-3.5.0 anyio-4.15.1 backports.zstd-1.7.0 build-1.6.1 cachecontrol-0.14.4 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 cleo-2.1.0 crashtest-0.4.1 cryptography-50.0.1 distlib-0.4.3 dulwich-1.2.15 fastjsonschema-2.22.2 filelock-4.0.3 findpython-0.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 installer-1.0.1 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jeepney-0.9.0 keyring-25.7.0 more-itertools-11.1.0 msgpack-1.2.2 packaging-26.3 pbs-installer-2026.9.24 pkginfo-1.13 platformdirs-4.11.12 poetry-2.5.1 poetry-core-2.5.0 pycparser-3.0 pyproject-hooks-1.3.3 python-discovery-1.6.1 rapidfuzz-3.14.6 requests-2.34.2 requests-toolbelt-1.0.0 shellingham-1.5.4 tomlkit-0.15.1 trove-classifiers-2026.9.21.13 typing_extensions-4.16.0 urllib3-2.8.0 virtualenv-21.12.1
-```
-</details>
-
-<details><summary>After (passing output)</summary>
-
-```
-The currently activated Python version 3.12.14 is not supported by the project (3.11.7).
-Trying to find and use a compatible version. 
-
-Poetry was unable to find a compatible version. If you have one, you can explicitly use it via the "env use" command.
-```
-</details>
-
-### E2: Wrong runtime version <a id="e2"></a>
-
-- **Docs said:** `poetry install` (README.md:22)
-- **Cause:** The README's Python 3.12 is too old: the project needs Python 3.11 (pyproject.toml poetry python ("3.11.7")).
-- **Diagnosed by:** FirstRun rule `python-version`, confidence 90%
-- **Doc change:** Python 3.11 (see pyproject.toml poetry python ("3.11.7"))
-- **Result:** fix did not work
-
-<details><summary>Before (failing output)</summary>
-
-```
-The currently activated Python version 3.12.14 is not supported by the project (3.11.7).
-Trying to find and use a compatible version. 
-
-Poetry was unable to find a compatible version. If you have one, you can explicitly use it via the "env use" command.
-```
-</details>
-
-<details><summary>Fix applied</summary>
-
-```
-rebased onto python:3.11
-```
-</details>
-
-<details><summary>After (passing output)</summary>
-
-```
-/firstrun/step-1.sh: line 4: poetry: command not found
-```
-</details>
-
-### E3: Unrecognised failure <a id="e3"></a>
-
-- **Docs said:** `poetry install` (README.md:22)
-- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
-- **Diagnosed by:** FirstRun rule `undefined`, confidence 0%
-- **Result:** needs a maintainer
-
-<details><summary>Before (failing output)</summary>
-
-```
-/firstrun/step-1.sh: line 4: poetry: command not found
-```
-</details>
-
-## Docs vs. code
-
-Found by reading the docs next to the manifests, compose file, CI and source:
-
-| What | Docs say | Code says | Where |
-|---|---|---|---|
-| Python version | not stated | 3.11 (pyproject.toml poetry python ("3.11.7")) | README.md |
-| env var ENV | not documented | read in core/config.py:36 | README |
-| redis service | setup never starts it | dependency "celery" | Python requirements |
-| mysql service | setup never starts it | dependency "pymysql" | Python requirements |
-
-## Keeping it true
-
-The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
-
-Newcomers using IBM Bob can switch to the **FirstRun Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
-
----
-Generated by FirstRun. Verified plan: `.firstrun/plan.json`.

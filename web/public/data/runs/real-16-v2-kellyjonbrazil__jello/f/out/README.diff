@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -14,6 +14,8 @@ JSON or JSON Lines can be piped into `jello` via STDIN or can be loaded from a J
+ For more information on the motivations for this project, see my [blog post](https://blog.kellybrazil.com/2020/03/25/jello-the-jq-alternative-for-pythonistas/).
+ 
+ ## Install
++
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.12` machine at `b43c9b2460`: clone to running in 5s.
+ You can install `jello` via `pip`, via OS Package Repository, MSI installer for Windows, or by downloading the correct binary for your architecture and running it anywhere on your filesystem.
+ 
+ ### Pip (macOS, linux, unix, Windows)

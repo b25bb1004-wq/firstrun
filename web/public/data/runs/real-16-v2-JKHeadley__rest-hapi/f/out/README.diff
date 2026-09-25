@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -75,6 +75,8 @@ Check out the docs on the [official site](https://resthapi.com)!
+ You need [Node.js](https://nodejs.org/en/) installed and you'll need [MongoDB](https://docs.mongodb.com/manual/installation/) installed and running.
+ 
+ ## Quick Start
++
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:22` machine at `708ecbcd4f`.
+ ![rest-hapi-demo-alt-optimized](https://user-images.githubusercontent.com/12631935/41813206-0d2298a0-76e6-11e8-95d4-9b1e521c179e.gif)
+ 
+ (**NOTE:** For an alternative quick start, check out his [awesome yeoman generator](https://github.com/vinaybedre/generator-resthapi) for rest-hapi.)
+@@ -98,6 +100,7 @@ $ ./node_modules/.bin/rest-hapi-cli seed
+ 4) Start the server
+ ```
+ $ npm start
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ 5) View the API docs at 

@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "sudo apt-get install build-essential",
+    "exitCode": 100,
+    "durationMs": 131,
+    "logTail": "Reading package lists...\nBuilding dependency tree...\nReading state information...\nPackage build-essential is not available, but is referred to by another package.\nThis may mean that the package is missing, has been obsoleted, or\nis only available from another source\n\nE: Package 'build-essential' has no installation candidate",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T19:18:00.836Z"
+}

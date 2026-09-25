@@ -69,7 +69,7 @@ human · clone → running in 14 s. Show the README diff: six small line edits, 
 
 Dashboard → audit view: 16 real, popular open-source repos audited in parallel, tiles filling
 in. Headline: **"N of 16 READMEs broke on a clean machine · K repaired automatically with
-evidence."** (Numbers from `audit/real-16/audit.json`.)
+evidence."** (Numbers from `audit/real-16-v2/audit.json`.)
 
 ## 3:40 · Close (15 s)
 

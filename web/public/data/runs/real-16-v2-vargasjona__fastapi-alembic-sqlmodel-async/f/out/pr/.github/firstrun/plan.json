@@ -1,0 +1,117 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:18:01.129Z",
+  "commit": "96f10870e7",
+  "image": "python:3.10",
+  "runtime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "README.md:3 (\"Python >=3.10\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:15432/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "sudo apt-get -y install make",
+      "kind": "prereq"
+    },
+    {
+      "id": "S3",
+      "command": "make --version",
+      "kind": "other"
+    },
+    {
+      "id": "S4",
+      "command": "python --version",
+      "kind": "other"
+    },
+    {
+      "id": "S5",
+      "command": "poetry --version",
+      "kind": "other"
+    },
+    {
+      "id": "S6",
+      "command": "cd backend/app/",
+      "kind": "other"
+    },
+    {
+      "id": "S8",
+      "command": "source \"$(poetry env info --path)/bin/activate\"",
+      "kind": "env"
+    },
+    {
+      "id": "S10",
+      "command": "make init-db",
+      "kind": "other"
+    },
+    {
+      "id": "S14",
+      "command": "make add-dev-migration",
+      "kind": "migrate"
+    },
+    {
+      "id": "S20",
+      "command": "sonar.organization=my_organization",
+      "kind": "other"
+    },
+    {
+      "id": "S21",
+      "command": "sonar.projectKey=fastapi-alembic-sqlmodel-async",
+      "kind": "other"
+    },
+    {
+      "id": "S22",
+      "command": "sonar.host.url=http://host.docker.internal:9000",
+      "kind": "other"
+    },
+    {
+      "id": "S23",
+      "command": "sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7",
+      "kind": "other"
+    },
+    {
+      "id": "S24",
+      "command": "sonar.projectName=fastapi-alembic-sqlmodel-async",
+      "kind": "other"
+    },
+    {
+      "id": "S25",
+      "command": "sonar.projectVersion=1.0",
+      "kind": "other"
+    },
+    {
+      "id": "S26",
+      "command": "sonar.sources=app",
+      "kind": "other"
+    },
+    {
+      "id": "S27",
+      "command": "sonar.sourceEncoding=UTF-8",
+      "kind": "other"
+    },
+    {
+      "id": "S29",
+      "command": "make run-test",
+      "kind": "serve",
+      "serve": {
+        "port": 15432
+      }
+    },
+    {
+      "id": "S30",
+      "command": "make pytest",
+      "kind": "other"
+    },
+    {
+      "id": "S31",
+      "command": "make mypy",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}
