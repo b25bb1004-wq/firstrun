@@ -246,3 +246,17 @@ test('writeJson survives a Windows-style EPERM on rename (maitraysuthar audit cr
   assert.deepEqual(readJson(file), { ok: 2 }, 'falls back to writing in place');
   assert.deepEqual(fs.readdirSync(dir), ['run.json'], 'no temp file left behind');
 });
+
+test('audit --only keeps every other repo already in the audit (real-16-v2 was narrowed to 1 repo)', async () => {
+  const { audit } = await import('../src/audit.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-audit-'));
+  const repo = (slug) => ({ slug, url: `https://github.com/x/${slug}`, ref: 'abc', stack: 'node' });
+  fs.writeFileSync(path.join(root, 'repos.json'), JSON.stringify({ repos: [repo('a'), repo('b'), repo('c')] }));
+  fs.mkdirSync(path.join(root, 'audit', 't'), { recursive: true });
+  const done = (slug, verdict) => ({ ...repo(slug), status: 'done', verdict, passport: { verdict, breaksFound: 1, breaksFixed: 1 }, runDir: `runs/${slug}` });
+  fs.writeFileSync(path.join(root, 'audit', 't', 'audit.json'), JSON.stringify({ id: 't', repos: [done('a', 'VERIFIED'), done('b', 'PARTIAL'), done('c', 'FAILED')] }));
+  await audit(path.join(root, 'repos.json'), { only: 'b', id: 't', root, printer: () => {} });
+  const after = JSON.parse(fs.readFileSync(path.join(root, 'audit', 't', 'audit.json'), 'utf8'));
+  assert.deepEqual(after.repos.map((r) => `${r.slug}:${r.verdict}`), ['a:VERIFIED', 'b:PARTIAL', 'c:FAILED']);
+  assert.equal(after.summary.total, 3);
+});
