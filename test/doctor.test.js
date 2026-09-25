@@ -230,3 +230,19 @@ test('blank env template + Joi "not allowed to be empty": local values, the app\
   assert.equal(v.SMTP_PORT, '1025', 'mail goes to Mailpit, not the app default 587');
   assert.equal(v.DATABASE_URL, `mysql://root:${v.MYSQL_ROOT_PASSWORD}@localhost:3306/app`);
 });
+
+test('writeJson survives a Windows-style EPERM on rename (maitraysuthar audit crash)', async () => {
+  const { writeJson, readJson } = await import('../src/util.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-eperm-'));
+  const file = path.join(dir, 'run.json');
+  const real = fs.renameSync;
+  let calls = 0;
+  fs.renameSync = (a, b) => { calls++; if (calls < 3) { const e = new Error('EPERM: operation not permitted, rename'); e.code = 'EPERM'; throw e; } return real(a, b); };
+  try { writeJson(file, { ok: 1 }); } finally { fs.renameSync = real; }
+  assert.deepEqual(readJson(file), { ok: 1 });
+  assert.equal(calls, 3);
+  fs.renameSync = () => { const e = new Error('EPERM'); e.code = 'EPERM'; throw e; };
+  try { writeJson(file, { ok: 2 }); } finally { fs.renameSync = real; }
+  assert.deepEqual(readJson(file), { ok: 2 }, 'falls back to writing in place');
+  assert.deepEqual(fs.readdirSync(dir), ['run.json'], 'no temp file left behind');
+});
