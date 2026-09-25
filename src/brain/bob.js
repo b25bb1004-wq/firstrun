@@ -37,8 +37,10 @@ export async function bobStatus({ force = false } = {}) {
   return availability;
 }
 
+/** Is the mode where Bob Shell 2.x reads global modes (~/.bob/settings/custom_modes.yaml)?
+ * The 1.x location (~/.bob/custom_modes.yaml) is no longer read, so it doesn't count. */
 export function modeInstalled(slug) {
-  const file = path.join(os.homedir(), '.bob', 'custom_modes.yaml');
+  const file = path.join(os.homedir(), '.bob', 'settings', 'custom_modes.yaml');
   try { return fs.readFileSync(file, 'utf8').includes(`slug: ${slug}`); } catch { return false; }
 }
 

@@ -75,14 +75,21 @@ export function modesYaml() {
   return YAML.stringify({ customModes: MODES });
 }
 
-/** Merge FirstRun's modes into ~/.bob/custom_modes.yaml for Bob Shell. */
+/** Where Bob Shell reads global modes: 2.x uses ~/.bob/settings/, 1.x used ~/.bob/. */
+export const GLOBAL_MODE_FILES = [
+  path.join(os.homedir(), '.bob', 'settings', 'custom_modes.yaml'),
+  path.join(os.homedir(), '.bob', 'custom_modes.yaml'),
+];
+
+/** Merge FirstRun's modes into the global custom_modes.yaml files, for Bob Shell. */
 export function installGlobalModes() {
-  const file = path.join(os.homedir(), '.bob', 'custom_modes.yaml');
-  ensureDir(path.dirname(file));
-  let doc = { customModes: [] };
-  try { doc = YAML.parse(fs.readFileSync(file, 'utf8')) || doc; } catch {}
-  doc.customModes = (doc.customModes || []).filter((m) => !MODES.some((x) => x.slug === m.slug));
-  doc.customModes.push(...MODES);
-  fs.writeFileSync(file, YAML.stringify(doc));
-  return file;
+  for (const file of GLOBAL_MODE_FILES) {
+    ensureDir(path.dirname(file));
+    let doc = { customModes: [] };
+    try { doc = YAML.parse(fs.readFileSync(file, 'utf8')) || doc; } catch {}
+    doc.customModes = (doc.customModes || []).filter((m) => !MODES.some((x) => x.slug === m.slug));
+    doc.customModes.push(...MODES);
+    fs.writeFileSync(file, YAML.stringify(doc));
+  }
+  return GLOBAL_MODE_FILES[0];
 }

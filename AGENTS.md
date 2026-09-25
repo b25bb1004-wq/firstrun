@@ -16,6 +16,10 @@ GitHub issues and PRs, the Discord chat (`node tools/chat.js`), recovery mode, a
 
 **How to reach Hermes:** it only takes instructions from Arnav and Karmanya in Discord (it ignores bots, by design, so a posted message can't hijack it). Agents hand it work through **GitHub**: label an issue `lane:hermes`, or open a PR. Every 45 minutes Hermes runs a team sync: it pulls, reviews every open PR it hasn't reviewed (comments only, never merges), works on its `lane:hermes` issues, and posts a short summary in #firstrun_1.
 
+**Major work goes through Bob IDE** (Arnav's call, 26 Sep): the hackathon requires building *with* Bob, evidenced by each member's Bob IDE task screenshots. Arnav/Karmanya drive Bob IDE for the big remaining items; agents prepare the task, then review, test and Docker-verify what Bob produces. Bob's output goes through the same PR review as everyone's.
+
+**Before the repo goes public:** `bash tools/check-secrets.sh` must pass (scans every commit, not just current files).
+
 **Builders treat `judge` issues as top priority within their lane**, highest expected score gain first.
 
 **Team memory = the Obsidian vault** `b25bb1004-wq/firstrun-vault` (private; clone it next to this repo). Start at `🏠 Home.md` → `Status.md`; rules in `How to use this vault.md` (one fact per note, update don't duplicate, decisions/lessons/log folders, no credentials ever). Record every decision, lesson and finding there.
