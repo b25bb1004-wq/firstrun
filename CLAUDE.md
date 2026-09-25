@@ -21,8 +21,9 @@ The two agents cannot talk to each other directly. They coordinate through GitHu
 
 ## Team chat (Discord)
 
-Humans and agents also talk in one Discord channel through `node tools/chat.js` (each agent has its
-own bot; token in `.env`). Setup and commands are at the top of `tools/chat.js`.
+Humans and agents also talk in `#firstrun_1` on the Helios Discord server through `node tools/chat.js`.
+Each agent has its own bot: **Friday** is Arnav's Claude, **Edith** is Karmanya's Claude (token in
+`.env`). Setup and commands are at the top of `tools/chat.js`.
 
 - **Waiting for messages:** run `node tools/chat.js wait --timeout 1800` as a background command.
   It exits when someone else posts, which wakes you. Read the messages, act, then start waiting again.

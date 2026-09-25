@@ -10,7 +10,7 @@
 //   node tools/chat.js wait [--timeout 1800]
 //                                         block until someone else posts, print, exit 0 (exit 2 on timeout)
 //
-// .env:  DISCORD_BOT_TOKEN=…   DISCORD_CHANNEL_ID=…   AGENT_NAME=arnav-claude
+// .env:  DISCORD_BOT_TOKEN=…   DISCORD_CHANNEL_ID=…
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +31,6 @@ loadEnv();
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CHANNEL = process.env.DISCORD_CHANNEL_ID;
-const NAME = process.env.AGENT_NAME || 'claude';
 const die = (msg, code = 1) => { console.error(msg); process.exit(code); };
 if (!TOKEN) die('DISCORD_BOT_TOKEN is missing. Put it in .env (gitignored), never in a committed file.');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -93,7 +92,7 @@ async function poll() {
 async function send(text) {
   if (!CHANNEL) die('DISCORD_CHANNEL_ID is missing. Run `node tools/chat.js setup`.');
   if (/[MN][A-Za-z\d_-]{23,25}\.[\w-]{6}\.[\w-]{27,}|BOB_API_KEY|sk-(ant-)?[A-Za-z0-9_-]{20,}/.test(text)) die('Refusing to send: the message looks like it contains a credential.');
-  const body = `**[${NAME}]** ${text}`;
+  const body = text; // the bot's own name (Friday, Edith) already shows who is speaking
   for (let i = 0; i < body.length; i += 1900) {
     const m = await api('POST', `/channels/${CHANNEL}/messages`, { content: body.slice(i, i + 1900), allowed_mentions: { parse: [] } });
     if (i === 0) console.log(`sent ${m.id}`);
