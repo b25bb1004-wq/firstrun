@@ -1,0 +1,55 @@
+{
+  "id": "E2",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "poetry install",
+    "exitCode": 1,
+    "durationMs": 1010,
+    "logTail": "The currently activated Python version 3.12.14 is not supported by the project (3.11.7).\nTrying to find and use a compatible version. \n\nPoetry was unable to find a compatible version. If you have one, you can explicitly use it via the \"env use\" command.",
+    "logFile": "logs/S2-2.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "Python 3.12 (the docs name no version, so a newcomer installs the current release) is too new: the project needs Python 3.11.7 (pyproject.toml poetry python (\"3.11.7\")).",
+    "by": "rules",
+    "ruleId": "python-version",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "python:3.11.7",
+        "runtime": {
+          "name": "python",
+          "version": "3.11.7",
+          "source": "pyproject.toml poetry python (\"3.11.7\")"
+        }
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Python 3.11.7 (see pyproject.toml poetry python (\"3.11.7\"))",
+      "runtime": {
+        "name": "python",
+        "version": "3.11.7"
+      }
+    },
+    "log": "rebased onto python:3.11.7"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 4,
+    "command": "poetry install --no-root",
+    "exitCode": 0,
+    "durationMs": 740,
+    "logTail": "Installing dependencies from lock file\n\nNo dependencies to install or update",
+    "logFile": "logs/S2-4.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T19:05:34.110Z",
+  "revealed": "E3"
+}

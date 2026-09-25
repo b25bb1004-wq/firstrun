@@ -1,0 +1,39 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,13 @@
+ 
+ ## Run
+ 
++🟡 **Partly verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.11.7` machine at `df4e6d4f81`: clone to running in 4m21s.
++
++Prerequisites verified by FirstRun:
++
++- Python 3.11.7 (see pyproject.toml poetry python ("3.11.7"))
++- poetry
++
+ ### Launch docker
+ ```shell
+ > docker-compose -f docker/docker-compose.yml up
+@@ -19,11 +26,12 @@
+ ### Install dependency
+ ```shell
+ > poetry shell
+-> poetry install
++poetry install --no-root
+ ```
+ 
+ ### Apply alembic revision
+ ```shell
++docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8
+ > alembic upgrade head
+ ```
+ 
+@@ -35,6 +43,7 @@
+ ### Run test codes
+ ```shell
+ > make test
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ### Make coverage report

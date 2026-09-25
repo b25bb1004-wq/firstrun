@@ -1,0 +1,52 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T18:55:12.523Z",
+  "commit": "6b9bb70e23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:4040/"
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "npm install --global nodemon",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "R2",
+      "command": "docker compose up -d mongo",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S6",
+      "command": "docker-compose up",
+      "kind": "services"
+    },
+    {
+      "id": "S7",
+      "command": "docker-compose up -d",
+      "kind": "services"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm error ERESOLVE unable to resolve dependency tree",
+      "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+      "fix": "npm install --legacy-peer-deps",
+      "evidence": "E1"
+    }
+  ]
+}

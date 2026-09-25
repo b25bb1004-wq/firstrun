@@ -1,0 +1,20 @@
+{
+  "repo": "addyosmani/git2txt",
+  "commit": "e8db771b97",
+  "verifiedAt": "2026-09-25T19:21:45.192Z",
+  "verdict": "VERIFIED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 7,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "git2txt --help"
+  }
+}

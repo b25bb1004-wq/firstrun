@@ -1,0 +1,60 @@
+{
+  "id": "E4",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "alembic upgrade head",
+    "exitCode": 1,
+    "durationMs": 1127,
+    "logTail": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/alembic/util/pyfiles.py\", line 113, in load_module_py\n    spec.loader.exec_module(module)  # type: ignore\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/workspace/migrations/env.py\", line 88, in <module>\n    run_migrations_online()\n  File \"/workspace/migrations/env.py\", line 77, in run_migrations_online\n    with connectable.connect() as connection:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/base.py\", line 3269, in connect\n    return self._connection_cls(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/base.py\", line 147, in __init__\n    Connection._handle_dbapi_exception_noconnection(\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/base.py\", line 2431, in _handle_dbapi_exception_noconnection\n    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/base.py\", line 145, in __init__\n    self._dbapi_connection = engine.raw_connection()\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/base.py\", line 3293, in raw_connection\n    return self.pool.connect()\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 452, in connect\n    return _ConnectionFairy._checkout(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 1269, in _checkout\n    fairy = _ConnectionRecord.checkout(pool)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 716, in checkout\n    rec = pool._do_get()\n          ^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/impl.py\", line 284, in _do_get\n    return self._create_connection()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 393, in _create_connection\n    return _ConnectionRecord(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 678, in __init__\n    self.__connect()\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 902, in __connect\n    with util.safe_reraise():\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py\", line 146, in __exit__\n    raise exc_value.with_traceback(exc_tb)\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/pool/base.py\", line 898, in __connect\n    self.dbapi_connection = connection = pool._invoke_creator(self)\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/create.py\", line 645, in connect\n    return dialect.connect(*cargs, **cparams)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/sqlalchemy/engine/default.py\", line 616, in connect\n    return self.loaded_dbapi.connect(*cargs, **cparams)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/pymysql/connections.py\", line 358, in __init__\n    self.connect()\n  File \"/root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/pymysql/connections.py\", line 711, in connect\n    raise exc\nsqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 111] Connection refused)\")\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "The app connects to MySQL on localhost:3306, but the docs never start it.",
+    "by": "rules",
+    "ruleId": "missing-service",
+    "confidence": 0.92
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "mysql",
+        "image": "mysql:8",
+        "env": {
+          "MYSQL_ROOT_PASSWORD": "root",
+          "MYSQL_DATABASE": "fastapi",
+          "MYSQL_USER": "fastapi",
+          "MYSQL_PASSWORD": "fastapi"
+        },
+        "port": 3306
+      },
+      {
+        "type": "insert-before",
+        "command": "docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8",
+        "kind": "services",
+        "silent": true
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8",
+      "service": "mysql"
+    },
+    "log": "started mysql:8 as \"mysql\" on localhost:3306\n$ docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8 → exit 0"
+  },
+  "after": {
+    "stepId": "S4",
+    "n": 2,
+    "command": "alembic upgrade head",
+    "exitCode": 0,
+    "durationMs": 734,
+    "logTail": "INFO  [alembic.runtime.migration] Context impl MySQLImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 59628dea39ff, init",
+    "logFile": "logs/S4-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T19:05:48.772Z"
+}
