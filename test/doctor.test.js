@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { diagnose, validateBobFix } from '../src/doctor/index.js';
@@ -7,6 +9,8 @@ import { scout } from '../src/scout/index.js';
 import { buildPlan } from '../src/plan.js';
 import { extractJson } from '../src/brain/bob.js';
 import { applyPatchOps } from '../src/patches.js';
+import { cmpVersion } from '../src/doctor/rules.js';
+import { serviceKind } from '../src/doctor/services.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const acme = path.join(here, '..', 'examples', 'acme-shop');
@@ -78,4 +82,75 @@ test('unknown failures go to IBM Bob (Bob Shell headless), and its fix is valida
   assert.deepEqual(spent, [0.42]);
   assert.equal(fix.actions[0].command, 'apt-get install -y make');
   delete process.env.FIRSTRUN_BOB_JS;
+});
+
+// ── Rules from the real-16 audit triage (#7, #9). Minimal repos in a temp dir; logs are the recorded ones. ──
+function tmpRepo(files) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-doc-'));
+  for (const [f, body] of Object.entries(files)) fs.writeFileSync(path.join(root, f), typeof body === 'string' ? body : JSON.stringify(body));
+  return root;
+}
+async function ctxIn(root, command, log, { kind = 'other', runtime, installed } = {}) {
+  const facts = await scout(root);
+  const plan = buildPlan(facts);
+  if (runtime) plan.runtime = runtime;
+  plan.steps = installed ? [{ id: 'S1', command: installed, kind: 'install', status: 'repaired', source: {} }] : [];
+  const step = { id: 'S2', command, kind, source: {} };
+  plan.steps.push(step);
+  return { step, attempt: { out: log, exitCode: 1 }, log, facts, plan, sandbox: { services: [] }, tried: new Set(), history: [], sandboxEnv: {} };
+}
+
+test('a CLI the project does not depend on is a missing global tool, not a skipped install (GeekyAnts)', async () => {
+  const root = tmpRepo({ 'package.json': { name: 'x', scripts: { dev: 'tsc --watch & nodemon dist' }, devDependencies: { typescript: '5.0.3' } } });
+  const log = '> tsc --watch & NODE_ENV=development nodemon dist\n\nsh: 1: nodemon: not found';
+  for (const installed of [undefined, 'npm install --legacy-peer-deps']) {
+    const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npm run dev', log, { kind: 'serve', installed }), { brain: 'rules' });
+    assert.equal(diagnosis.ruleId, 'missing-tool', diagnosis.cause);
+    assert.equal(fix.actions[0].command, 'npm install --global nodemon');
+  }
+  const declared = tmpRepo({ 'package.json': { name: 'x', scripts: { dev: 'nodemon dist' }, devDependencies: { nodemon: '^3' } } });
+  const { diagnosis } = await diagnose(await ctxIn(declared, 'npm run dev', log, { kind: 'serve' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'deps-not-installed');
+});
+
+test('runtime causes say too new vs too old, and do not blame a README that names no version (teamhide)', async () => {
+  const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "3.11.7"\n' });
+  const log = 'The currently activated Python version 3.12.14 is not supported by the project (3.11.7).\nPoetry was unable to find a compatible version.';
+  const runtime = { name: 'python', version: '3.12', source: 'docs do not say; a newcomer installs the current LTS' };
+  const { diagnosis } = await diagnose(await ctxIn(root, 'poetry install', log, { kind: 'install', runtime }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'python-version');
+  assert.match(diagnosis.cause, /too new/);
+  assert.match(diagnosis.cause, /docs name no version/);
+  assert.equal(cmpVersion('3.12', '3.11'), 1);
+  assert.equal(cmpVersion('16', '20'), -1);
+});
+
+test('Joi "must be one of" gets a valid local value; under Jest the cause says why (przemek)', async () => {
+  const root = tmpRepo({ 'package.json': { name: 'x', scripts: { test: 'jest' } } });
+  const log = 'FAIL src/health.test.ts\n  Config validation error: "NODE_ENV" must be one of [production, integration, development]. \n\nTest Suites: 5 failed, 1 passed, 6 total';
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npm test', log, { kind: 'test' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'env-invalid-value');
+  assert.match(diagnosis.cause, /Jest sets NODE_ENV=test/);
+  assert.deepEqual(fix.actions, [{ type: 'insert-before', command: 'export NODE_ENV=development', kind: 'env' }]);
+});
+
+test('old bcrypt: straight to Node.js 16 per its compatibility table, then a human (maitraysuthar)', async () => {
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { bcrypt: '^3.0.6' } } });
+  const log = 'npm error > bcrypt@3.0.8 install\nnpm error                  from ../node_modules/nan/nan.h:53:\nnpm error /root/.cache/node-gyp/22.23.3/include/node/v8-template.h:1049:8: note: candidate';
+  const on22 = await diagnose(await ctxIn(root, 'npm install', log, { kind: 'install', runtime: { name: 'node', version: '22', source: 'docs do not say' } }), { brain: 'rules' });
+  assert.equal(on22.diagnosis.ruleId, 'node-native-build', on22.diagnosis.cause);
+  assert.equal(on22.fix.actions[0].image, 'node:16');
+  const on16 = await diagnose(await ctxIn(root, 'npm install', log.replace('22.23.3', '16.20.2'), { kind: 'install', runtime: { name: 'node', version: '16', source: 'x' } }), { brain: 'rules' });
+  assert.equal(on16.diagnosis.ruleId, 'node-native-build');
+  assert.equal(on16.fix, null, 'no fix FirstRun can replay: needs a human');
+});
+
+test('SMTP settings point at a local Mailpit, never a real mail server', async () => {
+  assert.equal(serviceKind('axllent/mailpit'), 'mailpit');
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { nodemailer: '^6' } } });
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npm start', 'Error: connect ECONNREFUSED 127.0.0.1:1025\n    at TCPConnectWrap.afterConnect', { kind: 'serve' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'missing-service');
+  assert.equal(fix.actions[0].image, 'axllent/mailpit');
+  const env = await diagnose(await ctxIn(root, 'npm start', 'Error: Missing required environment variable SMTP_HOST', { kind: 'serve' }), { brain: 'rules' });
+  assert.match(JSON.stringify(env.fix), /SMTP_HOST=localhost/);
 });
