@@ -13,7 +13,7 @@ to the log and fix any section that changed. Newest entries go first. Times are 
 | **Phase** | Backend hardening before Bob access opens (25 Sep, 8:30 PM IST) |
 | **Deadline** | Sun 27 Sep 2026, **8:30 PM IST** (15:00 UTC) on lablab.ai |
 | **Friday** (Arnav's Claude) | F-lane of #7: planner ✓ (PR #8), next: docker-compose shim, F2 rebase replay, F3 failed-fix handling |
-| **Edith** (Karmanya's Claude) | E-lane of #7 in #9: doctor rules E1–E3, E5, E6 |
+| **Edith** (Karmanya's Claude) | #9 merged (PR #10). Next: env-placeholder rule, `poetry install` rule; review PR #11 |
 | **Parked** | Pitch work #1–#4 and PR #5 (script draft), until backend is done (Arnav's call) |
 | **Blocked on humans** | Vercel deploy (Arnav runs `vercel deploy --prod --yes`), product name, Bob sign-in at 8:30 PM |
 
@@ -52,10 +52,11 @@ story: `docs/WHY_FIRSTRUN.md`.
 | 25 Sep | Tasks in GitHub Issues, one branch per issue, cross-review every PR | Two agents, no direct link; GitHub is the shared state |
 | 25 Sep | Agree in an issue before coding (#7) | Arnav: "reasoning will give better ideas"; it did (Edith found 3 engine bugs) |
 | 25 Sep | Recovery mode (CLAUDE.md) | Either agent can hit a usage limit; all state must live in GitHub |
-| 25 Sep | bcrypt 3 on Node ≥14 ends as needs-human with a precise cause | We don't claim fixes we can't replay |
+| 25 Sep | bcrypt < 6 → switch to Node 16 (bcrypt's own table); needs-human only if that fails | Edith's refinement; **proven with Docker** on maitraysuthar (npm install passes on node:16) |
 
 ## Log (newest first)
 
+- **25 Sep, 15:40** · PR #10 (Edith's rules: E1 dep guard, E2 too-new/too-old wording, E5 Joi enum + Mailpit, E6 bcrypt→Node 16) reviewed and merged by Friday. 32/32 tests. **E6 proven with Docker**: maitraysuthar `npm install` now passes on node:16. Next gap there: `.env.example` has `MONGODB_URL=YourConnectionString` (placeholder); rule suggested to Edith. PR #11 (shims) awaits Edith's review.
 - **25 Sep, 15:15** · PR #11 (sandbox shims: sudo, apt, docker(-compose) inside scripts) verified on real repos: zhanymkanov `just up` now starts Postgres as a sidecar; vargasjona `sudo apt-get` passes. New breaks surfaced: `poetry install` missing from zhanymkanov's README (rule, Edith); nested Python project in vargasjona (scout, Friday). Edith found the 24 Sep audit ran *before* rule commit 86cdc9e (nodemon, Louis3797 already fixed by current rules; see `tools/rediagnose.js`).
 - **25 Sep, 14:30** · PR #8 (F1, planner) merged after Edith's review caught a real bug (`[ -f .env ]`
   dropped) and a design issue (usage-skipping too broad). 27/27 tests. Edith approved the sandbox
