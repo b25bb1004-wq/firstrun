@@ -210,3 +210,23 @@ test('a sidecar gets the credentials hard-coded in config source (teamhide: mysq
   assert.equal(fix.actions[0].env.MYSQL_PASSWORD, 'fastapi');
   assert.equal(fix.actions[0].env.MYSQL_DATABASE, 'fastapi');
 });
+
+test('blank env template + Joi "not allowed to be empty": local values, the app\'s own defaults, one port, Mailpit (Louis3797)', async () => {
+  const root = tmpRepo({
+    'package.json': { name: 'x', dependencies: { joi: '^17', nodemailer: '^6' } },
+    '.env.example': 'NODE_ENV=\nPORT=\nSERVER_URL=\nACCESS_TOKEN_EXPIRE=\nMYSQL_DATABASE=\nMYSQL_ROOT_PASSWORD=\nDATABASE_URL=\nSMTP_HOST=\nSMTP_PORT=\n',
+  });
+  fs.mkdirSync(path.join(root, 'src', 'config'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'src', 'config', 'config.ts'), "const s = Joi.object({\n  PORT: Joi.number().default(4000),\n  ACCESS_TOKEN_EXPIRE: Joi.string().required().default('20m'),\n  SMTP_PORT: Joi.number().default(587),\n});\n");
+  const names = ['PORT', 'SERVER_URL', 'ACCESS_TOKEN_EXPIRE', 'MYSQL_DATABASE', 'MYSQL_ROOT_PASSWORD', 'DATABASE_URL', 'SMTP_HOST', 'SMTP_PORT'];
+  const log = 'Error: Environment variable validation error: \n' + names.map((n) => `"${n}" is not allowed to be empty`).join('\n');
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'yarn start', log, { kind: 'serve' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'env-empty-value', diagnosis.cause);
+  const v = Object.fromEntries(fix.patches.map((p) => [p.key, p.value]));
+  assert.equal(v.PORT, '4000');
+  assert.equal(v.SERVER_URL, 'http://localhost:4000');
+  assert.equal(v.ACCESS_TOKEN_EXPIRE, '20m');
+  assert.equal(v.SMTP_HOST, 'localhost');
+  assert.equal(v.SMTP_PORT, '1025', 'mail goes to Mailpit, not the app default 587');
+  assert.equal(v.DATABASE_URL, `mysql://root:${v.MYSQL_ROOT_PASSWORD}@localhost:3306/app`);
+});

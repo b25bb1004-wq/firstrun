@@ -76,6 +76,26 @@ function sourceUrls(facts) {
   return out;
 }
 
+/** Defaults the app itself declares in its validator: `ACCESS_TOKEN_EXPIRE: Joi.string().required().default('20m')`. */
+function joiDefaults(facts) {
+  const out = {};
+  const files = (facts.files || []).filter((f) => /\.(ts|js|mjs|cjs)$/.test(f) && /config|env|settings/i.test(f) && !/node_modules|test|\.d\.ts$/.test(f)).slice(0, 20);
+  for (const f of files) {
+    let text = '';
+    try { text = fs.readFileSync(path.join(facts.root, facts.projectDir || '', f), 'utf8'); } catch {
+      try { text = fs.readFileSync(path.join(facts.root, f), 'utf8'); } catch { continue; }
+    }
+    for (const m of text.matchAll(/\b([A-Z][A-Z0-9_]+)\s*:\s*Joi\.[^\n]*?\.default\(\s*(['"`])([^'"`]*)\2\s*\)/g)) out[m[1]] = m[3];
+    for (const m of text.matchAll(/\b([A-Z][A-Z0-9_]+)\s*:\s*Joi\.[^\n]*?\.default\(\s*(\d+)\s*\)/g)) out[m[1]] ??= m[2];
+  }
+  return out;
+}
+
+function prismaSchema(facts) {
+  const f = (facts.files || []).find((x) => /(^|\/)schema\.prisma$/.test(x));
+  try { return f ? fs.readFileSync(path.join(facts.root, f), 'utf8') : ''; } catch { return ''; }
+}
+
 function depRange(facts, name) {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, 'package.json'), 'utf8'));
@@ -377,6 +397,53 @@ export const RULES = [
         ruleId: 'env-invalid-value', class: 'missing-env', confidence: 0.85,
         cause: `The app only accepts ${name} = ${allowed.join(' | ')}, but this step runs with another value${jest}; the docs never say to set it.`,
         fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'env' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    // A template with every value blank (`PORT=`, `DATABASE_URL=`), copied as told, and a validator that rejects
+    // empty strings: Joi's `"PORT" is not allowed to be empty` (Louis3797). Fill each with a working local value.
+    id: 'env-empty-value',
+    test(ctx) {
+      const { log, facts } = ctx;
+      const names = [...new Set([...log.matchAll(/"([A-Z][A-Z0-9_]{1,})" is not allowed to be empty/g)].map((m) => m[1]))];
+      if (!names.length) return null;
+      const envFile = facts.envExample?.file;
+      const defaults = joiDefaults(facts);
+      // One port for PORT and every localhost URL derived from it.
+      const port = String((names.includes('PORT') && defaults.PORT) || facts.ports[0] || 3000);
+      const values = {};
+      for (const n of names) {
+        // Mail always goes to the local Mailpit sidecar (port 1025), whatever the app's own default is.
+        if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(HOST|SERVER|PORT|USER|USERNAME|LOGIN)$/.test(n)) { values[n] = devValue(n, ctx); continue; }
+        if (n === 'PORT') { values[n] = { value: port, kind: 'local' }; continue; }
+        if (defaults[n] != null) { values[n] = { value: defaults[n], kind: 'default' }; continue; }
+        if (n === 'NODE_ENV') { values[n] = { value: 'development', kind: 'local' }; continue; }
+        if (/(^|_)(URL|ORIGIN)$/.test(n) && !/DATABASE|DB_|MONGO|REDIS|POSTGRES|MYSQL/.test(n)) { values[n] = { value: `http://localhost:${port}`, kind: 'local' }; continue; }
+        if (/EXPIRE|EXPIRES|TTL/.test(n)) { values[n] = { value: '1h', kind: 'local' }; continue; }
+        if (/_NAME$/.test(n) && !/DB|DATABASE|USER/.test(n)) { values[n] = { value: n.toLowerCase().replace(/_name$/, ''), kind: 'local' }; continue; }
+        if (/^(MYSQL|MARIADB)_DATABASE$|^POSTGRES_DB$/.test(n)) { values[n] = { value: 'app', kind: 'local' }; continue; }
+        const d = devValue(n, ctx);
+        if (['local', 'generated'].includes(d.kind)) values[n] = d;
+      }
+      // A database URL must agree with the credentials set next to it, so the sidecar and the app match.
+      for (const n of names.filter((x) => /DATABASE_URL|DB_URL/.test(x))) {
+        const mysql = names.some((x) => /^MYSQL_/.test(x)) || /provider\s*=\s*"mysql"/.test(prismaSchema(facts));
+        if (!mysql) continue;
+        const pw = values.MYSQL_ROOT_PASSWORD?.value || 'root';
+        const db = values.MYSQL_DATABASE?.value || 'app';
+        values[n] = { value: `mysql://root:${pw}@localhost:3306/${db}`, kind: 'local' };
+      }
+      const sets = Object.entries(values);
+      if (!sets.length) return null;
+      const missing = names.filter((n) => !values[n]);
+      const actions = [{ type: 'exec', command: `touch .env && { grep -v -E '^(${sets.map(([k]) => k).join('|')})=' .env; ${sets.map(([k, v]) => `printf '%s=%s\\n' ${shq(k)} ${shq(v.value)}`).join('; ')}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }];
+      const patches = envFile ? sets.map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
+      const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
+      return {
+        ruleId: 'env-empty-value', class: 'missing-env', confidence: 0.85,
+        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. FirstRun fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
+        fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has working local values for the variables that were blank (${shown}).` } },
       };
     },
   },
