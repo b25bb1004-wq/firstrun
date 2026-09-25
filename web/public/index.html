@@ -268,7 +268,7 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
             <div style="margin-top:6px;color:#A3B4CB">&gt; acme-shop@1.0.0 dev</div>
             <div>&gt; nodemon server.js</div>
             <div style="margin-top:6px;position:relative;display:inline-block">
-              <span class="t-err">Error: connect ECONNREFUSED 127.0.0.1:5432</span>
+              <span class="t-err">Error: connect ECONNREFUSED 127.0.0.1:6379</span>
               <div class="mock-circling" title="Circled with Ctrl+Shift+Space"></div>
             </div>
             <div style="color:#6D819D;font-size:11.5px">    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1141:16)</div>
@@ -281,8 +281,8 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
             </div>
             <div class="mock-fix-box">
               <div style="color:var(--ink-3);font-size:11px;margin-bottom:2px">PROVEN REPAIR FOR THIS ERROR</div>
-              <div>Start PostgreSQL container on default port 5432:</div>
-              <div style="margin-top:4px"><code>docker compose up -d postgres</code></div>
+              <div>Start Redis container on port 6379 (missing-service rule):</div>
+              <div style="margin-top:4px"><code>docker compose up -d redis</code></div>
             </div>
             <div class="mock-ask-row">
               <input type="text" value="Why did this break?" readonly aria-label="Question for Bob">
