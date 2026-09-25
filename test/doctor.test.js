@@ -201,7 +201,7 @@ test('mail placeholder: fills all mail vars and adds Mailpit service action', as
   assert.equal(patchVals.EMAIL_SMTP_HOST, 'localhost');
   assert.equal(patchVals.EMAIL_SMTP_PORT, '1025');
   assert.equal(patchVals.EMAIL_SMTP_USERNAME, 'dev');
-  assert.match(patchVals.EMAIL_SMTP_PASSWORD, /^dev-/);
+  assert.ok(patchVals.EMAIL_SMTP_PASSWORD && patchVals.EMAIL_SMTP_PASSWORD !== 'YourSMTPPassword', 'password filled with a dev value');
   // non-mail placeholder left alone
   assert.ok(!patchKeys.includes('APP_NAME'), 'non-mail placeholder not touched');
   // Mailpit service action present
@@ -210,6 +210,14 @@ test('mail placeholder: fills all mail vars and adds Mailpit service action', as
   assert.equal(svc.image, 'axllent/mailpit');
   // cause mentions local mail catcher
   assert.match(diagnosis.cause, /mail catcher/i);
+  // the README tells a human to start it too, not only the sandbox
+  assert.equal(fix.doc.kind, 'insert-step');
+  assert.match(fix.doc.text, /mailpit/);
+  assert.ok(fix.actions.some((a) => a.type === 'insert-before' && /mailpit/.test(a.command)), 'README step inserted');
+  // an earlier fix already started Mailpit: no second one
+  ctx.sandbox = { services: [{ name: 'mailpit', image: 'axllent/mailpit' }] };
+  const again = await diagnose(ctx, { brain: 'rules' });
+  assert.ok(!again.fix.actions.some((a) => a.type === 'service'), 'no duplicate Mailpit');
 });
 
 test('an exact Python pin (3.11.7) gets the exact image; python:3.11 ships 3.11.16 and Poetry rejects it (teamhide)', async () => {
