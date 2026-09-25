@@ -98,7 +98,7 @@ function prismaSchema(facts) {
 
 function depRange(facts, name) {
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, 'package.json'), 'utf8'));
+    const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, facts.projectDir || '', 'package.json'), 'utf8'));
     return pkg.dependencies?.[name] || pkg.devDependencies?.[name] || pkg.optionalDependencies?.[name] || null;
   } catch { return null; }
 }

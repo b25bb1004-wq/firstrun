@@ -225,6 +225,27 @@ export async function scout(root) {
   const envPort = Number(facts.envExample?.keys?.PORT);
   if (envPort) facts.ports.unshift(envPort);
 
+  // No manifest at the root, but exactly one project folder below it (backend/app/pyproject.toml):
+  // take the runtime and dependency facts from there, so the clean machine gets the right runtime.
+  if (!facts.node && !facts.python) {
+    const MANIFEST = /(^|\/)(package\.json|pyproject\.toml|requirements\.txt|setup\.py|Pipfile|manage\.py)$/;
+    const dirs = [...new Set(files
+      .filter((f) => MANIFEST.test(f) && !/(^|\/)(node_modules|tests?|docs?|examples?|fixtures?|static|vendor|\.[^/]+)\//.test(f))
+      .map((f) => f.slice(0, f.lastIndexOf('/')))
+      .filter((d) => d && d.split('/').length <= 3))];
+    if (dirs.length === 1) {
+      const dir = dirs[0];
+      const sub = await scout(path.join(root, dir));
+      facts.projectDir = dir;
+      facts.node = sub.node;
+      facts.python = sub.python && { ...sub.python, requirementsFiles: sub.python.requirementsFiles.map((f) => `${dir}/${f}`) };
+      if (!facts.envExample && sub.envExample) facts.envExample = { ...sub.envExample, file: `${dir}/${sub.envExample.file}` };
+      for (const p of sub.ports) if (!facts.ports.includes(p)) facts.ports.push(p);
+      const seen = new Set(facts.envVarsInCode.map((v) => v.name));
+      facts.envVarsInCode.push(...sub.envVarsInCode.filter((v) => !seen.has(v.name)).map((v) => ({ ...v, file: v.file && `${dir}/${v.file}` })));
+    }
+  }
+
   facts.stack = facts.node && facts.python
     ? (files.filter((f) => f.endsWith('.py')).length > files.filter((f) => /\.[jt]sx?$/.test(f)).length ? 'python' : 'node')
     : facts.node ? 'node' : facts.python ? 'python' : 'other';
