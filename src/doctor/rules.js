@@ -217,6 +217,28 @@ export const RULES = [
     },
   },
   {
+    // "node: bad option: --test" (Node < 18) or unknown --experimental-* flags.
+    // The plan picked an old image because the docs only stated a minimum version.
+    id: 'node-test-flag',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'node' || !facts.node) return null;
+      if (!/node: bad option: --test|node: bad option: --experimental-/.test(log)) return null;
+      const target = '18';
+      const current = plan.runtime.version;
+      if (Number(current) >= Number(target)) return null;
+      const src = `the error ("${log.match(/node: bad option: --\S+/)?.[0]}"): \`--test\` requires Node.js 18+`;
+      return {
+        ruleId: 'node-test-flag', class: 'runtime-version', confidence: 0.95,
+        cause: runtimeCause(plan, 'Node.js', target, src),
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target} or newer (\`--test\` runner requires Node.js 18+)`, runtime: { name: 'node', version: target } },
+        },
+      };
+    },
+  },
+  {
     id: 'python-version',
     test({ log, facts, plan }) {
       if (plan.runtime.name !== 'python' || !facts.python) return null;
