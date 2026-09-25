@@ -70,7 +70,7 @@ export function mountAudit(root, auditId) {
       <div class="au-hero">
         <p class="au-kicker">Swarm audit <span class="mono">${audit.id}</span>${started ? h` <span class="mono">started ${new Date(started).toLocaleTimeString()}</span>` : ''}</p>
         <h1 class="au-headline"><span class="n">${broke}</span> of <span class="n">${M}</span> READMEs broke on a clean machine${all ? '.' : ''}</h1>
-        <p class="au-sub"><span class="n">${auto}</span> repo${auto === 1 ? '' : 's'} fully repaired; <span class="n">${fixed}</span> individual break${fixed === 1 ? '' : 's'} fixed with evidence${all ? '.' : h` so far. <span class="au-live">${icon('dot')} <span class="mono">${running}</span> running, <span class="mono">${queued}</span> queued</span>`}</p>
+        <p class="au-sub"><span class="n">${auto}</span> repaired automatically${all ? '.' : h` so far. <span class="au-live">${icon('dot')} <span class="mono">${running}</span> running, <span class="mono">${queued}</span> queued</span>`}</p>
       </div>
       <div class="au-rail">
         <div class="gauge"><span class="gl">Audited</span><span class="gv mono">${done}/${M}</span></div>
