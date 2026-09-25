@@ -154,3 +154,11 @@ test('SMTP settings point at a local Mailpit, never a real mail server', async (
   const env = await diagnose(await ctxIn(root, 'npm start', 'Error: Missing required environment variable SMTP_HOST', { kind: 'serve' }), { brain: 'rules' });
   assert.match(JSON.stringify(env.fix), /SMTP_HOST=localhost/);
 });
+
+test('poetry run before poetry install: insert the install (zhanymkanov, found after the docker shim)', async () => {
+  const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "^3.12"\nuvicorn = "*"\n', 'poetry.lock': '' });
+  const log = 'poetry run uvicorn src.main:app --reload --host 0.0.0.0\nCommand not found: uvicorn\nerror: recipe `run` failed on line 12 with exit code 1';
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'just run', log, { installed: 'pip install poetry' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'deps-not-installed', diagnosis.cause);
+  assert.equal(fix.actions[0].command, 'poetry install');
+});
