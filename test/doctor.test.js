@@ -197,3 +197,16 @@ test('Poetry app repos (no package dir): poetry install --no-root (teamhide, Doc
   assert.equal(diagnosis.ruleId, 'poetry-no-root', diagnosis.cause);
   assert.deepEqual(fix.actions, [{ type: 'replace-step', command: 'poetry install --no-root' }]);
 });
+
+test('a sidecar gets the credentials hard-coded in config source (teamhide: mysql fastapi/fastapi)', async () => {
+  const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "^3.11"\n' });
+  fs.mkdirSync(path.join(root, 'core'));
+  fs.writeFileSync(path.join(root, 'core', 'config.py'), 'class Config:\n    WRITER_DB_URL: str = "mysql+aiomysql://fastapi:fastapi@localhost:3306/fastapi"\n');
+  const log = "sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 111] Connection refused)\")";
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'alembic upgrade head', log, { kind: 'migrate' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'missing-service', diagnosis.cause);
+  assert.equal(fix.actions[0].image, 'mysql:8');
+  assert.equal(fix.actions[0].env.MYSQL_USER, 'fastapi');
+  assert.equal(fix.actions[0].env.MYSQL_PASSWORD, 'fastapi');
+  assert.equal(fix.actions[0].env.MYSQL_DATABASE, 'fastapi');
+});
