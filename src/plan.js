@@ -242,6 +242,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (name && facts.node && !scripts.includes(name) && !['install', 'add', 'dlx', 'set', 'config'].includes(name)) {
       conflicts.push({ what: `npm script "${name}"`, docs: s.command, truth: 'not in package.json scripts', source: `${s.source.file}:${s.source.line}` });
     }
+    if (/^docker-compose\s/.test(s.command) && !conflicts.some((c) => c.what === 'Docker Compose v1')) {
+      conflicts.push({ what: 'Docker Compose v1', docs: s.command, truth: 'retired in 2023; current Docker ships it as `docker compose`', source: `${s.source.file}:${s.source.line}` });
+    }
     const cp = s.command.match(/^(?:cp|mv)\s+(\S+)\s+\S+/);
     if (cp && !facts.files.includes(cp[1].replace(/^\.\//, ''))) {
       conflicts.push({ what: `file ${cp[1]}`, docs: s.command, truth: 'does not exist in the repo', source: `${s.source.file}:${s.source.line}` });

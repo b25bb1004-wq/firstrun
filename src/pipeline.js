@@ -9,7 +9,7 @@ import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
-import { run, tail, nowIso, shortId, readText } from './util.js';
+import { run, tail, nowIso, shortId, readText, shq } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
 const MAX_REBASES = 3;
@@ -136,7 +136,21 @@ export async function verifyRepo(repoDir, opts = {}) {
           if (!p.ok) r.exitCode = 1;
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
-      } else r = await box.exec(step.command, { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+      } else {
+        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
+        r = await box.exec(step.command, opts);
+        // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
+        const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
+        if (req) {
+          const [cwd, asked] = req.trim().split('\n');
+          const sr = await runServicesStep(asked.replace(/^docker-compose\b/, 'docker compose'), { sandbox: box, facts, cwd });
+          await box.sh(`printf '%s\\n' ${shq(asked)} >> /firstrun/services.done; rm -f /firstrun/services.request`);
+          const note = `[firstrun] \`${asked}\` ran inside a script: started its services as sidecars, then retried the step\n`;
+          onData?.(note + sr.out);
+          const again = sr.exitCode === 0 ? await box.exec(step.command, opts) : { exitCode: 1, out: '', durationMs: 0 };
+          r = { ...again, out: `${r.out}${note}${sr.out}${again.out}`, durationMs: r.durationMs + (sr.durationMs || 0) + again.durationMs };
+        }
+      }
       const attempt = {
         stepId: step.id, n, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs,
         logTail: tail(r.out, 60), logFile: rec.writeLog(`${agent === 'verifier' ? 'replay-' : ''}${step.id}-${n}`, r.out), out: r.out,
