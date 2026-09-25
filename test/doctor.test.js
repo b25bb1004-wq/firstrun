@@ -287,6 +287,18 @@ test('writeJson survives a Windows-style EPERM on rename (maitraysuthar audit cr
   assert.deepEqual(fs.readdirSync(dir), ['run.json'], 'no temp file left behind');
 });
 
+test('a Bob fix that turns "already exists" into a different error counts as progress, not a failed repair (rest-hapi)', async () => {
+  const { stillFailing } = await import('../src/pipeline.js');
+  const bob = { by: 'bob', class: 'wrong-order', cause: 'clone into a subdirectory' }; // no ruleId, like every Bob diagnosis
+  const before = { out: "Cloning into 'rest-hapi-demo'...\nfatal: destination path 'rest-hapi-demo' already exists and is not an empty directory." };
+  const mongo = { out: 'MongooseError [MongooseServerSelectionError]: connect ECONNREFUSED 127.0.0.1:27017' };
+  assert.equal(await stillFailing(bob, before, mongo, {}), false, 'new error = progress');
+  assert.equal(await stillFailing(bob, before, before, {}), true, 'same error = still failing');
+  const quiet = { out: 'step one\nstep two done' };
+  assert.equal(await stillFailing(bob, quiet, { out: 'something else entirely' }, {}), false, 'no error keyword: a different last line is progress');
+  assert.equal(await stillFailing(bob, quiet, quiet, {}), true);
+});
+
 test('invented dev secrets are one obvious non-secret value, never a random credential-looking string', async () => {
   const { DEV_SECRET } = await import('../src/doctor/rules.js');
   const scanner = /(API_?KEY|SECRET|TOKEN|PASSWORD)=[A-Za-z0-9/+_-]{20,}/; // same pattern as tools/check-secrets.sh
