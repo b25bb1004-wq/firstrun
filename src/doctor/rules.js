@@ -139,7 +139,7 @@ export const RULES = [
           fix: {
             actions: [{ type: 'rebase', image: imageFor('node', '16'), runtime: { name: 'node', version: '16', source: why } }],
             patches: [],
-            doc: { kind: 'prerequisite', text: `Node.js 16 (bcrypt ${bcrypt} does not support Node.js 18+; upgrading to bcrypt >= 6 lets you use a current Node.js)`, runtime: { name: 'node', version: '16' } },
+            doc: { kind: 'prerequisite', text: `Node.js 16 (see bcrypt's compatibility table: bcrypt ${bcrypt} supports Node.js 12–16; upgrading to bcrypt >= 6 lets you use a current Node.js)`, runtime: { name: 'node', version: '16' } },
           },
         };
       }
@@ -165,7 +165,7 @@ export const RULES = [
         fix: {
           actions: [{ type: 'rebase', image: imageFor('node', String(target)), runtime: { name: 'node', version: String(target), source: why } }],
           patches: [],
-          doc: { kind: 'prerequisite', text: `Node.js ${target} (native dependencies do not build on newer versions)`, runtime: { name: 'node', version: String(target) } },
+          doc: { kind: 'prerequisite', text: `Node.js ${target} (see the native-build errors: dependencies do not compile on newer versions)`, runtime: { name: 'node', version: String(target) } },
         },
       };
     },
@@ -383,11 +383,10 @@ export const RULES = [
       if (!sets.length) return null;
       const actions = sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }));
       const patches = envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : [];
-      const names = sets.map((s) => s.k).join(', ');
       return {
         ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
         cause: `${sets.map((s) => `${s.k}=${s.v}`).join(', ')} ${sets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}.`,
-        fix: { actions, patches, doc: { kind: 'note', text: `${envFile || '.env'} now has a working local value for ${names} instead of a placeholder.` } },
+        fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.` } },
       };
     },
   },
