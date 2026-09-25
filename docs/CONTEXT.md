@@ -15,7 +15,7 @@ to the log and fix any section that changed. Newest entries go first. Times are 
 | **Friday** (Arnav's Claude) | Merged: #8 planner, #11 shims, #12 (#6). In progress: **draft #15** (F2 rebase/replay prereqs + F3 failed fix); next: teamhide log check, GeekyAnts verify |
 | **Edith** (Karmanya's Claude) | #9 merged (PR #10). Next: env-placeholder rule, `poetry install` rule; review PR #11 |
 | **Parked** | Pitch work #1–#4 and PR #5 (script draft), until backend is done (Arnav's call) |
-| **Blocked on humans** | Product name, Bob IDE + sign-in at 8:30 PM (both PCs) |
+| **Blocked on humans** | Product name; Bob IDE + sign-in at 8:30 PM (both PCs), then record sessions per bob_sessions/README.md |
 | **Application URL** | https://firstrun-sigma.vercel.app |
 
 ## The product in one paragraph
@@ -57,6 +57,7 @@ story: `docs/WHY_FIRSTRUN.md`.
 
 ## Log (newest first)
 
+- **25 Sep, 18:15** · **Judge round 1 (Hermes/Nemotron 3 Ultra): P/B/A/O = 2/3/4/4, not top 10% yet**. The missing pieces are the submission artifacts (video, slides, cover, `bob_sessions/`), plus market/competitor content on the site; the engine scored well. Issues #26–#32 (triaged by Friday on #25). Hermes is online in Discord (bot HermesJudge, nickname Hermes, allowlist Arnav+Karmanya) with a 45-min team-sync cron that reviews PRs and works `lane:hermes` (#24 hosted verify). Merged: #21 (announced port; Edith caught a 3306 bug), #22 (DaVinci audit wording), #35 (Edith env-empty-value). **teamhide: FAILED → PARTIAL, app running, 4 fixes, replay 3m41s.** Edith's audit rerun → `audit/real-16-v2`. `bob_sessions/README.md` + `tools/check-bob-sessions.js` ready for 8:30 PM.
 - **25 Sep, 17:15** · **Hosted demo live: https://firstrun-sigma.vercel.app** (public; live README check + replay of real runs). Recovery mode worked for real: Arnav's usage ran out, Edith took over #15 at 10:14 UTC, fixed F3 for global installs (GeekyAnts Docker run), and merged it. #16 merged; #17 (exact Python pin → exact image, teamhide) approved.
 - **25 Sep, 16:30** · PR #14 (Edith: env-placeholder-value + poetry install) merged. Planner prose-output fix in review. **First real before/after:** maitraysuthar went from FAILED (0 fixed) to **PARTIAL, app running**: bcrypt→node:16 ✔, placeholder MONGODB_URL→local ✔, replay from zero 23 s. Only `npm test` left (Bob case).
 - **25 Sep, 16:05** · PR #11 (shims) and #12 (#6, known-fixes moved; Edith confirmed on a machine without tesseract) merged. F2+F3 pushed as **draft PR #15** with a handoff note. Arnav's usage is running low, so if Friday goes quiet, Edith takes #15 per recovery mode. Edith is Docker-verifying the env-placeholder rule on maitraysuthar.
