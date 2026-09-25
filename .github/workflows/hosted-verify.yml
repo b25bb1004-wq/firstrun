@@ -111,8 +111,9 @@ jobs:
 
       - name: Trim large log files
         if: steps.validate.outputs.error == '' && steps.find_run.outputs.run_dir != ''
+        env:
+          RUN_DIR: ${{ steps.find_run.outputs.run_dir }}
         run: |
-          RUN_DIR="${{ steps.find_run.outputs.run_dir }}"
           # Remove log files larger than 1MB to keep artifact size down
           find "$RUN_DIR" -name "*.log" -size +1M -delete 2>/dev/null || true
           find "$RUN_DIR" -name "*.ndjson" -size +5M -delete 2>/dev/null || true
