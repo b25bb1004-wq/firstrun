@@ -327,3 +327,63 @@ test('audit --only keeps every other repo already in the audit (real-16-v2 was n
   assert.deepEqual(after.repos.map((r) => `${r.slug}:${r.verdict}`), ['a:VERIFIED', 'b:PARTIAL', 'c:FAILED']);
   assert.equal(after.summary.total, 3);
 });
+
+// ── ts-skip-lib-check (GeekyAnts/express-typescript, Node 22) ──────────────
+
+const mongodbDts = 'node_modules/mongoose/node_modules/mongodb/mongodb.d.ts';
+const TS_LOG_ALL_DEPS = [
+  `${mongodbDts}(74,178): error TS2304: Cannot find name 'AsyncDisposable'.`,
+  `${mongodbDts}(122,5): error TS1165: A computed property name in an ambient context must refer to an expression whose type is a literal type or a 'unique symbol' type.`,
+  `${mongodbDts}(122,13): error TS2339: Property 'asyncDispose' does not exist on type 'SymbolConstructor'.`,
+].join('\n');
+
+test('ts-skip-lib-check fires when all TS errors are inside node_modules .d.ts files (GeekyAnts)', async () => {
+  const root = tmpRepo({
+    'package.json': { name: 'x', scripts: { build: 'tsc' }, devDependencies: { typescript: '5', mongoose: '^8' } },
+    'tsconfig.json': '{\n  "compilerOptions": {\n    "outDir": "dist"\n  }\n}\n',
+  });
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npm run build', TS_LOG_ALL_DEPS, { kind: 'build' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'ts-skip-lib-check', diagnosis.cause);
+  assert.equal(diagnosis.class, 'missing-dependency');
+  assert.equal(diagnosis.confidence, 0.85);
+  assert.match(diagnosis.cause, /node_modules/);
+  assert.deepEqual(fix.patches, [{ path: 'tsconfig.json', op: 'tsconfig-skip-lib-check' }]);
+  assert.deepEqual(fix.actions, []);
+});
+
+test('ts-skip-lib-check does NOT fire when any TS error is in project source', async () => {
+  const root = tmpRepo({
+    'package.json': { name: 'x', scripts: { build: 'tsc' }, devDependencies: { typescript: '5', mongoose: '^8' } },
+    'tsconfig.json': '{\n  "compilerOptions": {\n    "outDir": "dist"\n  }\n}\n',
+  });
+  const mixed = [
+    `${mongodbDts}(74,178): error TS2304: Cannot find name 'AsyncDisposable'.`,
+    `src/app.ts(3,5): error TS2322: Type 'string' is not assignable to type 'number'.`,
+  ].join('\n');
+  const { diagnosis } = await diagnose(await ctxIn(root, 'npm run build', mixed, { kind: 'build' }), { brain: 'rules' });
+  assert.notEqual(diagnosis.ruleId, 'ts-skip-lib-check', 'must not fire when project files have errors');
+});
+
+test('patch op tsconfig-skip-lib-check: inserts, is idempotent, and flips false to true', () => {
+  // basic insert after compilerOptions with // comment and trailing comma
+  const tsconfig = '{\n  // project config\n  "compilerOptions": {\n    "outDir": "dist", // trailing comma\n  }\n}\n';
+  const patched = applyPatchOps(tsconfig, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.match(patched, /"skipLibCheck": true/);
+  assert.match(patched, /\/\/ project config/, 'comment preserved');
+  // idempotent: applying again must not change the text
+  const again = applyPatchOps(patched, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.equal(again, patched, 'applying twice is a no-op');
+  // existing skipLibCheck: false becomes true
+  const withFalse = '{\n  "compilerOptions": {\n    "skipLibCheck": false\n  }\n}\n';
+  const flipped = applyPatchOps(withFalse, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.match(flipped, /"skipLibCheck": true/);
+  assert.doesNotMatch(flipped, /"skipLibCheck": false/);
+});
+
+test('tsconfig-skip-lib-check edits the existing compilerOptions (quoted key), never adds a second one (GeekyAnts)', async () => {
+  const real = '{\n  "compilerOptions": {\n    "target": "es6",\n    "module": "commonjs",\n    "outDir": "dist/"\n  }\n}\n';
+  const out = applyPatchOps(real, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.equal((out.match(/compilerOptions/g) || []).length, 1, 'duplicate keys: JSON keeps the last one, which would drop skipLibCheck');
+  assert.equal(JSON.parse(out).compilerOptions.skipLibCheck, true);
+  assert.equal(JSON.parse(out).compilerOptions.target, 'es6');
+});

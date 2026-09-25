@@ -588,6 +588,29 @@ export const RULES = [
     },
   },
   {
+    // TypeScript errors only inside node_modules/**/*.d.ts: the project's own code is fine.
+    // The standard fix is `skipLibCheck: true`; without it tsc fails on types it doesn't own.
+    id: 'ts-skip-lib-check',
+    test({ log, facts }) {
+      const TS_ERR = /^(.+)\(\d+,\d+\): error TS\d+:/gm;
+      const lines = [...log.matchAll(TS_ERR)];
+      if (!lines.length) return null;
+      // All error paths must be inside node_modules/ and end in .d.ts.
+      if (!lines.every((m) => m[1].startsWith('node_modules/') && m[1].endsWith('.d.ts'))) return null;
+      if (!facts.files.includes('tsconfig.json')) return null;
+      const example = lines[0][1]; // e.g. node_modules/mongoose/node_modules/mongodb/mongodb.d.ts
+      return {
+        ruleId: 'ts-skip-lib-check', class: 'missing-dependency', confidence: 0.85,
+        cause: `TypeScript type-checks ${example}; the errors are all inside dependencies, not this project's code, and tsconfig.json has no skipLibCheck.`,
+        fix: {
+          actions: [],
+          patches: [{ path: 'tsconfig.json', op: 'tsconfig-skip-lib-check' }],
+          doc: { kind: 'note', text: '`tsconfig.json` now sets `skipLibCheck: true`: the build failed on type errors inside dependencies, not in this project.' },
+        },
+      };
+    },
+  },
+  {
     id: 'deps-not-installed',
     test({ log, facts, plan, step }) {
       // `poetry run uvicorn …` before any `poetry install`: Poetry says "Command not found: uvicorn" (often from a justfile or Makefile).
