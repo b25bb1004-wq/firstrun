@@ -434,3 +434,13 @@ test('a Bob source-only fix is not applied and shows in the report as a maintain
   const md = renderReport({ passport: { repo: 'x', commit: 'c', verifiedAt: new Date().toISOString(), verdict: 'FAILED', image: 'node:22', runtime: 'Node.js 22', stepsTotal: 1, stepsFromReadme: 1, breaksFound: 1, breaksFixed: 0, needsHuman: 1, replaySeconds: 0, bobcoins: 0.1, diagnosedByBob: 1, verify: { kind: 'none' } }, plan: { steps: [] }, evidence: [{ id: 'E1', stepId: 'S1', status: 'needs-human', before: { command: 'npm run dev', logTail: '' }, diagnosis: { ...v.diagnosis, by: 'bob', bobcoins: 0.1, suggestions: v.suggestions }, fix: null }], firstFailure: null, conflicts: [] });
   assert.ok(md.includes('Suggested code change for the maintainer (not applied):** `src/providers/Locals.ts`'), 'suggestion shown in FIRSTRUN.md');
 });
+
+test('Prisma "Environment variable not found" is caught by missing-env-var (gothinkster/node-express-realworld)', async () => {
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { prisma: '^5' } } });
+  fs.mkdirSync(path.join(root, 'prisma'));
+  fs.writeFileSync(path.join(root, 'prisma', 'schema.prisma'), 'datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}\n');
+  const log = 'Error code: P1012\nerror: Environment variable not found: DATABASE_URL.\n  -->  schema.prisma:3\nValidation Error Count: 1';
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npx prisma migrate deploy', log), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'missing-env-var', diagnosis.cause);
+  assert.match(JSON.stringify(fix), /DATABASE_URL/);
+});
