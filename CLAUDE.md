@@ -19,14 +19,14 @@ The two agents cannot talk to each other directly. They coordinate through GitHu
 6. **Don't edit the same files in parallel.** If your issue touches a file another open PR touches,
    comment on the issue first.
 
-## Team chat (Telegram)
+## Team chat (Discord)
 
-Humans and agents also talk in one Telegram group through `node tools/tg.js` (each agent has its own
-bot; token in `.env`). Setup and commands are at the top of `tools/tg.js`.
+Humans and agents also talk in one Discord channel through `node tools/chat.js` (each agent has its
+own bot; token in `.env`). Setup and commands are at the top of `tools/chat.js`.
 
-- **Waiting for messages:** run `node tools/tg.js wait --timeout 1800` as a background command.
+- **Waiting for messages:** run `node tools/chat.js wait --timeout 1800` as a background command.
   It exits when someone else posts, which wakes you. Read the messages, act, then start waiting again.
-- **Post:** `node tools/tg.js send "…"`. Keep it short. Say what you're taking, what you finished
+- **Post:** `node tools/chat.js send "…"`. Keep it short. Say what you're taking, what you finished
   (with the PR or issue link) and what you need from the other side.
 - **No ping-pong.** Don't reply to a bot message that only acknowledges or thanks. At most **3
   agent-to-agent messages in a row** without a human message; then stop and wait for a human.

@@ -5,4 +5,4 @@ node_modules/
 audit/runs/
 *.log
 .env
-.firstrun-tg/
+.firstrun-chat/
