@@ -180,6 +180,46 @@ test('placeholder values in .env.example: use the commented local example, patch
   assert.match(patched, /^JWT_SECRET=YourSecret$/m, 'placeholders the app did not fail on are left alone');
 });
 
+test('mail placeholder: fills all mail vars and adds Mailpit service action', async () => {
+  const example = [
+    'EMAIL_SMTP_HOST=YourSMTPHost', 'EMAIL_SMTP_PORT=YourSMTPPort',
+    'EMAIL_SMTP_USERNAME=YourSMTPUsername', 'EMAIL_SMTP_PASSWORD=YourSMTPPassword',
+    'APP_NAME=MyApp',
+  ].join('\n');
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { nodemailer: '^6' } }, '.env.example': example });
+  const ctx = await ctxIn(root, 'npm start', 'Error: getaddrinfo ENOTFOUND YourSMTPHost', { kind: 'serve' });
+  ctx.sandboxEnv = { EMAIL_SMTP_HOST: 'YourSMTPHost', EMAIL_SMTP_PORT: 'YourSMTPPort', EMAIL_SMTP_USERNAME: 'YourSMTPUsername', EMAIL_SMTP_PASSWORD: 'YourSMTPPassword', APP_NAME: 'MyApp' };
+  const { diagnosis, fix } = await diagnose(ctx, { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'env-placeholder-value', diagnosis.cause);
+  // all four mail vars patched
+  const patchKeys = fix.patches.map((p) => p.key);
+  assert.ok(patchKeys.includes('EMAIL_SMTP_HOST'), 'HOST patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_PORT'), 'PORT patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_USERNAME'), 'USERNAME patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_PASSWORD'), 'PASSWORD patched');
+  const patchVals = Object.fromEntries(fix.patches.map((p) => [p.key, p.value]));
+  assert.equal(patchVals.EMAIL_SMTP_HOST, 'localhost');
+  assert.equal(patchVals.EMAIL_SMTP_PORT, '1025');
+  assert.equal(patchVals.EMAIL_SMTP_USERNAME, 'dev');
+  assert.ok(patchVals.EMAIL_SMTP_PASSWORD && patchVals.EMAIL_SMTP_PASSWORD !== 'YourSMTPPassword', 'password filled with a dev value');
+  // non-mail placeholder left alone
+  assert.ok(!patchKeys.includes('APP_NAME'), 'non-mail placeholder not touched');
+  // Mailpit service action present
+  const svc = fix.actions.find((a) => a.type === 'service');
+  assert.ok(svc, 'service action present');
+  assert.equal(svc.image, 'axllent/mailpit');
+  // cause mentions local mail catcher
+  assert.match(diagnosis.cause, /mail catcher/i);
+  // the README tells a human to start it too, not only the sandbox
+  assert.equal(fix.doc.kind, 'insert-step');
+  assert.match(fix.doc.text, /mailpit/);
+  assert.ok(fix.actions.some((a) => a.type === 'insert-before' && /mailpit/.test(a.command)), 'README step inserted');
+  // an earlier fix already started Mailpit: no second one
+  ctx.sandbox = { services: [{ name: 'mailpit', image: 'axllent/mailpit' }] };
+  const again = await diagnose(ctx, { brain: 'rules' });
+  assert.ok(!again.fix.actions.some((a) => a.type === 'service'), 'no duplicate Mailpit');
+});
+
 test('an exact Python pin (3.11.7) gets the exact image; python:3.11 ships 3.11.16 and Poetry rejects it (teamhide)', async () => {
   const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "3.11.7"\n' });
   const log = 'The currently activated Python version 3.11.16 is not supported by the project (3.11.7).';
@@ -260,4 +300,18 @@ test('invented dev secrets are one obvious non-secret value, never a random cred
   assert.equal(v.ACCESS_TOKEN_SECRET, DEV_SECRET);
   assert.equal(v.DATABASE_URL, `mysql://root:${DEV_SECRET}@localhost:3306/app`, 'URL and password still agree');
   for (const p of fix.patches) assert.doesNotMatch(`${p.key}=${p.value}`, scanner, `${p.key} looks like a credential`);
+});
+
+test('audit --only keeps every other repo already in the audit (real-16-v2 was narrowed to 1 repo)', async () => {
+  const { audit } = await import('../src/audit.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-audit-'));
+  const repo = (slug) => ({ slug, url: `https://github.com/x/${slug}`, ref: 'abc', stack: 'node' });
+  fs.writeFileSync(path.join(root, 'repos.json'), JSON.stringify({ repos: [repo('a'), repo('b'), repo('c')] }));
+  fs.mkdirSync(path.join(root, 'audit', 't'), { recursive: true });
+  const done = (slug, verdict) => ({ ...repo(slug), status: 'done', verdict, passport: { verdict, breaksFound: 1, breaksFixed: 1 }, runDir: `runs/${slug}` });
+  fs.writeFileSync(path.join(root, 'audit', 't', 'audit.json'), JSON.stringify({ id: 't', repos: [done('a', 'VERIFIED'), done('b', 'PARTIAL'), done('c', 'FAILED')] }));
+  await audit(path.join(root, 'repos.json'), { only: 'b', id: 't', root, printer: () => {} });
+  const after = JSON.parse(fs.readFileSync(path.join(root, 'audit', 't', 'audit.json'), 'utf8'));
+  assert.deepEqual(after.repos.map((r) => `${r.slug}:${r.verdict}`), ['a:VERIFIED', 'b:PARTIAL', 'c:FAILED']);
+  assert.equal(after.summary.total, 3);
 });

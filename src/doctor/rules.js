@@ -115,6 +115,7 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(HOST|SERVER)$/.test(n)) return { value: 'localhost', kind: 'local' };
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_PORT$/.test(n)) return { value: '1025', kind: 'local' };
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(USER|USERNAME|LOGIN)$/.test(n)) return { value: 'dev', kind: 'local' };
+  if (/^(\w+_)?(SMTP|MAIL|EMAIL)_SECURE$/.test(n)) return { value: 'false', kind: 'local' };
   if (/^(EMAIL|MAIL|SMTP)_(FROM|SENDER)$|^(FROM|SENDER)_(EMAIL|ADDRESS)$/.test(n)) return { value: 'dev@example.com', kind: 'local' };
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
@@ -474,14 +475,42 @@ export const RULES = [
         const d = devValue(k, ctx);
         return ['local', 'generated'].includes(d.kind) ? { value: d.value, from: 'a local default' } : null;
       };
-      const sets = hit.map(([k, v]) => ({ k, v, ...pick(k) })).filter((s) => s.value);
+      let sets = hit.map(([k, v]) => ({ k, v, ...pick(k) })).filter((s) => s.value);
       if (!sets.length) return null;
-      const actions = sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }));
-      const patches = envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : [];
+      // When a mail variable is among the hits, fill every other mail placeholder too and add Mailpit.
+      const mailRe = /^(\w+_)?(SMTP|MAIL|EMAIL)_/;
+      const mailHit = sets.some((s) => mailRe.test(s.k));
+      const mailActions = [];
+      const mailPatches = [];
+      let mailDoc = null;
+      if (mailHit) {
+        const extra = placeholders.filter(([k]) => mailRe.test(k) && !sets.some((s) => s.k === k));
+        for (const [k] of extra) {
+          const d = devValue(k, ctx);
+          if (['local', 'generated'].includes(d.kind)) sets.push({ k, v: current[k], value: d.value, from: 'a local default' });
+        }
+        // The README must start the catcher too (same docs as missing-service), or the passport proves a setup the docs don't describe.
+        // An earlier fix may have started it already: never start two.
+        if (!ctx.sandbox?.services?.some((s) => serviceKind(s.image, s.name) === 'mailpit')) {
+          const mp = serviceFor('mailpit', { facts, envValues: {} });
+          mailActions.push({ type: 'service', name: mp.name, image: mp.image, env: mp.env, port: mp.port });
+          if (facts.compose && !mp.fromCompose) {
+            mailPatches.push({ path: facts.compose.file, op: 'compose-add-service', name: mp.name, image: mp.image, port: mp.port, env: mp.env });
+            mailDoc = { kind: 'insert-step', text: `docker compose up -d ${mp.name}`, service: 'mailpit' };
+          } else {
+            mailDoc = { kind: 'insert-step', text: mp.fromCompose ? `docker compose up -d ${mp.name}` : dockerRunLine(mp), service: 'mailpit' };
+          }
+          mailActions.push({ type: 'insert-before', command: mailDoc.text, kind: 'services', silent: true });
+        }
+      }
+      const actions = [...sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` })), ...mailActions];
+      const patches = [...(envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : []), ...mailPatches];
+      const hitSets = sets.filter((s) => hit.some(([k]) => k === s.k));
+      const envNote = `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.`;
       return {
         ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
-        cause: `${sets.map((s) => `${s.k}=${s.v}`).join(', ')} ${sets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}.`,
-        fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.` } },
+        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
+        fix: { actions, patches, doc: mailDoc || { kind: 'note', text: envNote } },
       };
     },
   },
