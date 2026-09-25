@@ -22,17 +22,20 @@ function tileHTML(r) {
     const cs = run?.currentStep;
     mid = h`<p class="t-phase">${icon('dot')} ${PHASE_LABEL[run?.phase] || 'Starting'}${run?.stepsTotal ? h` <span class="mono">${run.stepsDone}/${run.stepsTotal}</span>` : ''}</p>
       ${cs ? h`<code class="t-cmd">${cs.command}</code>` : h`<code class="t-cmd dim">${run?.phase === 'replay' ? 'replaying from zero' : '...'}</code>`}`;
+  } else if (verdict === 'NO-SETUP-DOCS') {
+    const reason = r.error || 'The docs contain no setup commands FirstRun can follow.';
+    mid = h`<p class="t-result t-nodocs" title="${reason}">${reason}</p>`;
   } else {
     mid = h`<p class="t-result">${breaks === 0 ? 'The README worked as written' : p?.needsHuman ? `${breaks} break${breaks === 1 ? '' : 's'}: ${p.breaksFixed} fixed, ${p.needsHuman} for a human` : `${breaks} break${breaks === 1 ? '' : 's'}, all fixed with evidence`}</p>`;
   }
-  return h`<a class="tile t-${state} v-${vcls}" data-slug="${r.slug}" ${r.runId ? h`href="#/run/${r.runId}"` : ''}>
+  return h`<a class="tile t-${state} v-${vcls}" data-slug="${r.slug}" ${r.error ? h`title="${r.error}"` : ''} ${r.runId ? h`href="#/run/${r.runId}"` : ''}>
     <div class="t-top"><span class="t-org">${org}/</span><span class="t-name">${name}</span></div>
     <div class="t-meta">${rt ? h`<span class="t-rt">${rt}</span>` : ''}${run?.bobcoins ? h`<span class="t-bob">${icon('bob')} ${run.bobcoins}</span>` : ''}</div>
     <div class="t-strip" aria-hidden="true">${cells.length ? cells : h`<i></i><i></i><i></i><i></i><i></i>`}</div>
     <div class="t-mid">${mid}</div>
     ${run?.repairs?.length ? h`<ul class="t-reps">${run.repairs.map(x => h`<li class="r-${x.status} ${x.by === 'bob' ? 'r-bob' : ''}" title="${x.id} on ${x.stepId}">${CLASS_LABEL[x.class] || x.class || x.id}</li>`)}</ul>` : ''}
     <div class="t-foot">
-      ${state === 'done' ? h`<span class="t-verdict">${verdict}</span><span class="t-time mono">${verdict === 'VERIFIED' && p?.replaySeconds ? secs(p.replaySeconds) + ' from zero' : 'not running yet'}</span>` : h`<span class="t-state">${state === 'queued' ? 'Queued' : 'Running'}</span>`}
+      ${state === 'done' ? h`<span class="t-verdict" ${r.error ? h`title="${r.error}"` : ''}>${verdict}</span><span class="t-time mono">${verdict === 'VERIFIED' && p?.replaySeconds ? secs(p.replaySeconds) + ' from zero' : verdict === 'NO-SETUP-DOCS' ? 'finding' : 'not running yet'}</span>` : h`<span class="t-state">${state === 'queued' ? 'Queued' : 'Running'}</span>`}
     </div>
   </a>`;
 }
@@ -62,8 +65,8 @@ export function mountAudit(root, auditId) {
     const coins = Math.round(repos.reduce((a, r) => a + (r.passport?.bobcoins ?? r.run?.bobcoins ?? 0), 0) * 100) / 100;
     const times = st.filter(s => s.verdict === 'VERIFIED' && s.p?.replaySeconds).map(s => s.p.replaySeconds).sort((a, b) => a - b);
     const median = times.length ? times[Math.floor(times.length / 2)] : 0;
-    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0 };
-    st.forEach(s => { if (s.verdict) counts[s.verdict]++; });
+    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0, 'NO-SETUP-DOCS': 0 };
+    st.forEach(s => { if (s.verdict) counts[s.verdict] = (counts[s.verdict] || 0) + 1; });
     const all = done === M;
     const started = audit.startedAt ? Date.parse(audit.startedAt) : null;
     $('#au-head').innerHTML = String(h`
@@ -80,7 +83,7 @@ export function mountAudit(root, auditId) {
         <div class="gauge g-bob"><span class="gl">Bobcoins</span><span class="gv mono">${coins}</span></div>
         <div class="gauge"><span class="gl">Median clone to running</span><span class="gv mono">${median ? secs(median) : '--'}</span></div>
         <div class="au-verdicts" aria-label="Verdicts">
-          ${['VERIFIED', 'PARTIAL', 'FAILED'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v]} ${v}"><b>${counts[v] || ''}</b></span>`)}
+          ${['VERIFIED', 'PARTIAL', 'FAILED', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
           <span class="vb v-pending" style="flex:${M - done || 0.0001}"></span>
         </div>
       </div>`);
