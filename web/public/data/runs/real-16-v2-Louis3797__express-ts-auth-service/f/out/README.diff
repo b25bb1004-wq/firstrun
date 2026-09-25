@@ -1,0 +1,25 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -351,6 +351,8 @@ See .env.example for further details
+ 
+ ## Getting Started
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:22` machine at `fc6722badf`: clone to running in 1m30s.
++
+ <!-- Prerequisites -->
+ 
+ ### Prerequisites
+@@ -435,9 +437,12 @@ Start the server in development mode
+ Start the server in production mode
+ 
+ ```bash
++  cp .env.example .env
+   yarn start
+ ```
+ 
++> **Note:** `.env.example` now has working local values for the variables that were blank (PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more).
++
+ <!-- Run with Docker -->
+ 
+ ### Run with Docker

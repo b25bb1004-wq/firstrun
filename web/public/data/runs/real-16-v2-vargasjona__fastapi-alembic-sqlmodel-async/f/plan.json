@@ -1,0 +1,453 @@
+{
+  "repo": "vargasjona/fastapi-alembic-sqlmodel-async",
+  "commit": "96f10870e7",
+  "image": "python:3.10",
+  "runtime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "README.md:3 (\"Python >=3.10\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "sudo apt-get install build-essential",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 67,
+        "endLine": 67,
+        "section": "Prerequisites › Make"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S2",
+      "command": "sudo apt-get -y install make",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 68,
+        "endLine": 68,
+        "section": "Prerequisites › Make"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S3",
+      "command": "make --version",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 73,
+        "endLine": 73,
+        "section": "Prerequisites › Make"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S4",
+      "command": "python --version",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 81,
+        "endLine": 81,
+        "section": "Prerequisites › Python \">3.9,<3.12\""
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S5",
+      "command": "poetry --version",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 90,
+        "endLine": 90,
+        "section": "Prerequisites › Poetry"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S6",
+      "command": "cd backend/app/",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 97,
+        "endLine": 97,
+        "section": "Prerequisites › Poetry › Dev tip to activate virtual environment"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S7",
+      "command": "poetry shell",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 98,
+        "endLine": 98,
+        "section": "Prerequisites › Poetry › Dev tip to activate virtual environment"
+      },
+      "origin": "readme",
+      "skip": "interactive subshell: FirstRun activates the same environment after install",
+      "subshell": "poetry",
+      "status": "skipped"
+    },
+    {
+      "id": "S8",
+      "command": "source \"$(poetry env info --path)/bin/activate\"",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 98,
+        "endLine": 98,
+        "section": "Prerequisites › Poetry › Dev tip to activate virtual environment"
+      },
+      "origin": "readme",
+      "synthetic": "emulates `poetry shell`",
+      "status": "blocked"
+    },
+    {
+      "id": "S9",
+      "command": "docker compose -f docker-compose-dev.yml exec fastapi_server python app/initial_data.py",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 138,
+        "endLine": 138,
+        "section": "Prerequisites › Setup database with initial data"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S10",
+      "command": "make init-db",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 143,
+        "endLine": 143,
+        "section": "Prerequisites › Setup database with initial data"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S11",
+      "command": "make run-pgadmin",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 158,
+        "endLine": 158,
+        "section": "Prerequisites › Setup database with initial data"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"make run-test\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S12",
+      "command": "docker compose -f docker-compose-dev.yml exec fastapi_server alembic revision --autogenerate",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 218,
+        "endLine": 218,
+        "section": "Prerequisites › Run Alembic migrations (Only if you change the DB model)"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S13",
+      "command": "docker compose -f docker-compose-dev.yml exec fastapi_server alembic upgrade head",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 219,
+        "endLine": 219,
+        "section": "Prerequisites › Run Alembic migrations (Only if you change the DB model)"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S14",
+      "command": "make add-dev-migration",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 224,
+        "endLine": 224,
+        "section": "Prerequisites › Run Alembic migrations (Only if you change the DB model)"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S15",
+      "command": "make formatter",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 247,
+        "endLine": 247,
+        "section": "Prerequisites › Code Style"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S16",
+      "command": "make lint",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 252,
+        "endLine": 252,
+        "section": "Prerequisites › Code Style"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S17",
+      "command": "make lint-watch",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 257,
+        "endLine": 257,
+        "section": "Prerequisites › Code Style"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S18",
+      "command": "make lint-fix",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 262,
+        "endLine": 262,
+        "section": "Prerequisites › Code Style"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S19",
+      "command": "make run-sonarqube",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 272,
+        "endLine": 272,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"make run-test\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S20",
+      "command": "sonar.organization=my_organization",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 298,
+        "endLine": 298,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S21",
+      "command": "sonar.projectKey=fastapi-alembic-sqlmodel-async",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 299,
+        "endLine": 299,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S22",
+      "command": "sonar.host.url=http://host.docker.internal:9000",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 300,
+        "endLine": 300,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S23",
+      "command": "sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 301,
+        "endLine": 301,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S24",
+      "command": "sonar.projectName=fastapi-alembic-sqlmodel-async",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 306,
+        "endLine": 306,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S25",
+      "command": "sonar.projectVersion=1.0",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 308,
+        "endLine": 308,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S26",
+      "command": "sonar.sources=app",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 311,
+        "endLine": 311,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S27",
+      "command": "sonar.sourceEncoding=UTF-8",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 314,
+        "endLine": 314,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S28",
+      "command": "make run-sonar-scanner",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 319,
+        "endLine": 319,
+        "section": "Prerequisites › SonarQube static analysis"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"make run-test\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S29",
+      "command": "make run-test",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 342,
+        "endLine": 342,
+        "section": "Prerequisites › Testing"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 15432
+      },
+      "status": "blocked"
+    },
+    {
+      "id": "S30",
+      "command": "make pytest",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 347,
+        "endLine": 347,
+        "section": "Prerequisites › Testing"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S31",
+      "command": "make mypy",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 358,
+        "endLine": 358,
+        "section": "Prerequisites › Type checker"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "postgres service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"asyncpg\"",
+      "source": "Python requirements"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:15432/",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "originalImage": "python:3.10",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "README.md:3 (\"Python >=3.10\")"
+  }
+}

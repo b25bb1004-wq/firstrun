@@ -1,0 +1,31 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -19,6 +19,8 @@ This repo is kind of a template I use when starting up new FastAPI projects:
+ 
+ ## Local Development
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.12` machine at `8e82353ff3`.
++
+ ### Setup just
+ MacOS:
+ ```shell
+@@ -27,7 +29,7 @@ brew install just
+ 
+ Debian/Ubuntu:
+ ```shell
+-apt install just
++curl --proto =https --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+ ````
+ 
+ Others: [link](https://github.com/casey/just?tab=readme-ov-file#packages)
+@@ -50,7 +52,9 @@ just up
+ ### Run the uvicorn server
+ With default settings:
+ ```shell
++poetry install
+ just run
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ With extra configs (e.g. logging file)
+ ```shell

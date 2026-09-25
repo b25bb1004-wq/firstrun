@@ -1,0 +1,50 @@
+{
+  "id": "real-16-v2-edwinhern__express-typescript",
+  "repo": "edwinhern/express-typescript",
+  "commit": "983fa04136",
+  "startedAt": "2026-09-25T19:18:09.999Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "23 (.tool-versions)",
+      "source": "README.md"
+    }
+  ],
+  "plan": {
+    "repo": "edwinhern/express-typescript",
+    "commit": "983fa04136",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "23 (.tool-versions)",
+        "source": "README.md"
+      }
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-25T19:18:10.047Z"
+}

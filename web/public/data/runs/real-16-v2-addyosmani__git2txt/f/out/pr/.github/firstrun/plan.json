@@ -1,0 +1,33 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:21:45.192Z",
+  "commit": "e8db771b97",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "git2txt --help"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install -g git2txt",
+      "kind": "install"
+    },
+    {
+      "id": "S14",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S15",
+      "command": "git2txt --help",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

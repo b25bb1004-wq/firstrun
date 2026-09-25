@@ -1,0 +1,86 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:11:04.786Z",
+  "commit": "df4e6d4f81",
+  "image": "python:3.11.7",
+  "runtime": {
+    "name": "python",
+    "version": "3.11.7",
+    "source": "pyproject.toml poetry python (\"3.11.7\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "poetry install --no-root",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "pip install poetry"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "command": "source \"$(poetry env info --path)/bin/activate\"",
+      "kind": "env"
+    },
+    {
+      "id": "R1",
+      "command": "docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S4",
+      "command": "alembic upgrade head",
+      "kind": "migrate",
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mysql",
+          "image": "mysql:8",
+          "env": {
+            "MYSQL_ROOT_PASSWORD": "root",
+            "MYSQL_DATABASE": "fastapi",
+            "MYSQL_USER": "fastapi",
+            "MYSQL_PASSWORD": "fastapi"
+          },
+          "port": 3306
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "python3 main.py --env local --debug",
+      "kind": "serve",
+      "serve": {
+        "port": 8000
+      }
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 4: poetry: command not found",
+      "cause": "`poetry` is not installed; the docs assume it is.",
+      "fix": "poetry",
+      "evidence": "E1"
+    },
+    {
+      "signature": "Error: The current project could not be installed: No file/folder found for package fastapi-boilerplate",
+      "cause": "The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.",
+      "fix": "poetry install --no-root",
+      "evidence": "E3"
+    },
+    {
+      "signature": "sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 111] Connection refused)\")",
+      "cause": "The app connects to MySQL on localhost:3306, but the docs never start it.",
+      "fix": "docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=fastapi -e MYSQL_USER=fastapi -e MYSQL_PASSWORD=fastapi mysql:8",
+      "evidence": "E4"
+    }
+  ]
+}
