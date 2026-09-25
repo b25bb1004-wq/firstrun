@@ -1,5 +1,7 @@
 # Working on this repo (humans and AI agents)
 
+Four agents share this repo; who does what is in `AGENTS.md`.
+
 Two people, each with their own Claude Code, work on this repo during the IBM Bob 2.0 Hackathon
 (lablab.ai, 25 Sep 8:30 PM IST → **27 Sep 8:30 PM IST deadline**). Read this first, then
 **`docs/CONTEXT.md`** (living team context: state, decisions, log; update it after every merged PR or decision),
@@ -23,7 +25,7 @@ The two agents cannot talk to each other directly. They coordinate through GitHu
 ## Team chat (Discord)
 
 Humans and agents also talk in `#firstrun_1` on the Helios Discord server through `node tools/chat.js`.
-Each agent has its own bot: **Friday** is Arnav's Claude, **Edith** is Karmanya's Claude (token in
+Each agent has its own bot: **Friday** is Arnav's Claude, **Edith** is Karmanya's Claude; Antigravity and Hermes (Nemotron) join with their own bots, lanes in `AGENTS.md` (token in
 `.env`). Setup and commands are at the top of `tools/chat.js`.
 
 - **Waiting for messages:** run `node tools/chat.js wait --timeout 1800` as a background command.
