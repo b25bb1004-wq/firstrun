@@ -49,6 +49,9 @@ function runtimeCause(plan, label, target, src) {
   return `${who} is too ${cmpVersion(cur, target) > 0 ? 'new' : 'old'}: the project needs ${label} ${target} (${src}).`;
 }
 
+/** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
+const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-_ ]?me|xxx+|todo|replace[-_ ]?me|placeholder)$/i;
+
 /** The package that provides a CLI a script calls, when it isn't the CLI's own name. */
 const BIN_PACKAGE = { tsc: ['typescript'], nest: ['@nestjs/cli'], 'svelte-kit': ['@sveltejs/kit'], remix: ['@remix-run/dev'], playwright: ['playwright', '@playwright/test'] };
 
@@ -66,9 +69,9 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/REDIS_(URL|URI)/.test(n)) return { value: 'redis://localhost:6379', kind: 'local' };
   if (/MONGO(DB)?_(URL|URI)/.test(n)) return { value: 'mongodb://localhost:27017/app', kind: 'local' };
   // Mail goes to a local catcher (Mailpit, see services.js), never to a real SMTP server.
-  if (/^(SMTP|MAIL|EMAIL)_(HOST|SERVER)$/.test(n)) return { value: 'localhost', kind: 'local' };
-  if (/^(SMTP|MAIL|EMAIL)_PORT$/.test(n)) return { value: '1025', kind: 'local' };
-  if (/^(SMTP|MAIL|EMAIL)_(USER|USERNAME|LOGIN)$/.test(n)) return { value: 'dev', kind: 'local' };
+  if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(HOST|SERVER)$/.test(n)) return { value: 'localhost', kind: 'local' };
+  if (/^(\w+_)?(SMTP|MAIL|EMAIL)_PORT$/.test(n)) return { value: '1025', kind: 'local' };
+  if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(USER|USERNAME|LOGIN)$/.test(n)) return { value: 'dev', kind: 'local' };
   if (/^(EMAIL|MAIL|SMTP)_(FROM|SENDER)$|^(FROM|SENDER)_(EMAIL|ADDRESS)$/.test(n)) return { value: 'dev@example.com', kind: 'local' };
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
@@ -350,6 +353,41 @@ export const RULES = [
         ruleId: 'env-invalid-value', class: 'missing-env', confidence: 0.85,
         cause: `The app only accepts ${name} = ${allowed.join(' | ')}, but this step runs with another value${jest}; the docs never say to set it.`,
         fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'env' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    // `.env.example` ships `MONGODB_URL=YourConnectionString` and the app fails on it; the working local value is often only in a comment.
+    id: 'env-placeholder-value',
+    test(ctx) {
+      const { log, facts, sandboxEnv } = ctx;
+      const envFile = facts.envExample?.file;
+      const current = { ...(facts.envExample?.keys || {}), ...sandboxEnv };
+      const placeholders = Object.entries(current).filter(([, v]) => PLACEHOLDER.test(String(v).trim()));
+      if (!placeholders.length) return null;
+      const urlError = /Invalid (?:connection string|URL|URI|scheme|DSN)|ERR_INVALID_URL|MongoParseError|could not parse/i.test(log);
+      const dnsError = /getaddrinfo (?:ENOTFOUND|EAI_AGAIN)/.test(log);
+      const hit = placeholders.filter(([k, v]) => log.includes(String(v).trim()) || (urlError && /(URL|URI|DSN|CONN(ECTION)?(_STRING)?)$/.test(k)) || (dnsError && /_HOST$/.test(k)));
+      if (!hit.length) return null;
+      let raw = '';
+      try { raw = envFile ? fs.readFileSync(path.join(facts.root, envFile), 'utf8') : ''; } catch {}
+      const examples = [...raw.matchAll(/^\s*#.*?\b([a-z][a-z0-9+]*:\/\/[^\s'"`]+)/gim)].map((m) => m[1]).filter((u) => !/[[\]<>]/.test(u));
+      const pick = (k) => {
+        const scheme = /MONGO/i.test(k) ? /^mongodb(\+srv)?:/ : /REDIS/i.test(k) ? /^rediss?:/ : /MYSQL/i.test(k) ? /^mysql:/ : /(DATABASE|POSTGRES|PG|DB)_/i.test(k) ? /^postgres(ql)?:/ : null;
+        const ex = scheme && examples.find((u) => scheme.test(u) && /localhost|127\.0\.0\.1/.test(u));
+        if (ex) return { value: ex, from: `the commented example in ${envFile}` };
+        const d = devValue(k, ctx);
+        return ['local', 'generated'].includes(d.kind) ? { value: d.value, from: 'a local default' } : null;
+      };
+      const sets = hit.map(([k, v]) => ({ k, v, ...pick(k) })).filter((s) => s.value);
+      if (!sets.length) return null;
+      const actions = sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }));
+      const patches = envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : [];
+      const names = sets.map((s) => s.k).join(', ');
+      return {
+        ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
+        cause: `${sets.map((s) => `${s.k}=${s.v}`).join(', ')} ${sets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}.`,
+        fix: { actions, patches, doc: { kind: 'note', text: `${envFile || '.env'} now has a working local value for ${names} instead of a placeholder.` } },
       };
     },
   },

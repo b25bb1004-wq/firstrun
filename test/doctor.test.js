@@ -162,3 +162,20 @@ test('poetry run before poetry install: insert the install (zhanymkanov, found a
   assert.equal(diagnosis.ruleId, 'deps-not-installed', diagnosis.cause);
   assert.equal(fix.actions[0].command, 'poetry install');
 });
+
+test('placeholder values in .env.example: use the commented local example, patch the template (maitraysuthar)', async () => {
+  const example = [
+    'MONGODB_URL=YourConnectionString', '# Example Connection String:-  ', '# mongodb://127.0.0.1:27017/rest-api-nodejs-mongodb',
+    '# mongodb://[MongodbHost]:[PORT]/[DatabaseName]', '', 'JWT_SECRET=YourSecret', 'EMAIL_SMTP_HOST=YourSMTPHost', '',
+  ].join('\n');
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { mongoose: '^5' } }, '.env.example': example });
+  const ctx = await ctxIn(root, 'npm run dev', 'App starting error: Invalid connection string', { kind: 'serve' });
+  ctx.sandboxEnv = { MONGODB_URL: 'YourConnectionString', JWT_SECRET: 'YourSecret', EMAIL_SMTP_HOST: 'YourSMTPHost' };
+  const { diagnosis, fix } = await diagnose(ctx, { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'env-placeholder-value', diagnosis.cause);
+  assert.deepEqual(fix.patches, [{ path: '.env.example', op: 'set-env', key: 'MONGODB_URL', value: 'mongodb://127.0.0.1:27017/rest-api-nodejs-mongodb' }]);
+  const patched = applyPatchOps(example, fix.patches);
+  assert.match(patched, /^MONGODB_URL=mongodb:\/\/127\.0\.0\.1:27017\/rest-api-nodejs-mongodb$/m);
+  assert.match(patched, /# Example Connection String/, 'comments stay');
+  assert.match(patched, /^JWT_SECRET=YourSecret$/m, 'placeholders the app did not fail on are left alone');
+});
