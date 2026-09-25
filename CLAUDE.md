@@ -1,0 +1,53 @@
+# Working on this repo (humans and AI agents)
+
+Two people, each with their own Claude Code, work on this repo during the IBM Bob 2.0 Hackathon
+(lablab.ai, 25 Sep 8:30 PM IST → **27 Sep 8:30 PM IST deadline**). Read this first, then
+`docs/WHY_FIRSTRUN.md` (problem, solution, rules, judging) and `README.md` (what exists).
+
+## Coordination protocol
+
+The two agents cannot talk to each other directly. They coordinate through GitHub:
+
+1. **Tasks are GitHub Issues** (`gh issue list`). Before starting work, take an unassigned issue and
+   assign it to your human (`gh issue edit N --add-assignee @me`) and comment "starting". Never work
+   on an issue assigned to someone else. New work you discover → open an issue, don't just do it.
+2. **One branch per issue**: `<name>/<issue>-<slug>`. Never commit to `main` directly.
+3. **Pull before you start, and often**: `git pull --rebase origin main`.
+4. **Open a PR that says `Closes #N`**. The *other* person's agent reviews it (`gh pr diff`,
+   `node --test test/*.test.js`) before merge. Keep PRs small.
+5. **Status goes in the issue**, not in chat: what's done, what's blocked, what the other side needs.
+6. **Don't edit the same files in parallel.** If your issue touches a file another open PR touches,
+   comment on the issue first.
+
+## Hard rules (the hackathon's and ours)
+
+- **No credentials anywhere in the repo**, including `bob_sessions/` exports. IBM deactivates
+  accounts that leak Bob or Cloud credentials.
+- **Every human** exports their own Bob IDE task sessions into `bob_sessions/<name>/`: the task's
+  consumption-summary screenshot plus the exported `.md`, for every task.
+- **Bobcoins: 40 per person, no top-ups.** Rules first, Bob for judgment. Always pass a budget
+  (`--bob-budget`, `maxCost`).
+- **Never present synthetic data as real.** `fixtures/runs/` are generated test runs for UI work.
+  The hosted demo (`web/public`) exports real runs only (`npm run web:build`). acme-shop and
+  notes-api-py are demo repos with seeded breaks, and are labelled that way.
+- **Commits are authored by the human** whose agent made them, with no AI co-author trailer.
+- **Nothing public** (repo visibility, deploys, posts, PRs to other people's repos) without the
+  human saying so.
+
+## Map
+
+| Path | What |
+|---|---|
+| `src/` | engine: scout, plan, sandbox, doctor (rules + Bob), pipeline, scribe, drift, audit, MCP, remote check |
+| `ui/` | live dashboard (`node bin/firstrun.js ui`) |
+| `web/`, `api/`, `vercel.json` | hosted demo: landing page, `/api/check`, static replay of real runs |
+| `lens/` | FirstRun Lens (Electron): Ctrl+Shift+Space, circle anything, proven fix or ask Bob |
+| `.bob/` | Bob custom modes + MCP config |
+| `audit/real-16/` | real 16-repo audit results |
+| `test/` | `node --test test/*.test.js` (must pass before any PR) |
+
+## Environment gotchas
+
+- Windows host; Docker Desktop must be running for `verify`/`audit`.
+- Bob Shell: `bob` (2.0.5). Sign in with the **hackathon IBMid**. Bob access only exists from kickoff.
+- Windows Smart App Control blocks Bob IDE (unsigned `winregistry.node`); turn it off or use another PC.
