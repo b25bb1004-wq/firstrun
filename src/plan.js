@@ -137,7 +137,8 @@ export function buildPlan(facts, { repo, commit } = {}) {
             origin: 'readme',
           };
           if (cls.skip) step.skip = cls.skip;
-          else if (step.kind !== 'install' && (usageBlock || usesProjectCli(part, facts))) step.skip = 'usage example: runs the tool on your own input once it is installed';
+          // Lines calling the CLI are usage; in a usage block, so are plain helpers like "cat values.yaml".
+          else if (step.kind !== 'install' && (usesProjectCli(part, facts) || (usageBlock && step.kind === 'other'))) step.usage = true;
           if (cls.subshell) step.subshell = cls.subshell;
           if (rawPart !== part) step.docCommand = rawPart;
           if (cls.probe) step.probe = true;
@@ -193,8 +194,14 @@ export function buildPlan(facts, { repo, commit } = {}) {
     steps.splice(install ? steps.indexOf(install) + 1 : steps.indexOf(sub) + 1, 0, synthetic);
   }
   // A CLI tool is set up once its command runs; its usage examples need the reader's own input.
+  // Apps that ship a CLI *and* use it for setup ("acme migrate") keep those steps.
   const cli = facts.cli?.[0];
-  if (cli && !steps.some((s) => !s.skip && (s.kind === 'serve' || s.kind === 'test'))) {
+  const cliTool = cli && !steps.some((s) => !s.skip && !s.usage && (s.kind === 'serve' || s.kind === 'test'));
+  for (const s of steps.filter((x) => x.usage)) {
+    delete s.usage;
+    if (cliTool) s.skip = 'usage example: runs the tool on your own input once it is installed';
+  }
+  if (cliTool) {
     const lastInstall = steps.map((s) => !s.skip && s.kind === 'install').lastIndexOf(true);
     if (lastInstall >= 0) {
       steps.splice(lastInstall + 1, 0, { id: '', command: `${cli} --help`, kind: 'test', probe: true, source: { ...steps[lastInstall].source }, origin: 'readme', synthetic: `checks that the installed \`${cli}\` command runs` });

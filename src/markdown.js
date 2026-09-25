@@ -79,7 +79,8 @@ export function isShellBlock(block) {
  */
 /** Lines that cannot be a shell command: JSON/YAML fragments, bare values, `name = value` with spaces. */
 function looksLikeOutput(line) {
-  return /^[{}\[\]]/.test(line)            // { } [ ]
+  return /^[{}\]]/.test(line)              // { } ]
+    || /^\[\s*$|^\[\s*["\d{]|^\[\[(?!\s)/.test(line) // [ alone or before a JSON value; "[ -f" / "[[ -d" are shell tests
     || /^["'][^"']*["']\s*[:,]/.test(line) // "key": … / "item",
     || /^-?\d+(\.\d+)?,?$/.test(line)      // 1,  2.5
     || /^(true|false|null),?$/.test(line)

@@ -98,3 +98,16 @@ test('CLI tools: usage examples are skipped and the plan checks the installed co
     assert.deepEqual(plan.verify, { kind: 'command', target: 'tool --help' });
   });
 });
+
+test('shell tests like "[ -f .env ]" are commands, not sample output', () => {
+  const md = parseMarkdown('```bash\n[ -f .env ] || cp .env.example .env\n[[ -d node_modules ]] || npm install\nnpm start\n```\n');
+  assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['[ -f .env ] || cp .env.example .env', '[[ -d node_modules ]] || npm install', 'npm start']);
+});
+
+test('apps that ship a CLI keep the setup steps that use it', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-app-cli-'));
+  fs.writeFileSync(path.join(root, 'README.md'), '# acme\n\n## Getting started\n\n```bash\nnpm install\nacme migrate\nnpm start\n```\n');
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: 'acme', bin: { acme: 'bin/acme.js' }, scripts: { start: 'node server.js' } }));
+  const plan = buildPlan(await scout(root), { repo: 'x/acme' });
+  assert.deepEqual(plan.steps.filter((s) => !s.skip).map((s) => s.command), ['npm install', 'acme migrate', 'npm start']);
+});
