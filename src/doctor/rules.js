@@ -176,9 +176,12 @@ export const RULES = [
       if (plan.runtime.name !== 'python' || !facts.python) return null;
       const m = log.match(/requires a different Python|Requires-Python|is not supported by the project|Current Python version \([\d.]+\) is not allowed by the project|python_requires|ERROR: Package '[^']+' requires a different Python|No module named '(?:tomllib|zoneinfo|graphlib)'|TypeError: unsupported operand type\(s\) for \|: 'type'|SyntaxError: (?:invalid syntax|expected ':')[\s\S]{0,200}(?:match |case |:=|\|)|cannot import name '(?:Self|TypeAlias|override|StrEnum|ExceptionGroup|UTC)'|is not a supported wheel on this platform|Could not find a version that satisfies the requirement[\s\S]{0,300}Requires-Python/);
       if (!m) return null;
-      const target = facts.python.truth?.version || '3.12';
-      if (target === plan.runtime.version) return null;
+      let target = facts.python.truth?.version || '3.12';
       const src = facts.python.truth?.source || 'the error';
+      // An exact pin (poetry `python = "3.11.7"`) rejects python:3.11 (3.11.16): use the exact patch image.
+      const exact = (src.match(/\("(\d+\.\d+\.\d+)"\)/) || log.match(/is not supported by the project \((\d+\.\d+\.\d+)\)/) || [])[1];
+      if (exact && exact.startsWith(`${target}.`)) target = exact;
+      if (target === plan.runtime.version) return null;
       return {
         ruleId: 'python-version', class: 'runtime-version', confidence: 0.9,
         cause: runtimeCause(plan, 'Python', target, src),
@@ -587,6 +590,19 @@ export const RULES = [
         ruleId: 'apt-package-missing', class: 'platform-specific', confidence: 0.8,
         cause: `Debian/Ubuntu's apt has no "${pkg}" package on a current stable release; the docs' Linux instructions don't work as written.`,
         fix: { actions: [{ type: 'exec', command: 'apt-get update >/dev/null && (command -v curl >/dev/null || apt-get install -y curl >/dev/null)' }, { type: 'replace-step', command: alt }], patches: [], doc: { kind: 'replace-command', text: alt } },
+      };
+    },
+  },
+  {
+    // Poetry >= 1.8 installs the project itself too, and fails when it isn't laid out as a package (an app, not a library).
+    id: 'poetry-no-root',
+    test({ log, step }) {
+      if (!/The current project could not be installed: No file\/folder found for package/.test(log) || !/^poetry\s+install\b/.test(step.command) || /--no-root/.test(step.command)) return null;
+      const cmd = `${step.command} --no-root`;
+      return {
+        ruleId: 'poetry-no-root', class: 'missing-dependency', confidence: 0.9,
+        cause: 'The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.',
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
       };
     },
   },

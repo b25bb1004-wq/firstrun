@@ -179,3 +179,21 @@ test('placeholder values in .env.example: use the commented local example, patch
   assert.match(patched, /# Example Connection String/, 'comments stay');
   assert.match(patched, /^JWT_SECRET=YourSecret$/m, 'placeholders the app did not fail on are left alone');
 });
+
+test('an exact Python pin (3.11.7) gets the exact image; python:3.11 ships 3.11.16 and Poetry rejects it (teamhide)', async () => {
+  const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "3.11.7"\n' });
+  const log = 'The currently activated Python version 3.11.16 is not supported by the project (3.11.7).';
+  for (const version of ['3.12', '3.11']) {
+    const { diagnosis, fix } = await diagnose(await ctxIn(root, 'poetry install', log, { kind: 'install', runtime: { name: 'python', version, source: 'docs do not say' } }), { brain: 'rules' });
+    assert.equal(diagnosis.ruleId, 'python-version', `from ${version}: ${diagnosis.cause}`);
+    assert.equal(fix.actions[0].image, 'python:3.11.7');
+  }
+});
+
+test('Poetry app repos (no package dir): poetry install --no-root (teamhide, Docker)', async () => {
+  const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "fastapi-boilerplate"\n\n[tool.poetry.dependencies]\npython = "3.11.7"\n' });
+  const log = 'Installing the current project: fastapi-boilerplate (0.2.0)\n\nError: The current project could not be installed: No file/folder found for package fastapi-boilerplate\nIf you do not want to install the current project use --no-root.';
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'poetry install', log, { kind: 'install', runtime: { name: 'python', version: '3.11.7', source: 'x' } }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'poetry-no-root', diagnosis.cause);
+  assert.deepEqual(fix.actions, [{ type: 'replace-step', command: 'poetry install --no-root' }]);
+});
