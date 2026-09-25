@@ -1,0 +1,18 @@
+{
+  "name": "firstrun-lens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Circle anything on screen and ask about it: known FirstRun fixes first, IBM Bob for the rest.",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "electron": "^44.4.5"
+  },
+  "dependencies": {
+    "tesseract.js": "^6.0.1"
+  }
+}

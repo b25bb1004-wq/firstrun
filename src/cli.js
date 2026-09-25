@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { verifyRepo } from './pipeline.js';
 import { scout } from './scout/index.js';
 import { buildPlan } from './plan.js';
@@ -28,6 +29,7 @@ ${bold('Usage')}
   firstrun pr     [path]                 apply on a new branch and open a pull request (gh)
   firstrun ui     [--port 4173] [--root <dir>...]
   firstrun mcp                           MCP server for IBM Bob (stdio)
+  firstrun lens   [path]                 circle anything on screen and ask about it (Ctrl+Shift+Space)
   firstrun bob install                   install FirstRun's custom modes for Bob Shell
   firstrun clean                         remove leftover sandbox containers
 `;
@@ -162,6 +164,17 @@ export async function main(argv) {
       await startServer({ port, roots: roots.length ? roots.map((r) => path.resolve(r)) : [process.cwd()] });
       console.log(`${bold(cyan('FirstRun dashboard'))} → http://localhost:${port}`);
       return new Promise(() => {});
+    }
+    case 'lens': {
+      const { spawn } = await import('node:child_process');
+      const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
+      const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
+      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Lens first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      const project = path.resolve(args._[0] || '.');
+      const env = { ...process.env };
+      delete env.ELECTRON_RUN_AS_NODE;
+      const child = spawn(process.execPath, [electron, lensDir, project], { stdio: 'inherit', env });
+      return new Promise((resolve) => child.on('close', (code) => resolve(code ?? 0)));
     }
     case 'mcp': {
       const { startMcp } = await import('./mcp.js');

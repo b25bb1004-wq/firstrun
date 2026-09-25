@@ -64,7 +64,7 @@ function explain(s) {
   }[s.kind] || 'Next setup step.';
 }
 
-function signatureOf(logTail = '') {
+export function signatureOf(logTail = '') {
   const line = logTail.split('\n').reverse().find((l) => /error|ERR!|refused|not found|missing|cannot|No such|Traceback|required/i.test(l));
   if (!line) return null;
   const core = line.replace(/\d{4}-\d{2}-\d{2}T[\d:.Z_-]+/g, '').replace(/\/root\/[^\s]+/g, '').trim().slice(0, 80);

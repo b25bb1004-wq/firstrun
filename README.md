@@ -66,6 +66,21 @@ Maintainers review proof, not suggestions.
   "if you see `ECONNREFUSED 127.0.0.1:6379`, start Redis" is already in its head. This is the
   in-IDE, Clicky-style onboarding buddy, grounded in a run that actually passed.
 
+### FirstRun Lens: circle anything, ask about it
+
+Press **Ctrl+Shift+Space**, circle anything on screen (an error in a terminal, a config line, a
+stack trace) and Lens reads it. If it's a failure FirstRun has already fixed and proven for this
+project, you get the verified fix instantly, for free. For anything else, ask IBM Bob in the
+**🧭 FirstRun Guide** mode, which reads the project before answering.
+
+```bash
+cd lens && npm install && cd ..
+node bin/firstrun.js lens examples/acme-shop     # tray app; Ctrl+Shift+Space to circle
+```
+
+Text is read on your machine (tesseract.js). Only a question you choose to ask goes to Bob.
+Tip: most mouse software can map a side button to Ctrl+Shift+Space, so circling becomes one click.
+
 ## IBM Bob integration
 
 | Where | How |

@@ -22,9 +22,11 @@ function bobCommand() {
   return ['bob', []];
 }
 
-function runBob(args, opts) {
+function runBob(args, opts = {}) {
   const [cmd, pre] = bobCommand();
-  return run(cmd, [...pre, ...args], opts);
+  // Inside Electron (FirstRun Lens), execPath is Electron itself: make it run bob.js as plain Node.
+  const env = process.versions.electron && cmd === process.execPath ? { ...opts.env, ELECTRON_RUN_AS_NODE: '1' } : opts.env;
+  return run(cmd, [...pre, ...args], { ...opts, env });
 }
 
 export async function bobStatus({ force = false } = {}) {
