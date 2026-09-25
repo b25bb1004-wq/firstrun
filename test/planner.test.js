@@ -124,3 +124,12 @@ test('announcedPort reads the port a dev server prints', async () => {
   assert.equal(announcedPort('  ➜  Local:   http://localhost:5173/'), 5173);
   assert.equal(announcedPort('Compiled successfully in 1.2s'), null);
 });
+
+test('announcedPort ignores database ports and sidecar ports (MySQL ready … port 3306)', async () => {
+  const { announcedPort } = await import('../src/sandbox.js');
+  const log = 'MySQL ready for connections on port 3306\nINFO: Uvicorn running on http://0.0.0.0:8000';
+  assert.equal(announcedPort(log), 8000);
+  assert.equal(announcedPort('[db] connected, database ready at localhost:5432\nServer listening on port 4000'), 4000);
+  assert.equal(announcedPort('Redis ready, port 6379'), null);
+  assert.equal(announcedPort('listening on port 6379', [6379]), null);
+});

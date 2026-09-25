@@ -15,11 +15,20 @@ const FATAL = /Failed running '|\[nodemon\] app crashed|Traceback \(most recent 
 
 /** The port a dev server says it is listening on, from lines such as "Uvicorn running on http://0.0.0.0:8000",
  * "Listening on port 4000", "Local: http://localhost:5173/", "Server started at http://127.0.0.1:8080". */
-export function announcedPort(out) {
-  const lines = String(out || '').split('\n').filter((l) => /running|listening|started|serving|available|local:|ready/i.test(l));
-  for (const l of lines.reverse()) {
-    const m = l.match(/(?:https?:\/\/)?(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::\]|\[::1\]|[\w.-]+\.local):(\d{2,5})\b/i) || l.match(/\bport\s*[:=]?\s*(\d{2,5})\b/i);
-    if (m) { const p = Number(m[1]); if (p >= 80 && p <= 65535) return p; }
+export function announcedPort(out, exclude = []) {
+  const lines = String(out || '').split('\n').filter((l) => /running|listening|started|serving|available|local:|ready/i.test(l)).reverse();
+  const ok = (p) => p >= 80 && p <= 65535 && !exclude.includes(p);
+  // An explicit URL is the strongest signal ("Uvicorn running on http://0.0.0.0:8000").
+  for (const l of lines) {
+    const m = l.match(/https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::\]|\[::1\]|[\w.-]+):(\d{2,5})\b/i);
+    if (m && ok(Number(m[1]))) return Number(m[1]);
+  }
+  // Otherwise "listening on port 4000", but not a line about a database or other service the app
+  // connects to ("MySQL ready … port 3306").
+  for (const l of lines) {
+    if (/mysql|maria|postgres|redis|mongo|database|\bdb\b|rabbit|kafka|amqp|smtp|mail|memcache|elastic|minio|broker/i.test(l)) continue;
+    const m = l.match(/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::\]):(\d{2,5})\b/i) || l.match(/\bport\s*[:=]?\s*(\d{2,5})\b/i);
+    if (m && ok(Number(m[1]))) return Number(m[1]);
   }
   return null;
 }
@@ -261,7 +270,7 @@ export class Sandbox {
       }
       // The app may announce a different port than the one we guessed ("Uvicorn running on
       // http://0.0.0.0:8000"). If that port is really listening, the app is up.
-      const announced = announcedPort(lastOut);
+      const announced = announcedPort(lastOut, this.services.map((s) => s.port).filter(Boolean));
       if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
         return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid`, port: announced };
       }
