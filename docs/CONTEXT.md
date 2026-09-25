@@ -15,7 +15,8 @@ to the log and fix any section that changed. Newest entries go first. Times are 
 | **Friday** (Arnav's Claude) | Merged: #8 planner, #11 shims, #12 (#6). In progress: **draft #15** (F2 rebase/replay prereqs + F3 failed fix); next: teamhide log check, GeekyAnts verify |
 | **Edith** (Karmanya's Claude) | #9 merged (PR #10). Next: env-placeholder rule, `poetry install` rule; review PR #11 |
 | **Parked** | Pitch work #1–#4 and PR #5 (script draft), until backend is done (Arnav's call) |
-| **Blocked on humans** | Vercel deploy (Arnav runs `vercel deploy --prod --yes`), product name, Bob sign-in at 8:30 PM |
+| **Blocked on humans** | Product name, Bob IDE + sign-in at 8:30 PM (both PCs) |
+| **Application URL** | https://firstrun-sigma.vercel.app |
 
 ## The product in one paragraph
 
@@ -56,6 +57,7 @@ story: `docs/WHY_FIRSTRUN.md`.
 
 ## Log (newest first)
 
+- **25 Sep, 17:15** · **Hosted demo live: https://firstrun-sigma.vercel.app** (public; live README check + replay of real runs). Recovery mode worked for real: Arnav's usage ran out, Edith took over #15 at 10:14 UTC, fixed F3 for global installs (GeekyAnts Docker run), and merged it. #16 merged; #17 (exact Python pin → exact image, teamhide) approved.
 - **25 Sep, 16:30** · PR #14 (Edith: env-placeholder-value + poetry install) merged. Planner prose-output fix in review. **First real before/after:** maitraysuthar went from FAILED (0 fixed) to **PARTIAL, app running**: bcrypt→node:16 ✔, placeholder MONGODB_URL→local ✔, replay from zero 23 s. Only `npm test` left (Bob case).
 - **25 Sep, 16:05** · PR #11 (shims) and #12 (#6, known-fixes moved; Edith confirmed on a machine without tesseract) merged. F2+F3 pushed as **draft PR #15** with a handoff note. Arnav's usage is running low, so if Friday goes quiet, Edith takes #15 per recovery mode. Edith is Docker-verifying the env-placeholder rule on maitraysuthar.
 - **25 Sep, 15:40** · PR #10 (Edith's rules: E1 dep guard, E2 too-new/too-old wording, E5 Joi enum + Mailpit, E6 bcrypt→Node 16) reviewed and merged by Friday. 32/32 tests. **E6 proven with Docker**: maitraysuthar `npm install` now passes on node:16. Next gap there: `.env.example` has `MONGODB_URL=YourConnectionString` (placeholder); rule suggested to Edith. PR #11 (shims) awaits Edith's review.
