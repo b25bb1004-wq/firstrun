@@ -683,3 +683,32 @@ a.tile[href]:hover { border-color: var(--ink-3); }
   .runs th:nth-child(4), .runs td:nth-child(4) { display: none; }
 }
 @media (max-width: 460px) { .au-grid { grid-template-columns: 1fr; } }
+
+/* Replay controls (?replay=): shown only while a recorded run is replayed */
+#replay-bar { margin-bottom: 16px; }
+.rp-control-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  padding: 10px 16px; background: var(--panel); border: 1px solid var(--rule-2); border-radius: 8px;
+}
+.rp-badge {
+  display: flex; align-items: center; gap: 8px; color: var(--ink);
+  font: 600 .8rem/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .06em;
+}
+.rp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); }
+.rp-dot.paused { background: var(--repair); }
+.rp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.btn-rp-toggle { min-width: 80px; font-weight: 600; }
+.rp-speeds { display: flex; gap: 4px; padding: 3px; background: var(--raise); border: 1px solid var(--rule); border-radius: 6px; }
+.btn-rp-speed {
+  padding: 4px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--ink-2); cursor: pointer;
+  font: 500 .8rem/1.2 "IBM Plex Mono", ui-monospace, monospace;
+}
+.btn-rp-speed:hover { color: var(--ink); }
+.btn-rp-speed:focus-visible { outline: 2px solid var(--bob); outline-offset: 1px; }
+.btn-rp-speed.active { background: var(--bob-t); color: var(--bob); font-weight: 600; }
+.btn-rp-restart { font-size: .85rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .rp-dot.playing { animation: rp-pulse 1.5s ease-in-out infinite; }
+  .btn-rp-speed { transition: color .15s ease, background-color .15s ease; }
+}
+@keyframes rp-pulse { 50% { opacity: .4; transform: scale(.85); } }
