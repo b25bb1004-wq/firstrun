@@ -1,0 +1,275 @@
+{
+  "id": "known-10-fastapi__full-stack-fastapi-template",
+  "repo": "fastapi/full-stack-fastapi-template",
+  "commit": "cb740b656d",
+  "startedAt": "2026-09-25T20:09:52.901Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S3": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "npm script \"build\"",
+      "docs": "bun run build",
+      "truth": "not in package.json scripts",
+      "source": "development.md:50"
+    },
+    {
+      "what": "env var PLAYWRIGHT_BASE_URL",
+      "docs": "not documented",
+      "truth": "read in frontend/playwright.config.ts:4",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "fastapi/full-stack-fastapi-template",
+    "commit": "cb740b656d",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "docker compose up -d db mailpit",
+        "kind": "services",
+        "source": {
+          "file": "development.md",
+          "line": 10,
+          "endLine": 10,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S2",
+        "command": "uv sync",
+        "kind": "install",
+        "source": {
+          "file": "development.md",
+          "line": 16,
+          "endLine": 16,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "evidence": [
+          "E1",
+          "E2"
+        ],
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "apt-get update && apt-get install -y python3-pip python3-venv"
+          }
+        ]
+      },
+      {
+        "id": "S3",
+        "command": "uv run bash scripts/prestart.sh",
+        "kind": "other",
+        "source": {
+          "file": "development.md",
+          "line": 17,
+          "endLine": 17,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S4",
+        "command": "uv run fastapi dev",
+        "kind": "serve",
+        "source": {
+          "file": "development.md",
+          "line": 23,
+          "endLine": 23,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"bun run dev\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S5",
+        "command": "bun install",
+        "kind": "install",
+        "source": {
+          "file": "development.md",
+          "line": 29,
+          "endLine": 29,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S6",
+        "command": "bun run dev",
+        "kind": "serve",
+        "source": {
+          "file": "development.md",
+          "line": 30,
+          "endLine": 30,
+          "section": "FastAPI Project - Development › Local Development"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 8000
+        },
+        "status": "blocked"
+      },
+      {
+        "id": "S7",
+        "command": "bun run build",
+        "kind": "build",
+        "source": {
+          "file": "development.md",
+          "line": 50,
+          "endLine": 50,
+          "section": "FastAPI Project - Development › Local Development › Frontend Served by FastAPI"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S8",
+        "command": "uv run prek install -f",
+        "kind": "other",
+        "source": {
+          "file": "development.md",
+          "line": 119,
+          "endLine": 119,
+          "section": "FastAPI Project - Development › Pre-commit Hooks and Code Linting › Install prek to Run Automatically"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S9",
+        "command": "git commit",
+        "kind": "other",
+        "source": {
+          "file": "development.md",
+          "line": 127,
+          "endLine": 127,
+          "section": "FastAPI Project - Development › Pre-commit Hooks and Code Linting › Install prek to Run Automatically"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S10",
+        "command": "uv run prek run --all-files",
+        "kind": "other",
+        "source": {
+          "file": "development.md",
+          "line": 137,
+          "endLine": 137,
+          "section": "FastAPI Project - Development › Pre-commit Hooks and Code Linting › Run prek Manually"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "npm script \"build\"",
+        "docs": "bun run build",
+        "truth": "not in package.json scripts",
+        "source": "development.md:50"
+      },
+      {
+        "what": "env var PLAYWRIGHT_BASE_URL",
+        "docs": "not documented",
+        "truth": "read in frontend/playwright.config.ts:4",
+        "source": "README"
+      }
+    ],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8000/docs",
+      "fromDocs": true
+    },
+    "docsUsed": [
+      "development.md"
+    ],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "fastapi/full-stack-fastapi-template",
+    "commit": "cb740b656d",
+    "verifiedAt": "2026-09-25T20:11:38.113Z",
+    "verdict": "FAILED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 9,
+    "stepsFromReadme": 9,
+    "breaksFound": 3,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8000/docs",
+      "fromDocs": true
+    }
+  },
+  "finishedAt": "2026-09-25T20:11:38.486Z"
+}

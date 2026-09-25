@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "npm install koa",
+    "exitCode": 1,
+    "durationMs": 1750,
+    "logTail": "npm info it worked if it ends with ok\nnpm info using npm@4.2.0\nnpm info using node@v7.10.1\nnpm info attempt registry request try #1 at 8:09:05 PM\nnpm http request GET https://registry.npmjs.org/koa\nnpm http 200 https://registry.npmjs.org/koa\nnpm ERR! Linux 6.18.33.2-microsoft-standard-WSL2\nnpm ERR! argv \"/usr/local/bin/node\" \"/usr/local/bin/npm\" \"install\" \"koa\"\nnpm ERR! node v7.10.1\nnpm ERR! npm  v4.2.0\nnpm ERR! code ENOSELF\n\nnpm ERR! Refusing to install package with name \"koa\" under a package\nnpm ERR! also called \"koa\". Did you name your project the same\nnpm ERR! as the dependency you're installing?\nnpm ERR! \nnpm ERR! For more information, see:\nnpm ERR!     <https://docs.npmjs.com/cli/install#limitations-of-npms-install-algorithm>\nnpm ERR! \nnpm ERR! If you need help, you may report this error at:\nnpm ERR!     <https://github.com/npm/npm/issues>\n\nnpm ERR! Please include the following file with any support request:\nnpm ERR!     /root/.npm/_logs/2026-09-25T20_09_07_092Z-debug.log",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T20:09:07.362Z"
+}

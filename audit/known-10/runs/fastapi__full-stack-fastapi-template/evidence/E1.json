@@ -1,0 +1,45 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "uv sync",
+    "exitCode": 127,
+    "durationMs": 115,
+    "logTail": "/firstrun/step-1.sh: line 4: uv: command not found",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`uv` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "pip install uv"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "uv",
+      "command": "pip install uv"
+    },
+    "log": "$ pip install uv\n/firstrun/step-2.sh: line 4: pip: command not found\n(exit 127)\nfix not applied: `pip install uv` exited 127"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "pip install uv",
+    "exitCode": 127,
+    "durationMs": 124,
+    "logTail": "/firstrun/step-2.sh: line 4: pip: command not found"
+  },
+  "status": "failed",
+  "at": "2026-09-25T20:10:51.255Z"
+}

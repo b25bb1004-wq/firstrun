@@ -1,0 +1,20 @@
+diff --git a/readme.md b/readme.md
+--- a/readme.md
++++ b/readme.md
+@@ -30,6 +30,8 @@ This demo is aimed primarily at developers wanting to learn more about the inter
+ 
+ # Installation
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.10` machine at `c8f8255593`.
++
+ - [Venv](#setup-with-venv)
+ - [Vagrant](#setup-with-vagrant)
+ - [Docker](#setup-with-docker)
+@@ -53,6 +55,7 @@ Once you've installed the necessary dependencies, run the following commands:
+ git clone https://github.com/wagtail/bakerydemo.git
+ cd bakerydemo
+ vagrant up
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ vagrant ssh
+ # then, within the SSH session:
+ ./manage.py runserver 0.0.0.0:8000

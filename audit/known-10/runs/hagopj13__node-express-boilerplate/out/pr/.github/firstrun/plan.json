@@ -1,0 +1,96 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T20:05:47.252Z",
+  "commit": "179ae84efe",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "create-nodejs-express-app --help"
+  },
+  "steps": [
+    {
+      "id": "S5",
+      "command": "npx rimraf ./.git",
+      "kind": "other"
+    },
+    {
+      "id": "S6",
+      "command": "yarn install",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "command": "cp .env.example .env",
+      "kind": "env"
+    },
+    {
+      "id": "S9",
+      "command": "PORT=3000",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "MONGODB_URL=mongodb://127.0.0.1:27017/node-boilerplate",
+      "kind": "other"
+    },
+    {
+      "id": "S11",
+      "command": "JWT_SECRET=thisisasamplesecret",
+      "kind": "other"
+    },
+    {
+      "id": "S12",
+      "command": "JWT_ACCESS_EXPIRATION_MINUTES=30",
+      "kind": "other"
+    },
+    {
+      "id": "S13",
+      "command": "JWT_REFRESH_EXPIRATION_DAYS=30",
+      "kind": "other"
+    },
+    {
+      "id": "S14",
+      "command": "SMTP_HOST=email-server",
+      "kind": "other"
+    },
+    {
+      "id": "S15",
+      "command": "SMTP_PORT=587",
+      "kind": "other"
+    },
+    {
+      "id": "S16",
+      "command": "SMTP_USERNAME=email-server-username",
+      "kind": "other"
+    },
+    {
+      "id": "S17",
+      "command": "SMTP_PASSWORD=email-server-password",
+      "kind": "other"
+    },
+    {
+      "id": "S18",
+      "command": "EMAIL_FROM=support@yourapp.com",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-2.sh: line 4: yarn: command not found",
+      "cause": "`yarn` is not installed; the docs assume it is.",
+      "fix": "Yarn (via `corepack enable`)",
+      "evidence": "E1"
+    }
+  ]
+}

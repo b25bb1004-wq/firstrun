@@ -1,0 +1,21 @@
+{
+  "repo": "fastapi/full-stack-fastapi-template",
+  "commit": "cb740b656d",
+  "verifiedAt": "2026-09-25T20:11:38.113Z",
+  "verdict": "FAILED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 9,
+  "stepsFromReadme": 9,
+  "breaksFound": 3,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  }
+}

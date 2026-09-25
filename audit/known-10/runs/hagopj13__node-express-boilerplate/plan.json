@@ -1,0 +1,282 @@
+{
+  "repo": "hagopj13/node-express-boilerplate",
+  "commit": "179ae84efe",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npx create-nodejs-express-app <project-name>",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 16,
+        "endLine": 16,
+        "section": "RESTful API Node Server Boilerplate › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "npm init nodejs-express-app <project-name>",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 22,
+        "endLine": 22,
+        "section": "RESTful API Node Server Boilerplate › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "git clone --depth 1 https://github.com/hagopj13/node-express-boilerplate.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 32,
+        "endLine": 32,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "skip": "git clone: FirstRun starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "cd node-express-boilerplate",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 33,
+        "endLine": 33,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S5",
+      "command": "npx rimraf ./.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 34,
+        "endLine": 34,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S6",
+      "command": "yarn install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 40,
+        "endLine": 40,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ],
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S7",
+      "command": "create-nodejs-express-app --help",
+      "kind": "test",
+      "probe": true,
+      "source": {
+        "file": "README.md",
+        "line": 40,
+        "endLine": 40,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "synthetic": "checks that the installed `create-nodejs-express-app` command runs",
+      "status": "needs-human"
+    },
+    {
+      "id": "S8",
+      "command": "cp .env.example .env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 46,
+        "endLine": 46,
+        "section": "RESTful API Node Server Boilerplate › Manual Installation"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S9",
+      "command": "PORT=3000",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 153,
+        "endLine": 153,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S10",
+      "command": "MONGODB_URL=mongodb://127.0.0.1:27017/node-boilerplate",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 156,
+        "endLine": 156,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S11",
+      "command": "JWT_SECRET=thisisasamplesecret",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 160,
+        "endLine": 160,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S12",
+      "command": "JWT_ACCESS_EXPIRATION_MINUTES=30",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 162,
+        "endLine": 162,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S13",
+      "command": "JWT_REFRESH_EXPIRATION_DAYS=30",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 164,
+        "endLine": 164,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S14",
+      "command": "SMTP_HOST=email-server",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S15",
+      "command": "SMTP_PORT=587",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 169,
+        "endLine": 169,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S16",
+      "command": "SMTP_USERNAME=email-server-username",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 170,
+        "endLine": 170,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S17",
+      "command": "SMTP_PASSWORD=email-server-password",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 171,
+        "endLine": 171,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S18",
+      "command": "EMAIL_FROM=support@yourapp.com",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 172,
+        "endLine": 172,
+        "section": "RESTful API Node Server Boilerplate › Environment Variables"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "12 (package.json engines (\">=12.0.0\"))",
+      "source": "README.md"
+    }
+  ],
+  "verify": {
+    "kind": "command",
+    "target": "create-nodejs-express-app --help"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

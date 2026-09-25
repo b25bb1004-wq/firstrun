@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T20:09:07.644Z",
+  "commit": "824c1cf8de",
+  "image": "node:7",
+  "runtime": {
+    "name": "node",
+    "version": "7",
+    "source": "Readme.md:54 (\"node v7.6+\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}
