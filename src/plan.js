@@ -289,7 +289,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
   if (serve) {
     const port = url ? Number(url[1]) : facts.ports[0] || defaultPort(serve.command);
     serve.serve = { port };
-    verify = { kind: 'http', target: `http://127.0.0.1:${port}${url?.[2] && url[1] === String(port) ? url[2] : '/'}` };
+    verify = { kind: 'http', target: `http://127.0.0.1:${port}${url?.[2] && url[1] === String(port) ? url[2] : '/'}`, ...(url && url[1] === String(port) ? { fromDocs: true } : {}) };
   } else if (steps.some((s) => s.kind === 'test' && !s.skip)) {
     verify = { kind: 'command', target: steps.filter((s) => s.kind === 'test' && !s.skip).pop().command };
   }

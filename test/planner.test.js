@@ -116,3 +116,11 @@ test('prose output lines under a command are not run ("App is running ...")', ()
   const md = parseMarkdown('```bash\nnpm run dev\nApp is running ...\n\nPress CTRL + C to stop the process.\nPORT=4000 npm start\n```\n');
   assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['npm run dev', 'PORT=4000 npm start']);
 });
+
+test('announcedPort reads the port a dev server prints', async () => {
+  const { announcedPort } = await import('../src/sandbox.js');
+  assert.equal(announcedPort('INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)'), 8000);
+  assert.equal(announcedPort('Server listening on port 4000'), 4000);
+  assert.equal(announcedPort('  ➜  Local:   http://localhost:5173/'), 5173);
+  assert.equal(announcedPort('Compiled successfully in 1.2s'), null);
+});

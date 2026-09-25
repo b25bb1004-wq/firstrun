@@ -13,6 +13,17 @@ import { run, must, sleep, shortId, shq, tail } from './util.js';
  */
 const FATAL = /Failed running '|\[nodemon\] app crashed|Traceback \(most recent call last\)|UnhandledPromiseRejection|ECONNREFUSED|EADDRINUSE|Error: Cannot find module|ERROR:\s+Application startup failed|Error loading ASGI app|ModuleNotFoundError|ImportError|RuntimeError:|Missing required environment variable|Waiting for file changes before restarting/;
 
+/** The port a dev server says it is listening on, from lines such as "Uvicorn running on http://0.0.0.0:8000",
+ * "Listening on port 4000", "Local: http://localhost:5173/", "Server started at http://127.0.0.1:8080". */
+export function announcedPort(out) {
+  const lines = String(out || '').split('\n').filter((l) => /running|listening|started|serving|available|local:|ready/i.test(l));
+  for (const l of lines.reverse()) {
+    const m = l.match(/(?:https?:\/\/)?(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::\]|\[::1\]|[\w.-]+\.local):(\d{2,5})\b/i) || l.match(/\bport\s*[:=]?\s*(\d{2,5})\b/i);
+    if (m) { const p = Number(m[1]); if (p >= 80 && p <= 65535) return p; }
+  }
+  return null;
+}
+
 export class Sandbox {
   constructor({ image, repoDir, label = 'firstrun', patches = [], log = () => {} }) {
     this.image = image;
@@ -247,6 +258,12 @@ export class Sandbox {
       const portOpen = port ? (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${port}) >/dev/null 2>&1`])).code === 0 : false;
       if (portOpen || (ready && ready.test(lastOut))) {
         return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid` };
+      }
+      // The app may announce a different port than the one we guessed ("Uvicorn running on
+      // http://0.0.0.0:8000"). If that port is really listening, the app is up.
+      const announced = announcedPort(lastOut);
+      if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
+        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid`, port: announced };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
       if (FATAL.test(lastOut)) {
