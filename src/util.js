@@ -48,6 +48,14 @@ export function tail(text, lines = 60) {
   return all.slice(-lines).join('\n');
 }
 
+/** The start and the end of a long log: npm and node-gyp print the failing command first, then
+ * pages of compiler notes, so the tail alone can miss the cause. Short logs come back whole. */
+export function headTail(text, head = 60, tailLines = 200) {
+  const all = tail(text, Infinity).split('\n');
+  if (all.length <= head + tailLines) return all.join('\n');
+  return [...all.slice(0, head), `[… ${all.length - head - tailLines} lines omitted …]`, ...all.slice(-tailLines)].join('\n');
+}
+
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const nowIso = () => new Date().toISOString();
 export const shortId = () => crypto.randomBytes(4).toString('hex');
