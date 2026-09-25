@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
 import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './services.js';
@@ -28,12 +30,46 @@ const installCmd = (facts) => {
   return facts.node?.lockfile === 'package-lock.json' ? 'npm install' : 'npm install';
 };
 
+/** -1, 0 or 1, comparing dotted versions numerically ("3.12" > "3.11", "20" > "16"). */
+export function cmpVersion(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return Math.sign(d);
+  }
+  return 0;
+}
+
+/** "The README's Python 3.12 is too new: …", or, when the docs name no version, say so instead of blaming the README. */
+function runtimeCause(plan, label, target, src) {
+  const cur = plan.runtime.version;
+  const fromDocs = !/docs do not say|current LTS|default/i.test(plan.runtime.source || '');
+  const who = fromDocs ? `The README's ${label} ${cur}` : `${label} ${cur} (the docs name no version, so a newcomer installs the current release)`;
+  return `${who} is too ${cmpVersion(cur, target) > 0 ? 'new' : 'old'}: the project needs ${label} ${target} (${src}).`;
+}
+
+/** The package that provides a CLI a script calls, when it isn't the CLI's own name. */
+const BIN_PACKAGE = { tsc: ['typescript'], nest: ['@nestjs/cli'], 'svelte-kit': ['@sveltejs/kit'], remix: ['@remix-run/dev'], playwright: ['playwright', '@playwright/test'] };
+
+function depRange(facts, name) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, 'package.json'), 'utf8'));
+    return pkg.dependencies?.[name] || pkg.devDependencies?.[name] || pkg.optionalDependencies?.[name] || null;
+  } catch { return null; }
+}
+
 function devValue(name, { facts, sandboxEnv }) {
   const n = name.toUpperCase();
   const pgUrl = sandboxEnv.DATABASE_URL || facts.envExample?.keys?.DATABASE_URL;
   if (/^(DATABASE_URL|DB_URL|POSTGRES_URL)$/.test(n)) return { value: pgUrl || 'postgres://postgres:postgres@localhost:5432/postgres', kind: 'local' };
   if (/REDIS_(URL|URI)/.test(n)) return { value: 'redis://localhost:6379', kind: 'local' };
   if (/MONGO(DB)?_(URL|URI)/.test(n)) return { value: 'mongodb://localhost:27017/app', kind: 'local' };
+  // Mail goes to a local catcher (Mailpit, see services.js), never to a real SMTP server.
+  if (/^(SMTP|MAIL|EMAIL)_(HOST|SERVER)$/.test(n)) return { value: 'localhost', kind: 'local' };
+  if (/^(SMTP|MAIL|EMAIL)_PORT$/.test(n)) return { value: '1025', kind: 'local' };
+  if (/^(SMTP|MAIL|EMAIL)_(USER|USERNAME|LOGIN)$/.test(n)) return { value: 'dev', kind: 'local' };
+  if (/^(EMAIL|MAIL|SMTP)_(FROM|SENDER)$|^(FROM|SENDER)_(EMAIL|ADDRESS)$/.test(n)) return { value: 'dev@example.com', kind: 'local' };
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
   if (/(^|_)(URL|URI|ORIGIN|ENDPOINT)$/.test(n)) return { value: 'http://localhost:3000', kind: 'local' };
@@ -71,7 +107,7 @@ export const RULES = [
       const src = facts.node.truth?.source || `the error ("${m[0]}")`;
       return {
         ruleId: 'node-engine', class: 'runtime-version', confidence: 0.95,
-        cause: `The README's Node.js ${current} is too old: the project needs Node.js ${target} (${src}).`,
+        cause: runtimeCause(plan, 'Node.js', target, src),
         fix: {
           actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: String(target), source: src } }],
           patches: [],
@@ -86,8 +122,31 @@ export const RULES = [
     id: 'node-native-build',
     test({ log, facts, plan }) {
       if (plan.runtime.name !== 'node' || !facts.node) return null;
-      if (!/gyp ERR!|node-pre-gyp ERR!|prebuild-install warn install No prebuilt binaries|Node Sass does not yet support your current environment|binding\.gyp|make: \*\*\* \[.*\.o\] Error|error: no member named .* in namespace 'v8'|NODE_MODULE_VERSION \d+\. This version of Node\.js requires/.test(log)) return null;
+      // Compiler output can push the gyp lines out of the log tail, so the headers being compiled count too.
+      if (!/gyp ERR!|node-pre-gyp ERR!|prebuild-install warn install No prebuilt binaries|Node Sass does not yet support your current environment|binding\.gyp|make: \*\*\* \[.*\.o\] Error|error: no member named .* in namespace 'v8'|NODE_MODULE_VERSION \d+\. This version of Node\.js requires|node-gyp\/\d+\.\d+\.\d+\/include\/node\/|node_modules\/nan\/nan\.h|node-pre-gyp install --fallback-to-build/.test(log)) return null;
       const current = Number(plan.runtime.version);
+      // bcrypt's own compatibility table: Node.js 18+ needs bcrypt >= 6; 3.0.6–5.x support Node.js 12–16.
+      const bcrypt = facts.node.deps.includes('bcrypt') && /bcrypt/.test(log) ? depRange(facts, 'bcrypt') : null;
+      const bcryptMajor = bcrypt ? Number((bcrypt.match(/(\d+)/) || [])[1]) : null;
+      if (bcryptMajor && bcryptMajor < 6 && current >= 18) {
+        const why = `bcrypt ${bcrypt} in package.json supports Node.js 12–16 only (bcrypt's compatibility table); Node.js 18+ needs bcrypt >= 6`;
+        return {
+          ruleId: 'node-native-build', class: 'runtime-version', confidence: 0.85,
+          cause: `bcrypt ${bcrypt} does not build on Node.js ${current}: ${why}. Node.js 16 is end-of-life, so upgrading bcrypt is the lasting fix.`,
+          fix: {
+            actions: [{ type: 'rebase', image: imageFor('node', '16'), runtime: { name: 'node', version: '16', source: why } }],
+            patches: [],
+            doc: { kind: 'prerequisite', text: `Node.js 16 (bcrypt ${bcrypt} does not support Node.js 18+; upgrading to bcrypt >= 6 lets you use a current Node.js)`, runtime: { name: 'node', version: '16' } },
+          },
+        };
+      }
+      if (bcryptMajor && bcryptMajor < 6) {
+        return {
+          ruleId: 'node-native-build', class: 'runtime-version', confidence: 0.8,
+          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which FirstRun leaves to a human.`,
+          fix: null,
+        };
+      }
       let target = facts.node.truth?.version ? Number(facts.node.truth.version) : null;
       let why = facts.node.truth?.source;
       if (!target || target >= current) {
@@ -119,7 +178,7 @@ export const RULES = [
       const src = facts.python.truth?.source || 'the error';
       return {
         ruleId: 'python-version', class: 'runtime-version', confidence: 0.9,
-        cause: `The README's Python ${plan.runtime.version} is too old: the project needs Python ${target} (${src}).`,
+        cause: runtimeCause(plan, 'Python', target, src),
         fix: {
           actions: [{ type: 'rebase', image: imageFor('python', target), runtime: { name: 'python', version: target, source: src } }],
           patches: [],
@@ -275,6 +334,26 @@ export const RULES = [
     },
   },
   {
+    // Joi and friends: `"NODE_ENV" must be one of [production, integration, development]`.
+    id: 'env-invalid-value',
+    test({ log, step }) {
+      const m = log.match(/"([A-Z][A-Z0-9_]{2,})" must be one of \[([^\]]+)\]/);
+      if (!m) return null;
+      const [, name, list] = m;
+      const allowed = list.split(',').map((v) => v.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+      const prefer = step.kind === 'test' ? ['test', 'testing', 'development', 'dev', 'local'] : ['development', 'dev', 'local', 'test'];
+      const value = prefer.find((v) => allowed.includes(v)) || allowed[0];
+      if (!value || /\s/.test(value)) return null;
+      const jest = name === 'NODE_ENV' && !allowed.includes('test') && /\bjest\b|Test Suites:/.test(log) ? ' (Jest sets NODE_ENV=test, and the config rejects that)' : '';
+      const cmd = `export ${name}=${value}`;
+      return {
+        ruleId: 'env-invalid-value', class: 'missing-env', confidence: 0.85,
+        cause: `The app only accepts ${name} = ${allowed.join(' | ')}, but this step runs with another value${jest}; the docs never say to set it.`,
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'env' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
     id: 'missing-service',
     async test(ctx) {
       const { log, facts, sandbox, sandboxEnv } = ctx;
@@ -356,7 +435,9 @@ export const RULES = [
       const pymod = m[4]?.split('.')[0];
       const nodeBins = ['tsc', 'ts-node', 'tsx', 'nodemon', 'next', 'vite', 'jest', 'vitest', 'mocha', 'eslint', 'prisma', 'knex', 'sequelize', 'nest', 'react-scripts', 'webpack', 'rollup', 'concurrently', 'cross-env', 'turbo', 'nx', 'astro', 'nuxt', 'svelte-kit', 'remix', 'playwright', 'drizzle-kit', 'typeorm'];
       const installed = plan.steps.some((s) => s.kind === 'install' && ['passed', 'repaired'].includes(s.status) && /(npm|yarn|pnpm|bun)\s+(i|install|ci)\b|^yarn$/.test(s.command));
-      if (facts.node && !installed && ((bin && nodeBins.includes(bin)) || (mod && facts.node.deps.includes(mod)))) {
+      // Only blame a skipped install for a CLI the project depends on; otherwise it's a globally-assumed tool (missing-tool).
+      const binDeclared = bin && nodeBins.includes(bin) && (BIN_PACKAGE[bin] || [bin]).some((p) => facts.node?.deps.includes(p));
+      if (facts.node && !installed && (binDeclared || (mod && facts.node.deps.includes(mod)))) {
         const cmd = installCmd(facts);
         return {
           ruleId: 'deps-not-installed', class: 'wrong-order', confidence: 0.9,
@@ -490,5 +571,5 @@ export const RULES = [
 ];
 
 function label(kind) {
-  return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO' }[kind] || kind;
+  return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;
 }

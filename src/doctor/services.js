@@ -8,9 +8,11 @@ export const SERVICE_CATALOG = {
   memcached: { image: 'memcached:1-alpine', port: 11211, env: {} },
   elasticsearch: { image: 'docker.elastic.co/elasticsearch/elasticsearch:8.14.0', port: 9200, env: { 'discovery.type': 'single-node', 'xpack.security.enabled': 'false', ES_JAVA_OPTS: '-Xms512m -Xmx512m' } },
   minio: { image: 'minio/minio', port: 9000, env: {} },
+  // Catches outgoing mail locally (web UI on :8025), so apps that send email start without a real SMTP account.
+  mailpit: { image: 'axllent/mailpit', port: 1025, env: { MP_SMTP_AUTH_ACCEPT_ANY: '1', MP_SMTP_AUTH_ALLOW_INSECURE: '1' } },
 };
 
-export const PORT_TO_SERVICE = { 5432: 'postgres', 6379: 'redis', 27017: 'mongo', 3306: 'mysql', 5672: 'rabbitmq', 11211: 'memcached', 9200: 'elasticsearch', 9000: 'minio' };
+export const PORT_TO_SERVICE = { 5432: 'postgres', 6379: 'redis', 27017: 'mongo', 3306: 'mysql', 5672: 'rabbitmq', 11211: 'memcached', 9200: 'elasticsearch', 9000: 'minio', 1025: 'mailpit' };
 
 export function serviceKind(image = '', name = '') {
   const s = `${image} ${name}`.toLowerCase();
@@ -22,6 +24,7 @@ export function serviceKind(image = '', name = '') {
   if (/memcache/.test(s)) return 'memcached';
   if (/elastic|opensearch/.test(s)) return 'elasticsearch';
   if (/minio/.test(s)) return 'minio';
+  if (/mailpit|mailhog|mailcatcher|maildev/.test(s)) return 'mailpit';
   return null;
 }
 
