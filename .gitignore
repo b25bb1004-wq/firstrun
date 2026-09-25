@@ -6,3 +6,7 @@ audit/runs/
 *.log
 .env
 .firstrun-chat/
+
+.vercel
+.env.local
+.env*.local
