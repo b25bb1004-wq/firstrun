@@ -20,7 +20,7 @@ async function stillFailing(diagnosis, before, after, ctx) {
     const rule = RULES.find((r) => r.id === diagnosis.ruleId);
     if (rule) {
       try {
-        const again = await rule.test({ ...ctx, attempt: after, log: tail(after.out, 200) });
+        const again = await rule.test({ ...ctx, attempt: after, log: headTail(after.out) });
         return !!again && again.ruleId === diagnosis.ruleId && again.cause === diagnosis.cause;
       } catch { return true; }
     }
