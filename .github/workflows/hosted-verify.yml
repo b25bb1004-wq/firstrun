@@ -16,6 +16,8 @@ on:
         required: true
         type: string
 
+run-name: verify ${{ inputs.repo }} ${{ inputs.request_id }}
+
 concurrency:
   group: hosted-verify-${{ github.event.inputs.request_id }}
   cancel-in-progress: false
@@ -43,31 +45,36 @@ jobs:
 
       - name: Validate repository input
         id: validate
+        env:
+          IN_REPO: ${{ github.event.inputs.repo }}
+          IN_REF: ${{ github.event.inputs.ref }}
+          IN_REQ: ${{ github.event.inputs.request_id }}
         run: |
-          REPO="${{ github.event.inputs.repo }}"
-          REF="${{ github.event.inputs.ref }}"
-          REQUEST_ID="${{ github.event.inputs.request_id }}"
-          
+          REPO="$IN_REPO"
+          REF="$IN_REF"
+          REQUEST_ID="$IN_REQ"
+
           # Validate repo format
           if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
             echo "error=Invalid repository format. Use owner/name." >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           # Validate ref format
           if [[ -n "$REF" && ! "$REF" =~ ^[A-Za-z0-9._/-]{1,100}$ ]]; then
             echo "error=Invalid ref format" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           # Prevent path traversal
           if [[ "$REF" == *".."* ]]; then
             echo "error=Invalid ref format" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           echo "repo=$REPO" >> $GITHUB_OUTPUT
           echo "ref=$REF" >> $GITHUB_OUTPUT
+          echo "artifact=${REPO//\//__}" >> $GITHUB_OUTPUT
 
       - name: Run FirstRun verify
         id: verify
@@ -80,7 +87,7 @@ jobs:
             echo "Missing repo input"
             exit 1
           fi
-          
+
           args=(verify "https://github.com/$IN_REPO" --brain rules --out run-out --ref "$IN_REF")
           # Remove empty ref
           if [[ -z "$IN_REF" ]]; then
@@ -114,7 +121,7 @@ jobs:
         if: steps.validate.outputs.error == '' && steps.find_run.outputs.run_dir != ''
         uses: actions/upload-artifact@v4
         with:
-          name: firstrun-verify-${{ steps.validate.outputs.repo | replace('/', '__') }}
+          name: firstrun-verify-${{ steps.validate.outputs.artifact }}
           path: ${{ steps.find_run.outputs.run_dir }}
           retention-days: 7
 

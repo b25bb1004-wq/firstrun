@@ -1,5 +1,6 @@
 // Hosted verify trigger: POST /api/verify { repo, ref? }
 import { parseGithubRepo } from '../src/remote.js';
+import { randomBytes } from 'node:crypto';
 
 const GH_TOKEN = process.env.HOSTED_VERIFY_TOKEN;
 const GH_REPO = process.env.HOSTED_VERIFY_REPO || 'b25bb1004-wq/firstrun';
@@ -35,7 +36,7 @@ export default async function handler(req, res) {
   if (!GH_TOKEN) return res.status(500).json({ error: 'Server not configured: missing HOSTED_VERIFY_TOKEN' });
 
   // Rate limit per IP
-  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
   if (!checkRateLimit(ip)) {
     return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' });
   }
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
   }
 
   // Generate unique request_id for run correlation
-  const requestId = crypto.randomBytes(8).toString('hex');
+  const requestId = randomBytes(8).toString('hex');
 
   try {
     const response = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
