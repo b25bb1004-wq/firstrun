@@ -270,9 +270,10 @@ export function buildPlan(facts, { repo, commit } = {}) {
     }
   }
   // Skip installing the published package only when the docs also install this source (koa: `npm install`).
-  // When it's the only install they give (requests: `pip install requests`), that is the setup to test.
+  // When pip's is the only install they give (requests: `pip install requests`), that is the setup to test.
+  // npm refuses to install a package inside itself, so `npm install koa` stays skipped (the Doctor adds `npm install`).
   const SELF = 'installs the published package; you already have its source';
-  if (!steps.some((s) => !s.skip && s.kind === 'install')) for (const s of steps.filter((x) => x.skip === SELF)) { delete s.skip; s.kind = 'install'; }
+  if (!steps.some((s) => !s.skip && s.kind === 'install')) for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 
   // Runtime: what the docs tell a newcomer to install vs what the project really needs.
