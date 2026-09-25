@@ -29,6 +29,13 @@ async function stillFailing(diagnosis, before, after, ctx) {
   return sig ? after.out.includes(sig.trim()) : true;
 }
 
+/** Write `cwd` back to /firstrun/cwd so the next exec starts in the right dir.
+ *  No-op when cwd is null/empty. Never touches /firstrun/state.env. */
+export async function restoreCwd(sandbox, cwd) {
+  if (!cwd) return;
+  await sandbox.writeFile('/firstrun/cwd', cwd);
+}
+
 export function makeBudget(total = 4, perCall = 1.5) {
   let spent = 0;
   return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent };
@@ -222,6 +229,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         stopped = step.id;
         break;
       }
+      let goodCwd = await sandbox.readFile('/firstrun/cwd');
       let attempt = await execStep(step);
       if (attempt.exitCode === 0) {
         step.status = step.status === 'repairing' ? 'repaired' : 'passed';
@@ -320,6 +328,8 @@ export async function verifyRepo(repoDir, opts = {}) {
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
               if (ia.exitCode !== 0) { fixFailed = { command: ns.command, exitCode: ia.exitCode, out: ia.out, durationMs: ia.durationMs }; break; }
+              // An inserted step that succeeds may cd intentionally; keep that as the new baseline.
+              const newCwd = await sandbox.readFile('/firstrun/cwd'); if (newCwd) goodCwd = newCwd;
             }
           }
         }
@@ -343,6 +353,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         if (fixFailed) fixLog.push(`fix not applied: \`${fixFailed.command}\` exited ${fixFailed.exitCode}`);
         rec.phase('coldstart', 'runner');
         // A fix whose own command failed was not applied: don't retry the step as if it had been.
+        if (!fixFailed) await restoreCwd(sandbox, goodCwd);
         const after = fixFailed
           ? { stepId: step.id, n: attempts[step.id], command: fixFailed.command, exitCode: fixFailed.exitCode, durationMs: fixFailed.durationMs || 0, logTail: tail(fixFailed.out || '', 60), out: fixFailed.out || '' }
           : await execStep(step);
