@@ -1,0 +1,83 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T20:10:34.636Z",
+  "commit": "c8f8255593",
+  "image": "python:3.10",
+  "runtime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "readme.md:118 (\"Python 3.10+\")"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S4",
+      "command": "vagrant ssh",
+      "kind": "other"
+    },
+    {
+      "id": "S5",
+      "command": "./manage.py runserver 0.0.0.0:8000",
+      "kind": "other"
+    },
+    {
+      "id": "S6",
+      "command": "python -m venv .venv",
+      "kind": "install"
+    },
+    {
+      "id": "S7",
+      "command": "uv venv .venv",
+      "kind": "install"
+    },
+    {
+      "id": "S8",
+      "command": "source .venv/bin/activate",
+      "kind": "install"
+    },
+    {
+      "id": "S11",
+      "command": "cd ~/dev [or your preferred dev directory]",
+      "kind": "other"
+    },
+    {
+      "id": "S14",
+      "command": "pip install -r requirements/development.txt",
+      "kind": "install"
+    },
+    {
+      "id": "S15",
+      "command": "uv pip install -r requirements/development.txt",
+      "kind": "install"
+    },
+    {
+      "id": "S16",
+      "command": "cp bakerydemo/settings/local.py.example bakerydemo/settings/local.py",
+      "kind": "other"
+    },
+    {
+      "id": "S17",
+      "command": "cp .env.example .env",
+      "kind": "env"
+    },
+    {
+      "id": "S18",
+      "command": "./manage.py migrate",
+      "kind": "migrate"
+    },
+    {
+      "id": "S19",
+      "command": "./manage.py load_initial_data",
+      "kind": "other"
+    },
+    {
+      "id": "S20",
+      "command": "./manage.py runserver",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

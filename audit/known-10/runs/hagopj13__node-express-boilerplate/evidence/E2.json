@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S7",
+  "before": {
+    "stepId": "S7",
+    "n": 1,
+    "command": "create-nodejs-express-app --help",
+    "exitCode": 127,
+    "durationMs": 135,
+    "logTail": "/firstrun/step-5.sh: line 4: create-nodejs-express-app: command not found",
+    "logFile": "logs/S7-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T20:04:17.554Z"
+}

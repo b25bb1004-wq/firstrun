@@ -1,0 +1,24 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -24,6 +24,12 @@ npm init nodejs-express-app <project-name>
+ 
+ ## Manual Installation
+ 
++🟡 **Partly verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:22` machine at `179ae84efe`: clone to running in 1m22s.
++
++Prerequisites verified by FirstRun:
++
++- Yarn (via `corepack enable`)
++
+ If you would still prefer to do the installation manually, follow these steps:
+ 
+ Clone the repo:
+@@ -38,6 +44,7 @@ Install the dependencies:
+ 
+ ```bash
+ yarn install
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ Set the environment variables:

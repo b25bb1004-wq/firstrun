@@ -1,0 +1,17 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -17,10 +17,13 @@
+ 
+ ## Installation
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:7` machine at `824c1cf8de`.
++
+ Koa requires __node v18.0.0__ or higher for ES2015 and async function support.
+ 
+ ```sh
+ npm install koa
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ## Hello Koa

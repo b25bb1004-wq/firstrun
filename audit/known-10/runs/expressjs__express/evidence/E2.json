@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "npm test-ci",
+    "exitCode": 1,
+    "durationMs": 230,
+    "logTail": "Unknown command: \"test-ci\"\n\nTo see a list of supported npm commands, run:\n  npm help",
+    "logFile": "logs/S8-2.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T20:08:53.330Z"
+}

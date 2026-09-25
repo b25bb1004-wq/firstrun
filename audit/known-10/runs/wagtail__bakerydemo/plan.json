@@ -1,0 +1,359 @@
+{
+  "repo": "wagtail/bakerydemo",
+  "commit": "c8f8255593",
+  "image": "python:3.10",
+  "runtime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "readme.md:118 (\"Python 3.10+\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "git clone https://github.com/wagtail/bakerydemo.git",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 53,
+        "endLine": 53,
+        "section": "Installation › Setup with Vagrant › Installation"
+      },
+      "origin": "readme",
+      "skip": "git clone: FirstRun starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "cd bakerydemo",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 54,
+        "endLine": 54,
+        "section": "Installation › Setup with Vagrant › Installation"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "vagrant up",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 55,
+        "endLine": 55,
+        "section": "Installation › Setup with Vagrant › Installation"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S4",
+      "command": "vagrant ssh",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 56,
+        "endLine": 56,
+        "section": "Installation › Setup with Vagrant › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S5",
+      "command": "./manage.py runserver 0.0.0.0:8000",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 58,
+        "endLine": 58,
+        "section": "Installation › Setup with Vagrant › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S6",
+      "command": "python -m venv .venv",
+      "kind": "install",
+      "source": {
+        "file": "readme.md",
+        "line": 128,
+        "endLine": 128,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S7",
+      "command": "uv venv .venv",
+      "kind": "install",
+      "source": {
+        "file": "readme.md",
+        "line": 130,
+        "endLine": 130,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S8",
+      "command": "source .venv/bin/activate",
+      "kind": "install",
+      "source": {
+        "file": "readme.md",
+        "line": 131,
+        "endLine": 131,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S9",
+      "command": ".venv\\Scripts\\Activate.ps1",
+      "kind": "prereq",
+      "source": {
+        "file": "readme.md",
+        "line": 138,
+        "endLine": 138,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "skip": "Windows-only command",
+      "status": "skipped"
+    },
+    {
+      "id": "S10",
+      "command": ".venv\\Scripts\\activate.bat",
+      "kind": "prereq",
+      "source": {
+        "file": "readme.md",
+        "line": 140,
+        "endLine": 140,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "skip": "Windows-only command",
+      "status": "skipped"
+    },
+    {
+      "id": "S11",
+      "command": "cd ~/dev [or your preferred dev directory]",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 150,
+        "endLine": 150,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S12",
+      "command": "git clone https://github.com/wagtail/bakerydemo.git",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 151,
+        "endLine": 151,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "skip": "git clone: FirstRun starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S13",
+      "command": "cd bakerydemo",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 152,
+        "endLine": 152,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S14",
+      "command": "pip install -r requirements/development.txt",
+      "kind": "install",
+      "source": {
+        "file": "readme.md",
+        "line": 154,
+        "endLine": 154,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S15",
+      "command": "uv pip install -r requirements/development.txt",
+      "kind": "install",
+      "source": {
+        "file": "readme.md",
+        "line": 156,
+        "endLine": 156,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S16",
+      "command": "cp bakerydemo/settings/local.py.example bakerydemo/settings/local.py",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 161,
+        "endLine": 161,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S17",
+      "command": "cp .env.example .env",
+      "kind": "env",
+      "source": {
+        "file": "readme.md",
+        "line": 162,
+        "endLine": 162,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S18",
+      "command": "./manage.py migrate",
+      "kind": "migrate",
+      "source": {
+        "file": "readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S19",
+      "command": "./manage.py load_initial_data",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 169,
+        "endLine": 169,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S20",
+      "command": "./manage.py runserver",
+      "kind": "other",
+      "source": {
+        "file": "readme.md",
+        "line": 170,
+        "endLine": 170,
+        "section": "Installation › Setup with venv › Installation"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "Python 3.10+",
+      "truth": "3.12 (.python-version)",
+      "source": "readme.md:118"
+    },
+    {
+      "what": "env var DATABASE_URL",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/base.py:127",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var DJANGO_SECRET_KEY",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:12",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var PRIMARY_HOST",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:35",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var AWS_S3_CUSTOM_DOMAIN",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:156",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var AWS_S3_REGION_NAME",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:158",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var FRONTEND_CACHE_CLOUDFLARE_ZONEID",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:202",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var FRONTEND_CACHE_CLOUDFLARE_EMAIL",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:214",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var FRONTEND_CACHE_CLOUDFLARE_TOKEN",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:215",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var FRONTEND_CACHE_CLOUDFLARE_BEARER_TOKEN",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:224",
+      "source": ".env.example"
+    },
+    {
+      "what": "env var BASIC_AUTH_WHITELISTED_HTTP_HOSTS",
+      "docs": "not documented",
+      "truth": "read in bakerydemo/settings/production.py:245",
+      "source": ".env.example"
+    }
+  ],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [
+    "readme.md"
+  ],
+  "originalImage": "python:3.10",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "readme.md:118 (\"Python 3.10+\")"
+  }
+}

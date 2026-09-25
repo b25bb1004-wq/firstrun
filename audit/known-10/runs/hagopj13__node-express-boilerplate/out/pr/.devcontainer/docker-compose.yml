@@ -1,0 +1,10 @@
+services:
+  app:
+    image: node:22
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  mongodb:
+    image: mongo:4.2.1-bionic
+    network_mode: service:app
+    restart: unless-stopped

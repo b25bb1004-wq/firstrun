@@ -1,0 +1,138 @@
+{
+  "id": "known-10-httpie__cli",
+  "repo": "httpie/cli",
+  "commit": "5b604c37c6",
+  "startedAt": "2026-09-25T20:10:22.932Z",
+  "phase": "error",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    }
+  },
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "Python 3.7+",
+      "truth": "3.9 (CI (.github/workflows/benchmark.yml))",
+      "source": "README.md:281"
+    },
+    {
+      "what": "env var HTTPIE_BUILDING_MAN_PAGES",
+      "docs": "not documented",
+      "truth": "read in extras/scripts/generate_man_pages.py:9",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "httpie/cli",
+    "commit": "5b604c37c6",
+    "image": "python:3.7",
+    "runtime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.md:281 (\"Python 3.7+\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "https httpie.io/hello",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 77,
+          "endLine": 77,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "http PUT pie.dev/put X-API-Token:123 name=John",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 83,
+          "endLine": 83,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "http --offline pie.dev/post hello=offline",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 89,
+          "endLine": 89,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "http -a USERNAME POST https://api.github.com/repos/httpie/cli/issues/83/comments body='HTTPie is awesome! :heart:'",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 95,
+          "endLine": 95,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Python version",
+        "docs": "Python 3.7+",
+        "truth": "3.9 (CI (.github/workflows/benchmark.yml))",
+        "source": "README.md:281"
+      },
+      {
+        "what": "env var HTTPIE_BUILDING_MAN_PAGES",
+        "docs": "not documented",
+        "truth": "read in extras/scripts/generate_man_pages.py:9",
+        "source": "README"
+      }
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "python:3.7",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.md:281 (\"Python 3.7+\")"
+    }
+  },
+  "error": "No setup docs: read README.md, CONTRIBUTING.md, found no setup commands a newcomer could follow; skipped \"https httpie.io/hello\" (usage example: runs the tool on your own input once it is installed); \"http PUT pie.dev/put X-API-Token:123 name=John\" (usage example: runs the tool on your own input once it is installed); \"http --offline pie.dev/post hello=offline\" (usage example: runs the tool on your own input once it is installed).",
+  "finishedAt": "2026-09-25T20:10:23.036Z"
+}

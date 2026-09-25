@@ -1,0 +1,80 @@
+{
+  "id": "known-10-psf__requests",
+  "repo": "psf/requests",
+  "commit": "611c6162cb",
+  "startedAt": "2026-09-25T20:09:31.737Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "psf/requests",
+    "commit": "611c6162cb",
+    "image": "python:3.10",
+    "runtime": {
+      "name": "python",
+      "version": "3.10",
+      "source": "README.md:38 (\"Python 3.10+\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "python -m pip install requests",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 35,
+          "endLine": 35,
+          "section": "Requests › Installing Requests and Supported Versions"
+        },
+        "origin": "readme",
+        "status": "passed"
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "python:3.10",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.10",
+      "source": "README.md:38 (\"Python 3.10+\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 8572
+  },
+  "passport": {
+    "repo": "psf/requests",
+    "commit": "611c6162cb",
+    "verifiedAt": "2026-09-25T20:10:13.522Z",
+    "verdict": "VERIFIED",
+    "image": "python:3.10",
+    "runtime": "Python 3.10",
+    "stepsTotal": 1,
+    "stepsFromReadme": 1,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 0,
+    "replaySeconds": 9,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    }
+  },
+  "finishedAt": "2026-09-25T20:10:13.901Z"
+}

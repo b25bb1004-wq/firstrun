@@ -1,0 +1,22 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -49,6 +49,8 @@ app.listen(3000, () => {
+ 
+ ## Installation
+ 
++🟡 **Partly verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:18` machine at `9a34acf03c`: clone to running in 53s.
++
+ This is a [Node.js](https://nodejs.org/en/) module available through the
+ [npm registry](https://www.npmjs.com/).
+ 
+@@ -171,7 +173,8 @@ npm install
+ Then run `npm test`:
+ 
+ ```bash
+-npm test
++npm test-ci
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ## Current project team members

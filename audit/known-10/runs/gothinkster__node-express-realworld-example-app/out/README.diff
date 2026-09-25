@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -8,6 +8,8 @@
+ 
+ ## Getting Started
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:22` machine at `30b68e1e88`.
++
+ ### Prerequisites
+ 
+ Run the following command to install dependencies:
+@@ -44,6 +46,7 @@ Run the following command to create/update your database based on existing sql m
+ 
+ ```shell
+ npx prisma migrate deploy
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ### Run the project

@@ -1,0 +1,23 @@
+{
+  "id": "E3",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "uv sync",
+    "exitCode": 127,
+    "durationMs": 119,
+    "logTail": "/firstrun/step-4.sh: line 4: uv: command not found",
+    "logFile": "logs/S2-2.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T20:11:37.621Z"
+}

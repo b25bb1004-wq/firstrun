@@ -1,0 +1,57 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T20:09:47.757Z",
+  "commit": "9a34acf03c",
+  "image": "node:18",
+  "runtime": {
+    "name": "node",
+    "version": "18",
+    "source": "Readme.md:56 (\"Node.js 18 or higher\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install express",
+      "kind": "install"
+    },
+    {
+      "id": "S2",
+      "command": "npm install -g express-generator@4",
+      "kind": "install"
+    },
+    {
+      "id": "S3",
+      "command": "express /tmp/foo",
+      "kind": "other"
+    },
+    {
+      "id": "S4",
+      "command": "cd /tmp/foo",
+      "kind": "other"
+    },
+    {
+      "id": "S5",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S6",
+      "command": "npm start",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    },
+    {
+      "id": "S7",
+      "command": "npm install",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

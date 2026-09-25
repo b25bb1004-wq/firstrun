@@ -1,0 +1,20 @@
+{
+  "repo": "koajs/koa",
+  "commit": "824c1cf8de",
+  "verifiedAt": "2026-09-25T20:09:07.644Z",
+  "verdict": "FAILED",
+  "image": "node:7",
+  "runtime": "Node.js 7",
+  "stepsTotal": 2,
+  "stepsFromReadme": 2,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  }
+}

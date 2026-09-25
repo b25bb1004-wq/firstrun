@@ -1,0 +1,45 @@
+{
+  "id": "E1",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 243,
+    "logTail": "npm error Missing script: \"test\"\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-25T20_08_52_298Z-debug-0.log",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-script",
+    "cause": "The script \"test\" no longer exists; package.json has \"test-ci\" (nyc --exclude examples --exclude test --exclude benchmarks --reporter=lcovonly --reporter=text npm test).",
+    "by": "rules",
+    "ruleId": "missing-npm-script",
+    "confidence": 0.93
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "npm test-ci"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "npm test-ci"
+    },
+    "log": "step command → npm test-ci"
+  },
+  "after": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "npm test-ci",
+    "exitCode": 1,
+    "durationMs": 230,
+    "logTail": "Unknown command: \"test-ci\"\n\nTo see a list of supported npm commands, run:\n  npm help",
+    "logFile": "logs/S8-2.log"
+  },
+  "status": "failed",
+  "at": "2026-09-25T20:08:53.073Z"
+}
