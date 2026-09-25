@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
@@ -50,6 +49,9 @@ function runtimeCause(plan, label, target, src) {
 }
 
 /** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
+/** Value for dev secrets FirstRun has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
+export const DEV_SECRET = 'change.me.local.dev.only.not.a.secret';
+
 const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-_ ]?me|xxx+|todo|replace[-_ ]?me|placeholder)$/i;
 
 /** The package that provides a CLI a script calls, when it isn't the CLI's own name. */
@@ -121,7 +123,9 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY)/.test(n)) {
     return { value: 'changeme', kind: 'secret' };
   }
-  if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: `dev-${crypto.randomBytes(12).toString('hex')}`, kind: 'generated' };
+  // One obvious, non-secret value, the same in the sandbox and in the PR's .env.example: a random-looking
+  // string there would read as a leaked credential (and trip secret scanners). Long enough for min-length checks.
+  if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: DEV_SECRET, kind: 'generated' };
   if (/(ENABLED|DEBUG|VERBOSE)$/.test(n)) return { value: 'false', kind: 'local' };
   return { value: 'changeme', kind: 'unknown' };
 }

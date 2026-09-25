@@ -287,6 +287,21 @@ test('writeJson survives a Windows-style EPERM on rename (maitraysuthar audit cr
   assert.deepEqual(fs.readdirSync(dir), ['run.json'], 'no temp file left behind');
 });
 
+test('invented dev secrets are one obvious non-secret value, never a random credential-looking string', async () => {
+  const { DEV_SECRET } = await import('../src/doctor/rules.js');
+  const scanner = /(API_?KEY|SECRET|TOKEN|PASSWORD)=[A-Za-z0-9/+_-]{20,}/; // same pattern as tools/check-secrets.sh
+  assert.ok(DEV_SECRET.length >= 32, 'long enough for min-length secret checks');
+  assert.doesNotMatch(`ACCESS_TOKEN_SECRET=${DEV_SECRET}`, scanner);
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { joi: '^17' } }, '.env.example': 'ACCESS_TOKEN_SECRET=\nMYSQL_ROOT_PASSWORD=\nMYSQL_DATABASE=\nDATABASE_URL=\n' });
+  const names = ['ACCESS_TOKEN_SECRET', 'MYSQL_ROOT_PASSWORD', 'MYSQL_DATABASE', 'DATABASE_URL'];
+  const log = names.map((n) => `"${n}" is not allowed to be empty`).join('\n');
+  const { fix } = await diagnose(await ctxIn(root, 'yarn start', log, { kind: 'serve' }), { brain: 'rules' });
+  const v = Object.fromEntries(fix.patches.map((p) => [p.key, p.value]));
+  assert.equal(v.ACCESS_TOKEN_SECRET, DEV_SECRET);
+  assert.equal(v.DATABASE_URL, `mysql://root:${DEV_SECRET}@localhost:3306/app`, 'URL and password still agree');
+  for (const p of fix.patches) assert.doesNotMatch(`${p.key}=${p.value}`, scanner, `${p.key} looks like a credential`);
+});
+
 test('audit --only keeps every other repo already in the audit (real-16-v2 was narrowed to 1 repo)', async () => {
   const { audit } = await import('../src/audit.js');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-audit-'));
