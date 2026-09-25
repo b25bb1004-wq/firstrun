@@ -17,6 +17,11 @@ export function applyPatchOps(original, ops) {
       if (re.test(text)) continue;
       if (text && !text.endsWith('\n')) text += '\n';
       text += `${op.comment ? `\n# ${op.comment}\n` : ''}${op.key}=${op.value}\n`;
+    } else if (op.op === 'set-env') {
+      // Replace a placeholder value in place (keeps comments and order), or append if the key is missing.
+      const re = new RegExp(`^(\\s*(?:export\\s+)?${op.key}\\s*=).*$`, 'm');
+      if (re.test(text)) text = text.replace(re, (_, lhs) => `${lhs}${op.value}`);
+      else text += `${text && !text.endsWith('\n') ? '\n' : ''}${op.key}=${op.value}\n`;
     } else if (op.op === 'compose-add-service') {
       const doc = YAML.parseDocument(text || 'services: {}\n');
       if (!doc.hasIn(['services', op.name])) {
