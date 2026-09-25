@@ -33,7 +33,8 @@ export function classify(cmd, facts) {
   if (/^(npm|pip3?|pipx|yarn|pnpm)\s+(uninstall|remove|rm)\b|^(poetry|npm|yarn|pnpm)\s+publish\b|^twine\s+upload\b/.test(c)) return { kind: 'other', skip: 'uninstall/publish: not part of setting up' };
   if (/^vagrant\s+(up|ssh|provision|halt)\b/.test(c)) return { kind: 'other', skip: 'VM-based alternative workflow' };
   // Self-install: "npm install koa" inside koa's own repo installs the published package, not this source.
-  const selfInstallName = facts?.selfName;
+  // A CLI tool's README install ("pip3 install jello") is the setup being tested; only libraries are skipped.
+  const selfInstallName = facts?.cli?.length ? null : facts?.selfName;
   if (selfInstallName) {
     const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
@@ -82,16 +83,20 @@ function managerOf(cmd) {
   return m ? m[1].replace(/3$/, '') : null;
 }
 
-/** Runtime version the docs tell a newcomer to install. */
+/** Runtime version the docs tell a newcomer to install.
+ *  Returns { version, line, match, minimum } where minimum=true means "v7.6+" style
+ *  (newcomer installs current LTS), false means an exact pin like "use Node 16". */
 export function declaredRuntime(text, runtime) {
   const re = runtime === 'node'
-    ? /\bnode(?:\.?js)?\s*(?:version\s*)?(?:v|>=?|≥|\^|~|at least\s*)?\s*v?(\d{1,2})(?:\.\d+){0,2}(?!\d)\s*(?:\+|or (?:higher|later|newer|above))?/gi
-    : /\bpython\s*(?:version\s*)?(?:>=?|≥|\^|~|at least\s*)?\s*(3\.\d{1,2}|2\.7)(?:\.\d+)?\s*(?:\+|or (?:higher|later|newer|above))?/gi;
+    ? /\bnode(?:\.?js)?\s*(?:version\s*)?(?:v|>=?|≥|\^|~|at least\s*)?\s*v?(\d{1,2})(?:\.\d+){0,2}(?!\d)(\s*(?:\+|or (?:higher|later|newer|above)))?/gi
+    : /\bpython\s*(?:version\s*)?(?:>=?|≥|\^|~|at least\s*)?\s*(3\.\d{1,2}|2\.7)(?:\.\d+)?(\s*(?:\+|or (?:higher|later|newer|above)))?/gi;
   for (const m of text.matchAll(re)) {
     const v = m[1];
     if (runtime === 'node' && (Number(v) < 4 || Number(v) > 30)) continue;
     const line = text.slice(0, m.index).split('\n').length;
-    return { version: v, line, match: m[0].trim() };
+    // minimum: trailing "+" or "or higher/later/newer/above", or a range prefix like ">=" / "at least"
+    const minimum = !!(m[2]?.trim() || /(?:>=|≥|at least\s*)\s*v?\d/.test(m[0]));
+    return { version: v, line, match: m[0].trim(), minimum };
   }
   return null;
 }
@@ -104,7 +109,13 @@ function lowerMajor(a, b) {
   return false;
 }
 
-const SCAFFOLDER_RE = /^(?:npx\s+(?:create-\S+|express-generator\b)|npm\s+init\s+\S|yarn\s+create\b|pnpm\s+create\b|cookiecutter\b|degit\b)/i;
+// A block is a scaffolder when it:
+//  • runs npx create-* / npx express-generator / yarn create / pnpm create / cookiecutter / degit
+//  • globally installs a *-generator or create-* package (npm/yarn/pnpm -g)
+// NOT a scaffolder: `npm init -y` / `npm init --yes` (no package name → just writes package.json)
+const SCAFFOLDER_RE = /^(?:npx\s+(?:create-\S+|express-generator\b)|yarn\s+create\b|pnpm\s+create\b|cookiecutter\b|degit\b|(?:npm\s+(?:install|i)\s+(?:-g\s+|--global\s+)|npm\s+i\s+-g\s+|yarn\s+global\s+add\s+|pnpm\s+add\s+-g\s+)(?:@[\w.-]+\/)?(?:[\w.-]+-generator\b|create-[\w.-]+\b))/i;
+// npm init <name> (scaffolds) but NOT npm init -y / --yes (just writes package.json)
+const NPM_INIT_SCAFFOLDER_RE = /^npm\s+init\s+(?!-y\b|--yes\b)(\S)/i;
 
 /** Build the ordered setup plan from the docs, as a newcomer would read them. */
 export function buildPlan(facts, { repo, commit } = {}) {
@@ -113,8 +124,21 @@ export function buildPlan(facts, { repo, commit } = {}) {
   const seen = new Set();
   let runtimeHint = false;
 
-  // Resolve the project's own published name for self-install detection (Node only; koa-style).
-  if (!facts.selfName && facts.node?.name) facts.selfName = facts.node.name;
+  // Resolve the project's own published name for self-install detection.
+  // Node: package.json "name"; Python: pyproject.toml [project] name, [tool.poetry] name, or setup.cfg metadata name.
+  let selfName = facts.node?.name || null;
+  if (!selfName && facts.python) {
+    const pyp = readText(path.join(facts.root, 'pyproject.toml')) || '';
+    const projName = (pyp.match(/^\s*\[project\][\s\S]*?^name\s*=\s*["']?([A-Za-z0-9_.-]+)/m) || pyp.match(/^\s*\[tool\.poetry\][\s\S]*?^name\s*=\s*["']([^"']+)["']/m) || [])[1];
+    const cfgName = projName ? null : (() => {
+      const cfg = readText(path.join(facts.root, 'setup.cfg')) || '';
+      return (cfg.match(/^\s*\[metadata\][\s\S]*?^name\s*=\s*([A-Za-z0-9_.-]+)/m) || [])[1];
+    })();
+    selfName = projName || cfgName || null;
+  }
+
+  // Minimal wrapper passed to classify() — avoids mutating facts.
+  const classifyFacts = { ...facts, selfName };
 
   const docsUsed = [];
   for (const docFile of facts.docs) {
@@ -138,7 +162,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     for (const b of chosen) {
       const cmds = blockCommands(b);
       // A block that scaffolds a new app for users should be skipped entirely.
-      if (cmds.some((c) => SCAFFOLDER_RE.test(c.text.trim().replace(/^sudo\s+/, '')))) {
+      if (cmds.some((c) => { const t = c.text.trim().replace(/^sudo\s+/, ''); return SCAFFOLDER_RE.test(t) || NPM_INIT_SCAFFOLDER_RE.test(t); })) {
         for (const c of cmds) {
           for (const rawPart of splitAnd(c.text)) {
             steps.push({ id: '', command: rawPart, kind: 'other', skip: 'scaffolds a new app for users; not this repo\'s setup', source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: sectionPath(md.sections, b.start).join(' › ') }, origin: 'readme' });
@@ -148,12 +172,12 @@ export function buildPlan(facts, { repo, commit } = {}) {
       }
       const managers = new Set();
       // A block that runs the project's own CLI is a usage example as a whole ("cat values.yaml | jello …").
-      const usageBlock = cmds.some((c) => classify(c.text, facts).kind !== 'install' && usesProjectCli(c.text, facts));
+      const usageBlock = cmds.some((c) => classify(c.text, classifyFacts).kind !== 'install' && usesProjectCli(c.text, facts));
       for (const c of cmds) {
         for (const rawPart of splitAnd(c.text)) {
           // "--env local|dev|prod" documents choices; a newcomer picks the first.
           const part = rawPart.replace(/(^|[\s=])([\w.-]+)((?:\|[\w.-]+)+)(?=\s|$)/g, '$1$2');
-          const cls = classify(part, facts);
+          const cls = classify(part, classifyFacts);
           if (cls.runtimeHint) runtimeHint = true;
           const step = {
             id: '',
@@ -245,7 +269,21 @@ export function buildPlan(facts, { repo, commit } = {}) {
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 
   // Runtime: what the docs tell a newcomer to install vs what the project really needs.
-  const runtimeName = facts.stack === 'python' ? 'python' : facts.stack === 'node' ? 'node' : 'other';
+  // For dual-stack repos, follow the first non-skipped install/setup step (uv/pip/poetry → Python; npm/yarn/pnpm/bun → Node).
+  let runtimeName = facts.stack === 'python' ? 'python' : facts.stack === 'node' ? 'node' : 'other';
+  if (facts.node && facts.python) {
+    const firstInstall = steps.find((s) => !s.skip && s.kind === 'install');
+    if (firstInstall) {
+      const c = firstInstall.command;
+      if (/^(uv\s+sync|pip3?\s+install|python3?\s+-m\s+pip|poetry\s+install|pipenv\s+install)\b/.test(c)) runtimeName = 'python';
+      else if (/^(npm\s+(i|install|ci)\b|yarn(\s+install)?$|yarn\s+install\b|pnpm\s+(i|install)\b|bun\s+install\b)/.test(c)) runtimeName = 'node';
+    }
+    // Note the secondary stack so the report says the repo has two.
+    const other = runtimeName === 'node' ? 'Python' : 'Node.js';
+    if (!conflicts.some((c) => c.what === `${other} stack`)) {
+      conflicts.push({ what: `${other} stack`, docs: `repo has both Node.js and Python`, truth: `using ${runtimeName === 'node' ? 'Node.js' : 'Python'} image (first install step is ${runtimeName})`, source: facts.docs[0] || 'README' });
+    }
+  }
   const truth = runtimeName === 'node' ? facts.node?.truth : runtimeName === 'python' ? facts.python?.truth : null;
   const readmeText = facts.docs.map((d) => readText(path.join(facts.root, d)) || '').join('\n');
   const declared = runtimeName === 'other' ? null : declaredRuntime(readText(path.join(facts.root, facts.docs[0] || '')) || '', runtimeName) || declaredRuntime(readmeText, runtimeName);
@@ -253,6 +291,8 @@ export function buildPlan(facts, { repo, commit } = {}) {
   if (runtimeHint && truth) {
     runtime = { name: runtimeName, version: truth.version, source: `docs say to use a version manager → ${truth.source}` };
   } else if (declared) {
+    // Test at the version the docs give, minimum or not ("v7.6+" included): a newcomer who installs
+    // exactly that is who a stale README breaks (koa says 7.6+ but its tests need 18). The Doctor rebases.
     runtime = { name: runtimeName, version: declared.version, source: `${facts.docs[0]}:${declared.line} ("${declared.match}")` };
     if (truth && lowerMajor(declared.version, truth.version)) {
       conflicts.push({ what: `${runtimeName === 'node' ? 'Node.js' : 'Python'} version`, docs: declared.match, truth: `${truth.version} (${truth.source})`, source: `${facts.docs[0]}:${declared.line}` });
