@@ -133,3 +133,26 @@ test('announcedPort ignores database ports and sidecar ports (MySQL ready … po
   assert.equal(announcedPort('Redis ready, port 6379'), null);
   assert.equal(announcedPort('listening on port 6379', [6379]), null);
 });
+
+test('a project in a subfolder (backend/app/pyproject.toml) is found when the root has no manifest (vargasjona)', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-nested-'));
+  fs.mkdirSync(path.join(root, 'backend', 'app'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'README.md'), '# api\n\n## Setup\n\n```bash\ncd backend/app/\npoetry install\n```\n');
+  fs.writeFileSync(path.join(root, 'backend', 'app', 'pyproject.toml'), '[tool.poetry]\nname = "api"\n\n[tool.poetry.dependencies]\npython = ">3.9,<3.12"\nfastapi = "*"\n');
+  fs.writeFileSync(path.join(root, 'backend', 'app', 'poetry.lock'), '');
+  const facts = await scout(root);
+  assert.equal(facts.projectDir, 'backend/app');
+  assert.equal(facts.stack, 'python');
+  assert.equal(facts.python.manager, 'poetry');
+  assert.match(buildPlan(facts, { repo: 'x/api' }).image, /^python:/);
+});
+
+test('two candidate project folders: no projectDir is guessed', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-nested2-'));
+  for (const d of ['api', 'web']) fs.mkdirSync(path.join(root, d));
+  fs.writeFileSync(path.join(root, 'README.md'), '# mono\n');
+  fs.writeFileSync(path.join(root, 'api', 'requirements.txt'), 'flask\n');
+  fs.writeFileSync(path.join(root, 'web', 'package.json'), '{"name":"web"}');
+  const facts = await scout(root);
+  assert.equal(facts.projectDir, undefined);
+});
