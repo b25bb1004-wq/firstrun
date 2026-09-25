@@ -120,6 +120,7 @@ const NPM_INIT_SCAFFOLDER_RE = /^npm\s+init\s+(?!-y\b|--yes\b)(\S)/i;
 /** Build the ordered setup plan from the docs, as a newcomer would read them. */
 export function buildPlan(facts, { repo, commit } = {}) {
   const conflicts = [];
+  const notes = []; // facts worth telling the reader that aren't docs-vs-code drift
   const steps = [];
   const seen = new Set();
   let runtimeHint = false;
@@ -286,11 +287,10 @@ export function buildPlan(facts, { repo, commit } = {}) {
       if (/^(uv\s+sync|pip3?\s+install|python3?\s+-m\s+pip|poetry\s+install|pipenv\s+install)\b/.test(c)) runtimeName = 'python';
       else if (/^(npm\s+(i|install|ci)\b|yarn(\s+install)?$|yarn\s+install\b|pnpm\s+(i|install)\b|bun\s+install\b)/.test(c)) runtimeName = 'node';
     }
-    // Note the secondary stack so the report says the repo has two.
+    // Note the secondary stack so the report says the repo has two. A note, not a conflict: conflicts mean
+    // "docs say X, code says Y" and feed the drift guard; a two-stack repo isn't docs drift.
     const other = runtimeName === 'node' ? 'Python' : 'Node.js';
-    if (!conflicts.some((c) => c.what === `${other} stack`)) {
-      conflicts.push({ what: `${other} stack`, docs: `repo has both Node.js and Python`, truth: `using ${runtimeName === 'node' ? 'Node.js' : 'Python'} image (first install step is ${runtimeName})`, source: facts.docs[0] || 'README' });
-    }
+    notes.push(`The repo has both Node.js and Python; FirstRun used the ${runtimeName === 'node' ? 'Node.js' : 'Python'} image because the first install step is ${runtimeName}. The ${other} part was not set up separately.`);
   }
   const truth = runtimeName === 'node' ? facts.node?.truth : runtimeName === 'python' ? facts.python?.truth : null;
   const readmeText = facts.docs.map((d) => readText(path.join(facts.root, d)) || '').join('\n');
@@ -384,6 +384,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     runtime,
     steps,
     conflicts,
+    notes,
     verify,
     docsUsed,
   };

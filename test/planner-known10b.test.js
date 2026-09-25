@@ -177,9 +177,9 @@ test('buildPlan: dual-stack repo with uv as first install → Python image', asy
   const plan = buildPlan(await scout(root));
   assert.equal(plan.runtime.name, 'python', `expected python runtime, got ${plan.runtime.name}`);
   assert.ok(plan.image.startsWith('python:'), `expected python: image, got ${plan.image}`);
-  // Should note the secondary (Node.js) stack in conflicts
-  const nodeConflict = plan.conflicts.find((c) => c.what === 'Node.js stack');
-  assert.ok(nodeConflict, 'should record Node.js stack conflict for dual-stack repo');
+  // The secondary (Node.js) stack is a note for the reader, not docs-vs-code drift
+  assert.ok(plan.notes.some((n) => /both Node\.js and Python/.test(n) && /Node\.js part/.test(n)), 'should note the Node.js stack');
+  assert.ok(!plan.conflicts.some((c) => /stack/.test(c.what || '')), 'dual-stack is not a conflict');
 });
 
 test('buildPlan: dual-stack repo with npm as first install → Node image', async () => {
@@ -196,8 +196,8 @@ test('buildPlan: dual-stack repo with npm as first install → Node image', asyn
   const plan = buildPlan(await scout(root));
   assert.equal(plan.runtime.name, 'node', `expected node runtime, got ${plan.runtime.name}`);
   assert.ok(plan.image.startsWith('node:'), `expected node: image, got ${plan.image}`);
-  const pyConflict = plan.conflicts.find((c) => c.what === 'Python stack');
-  assert.ok(pyConflict, 'should record Python stack conflict for dual-stack repo');
+  assert.ok(plan.notes.some((n) => /both Node\.js and Python/.test(n) && /Python part/.test(n)), 'should note the Python stack');
+  assert.ok(!plan.conflicts.some((c) => /stack/.test(c.what || '')), 'dual-stack is not a conflict');
 });
 
 // ── 5. Python self-install reads pyproject.toml [project] name ────────────────
