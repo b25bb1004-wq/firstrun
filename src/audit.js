@@ -42,9 +42,13 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
   const eventsFile = path.join(dir, 'events.ndjson');
   if (!fs.existsSync(eventsFile)) fs.writeFileSync(eventsFile, '');
   const prev = readJson(path.join(dir, 'audit.json'));
+  const selected = repos.map((r) => prev?.repos?.find((p) => p.slug === r.slug && p.status === 'done' && !(rerun === 'all' || (rerun === 'failed' && p.verdict !== 'VERIFIED'))) || ({ slug: r.slug, url: r.url, ref: r.ref, stack: r.stack, status: 'queued', verdict: null, passport: null, runDir: `runs/${r.slug}` }));
+  // --only / --limit rerun a subset: every other repo already in this audit keeps its result.
+  const kept = (prev?.repos || []).filter((p) => !selected.some((s) => s.slug === p.slug));
+  const order = list.repos.map((r) => r.slug);
   const state = {
     id: auditId, startedAt: prev?.startedAt || nowIso(), source: path.relative(root, listFile).replace(/\\/g, '/'), concurrency, brain,
-    repos: repos.map((r) => prev?.repos?.find((p) => p.slug === r.slug && p.status === 'done' && !(rerun === 'all' || (rerun === 'failed' && p.verdict !== 'VERIFIED'))) || ({ slug: r.slug, url: r.url, ref: r.ref, stack: r.stack, status: 'queued', verdict: null, passport: null, runDir: `runs/${r.slug}` })),
+    repos: [...selected, ...kept].sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug)),
   };
   const save = () => writeJson(path.join(dir, 'audit.json'), { ...state, summary: summarize(state) });
   const emit = (type, data) => {
@@ -56,7 +60,7 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
   for (const r of state.repos) if (r.status === 'queued') emit('repo.queued', { slug: r.slug, url: r.url });
 
   const budget = makeBudget(bobBudget, 1.5);
-  const queue = state.repos.filter((r) => r.status !== 'done');
+  const queue = selected.filter((r) => r.status !== 'done');
   const worker = async () => {
     while (queue.length) {
       const r = queue.shift();
