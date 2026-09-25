@@ -104,7 +104,11 @@ export async function verifyRepo(repoDir, opts = {}) {
     rec.state.conflicts = plan.conflicts;
     rec.savePlan(plan);
     rec.emitEvent('planner', 'plan', plan);
-    if (!plan.steps.some((s) => !s.skip)) throw new Error('The docs contain no setup commands FirstRun can follow.');
+    if (!plan.steps.some((s) => !s.skip)) {
+      // A finding, not a crash: a newcomer has nothing to follow. Say which docs were read and why nothing counted.
+      const skipped = plan.steps.filter((s) => s.skip).slice(0, 3).map((s) => `"${s.command}" (${s.skip})`).join('; ');
+      throw Object.assign(new Error(`No setup docs: ${facts.docs.length ? `read ${facts.docs.join(', ')}` : 'no README found'}, found no setup commands a newcomer could follow${skipped ? `; skipped ${skipped}` : ''}.`), { code: 'NO_SETUP_DOCS' });
+    }
 
     // ── Cold start ────────────────────────────────────────────────────
     rec.phase('coldstart', 'runner');

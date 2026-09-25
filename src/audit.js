@@ -77,13 +77,13 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
           },
         });
         r.status = 'done';
-        r.verdict = res.passport?.verdict || 'ERROR';
+        r.verdict = res.passport?.verdict || (res.error?.code === 'NO_SETUP_DOCS' ? 'NO-SETUP-DOCS' : 'ERROR');
         r.passport = res.passport || null;
         r.error = res.error?.message;
         r.firstFailure = res.state?.plan?.steps?.find((s) => s.evidence?.length)?.readmeCommand || null;
       } catch (e) {
         r.status = 'done';
-        r.verdict = 'ERROR';
+        r.verdict = e.code === 'NO_SETUP_DOCS' ? 'NO-SETUP-DOCS' : 'ERROR';
         r.error = e.message;
       }
       r.finishedAt = nowIso();
