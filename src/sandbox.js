@@ -43,11 +43,59 @@ export class Sandbox {
       '-w', '/workspace', this.image, 'infinity']);
     this.started = true;
     await this.sh('mkdir -p /workspace /firstrun && echo /workspace > /firstrun/cwd && : > /firstrun/state.env');
+    await this.installShims();
     // Official Node images bundle Yarn 1; a newcomer who installs Node from nodejs.org
     // does not have it. Remove it so the sandbox matches a fresh machine.
     if (/^node:/.test(this.image)) await this.sh('rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg; rm -rf /opt/yarn-*');
     await this.copyRepo();
     for (const p of this.patches) await this.writeFile(p.path, p.content);
+  }
+
+  /**
+   * Commands a newcomer's laptop has that the clean machine doesn't, translated without touching the docs:
+   * - sudo: the container already runs as root, so it just runs the command.
+   * - docker / docker-compose called from scripts (a justfile, a Makefile): there is no daemon here.
+   *   "up" asks FirstRun (exit 97 + /firstrun/services.request) to start the services as sidecars,
+   *   then the step is retried and the shim sees they are running.
+   */
+  async installShims() {
+    const sudo = [
+      '#!/bin/sh',
+      '# FirstRun: the clean machine runs as root, so sudo just runs the command.',
+      'while [ $# -gt 0 ]; do case "$1" in -u|-g|-C|-D|-h|-p|-r|-t|-U) shift 2;; --) shift; break;; -*) shift;; *) break;; esac; done',
+      'exec "$@"',
+    ].join('\n');
+    const docker = [
+      '#!/bin/sh',
+      '# FirstRun: no Docker daemon on the clean machine; FirstRun starts services as sidecars.',
+      'me=$(basename "$0"); cmd="$me $*"',
+      'case " $* " in',
+      '  *" up "*|*" start "*|"run "*|" run "*)',
+      '    if [ -f /firstrun/services.done ] && grep -qxF "$cmd" /firstrun/services.done; then echo "[firstrun] services from \'$cmd\' are already running"; exit 0; fi',
+      '    printf "%s\\n%s\\n" "$(pwd)" "$cmd" > /firstrun/services.request; exit 97;;',
+      '  *" ps "*|*" logs "*|*" down "*|*" stop "*|*" pull "*|*" version "*) echo "[firstrun] \'$cmd\' does nothing on the clean machine"; exit 0;;',
+      '  *) echo "[firstrun] \'$cmd\' is not available on the clean machine (no Docker daemon)" >&2; exit 1;;',
+      'esac',
+    ].join('\n');
+    // Container images ship without apt package lists, and a person answers apt's [Y/n] prompt;
+    // a fresh laptop has lists and a human at the keyboard.
+    const apt = [
+      '#!/bin/sh',
+      '# FirstRun: behave like apt on a fresh machine with someone answering its prompt.',
+      'real=/usr/bin/$(basename "$0")',
+      'if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null | grep -v -e lock -e partial)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
+      'case "$1" in install|upgrade|dist-upgrade|remove) exec "$real" -y "$@";; *) exec "$real" "$@";; esac',
+    ].join('\n');
+    await this.writeFile('/firstrun/shims/apt', apt);
+    await this.writeFile('/firstrun/shims/sudo', sudo);
+    await this.writeFile('/firstrun/shims/docker', docker);
+    await this.sh([
+      'chmod +x /firstrun/shims/*',
+      'command -v sudo >/dev/null || ln -s /firstrun/shims/sudo /usr/local/bin/sudo',
+      '{ [ ! -x /usr/bin/apt-get ] || { ln -sf /firstrun/shims/apt /usr/local/bin/apt-get && ln -sf /firstrun/shims/apt /usr/local/bin/apt; }; }',
+      'command -v docker >/dev/null || ln -s /firstrun/shims/docker /usr/local/bin/docker',
+      'command -v docker-compose >/dev/null || ln -s /firstrun/shims/docker /usr/local/bin/docker-compose',
+    ].join(' && '));
   }
 
   /** Copy what `git clone` would give a newcomer: tracked files only, no local node_modules or .env. */

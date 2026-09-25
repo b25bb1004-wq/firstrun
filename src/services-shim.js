@@ -8,7 +8,7 @@ import { serviceKind, SERVICE_CATALOG } from './doctor/services.js';
  * that are built from source (the app itself) are not started: FirstRun runs
  * the app natively, the way the rest of the README does.
  */
-export async function runServicesStep(command, { sandbox, facts }) {
+export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
   const lines = [];
   const say = (s) => lines.push(`[firstrun] ${s}`);
   const c = command.trim();
@@ -38,8 +38,15 @@ export async function runServicesStep(command, { sandbox, facts }) {
 
   // docker compose [-f file] up [-d] [services...]
   const fileArg = c.match(/\s-f\s+(\S+)|\s--file[= ](\S+)/);
-  const file = fileArg ? (fileArg[1] || fileArg[2]) : facts.compose?.file || 'docker-compose.yml';
-  const text = await sandbox.readFile(file);
+  let file = fileArg ? (fileArg[1] || fileArg[2]) : null;
+  // Called from inside a script: resolve the compose file from that script's directory, like docker would.
+  if (cwd && !file) file = ['compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml'].map((f) => `${cwd}/${f}`)[0];
+  if (cwd && !file.startsWith('/')) file = `${cwd}/${file}`;
+  if (!file) file = facts.compose?.file || 'docker-compose.yml';
+  let text = await sandbox.readFile(file);
+  if (text == null && cwd && !fileArg) {
+    for (const f of ['compose.yml', 'docker-compose.yml', 'docker-compose.yaml']) { text = await sandbox.readFile(`${cwd}/${f}`); if (text != null) { file = `${cwd}/${f}`; break; } }
+  }
   if (text == null) {
     return { exitCode: 1, out: 'no configuration file provided: not found\n' };
   }
