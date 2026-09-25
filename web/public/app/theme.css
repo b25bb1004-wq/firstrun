@@ -40,8 +40,6 @@
   --stamp-pass: #17865A;
   --stamp-partial: #B06F0C;
   --stamp-failed: #BF2F32;
-  --stamp-nodocs: #6D819D;
-  --nodocs: #6D819D;
 
   --shadow: 0 24px 48px -24px rgba(0, 0, 0, .75);
   --scrim: rgba(4, 9, 17, .62);
@@ -78,7 +76,5 @@
 
   --shadow: 0 20px 40px -24px rgba(15, 27, 45, .45);
   --scrim: rgba(15, 27, 45, .38);
-  --stamp-nodocs: #74849A;
-  --nodocs: #74849A;
   color-scheme: light;
 }
