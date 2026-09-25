@@ -1,0 +1,20 @@
+{
+  "repo": "kellyjonbrazil/jello",
+  "commit": "b43c9b2460",
+  "verifiedAt": "2026-09-25T19:18:28.177Z",
+  "verdict": "VERIFIED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 2,
+  "stepsFromReadme": 2,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 5,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "jello --help"
+  }
+}

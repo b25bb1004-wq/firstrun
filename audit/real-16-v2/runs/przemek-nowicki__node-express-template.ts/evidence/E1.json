@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 127,
+    "durationMs": 1139,
+    "logTail": "\n> net.ts@1.1.5 test\n> jest -c jest.config.js --env=node\n\nsh: 1: jest: not found",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T19:17:02.819Z"
+}

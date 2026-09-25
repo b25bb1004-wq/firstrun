@@ -1,0 +1,17 @@
+{
+  "name": "express-typescript",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "npm install --legacy-peer-deps && npm install --global nodemon",
+  "forwardPorts": [
+    4040
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

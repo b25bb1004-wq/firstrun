@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:18:06.907Z",
+  "commit": "f16052dce8",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "docker-compose up -d",
+      "kind": "services"
+    }
+  ],
+  "knownFailures": []
+}
