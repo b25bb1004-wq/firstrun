@@ -594,6 +594,19 @@ export const RULES = [
     },
   },
   {
+    // Poetry >= 1.8 installs the project itself too, and fails when it isn't laid out as a package (an app, not a library).
+    id: 'poetry-no-root',
+    test({ log, step }) {
+      if (!/The current project could not be installed: No file\/folder found for package/.test(log) || !/^poetry\s+install\b/.test(step.command) || /--no-root/.test(step.command)) return null;
+      const cmd = `${step.command} --no-root`;
+      return {
+        ruleId: 'poetry-no-root', class: 'missing-dependency', confidence: 0.9,
+        cause: 'The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.',
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
     id: 'python-venv-required',
     test({ log }) {
       if (!/externally-managed-environment/.test(log)) return null;
