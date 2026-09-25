@@ -101,6 +101,7 @@ a.card:hover { border-color: var(--rule-2); }
 .tag { display: inline-block; font: 600 11px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
 .tag.real { background: var(--pass-t); color: var(--pass); }
 .tag.demo { background: var(--bob-t); color: var(--bob); }
+.tag.partial { background: var(--repair-t); color: var(--repair); }
 
 .pipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; counter-reset: s; }
 .pipe div { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; counter-increment: s; }
@@ -192,6 +193,12 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
           <p>The full dashboard: plans, failing output, evidence records, README diffs and Setup Passports.</p>
           <span class="go">Open the dashboard →</span>
         </a>
+        <div class="card">
+          <span class="tag partial">Real before / after</span>
+          <h3>maitraysuthar: FAILED → PARTIAL</h3>
+          <p><code>maitraysuthar/rest-api-nodejs-mongodb</code> went from FAILED (0 fixed) to PARTIAL with the app running: bcrypt rebuilt on Node 16, the placeholder MONGODB_URL replaced with the local URL from the file's own comment, replay from zero 23 s.</p>
+          <span class="go" style="color:var(--ink-3);font-size:13px;font-weight:normal">Run export pending (Audit v2)</span>
+        </div>
       </div>
     </div>
   </section>
