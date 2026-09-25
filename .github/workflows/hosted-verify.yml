@@ -1,0 +1,94 @@
+name: Hosted Verify
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'GitHub repository (owner/name)'
+        required: true
+        type: string
+      ref:
+        description: 'Git ref (branch, tag, or commit SHA)'
+        required: false
+        type: string
+
+concurrency:
+  group: hosted-verify
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout FirstRun repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate repository input
+        id: validate
+        run: |
+          REPO="${{ github.event.inputs.repo }}"
+          if [[ ! $REPO =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]]; then
+            echo "error=Invalid repository format. Use owner/name." >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+
+      - name: Run FirstRun verify
+        id: verify
+        if: steps.validate.outputs.error == ''
+        run: |
+          REPO="${{ steps.validate.outputs.repo }}"
+          REF="${{ github.event.inputs.ref }}"
+          URL="https://github.com/$REPO"
+          if [[ -n "$REF" && "$REF" != "" ]]; then
+            URL="$URL --ref $REF"
+          fi
+          echo "Running: node bin/firstrun.js verify $URL --brain rules --no-bob"
+          node bin/firstrun.js verify $URL --brain rules --no-bob
+        continue-on-error: true
+
+      - name: Find run directory
+        id: find_run
+        if: steps.validate.outputs.error == ''
+        run: |
+          # Find the most recent .firstrun directory
+          RUN_DIR=$(find .firstrun-work -maxdepth 1 -type d -name '*' 2>/dev/null | sort -r | head -1)
+          if [[ -z "$RUN_DIR" || ! -d "$RUN_DIR" ]]; then
+            echo "error=No run directory found" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "run_dir=$RUN_DIR" >> $GITHUB_OUTPUT
+
+      - name: Trim large log files
+        if: steps.validate.outputs.error == '' && steps.find_run.outputs.run_dir != ''
+        run: |
+          RUN_DIR="${{ steps.find_run.outputs.run_dir }}"
+          # Remove log files larger than 1MB to keep artifact size down
+          find "$RUN_DIR" -name "*.log" -size +1M -delete 2>/dev/null || true
+          find "$RUN_DIR" -name "*.ndjson" -size +5M -delete 2>/dev/null || true
+
+      - name: Upload run artifact
+        if: steps.validate.outputs.error == '' && steps.find_run.outputs.run_dir != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: firstrun-verify-${{ steps.validate.outputs.repo }}
+          path: ${{ steps.find_run.outputs.run_dir }}
+          retention-days: 7
+
+      - name: Report failure
+        if: steps.verify.outcome == 'failure' && steps.validate.outputs.error == ''
+        run: |
+          echo "FirstRun verify failed. Check the uploaded artifact for evidence."
+          exit 1
