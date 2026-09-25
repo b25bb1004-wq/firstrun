@@ -12,7 +12,7 @@ to the log and fix any section that changed. Newest entries go first. Times are 
 |---|---|
 | **Phase** | Backend hardening before Bob access opens (25 Sep, 8:30 PM IST) |
 | **Deadline** | Sun 27 Sep 2026, **8:30 PM IST** (15:00 UTC) on lablab.ai |
-| **Friday** (Arnav's Claude) | F-lane of #7: planner ✓ (PR #8), next: docker-compose shim, F2 rebase replay, F3 failed-fix handling |
+| **Friday** (Arnav's Claude) | Merged: #8 planner, #11 shims, #12 (#6). In progress: **draft #15** (F2 rebase/replay prereqs + F3 failed fix); next: teamhide log check, GeekyAnts verify |
 | **Edith** (Karmanya's Claude) | #9 merged (PR #10). Next: env-placeholder rule, `poetry install` rule; review PR #11 |
 | **Parked** | Pitch work #1–#4 and PR #5 (script draft), until backend is done (Arnav's call) |
 | **Blocked on humans** | Vercel deploy (Arnav runs `vercel deploy --prod --yes`), product name, Bob sign-in at 8:30 PM |
@@ -56,6 +56,7 @@ story: `docs/WHY_FIRSTRUN.md`.
 
 ## Log (newest first)
 
+- **25 Sep, 16:05** · PR #11 (shims) and #12 (#6, known-fixes moved; Edith confirmed on a machine without tesseract) merged. F2+F3 pushed as **draft PR #15** with a handoff note. Arnav's usage is running low, so if Friday goes quiet, Edith takes #15 per recovery mode. Edith is Docker-verifying the env-placeholder rule on maitraysuthar.
 - **25 Sep, 15:40** · PR #10 (Edith's rules: E1 dep guard, E2 too-new/too-old wording, E5 Joi enum + Mailpit, E6 bcrypt→Node 16) reviewed and merged by Friday. 32/32 tests. **E6 proven with Docker**: maitraysuthar `npm install` now passes on node:16. Next gap there: `.env.example` has `MONGODB_URL=YourConnectionString` (placeholder); rule suggested to Edith. PR #11 (shims) awaits Edith's review.
 - **25 Sep, 15:15** · PR #11 (sandbox shims: sudo, apt, docker(-compose) inside scripts) verified on real repos: zhanymkanov `just up` now starts Postgres as a sidecar; vargasjona `sudo apt-get` passes. New breaks surfaced: `poetry install` missing from zhanymkanov's README (rule, Edith); nested Python project in vargasjona (scout, Friday). Edith found the 24 Sep audit ran *before* rule commit 86cdc9e (nodemon, Louis3797 already fixed by current rules; see `tools/rediagnose.js`).
 - **25 Sep, 14:30** · PR #8 (F1, planner) merged after Edith's review caught a real bug (`[ -f .env ]`
