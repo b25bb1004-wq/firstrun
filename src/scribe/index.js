@@ -107,6 +107,7 @@ function verifiedPlan(plan, passport, evidence = []) {
     verify: plan.verify,
     steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').map((s) => ({
       id: s.id, command: s.command, kind: s.kind, ...(s.serve ? { serve: s.serve } : {}), ...(s.origin === 'repair' ? { origin: 'repair' } : {}),
+      ...(s.prereqs?.length ? { prereqs: s.prereqs } : {}),
     })),
     // What newcomers may still hit on their own machines, and the verified fix for each.
     knownFailures: evidence.filter((e) => e.status === 'verified').map((e) => ({

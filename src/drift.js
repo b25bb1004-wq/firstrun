@@ -46,6 +46,12 @@ export async function replayVerifiedPlan(root, { onStep } = {}) {
     await box.start();
     for (const s of plan.steps) {
       let r;
+      // What the verified run's fixes set up before this step (a tool install, a .env value, a service).
+      for (const a of s.prereqs || []) {
+        if (a.type === 'exec') await box.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
+        else if (a.type === 'write') await box.writeFile(a.path, a.content);
+        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+      }
       if (s.kind === 'services') { const t = Date.now(); r = await runServicesStep(s.command, { sandbox: box, facts }); r.durationMs = Date.now() - t; }
       else if (s.kind === 'serve') {
         r = await box.serve(s.command, { port: s.serve?.port, timeoutMs: 150_000 });
