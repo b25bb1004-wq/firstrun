@@ -6,7 +6,7 @@ const SETUP_HEADING = /(getting[\s-]*started|install|set[\s-]*up|quick[\s-]*star
 const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|macos only|upgrad|migrating from|benchmark)/i;
 // "Windows" sections are skipped, but "Pip (macOS, linux, unix, Windows)" applies to Linux too.
 const excludedHeading = (h) => EXCLUDED_HEADING.test(h) || (/\bwindows\b/i.test(h) && !/\b(linux|unix|all platforms)\b/i.test(h));
-const DOCKER_ALT_HEADING =/(docker|container|compose|devcontainer|codespace|gitpod)/i;
+const DOCKER_ALT_HEADING =/(docker|container|compose|devcontainer|codespace|gitpod|vagrant)/i;
 
 export const DEFAULT_NODE = '22';
 export const DEFAULT_PYTHON = '3.12';
@@ -31,6 +31,18 @@ export function classify(cmd, facts) {
   if (/^(docker(-compose|\s+compose)\s+logs|tail\s+-[fF]\b|journalctl\b|kubectl\s+logs)/.test(c)) return { kind: 'other', skip: 'follows logs; not a setup step' };
   if (/>>?\s*~?\/?\S*\.(bashrc|zshrc|bash_profile|profile|config\/fish\S*)\b|^set\s+fish_\w+/.test(c)) return { kind: 'other', skip: 'personal shell customisation, not project setup' };
   if (/^(npm|pip3?|pipx|yarn|pnpm)\s+(uninstall|remove|rm)\b|^(poetry|npm|yarn|pnpm)\s+publish\b|^twine\s+upload\b/.test(c)) return { kind: 'other', skip: 'uninstall/publish: not part of setting up' };
+  if (/^vagrant\s+(up|ssh|provision|halt)\b/.test(c)) return { kind: 'other', skip: 'VM-based alternative workflow' };
+  // Self-install: "npm install koa" inside koa's own repo installs the published package, not this source.
+  const selfInstallName = facts?.selfName;
+  if (selfInstallName) {
+    const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
+    if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+    const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+([\w.-]+)(?:==\S+)?(?:\s|$)/);
+    if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfInstallName.toLowerCase().replace(/[-_]/g, '-')) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+  }
+  // Live-service tests: the script name contains ":live" or ends with "-live".
+  const liveScript = c.match(/^(?:npm|yarn|pnpm)\s+(?:run\s+)?([\w:.-]+)$/);
+  if (liveScript && (/:live/.test(liveScript[1]) || /-live$/.test(liveScript[1]))) return { kind: 'other', skip: 'runs against live third-party services; needs real accounts' };
   if (/^(poetry|pipenv|hatch)\s+shell\b/.test(c)) return { kind: 'env', skip: 'interactive subshell: FirstRun activates the same environment after install', subshell: c.split(/\s+/)[0] };
   if (/^(npm|yarn|pnpm|bun|make|just|npx|poetry\s+run|uv\s+run|pipenv\s+run)\s+(run\s+)?[\w:-]*(lint|prettier|format|fmt|coverage|\bcov\b|watch|storybook|husky|pre-?commit|commitlint|release|deploy|publish|typecheck|type-check|\bmm\b|makemigrations|downgrade|rollback|docs?:)/i.test(c)
     || /^(pre-commit|eslint|prettier|black|ruff|flake8|mypy|isort|pylint)\b/.test(c)) {
@@ -92,12 +104,17 @@ function lowerMajor(a, b) {
   return false;
 }
 
+const SCAFFOLDER_RE = /^(?:npx\s+(?:create-\S+|express-generator\b)|npm\s+init\s+\S|yarn\s+create\b|pnpm\s+create\b|cookiecutter\b|degit\b)/i;
+
 /** Build the ordered setup plan from the docs, as a newcomer would read them. */
 export function buildPlan(facts, { repo, commit } = {}) {
   const conflicts = [];
   const steps = [];
   const seen = new Set();
   let runtimeHint = false;
+
+  // Resolve the project's own published name for self-install detection (Node only; koa-style).
+  if (!facts.selfName && facts.node?.name) facts.selfName = facts.node.name;
 
   const docsUsed = [];
   for (const docFile of facts.docs) {
@@ -120,6 +137,15 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const before = steps.filter((s) => !s.skip).length;
     for (const b of chosen) {
       const cmds = blockCommands(b);
+      // A block that scaffolds a new app for users should be skipped entirely.
+      if (cmds.some((c) => SCAFFOLDER_RE.test(c.text.trim().replace(/^sudo\s+/, '')))) {
+        for (const c of cmds) {
+          for (const rawPart of splitAnd(c.text)) {
+            steps.push({ id: '', command: rawPart, kind: 'other', skip: 'scaffolds a new app for users; not this repo\'s setup', source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: sectionPath(md.sections, b.start).join(' › ') }, origin: 'readme' });
+          }
+        }
+        continue;
+      }
       const managers = new Set();
       // A block that runs the project's own CLI is a usage example as a whole ("cat values.yaml | jello …").
       const usageBlock = cmds.some((c) => classify(c.text, facts).kind !== 'install' && usesProjectCli(c.text, facts));
@@ -204,7 +230,16 @@ export function buildPlan(facts, { repo, commit } = {}) {
   if (cliTool) {
     const lastInstall = steps.map((s) => !s.skip && s.kind === 'install').lastIndexOf(true);
     if (lastInstall >= 0) {
-      steps.splice(lastInstall + 1, 0, { id: '', command: `${cli} --help`, kind: 'test', probe: true, source: { ...steps[lastInstall].source }, origin: 'readme', synthetic: `checks that the installed \`${cli}\` command runs` });
+      // For Node projects, the CLI bin may not be on PATH after a local install; run it via node directly.
+      let probeCmd = `${cli} --help`;
+      if (facts.stack === 'node') {
+        try {
+          const pkg = JSON.parse(readText(path.join(facts.root, 'package.json')) || '{}');
+          const binEntry = typeof pkg.bin === 'string' ? pkg.bin : (pkg.bin && pkg.bin[cli]);
+          if (binEntry) probeCmd = `node ${binEntry} --help`;
+        } catch {}
+      }
+      steps.splice(lastInstall + 1, 0, { id: '', command: probeCmd, kind: 'test', probe: true, source: { ...steps[lastInstall].source }, origin: 'readme', synthetic: `checks that the installed \`${cli}\` command runs` });
     }
   }
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
