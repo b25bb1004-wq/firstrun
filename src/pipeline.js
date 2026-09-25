@@ -280,7 +280,8 @@ export async function verifyRepo(repoDir, opts = {}) {
           } else if (a.type === 'insert-before') {
             // An inserted install must reuse the install command as already repaired (e.g. --legacy-peer-deps).
             let command = a.command;
-            if ((a.kind || '') === 'install') {
+            // Only a bare project install ("npm install"), not "npm install --global nodemon" or "pip install poetry".
+            if ((a.kind || '') === 'install' && /^(npm\s+(i|install|ci)|yarn(\s+install)?|pnpm\s+(i|install)|bun\s+install)$/.test(command.trim())) {
               const mgr = command.split(/\s+/)[0];
               const repairedInstall = plan.steps.slice(0, i).find((s) => s.kind === 'install' && s.readmeCommand && s.command.split(/\s+/)[0] === mgr && s.status === 'repaired');
               if (repairedInstall) command = repairedInstall.command;
