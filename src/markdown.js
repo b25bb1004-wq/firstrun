@@ -84,7 +84,8 @@ function looksLikeOutput(line) {
     || /^["'][^"']*["']\s*[:,]/.test(line) // "key": … / "item",
     || /^-?\d+(\.\d+)?,?$/.test(line)      // 1,  2.5
     || /^(true|false|null),?$/.test(line)
-    || /^[\w.[\]"']+\s+=\s/.test(line);    // _.foo = "bar" (shell assignments have no spaces)
+    || /^[\w.[\]"']+\s+=\s/.test(line)     // _.foo = "bar" (shell assignments have no spaces)
+    || /^[A-Z][a-z]+(\s+[^\s=]+){2,}/.test(line); // "App is running ...", "Press CTRL + C to stop": prose, commands start lowercase
 }
 
 export function blockCommands(block) {
