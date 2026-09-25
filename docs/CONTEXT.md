@@ -56,6 +56,7 @@ story: `docs/WHY_FIRSTRUN.md`.
 
 ## Log (newest first)
 
+- **25 Sep, 15:15** · PR #11 (sandbox shims: sudo, apt, docker(-compose) inside scripts) verified on real repos: zhanymkanov `just up` now starts Postgres as a sidecar; vargasjona `sudo apt-get` passes. New breaks surfaced: `poetry install` missing from zhanymkanov's README (rule, Edith); nested Python project in vargasjona (scout, Friday). Edith found the 24 Sep audit ran *before* rule commit 86cdc9e (nodemon, Louis3797 already fixed by current rules; see `tools/rediagnose.js`).
 - **25 Sep, 14:30** · PR #8 (F1, planner) merged after Edith's review caught a real bug (`[ -f .env ]`
   dropped) and a design issue (usage-skipping too broad). 27/27 tests. Edith approved the sandbox
   shim for `docker-compose` (Friday), so E3 only handles the failing step's own command.
