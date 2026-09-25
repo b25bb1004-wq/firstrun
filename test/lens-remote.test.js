@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGithubRepo } from '../src/remote.js';
-import { matchKnownFix } from '../lens/engine.js';
+import { matchKnownFix } from '../src/known-fixes.js';
 
 test('parseGithubRepo accepts the ways people paste a repo', () => {
   assert.deepEqual(parseGithubRepo('expressjs/express'), { owner: 'expressjs', name: 'express', ref: null });
