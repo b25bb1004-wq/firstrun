@@ -258,7 +258,7 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
 
         <div class="lens-mock" aria-label="FirstRun Lens illustrated HUD overlay">
           <div class="lens-caption">
-            <span class="dot"></span> Illustrated Companion Workflow
+            <span class="dot"></span> Illustration · acme-shop (demo repo, seeded breaks)
           </div>
           <div class="mock-terminal">
             <div class="term-head">
@@ -266,12 +266,11 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
             </div>
             <div><span class="prompt" style="color:var(--pass)">dev@laptop</span>:<span style="color:#78A9FF">~/acme-shop</span>$ <span class="t-cmd">npm run dev</span></div>
             <div style="margin-top:6px;color:#A3B4CB">&gt; acme-shop@1.0.0 dev</div>
-            <div>&gt; nodemon server.js</div>
+            <div>&gt; node --watch src/server.js</div>
             <div style="margin-top:6px;position:relative;display:inline-block">
-              <span class="t-err">Error: connect ECONNREFUSED 127.0.0.1:6379</span>
+              <span class="t-err">Failed to start acme-shop: ReconnectStrategyError: connect ECONNREFUSED 127.0.0.1:6379</span>
               <div class="mock-circling" title="Circled with Ctrl+Shift+Space"></div>
             </div>
-            <div style="color:#6D819D;font-size:11.5px">    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1141:16)</div>
           </div>
 
           <div class="mock-overlay-card">
