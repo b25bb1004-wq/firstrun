@@ -9,6 +9,7 @@ import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
+import { flagOn } from './flags.js';
 import { run, tail, headTail, nowIso, shortId, readText, shq } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
@@ -428,7 +429,9 @@ export async function verifyRepo(repoDir, opts = {}) {
     // ── Publish ──────────────────────────────────────────────────────
     rec.phase('publish', 'scribe');
     const evidence = rec.state.evidence.map((eid) => JSON.parse(readText(path.join(outDir, 'evidence', `${eid}.json`))));
-    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped });
+    // timeLost (flag): computed inside publish, so FIRSTRUN.md and passport.json include it.
+    const timeLost = flagOn('timeLost', opts) ? { runMs: Date.now() - startedAt } : null;
+    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped, timeLost });
     rec.state.passport = result.passport;
     rec.state.bobcoins = budget.spent();
     rec.state.finishedAt = nowIso();
