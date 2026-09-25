@@ -66,7 +66,7 @@ export async function main(argv) {
       console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root}`);
       const res = await verifyRepo(root, {
         brain: args.brain || 'auto', bobBudget: Number(args['bob-budget'] ?? 4), out: args.out, keep: !!args.keep,
-        replay: args.replay !== false,
+        replay: args.replay !== false, cache: args.cache !== false,
         onRecorder: (rec) => attachPrinter(rec, { verbose: !!args.verbose }),
       });
       if (res.ok) {

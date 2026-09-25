@@ -60,6 +60,7 @@ export async function verifyRepo(repoDir, opts = {}) {
   const repo = opts.repoLabel || git.remote?.replace(/^https:\/\/github\.com\//, '') || path.basename(root);
   const outDir = path.resolve(opts.out || path.join(root, '.firstrun'));
   const id = opts.id || `${path.basename(root)}-${shortId()}`;
+  const cacheVolume = opts.cacheVolume ?? (opts.cache === false ? null : `firstrun-cache-${id}`);
   const rec = new Recorder(outDir, { id, repo, commit: git.commit });
   opts.onRecorder?.(rec);
   const brain = opts.brain || 'auto';
@@ -121,7 +122,11 @@ export async function verifyRepo(repoDir, opts = {}) {
     let firstFailure = null;
     let rebases = 0;
     let stepSeq = plan.steps.length;
-    sandbox = new Sandbox({ image: plan.image, repoDir: root, label: id, log: (m) => say('runner', m) });
+    if (cacheVolume) {
+      await run('docker', ['volume', 'rm', '-f', cacheVolume]);
+      await run('docker', ['volume', 'create', '--label', `firstrun=${id}`, cacheVolume]);
+    }
+    sandbox = new Sandbox({ image: plan.image, repoDir: root, label: id, cacheVolume, log: (m) => say('runner', m) });
     await sandbox.start();
     say('runner', `clean machine ready: ${plan.image}`);
 
@@ -404,7 +409,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       rec.phase('replay', 'verifier');
       rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
       const t0 = Date.now();
-      replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
+      replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, cacheVolume, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
       let failed = null;
       for (const step of plan.steps) {
@@ -424,7 +429,7 @@ export async function verifyRepo(repoDir, opts = {}) {
     // ── Publish ──────────────────────────────────────────────────────
     rec.phase('publish', 'scribe');
     const evidence = rec.state.evidence.map((eid) => JSON.parse(readText(path.join(outDir, 'evidence', `${eid}.json`))));
-    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped });
+    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped, packageCache: Boolean(cacheVolume) });
     rec.state.passport = result.passport;
     rec.state.bobcoins = budget.spent();
     rec.state.finishedAt = nowIso();
@@ -440,5 +445,6 @@ export async function verifyRepo(repoDir, opts = {}) {
   } finally {
     if (sandbox && !opts.keep) await sandbox.stop().catch(() => {});
     if (replayBox && !opts.keep) await replayBox.stop().catch(() => {});
+    if (cacheVolume && !opts.keep) await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
   }
 }

@@ -26,6 +26,9 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
   L.push(`| Done when | ${p.verify.kind === 'http' ? `\`GET ${p.verify.target}\` answers` : p.verify.kind === 'command' ? `\`${p.verify.target}\` passes` : 'every step exits cleanly'} |`);
   if (p.bobcoins || p.diagnosedByBob) L.push(`| IBM Bob | ${p.diagnosedByBob} diagnosis${p.diagnosedByBob === 1 ? '' : 'es'}, ${p.bobcoins} Bobcoins |`);
   L.push('');
+  if (p.packageCache || (p.packageCache !== false && p.replaySeconds)) {
+    L.push('_Replay reused this run\'s package downloads from cold start (npm, yarn, pip, uv cache)._', '');
+  }
   if (firstFailure) {
     L.push(`**Before FirstRun**, a newcomer following the docs got stuck at \`${firstFailure.command}\` (${firstFailure.source.file}:${firstFailure.source.line}).`, '');
   }
