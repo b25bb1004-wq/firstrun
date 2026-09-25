@@ -9,7 +9,7 @@ import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
-import { run, tail, nowIso, shortId, readText, shq } from './util.js';
+import { run, tail, headTail, nowIso, shortId, readText, shq } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
 const MAX_REBASES = 3;
@@ -20,7 +20,7 @@ async function stillFailing(diagnosis, before, after, ctx) {
     const rule = RULES.find((r) => r.id === diagnosis.ruleId);
     if (rule) {
       try {
-        const again = await rule.test({ ...ctx, attempt: after, log: tail(after.out, 200) });
+        const again = await rule.test({ ...ctx, attempt: after, log: headTail(after.out) });
         return !!again && again.ruleId === diagnosis.ruleId && again.cause === diagnosis.cause;
       } catch { return true; }
     }
@@ -240,7 +240,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       for (let k = 0; k < MAX_REPAIRS_PER_STEP && !repaired; k++) {
         rec.phase('repair', 'doctor');
         const ctx = {
-          step, attempt, log: tail(attempt.out, 200), facts, plan, sandbox, tried, history,
+          step, attempt, log: headTail(attempt.out), facts, plan, sandbox, tried, history,
           image: sandbox.image, sandboxEnv: await readSandboxEnv(),
         };
         const { diagnosis, fix } = await diagnose(ctx, {
