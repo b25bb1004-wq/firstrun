@@ -57,7 +57,9 @@ export async function replayVerifiedPlan(root, { onStep } = {}) {
         r = await box.serve(s.command, { port: s.serve?.port, timeoutMs: 150_000 });
         if (r.exitCode === 0 && plan.verify?.kind === 'http') {
           const p = await box.probe(plan.verify.target);
-          if (!p.ok) { r.exitCode = 1; r.out += `\nGET ${plan.verify.target} → ${p.status}`; }
+          // Same rule as the verified run: a docs URL must succeed; our guessed "/" only has to answer.
+          const answers = !plan.verify.fromDocs && p.status && p.status < 500;
+          if (!p.ok && !answers) { r.exitCode = 1; r.out += `\nGET ${plan.verify.target} → ${p.status}`; }
         }
       } else r = await box.exec(s.command, { timeoutMs: 20 * 60_000 });
       const res = { id: s.id, command: s.command, exitCode: r.exitCode, durationMs: r.durationMs, tail: tail(r.out, 12) };

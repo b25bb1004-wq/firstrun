@@ -116,3 +116,20 @@ test('prose output lines under a command are not run ("App is running ...")', ()
   const md = parseMarkdown('```bash\nnpm run dev\nApp is running ...\n\nPress CTRL + C to stop the process.\nPORT=4000 npm start\n```\n');
   assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['npm run dev', 'PORT=4000 npm start']);
 });
+
+test('announcedPort reads the port a dev server prints', async () => {
+  const { announcedPort } = await import('../src/sandbox.js');
+  assert.equal(announcedPort('INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)'), 8000);
+  assert.equal(announcedPort('Server listening on port 4000'), 4000);
+  assert.equal(announcedPort('  ➜  Local:   http://localhost:5173/'), 5173);
+  assert.equal(announcedPort('Compiled successfully in 1.2s'), null);
+});
+
+test('announcedPort ignores database ports and sidecar ports (MySQL ready … port 3306)', async () => {
+  const { announcedPort } = await import('../src/sandbox.js');
+  const log = 'MySQL ready for connections on port 3306\nINFO: Uvicorn running on http://0.0.0.0:8000';
+  assert.equal(announcedPort(log), 8000);
+  assert.equal(announcedPort('[db] connected, database ready at localhost:5432\nServer listening on port 4000'), 4000);
+  assert.equal(announcedPort('Redis ready, port 6379'), null);
+  assert.equal(announcedPort('listening on port 6379', [6379]), null);
+});

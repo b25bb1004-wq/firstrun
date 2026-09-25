@@ -130,10 +130,26 @@ export async function verifyRepo(repoDir, opts = {}) {
       if (step.kind === 'services') { const t = Date.now(); r = await runServicesStep(step.command, { sandbox: box, facts }); r.durationMs = Date.now() - t; }
       else if (step.kind === 'serve') {
         r = await box.serve(step.command, { port: step.serve?.port, onData, timeoutMs: 150_000 });
+        if (r.exitCode === 0 && r.port && r.port !== step.serve?.port) {
+          const was = step.serve?.port;
+          step.serve = { ...(step.serve || {}), port: r.port };
+          if (plan.verify.kind === 'http') {
+            // A port the README states is a docs claim: if the app disagrees, that's drift to report.
+            if (plan.verify.fromDocs && !plan.conflicts.some((c) => c.what === 'app port')) {
+              plan.conflicts.push({ what: 'app port', docs: `localhost:${was}`, truth: `the app listens on ${r.port}`, source: plan.verify.docsSource || 'README' });
+            }
+            plan.verify.target = plan.verify.target.replace(/:(\d{2,5})(?=\/|$)/, `:${r.port}`);
+          }
+          rec.savePlan(plan);
+        }
         if (r.exitCode === 0 && plan.verify.kind === 'http') {
           const p = await box.probe(plan.verify.target, { timeoutMs: 45_000 });
           r.out += `\n[firstrun] GET ${plan.verify.target} → ${p.status || 'no response'}${p.body ? `\n${tail(p.body, 6)}` : ''}\n`;
-          if (!p.ok) r.exitCode = 1;
+          // A URL the docs give must succeed. When the docs name none, "/" is our guess: an API
+          // with no root route answers 404, which still proves the server is up and serving.
+          const answers = !plan.verify.fromDocs && p.status && p.status < 500;
+          if (!p.ok && answers) r.out += `[firstrun] the docs name no URL to check; the server answered ${p.status} on / so it is up\n`;
+          if (!p.ok && !answers) r.exitCode = 1;
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
