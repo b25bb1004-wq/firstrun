@@ -36,6 +36,7 @@ export const MODES = [
       'Read-only: never edit files and never run commands. You only reason and answer.',
       'Ground every claim in a file you read (name the file and line). Prefer the project\'s own sources of truth: lockfiles, .nvmrc/.python-version, CI workflows, docker-compose, .env.example.',
       'Prefer fixing the docs (a corrected or missing command) over changing code. Never invent secrets; classify real third-party credentials as needs-secret.',
+      'Fix the setup, not the application: change only the README/docs, env templates (.env.example), compose files, runtime version files, tsconfig.json or package.json. Never rewrite application source; if the only fix is in the code, explain it in cause and give no action.',
       'Answer with exactly one JSON object in a ```json block, in the schema the request file gives. No prose outside it.',
     ].join('\n'),
     groups: ['read'],

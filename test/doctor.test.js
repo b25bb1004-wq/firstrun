@@ -61,6 +61,44 @@ test('Bob replies are parsed and validated defensively', () => {
   assert.equal(validateBobFix({ class: 'x', fix: { actions: [{ type: 'teleport' }] } }).ok, false);
 });
 
+test('validateBobFix: write to app source is dropped into suggestions, exec is kept', () => {
+  // exec action + write to application source → exec kept, write dropped to suggestions
+  const j = { class: 'missing-env', cause: 'Locals.ts requires a default', confidence: 0.7,
+    fix: { actions: [
+      { type: 'exec', command: 'cp .env.example .env' },
+      { type: 'write', path: 'src/providers/Locals.ts', content: 'export default {}' },
+    ], doc: { kind: 'note', text: 'copy env' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.equal(v.fix.actions.length, 1, 'only exec survives');
+  assert.equal(v.fix.actions[0].command, 'cp .env.example .env');
+  assert.equal(v.fix.suggestions[0].path, 'src/providers/Locals.ts');
+});
+
+test('validateBobFix: only write to app source → fix null with suggestion', () => {
+  const j = { class: 'missing-env', cause: 'app.ts needs a default export', confidence: 0.6,
+    fix: { actions: [{ type: 'write', path: 'src/app.ts', content: 'export default {}' }],
+           doc: { kind: 'note', text: 'patch app' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.equal(v.fix, null);
+  assert.equal(v.suggestions.length, 1);
+  assert.equal(v.suggestions[0].path, 'src/app.ts');
+});
+
+test('validateBobFix: write to .env.example and patch to docker-compose.yml are both kept', () => {
+  const j = { class: 'missing-env', cause: 'env template missing', confidence: 0.9,
+    fix: { actions: [{ type: 'write', path: '.env.example', content: 'FOO=bar' }],
+           patches: [{ path: 'docker-compose.yml', content: 'services: {}' }],
+           doc: { kind: 'note', text: 'add env' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.ok(v.fix, 'fix must be present');
+  assert.equal(v.fix.actions.length, 1, '.env.example write kept');
+  assert.equal(v.fix.patches.length, 1, 'docker-compose.yml patch kept');
+  assert.equal(v.fix.suggestions, undefined, 'no suggestions');
+});
+
 test('patch ops: env append is idempotent, compose add keeps existing services', () => {
   const env = applyPatchOps('A=1\n', [{ op: 'append-env', key: 'B', value: '2' }, { op: 'append-env', key: 'B', value: '3' }]);
   assert.equal(env.match(/^B=/gm).length, 1);
@@ -386,4 +424,13 @@ test('tsconfig-skip-lib-check edits the existing compilerOptions (quoted key), n
   assert.equal((out.match(/compilerOptions/g) || []).length, 1, 'duplicate keys: JSON keeps the last one, which would drop skipLibCheck');
   assert.equal(JSON.parse(out).compilerOptions.skipLibCheck, true);
   assert.equal(JSON.parse(out).compilerOptions.target, 'es6');
+});
+
+test('a Bob source-only fix is not applied and shows in the report as a maintainer suggestion', async () => {
+  const v = validateBobFix({ class: 'missing-env', cause: 'MONGOOSE_URL has no default in src/providers/Locals.ts:22', fix: { actions: [{ type: 'write', path: 'src/providers/Locals.ts', content: 'x' }] } });
+  assert.equal(v.fix, null, 'source edit not applied');
+  assert.equal(v.suggestions[0].path, 'src/providers/Locals.ts');
+  const { renderReport } = await import('../src/scribe/report.js');
+  const md = renderReport({ passport: { repo: 'x', commit: 'c', verifiedAt: new Date().toISOString(), verdict: 'FAILED', image: 'node:22', runtime: 'Node.js 22', stepsTotal: 1, stepsFromReadme: 1, breaksFound: 1, breaksFixed: 0, needsHuman: 1, replaySeconds: 0, bobcoins: 0.1, diagnosedByBob: 1, verify: { kind: 'none' } }, plan: { steps: [] }, evidence: [{ id: 'E1', stepId: 'S1', status: 'needs-human', before: { command: 'npm run dev', logTail: '' }, diagnosis: { ...v.diagnosis, by: 'bob', bobcoins: 0.1, suggestions: v.suggestions }, fix: null }], firstFailure: null, conflicts: [] });
+  assert.ok(md.includes('Suggested code change for the maintainer (not applied):** `src/providers/Locals.ts`'), 'suggestion shown in FIRSTRUN.md');
 });

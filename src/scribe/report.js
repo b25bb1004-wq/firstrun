@@ -46,6 +46,7 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
       L.push(`- **Cause:** ${e.diagnosis.cause}`);
       L.push(`- **Diagnosed by:** ${e.diagnosis.by === 'bob' ? `IBM Bob (${e.diagnosis.bobcoins ?? 0} Bobcoins)` : `FirstRun rule \`${e.diagnosis.ruleId}\``}, confidence ${Math.round((e.diagnosis.confidence || 0) * 100)}%`);
       if (e.fix?.doc) L.push(`- **Doc change:** ${e.fix.doc.text}`);
+      for (const s of e.diagnosis.suggestions || []) L.push(`- **Suggested code change for the maintainer (not applied):** \`${s.path}\``);
       L.push(`- **Result:** ${e.status === 'verified' ? 'fixed and verified' : e.status === 'needs-human' ? 'needs a maintainer' : e.status === 'progressed' ? `worked: cleared this error, then the step failed on a later problem${e.revealed ? ` ([${e.revealed}](#${e.revealed.toLowerCase()}))` : ''}` : 'fix did not work'}`, '');
       L.push('<details><summary>Before (failing output)</summary>', '', '```', tail(e.before.logTail, 14), '```', '</details>', '');
       if (e.fix?.log) L.push('<details><summary>Fix applied</summary>', '', '```', tail(e.fix.log, 14), '```', '</details>', '');
