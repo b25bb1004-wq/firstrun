@@ -105,7 +105,7 @@ ${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${
 \`\`\`json
 ${JSON.stringify(summarizeFacts(facts), null, 2)}
 \`\`\`
-${history.length ? `\n## Earlier repair attempts on this step (they did not work)\n${history.map((h) => `- ${h.cause} → ${JSON.stringify(h.actions)}`).join('\n')}\n` : ''}
+${history.length ? `\n## Earlier repair attempts on this step\n${history.map((h) => `- ${h.cause} → ${JSON.stringify(h.actions)} (${h.worked ? 'worked: cleared that error, keep it; the step now fails on something else' : 'did not work'})`).join('\n')}\n` : ''}
 ## Reply format
 Reply with ONLY one JSON object (no prose), in a \`\`\`json block:
 
