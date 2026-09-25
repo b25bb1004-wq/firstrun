@@ -1,0 +1,43 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "npm install",
+    "exitCode": 1,
+    "durationMs": 6100,
+    "logTail": "npm ERR! code EBADENGINE\nnpm ERR! engine Unsupported engine\nnpm ERR! engine Not compatible with your version of node/npm: acme-shop@2.4.0\nnpm ERR! notsup Required: {\"node\":\">=20.11.0\"}\nnpm ERR! notsup Actual:   {\"npm\":\"8.19.4\",\"node\":\"v16.20.2\"}\n\nnpm ERR! A complete log of this run can be found in:\nnpm ERR!     /root/.npm/_logs/2026-09-25T09_12_19_512Z-debug-0.log",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "package.json requires Node >=20.11.0 and .npmrc sets engine-strict, but the README says Node 16.",
+    "by": "rules",
+    "confidence": 0.99,
+    "ruleId": "node.engine-strict"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "node:20.11.1-bookworm"
+      }
+    ],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Node.js 20.11.1 (see .nvmrc); engine-strict makes older versions fail at npm install"
+    }
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "npm install",
+    "exitCode": 0,
+    "durationMs": 44800,
+    "logTail": "[firstrun] sandbox rebased onto node:20.11.1-bookworm (node v20.11.1, npm 10.2.4)\nnpm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it.\nnpm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported\nnpm http fetch GET 200 https://registry.npmjs.org/express 40ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/pg 77ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/knex 114ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/ioredis 151ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/zod 188ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/connect-redis 45ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/express-session 82ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/pino 119ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/vite 156ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/@vitejs/plugin-react 193ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/react 50ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/react-dom 87ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/tsx 124ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/typescript 161ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/vitest 198ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/supertest 55ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/esbuild 92ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/@esbuild/linux-x64 129ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/rollup 166ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/@rollup/rollup-linux-x64-gnu 203ms (cache miss)\nnpm WARN deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported\n\n> acme-shop@2.4.0 postinstall\n> husky install || true\n\nhusky - .git can't be found (see https://typicode.github.io/husky/#/?id=custom-directory)\n\nadded 1184 packages, and audited 1185 packages in 41s\n\n187 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T09:13:16.270Z"
+}

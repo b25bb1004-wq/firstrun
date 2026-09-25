@@ -1,0 +1,11 @@
+--- a/README.md
++++ b/README.md
+@@ -2,6 +2,8 @@
+ 
+ The engineering handbook, built with Astro.
+ 
++> Setup verified by FirstRun at `0d92025` in `node:20-bookworm`: clone to running in 1m01s.
++
+ ## Prerequisites
+ 
+ - Node.js 20

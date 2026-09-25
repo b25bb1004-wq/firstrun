@@ -1,0 +1,94 @@
+{
+  "id": "geo-tiles",
+  "repo": "quarry/geo-tiles",
+  "commit": "59341847ab9e44c936666e78f4f880a27c066497",
+  "startedAt": "2026-09-25T10:00:10.000Z",
+  "phase": "done",
+  "plan": {
+    "repo": "quarry/geo-tiles",
+    "commit": "59341847ab9e44c936666e78f4f880a27c066497",
+    "image": "node:20-bookworm",
+    "runtime": {
+      "name": "node",
+      "version": "20",
+      "source": "README.md#Prerequisites"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 12,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S2",
+        "command": "npm run tiles:build",
+        "kind": "build",
+        "source": {
+          "file": "README.md",
+          "line": 13,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S3",
+        "command": "npm start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 8080
+        }
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://localhost:8080/tiles/0/0/0.pbf"
+    }
+  },
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "pending",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "pending",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0.5,
+  "finishedAt": "2026-09-25T10:01:58.760Z",
+  "passport": {
+    "repo": "quarry/geo-tiles",
+    "commit": "59341847ab9e44c936666e78f4f880a27c066497",
+    "verifiedAt": "2026-09-25T10:01:59.110Z",
+    "verdict": "FAILED",
+    "image": "node:20-bookworm",
+    "runtime": "node 20.17.0",
+    "stepsTotal": 3,
+    "stepsFromReadme": 3,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "bobcoins": 0.5
+  }
+}

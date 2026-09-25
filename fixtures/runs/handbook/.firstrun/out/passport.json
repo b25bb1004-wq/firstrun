@@ -1,0 +1,15 @@
+{
+  "repo": "pinecrest/handbook",
+  "commit": "0d92025b50721febc8d54b367b19486325efa123",
+  "verifiedAt": "2026-09-25T10:02:05.680Z",
+  "verdict": "VERIFIED",
+  "image": "node:20-bookworm",
+  "runtime": "node 20.17.0",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 61,
+  "bobcoins": 0
+}

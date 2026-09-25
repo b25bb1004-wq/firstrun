@@ -1,0 +1,30 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "npm install",
+    "exitCode": 1,
+    "durationMs": 88000,
+    "logTail": "> mapnik@4.5.9 install\n> node-pre-gyp install --fallback-to-build\nnode-pre-gyp ERR! install response status 404 Not Found on https://mapbox-node-binary.s3.amazonaws.com/mapnik/v4.5.9/Release/node-v115-linux-x64.tar.gz\ngyp info spawn make\n../src/mapnik_map.cpp:4:10: fatal error: mapnik/map.hpp: No such file or directory\ncompilation terminated.\ngyp ERR! build error\nnpm ERR! code 1",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "mapnik@4.5.9 has no prebuilt binary for Node 20 on linux-x64, and building it needs Mapnik 3.1 headers that Debian bookworm does not package.",
+    "by": "bob",
+    "confidence": 0.41,
+    "bobcoins": 0.5
+  },
+  "fix": {
+    "actions": [],
+    "doc": {
+      "kind": "note",
+      "text": "Pin Node 16 (last version with a mapnik prebuilt) or build Mapnik 3.1 from source; a maintainer should choose."
+    }
+  },
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T10:01:55.770Z"
+}

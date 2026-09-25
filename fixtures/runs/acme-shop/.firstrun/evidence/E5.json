@@ -1,0 +1,45 @@
+{
+  "id": "E5",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 4200,
+    "logTail": "\n> acme-shop@2.4.0 dev\n> tsx watch src/server.ts\n\n[09:14:21.402] INFO: config loaded (env=development)\n[09:14:21.419] INFO: postgres connected (localhost:5432/acme)\n[ioredis] Unhandled error event: Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16)\n[09:14:23.507] FATAL: session store unavailable: connect ECONNREFUSED 127.0.0.1:6379\n    err: { \"code\": \"ECONNREFUSED\", \"address\": \"127.0.0.1\", \"port\": 6379 }",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "The session store connects to Redis on 127.0.0.1:6379, but the README only starts Postgres.",
+    "by": "rules",
+    "confidence": 0.96,
+    "ruleId": "net.econnrefused-known-port"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "redis",
+        "image": "redis:7-alpine",
+        "port": 6379
+      }
+    ],
+    "doc": {
+      "kind": "replace-command",
+      "text": "docker compose up -d postgres redis"
+    }
+  },
+  "after": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "npm run dev",
+    "exitCode": 0,
+    "durationMs": 9400,
+    "logTail": "[firstrun] sidecar redis (redis:7-alpine) forwarded to localhost:6379\n\n> acme-shop@2.4.0 dev\n> tsx watch src/server.ts\n\n[09:15:02.113] INFO: config loaded (env=development)\n[09:15:02.130] INFO: postgres connected (localhost:5432/acme)\n[09:15:02.188] INFO: redis connected (localhost:6379)\n[09:15:02.240] INFO: session store ready (connect-redis)\n[09:15:02.301] INFO: Listening on http://localhost:3000\n[firstrun] ready pattern \"Listening on\" matched; GET /health -> 200 OK (14ms)",
+    "logFile": "logs/S8-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T09:14:40.200Z"
+}

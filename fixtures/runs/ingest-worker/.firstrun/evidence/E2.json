@@ -1,0 +1,30 @@
+{
+  "id": "E2",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "poetry run python -m ingest.worker --once",
+    "exitCode": 1,
+    "durationMs": 5200,
+    "logTail": "INFO consumer connected to localhost:9092\nbotocore.exceptions.NoCredentialsError: Unable to locate credentials",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "needs-secret",
+    "cause": "The sink writes to a real S3 bucket and needs AWS credentials; no local emulator is configured.",
+    "by": "rules",
+    "confidence": 0.95,
+    "ruleId": "aws.no-credentials"
+  },
+  "fix": {
+    "actions": [],
+    "doc": {
+      "kind": "note",
+      "text": "Export AWS credentials with write access to the ingest bucket, or point S3_ENDPOINT at LocalStack."
+    }
+  },
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T10:01:15.760Z"
+}

@@ -122,7 +122,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       attempts[step.id] = (attempts[step.id] || 0) + 1;
       const n = attempts[step.id];
       if (!quiet) {
-        rec.stepStatus(step.id, 'running', n);
+        if (agent !== 'verifier') rec.stepStatus(step.id, 'running', n);
         rec.emitEvent(agent, 'step.start', { stepId: step.id, n, command: step.command });
       }
       const onData = quiet ? undefined : (chunk) => rec.log(step.id, n, chunk);
@@ -158,8 +158,9 @@ export async function verifyRepo(repoDir, opts = {}) {
       return env;
     };
 
+    let repairSeq = 0;
     const newStep = (command, kind, before) => ({
-      id: `S${++stepSeq}`, command, kind, origin: 'repair', status: 'pending',
+      id: `R${++repairSeq}`, command, kind, origin: 'repair', status: 'pending',
       source: { ...before.source, insertedBefore: before.id },
     });
 
@@ -251,6 +252,7 @@ export async function verifyRepo(repoDir, opts = {}) {
             rec.stepStatus(ns.id, 'pending', 0);
             rec.savePlan(plan);
             rec.emitEvent('planner', 'step.inserted', { step: ns, before: step.id });
+            rec.emitEvent('planner', 'plan', plan);
             if (!restart) {
               const ia = await execStep(ns);
               ns.status = ia.exitCode === 0 ? 'passed' : 'failed';
@@ -327,15 +329,14 @@ export async function verifyRepo(repoDir, opts = {}) {
     const replayable = !stopped;
     if (replayable && opts.replay !== false) {
       rec.phase('replay', 'verifier');
-      rec.emitEvent('verifier', 'replay.start', { image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
+      rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
       const t0 = Date.now();
       replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
       let failed = null;
       for (const step of plan.steps) {
         if (step.skip || step.status === 'needs-human') continue;
-        const a = await execStep(step, { agent: 'verifier', box: replayBox, quiet: true });
-        rec.emitEvent('verifier', 'replay.step', { stepId: step.id, command: step.command, exitCode: a.exitCode, durationMs: a.durationMs, status: a.exitCode === 0 ? 'passed' : 'failed' });
+        const a = await execStep(step, { agent: 'verifier', box: replayBox });
         if (a.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
         if (a.exitCode !== 0) failed = failed || step.id;
       }

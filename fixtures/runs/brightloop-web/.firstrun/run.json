@@ -1,0 +1,139 @@
+{
+  "id": "brightloop-web",
+  "repo": "brightloop/web",
+  "commit": "11a8edbc9ab634bf653ae873d618aa3a03914dc9",
+  "startedAt": "2026-09-25T10:00:07.000Z",
+  "phase": "done",
+  "plan": {
+    "repo": "brightloop/web",
+    "commit": "11a8edbc9ab634bf653ae873d618aa3a03914dc9",
+    "image": "node:20-bookworm",
+    "runtime": {
+      "name": "node",
+      "version": "20",
+      "source": "package.json engines"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "brew install imagemagick",
+        "kind": "prereq",
+        "source": {
+          "file": "README.md",
+          "line": 13,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S2",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "R1",
+        "command": "npx prisma generate",
+        "kind": "build",
+        "source": {
+          "file": "README.md",
+          "line": 15,
+          "section": "Getting started"
+        },
+        "origin": "repair"
+      },
+      {
+        "id": "S3",
+        "command": "npm run build",
+        "kind": "build",
+        "source": {
+          "file": "README.md",
+          "line": 15,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S4",
+        "command": "npm start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 16,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000,
+          "readyPattern": "Ready"
+        }
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Platform",
+        "docs": "macOS with Homebrew",
+        "truth": "Linux works with apt packages",
+        "source": "Dockerfile"
+      }
+    ],
+    "verify": {
+      "kind": "http",
+      "target": "http://localhost:3000/"
+    }
+  },
+  "steps": {
+    "S1": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S2": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S3": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S4": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "bobcoins": 0.3,
+  "finishedAt": "2026-09-25T10:04:17.310Z",
+  "replay": {
+    "status": "failed",
+    "durationMs": 114460,
+    "failedStep": "S4"
+  },
+  "passport": {
+    "repo": "brightloop/web",
+    "commit": "11a8edbc9ab634bf653ae873d618aa3a03914dc9",
+    "verifiedAt": "2026-09-25T10:04:17.660Z",
+    "verdict": "PARTIAL",
+    "image": "node:20-bookworm",
+    "runtime": "node 20.17.0",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 3,
+    "breaksFixed": 2,
+    "needsHuman": 1,
+    "replaySeconds": 114,
+    "bobcoins": 0.3
+  }
+}

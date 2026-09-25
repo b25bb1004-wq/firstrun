@@ -1,0 +1,15 @@
+{
+  "repo": "quarry/geo-tiles",
+  "commit": "59341847ab9e44c936666e78f4f880a27c066497",
+  "verifiedAt": "2026-09-25T10:01:59.110Z",
+  "verdict": "FAILED",
+  "image": "node:20-bookworm",
+  "runtime": "node 20.17.0",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "bobcoins": 0.5
+}

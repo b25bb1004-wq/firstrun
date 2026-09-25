@@ -1,0 +1,26 @@
+--- a/README.md
++++ b/README.md
+@@ -2,6 +2,8 @@
+ 
+ Patient intake forms with SMS confirmations.
+ 
++> Setup verified by FirstRun at `aaf1875` in `python:3.11-slim-bookworm`: clone to running in 0m45s.
++
+ ## Prerequisites
+ 
+ - Python 3.11
+@@ -11,11 +13,14 @@
+ ```bash
+ pip install -r requirements.txt
+ cp .env.example .env
++echo "INTAKE_SIGNING_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')" >> .env
+ flask --app intake db upgrade
+ flask --app intake run
+ pytest
+ ```
+ 
++> Needs a human: Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN from a Twilio test account before running the server.
++
+ ## License
+ 
+ MIT

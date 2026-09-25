@@ -25,12 +25,14 @@ export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
         for (const cf of d.conflicts) p(`  ${yellow('⚠')} ${cf.what}: docs say ${bold(cf.docs)}, code says ${bold(cf.truth)} ${dim(`(${cf.source})`)}`);
         break;
       case 'step.start':
+        if (ev.agent === 'verifier') break;
         p(`  ${blue('▸')} ${dim(d.stepId)} ${d.command}${d.n > 1 ? dim(` (attempt ${d.n})`) : ''}`);
         break;
       case 'step.log':
         if (verbose) for (const l of d.chunk.split('\n').slice(-4)) p(dim(`      ${l.slice(0, 160)}`));
         break;
       case 'step.end':
+        if (ev.agent === 'verifier') { p(`  ${d.status === 'passed' ? green('✓') : red('✗')} ${dim(d.stepId)} ${d.command} ${dim(fmtDuration(d.durationMs))}`); break; }
         if (d.status === 'passed') p(`    ${green('✓')} ${dim(fmtDuration(d.durationMs))}`);
         else {
           p(`    ${red('✗')} exit ${d.exitCode} ${dim(fmtDuration(d.durationMs))}`);

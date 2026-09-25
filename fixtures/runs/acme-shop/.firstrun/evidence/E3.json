@@ -1,0 +1,43 @@
+{
+  "id": "E3",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "npm run migrate",
+    "exitCode": 1,
+    "durationMs": 700,
+    "logTail": "npm ERR! Missing script: \"migrate\"\nnpm ERR!\nnpm ERR! Did you mean one of these?\nnpm ERR!     npm run db:migrate # run the \"db:migrate\" package script\nnpm ERR!     npm run db:rollback # run the \"db:rollback\" package script\nnpm ERR!\nnpm ERR! To see a list of scripts, run:\nnpm ERR!   npm run\n\nnpm ERR! A complete log of this run can be found in: /root/.npm/_logs/2026-09-25T09_13_31_004Z-debug-0.log",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-script",
+    "cause": "package.json has no \"migrate\" script; the migration script is \"db:migrate\".",
+    "by": "rules",
+    "confidence": 0.98,
+    "ruleId": "npm.missing-script"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "npm run db:migrate"
+      }
+    ],
+    "doc": {
+      "kind": "replace-command",
+      "text": "npm run db:migrate"
+    }
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "npm run db:migrate",
+    "exitCode": 0,
+    "durationMs": 4300,
+    "logTail": "\n> acme-shop@2.4.0 db:migrate\n> knex migrate:latest --knexfile db/knexfile.js\n\nUsing environment: development\nBatch 1 run: 7 migrations",
+    "logFile": "logs/S5-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T09:13:29.590Z"
+}

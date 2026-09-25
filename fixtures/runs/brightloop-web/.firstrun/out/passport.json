@@ -1,0 +1,15 @@
+{
+  "repo": "brightloop/web",
+  "commit": "11a8edbc9ab634bf653ae873d618aa3a03914dc9",
+  "verifiedAt": "2026-09-25T10:04:17.660Z",
+  "verdict": "PARTIAL",
+  "image": "node:20-bookworm",
+  "runtime": "node 20.17.0",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 3,
+  "breaksFixed": 2,
+  "needsHuman": 1,
+  "replaySeconds": 114,
+  "bobcoins": 0.3
+}

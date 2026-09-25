@@ -1,0 +1,16 @@
+--- a/README.md
++++ b/README.md
+@@ -2,9 +2,12 @@
+ 
+ Double-entry ledger service with a FastAPI front end.
+ 
++> Setup verified by FirstRun at `8bc11e9` in `python:3.11-slim-bookworm`: clone to running in 1m27s.
++
+ ## Prerequisites
+ 
+-- Python 3.9+
++- Python 3.11+ (pyproject.toml requires >=3.11)
++- libpq headers (Debian/Ubuntu: `sudo apt-get install libpq-dev`; macOS: `brew install libpq`)
+ 
+ ## Getting started
+ 

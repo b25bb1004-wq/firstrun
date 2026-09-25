@@ -1,0 +1,94 @@
+{
+  "repo": "lumen-health/intake-service",
+  "commit": "aaf1875dd97b579f2edc4a815c741063ab393dd9",
+  "image": "python:3.11-slim-bookworm",
+  "runtime": {
+    "name": "python",
+    "version": "3.11",
+    "source": "README.md#Prerequisites"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "pip install -r requirements.txt",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 12,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S2",
+      "command": "cp .env.example .env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 13,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "R1",
+      "command": "echo \"INTAKE_SIGNING_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')\" >> .env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "repair"
+    },
+    {
+      "id": "S3",
+      "command": "flask --app intake db upgrade",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S4",
+      "command": "flask --app intake run",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 15,
+        "section": "Getting started"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 5000,
+        "readyPattern": "Running on"
+      }
+    },
+    {
+      "id": "S5",
+      "command": "pytest",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 16,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Required secrets",
+      "docs": "none mentioned",
+      "truth": "INTAKE_SIGNING_KEY, TWILIO_AUTH_TOKEN",
+      "source": "intake/settings.py"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://localhost:5000/healthz"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "E2",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "flask --app intake run",
+    "exitCode": 1,
+    "durationMs": 3300,
+    "logTail": " * Serving Flask app \"intake\"\ntwilio.base.exceptions.TwilioRestException: HTTP 401 error: Unable to fetch record: Authenticate",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "needs-secret",
+    "cause": "Startup verifies TWILIO_AUTH_TOKEN against the Twilio API; a real credential is required and cannot be generated.",
+    "by": "rules",
+    "confidence": 0.9,
+    "ruleId": "auth.http-401-vendor"
+  },
+  "fix": {
+    "actions": [],
+    "doc": {
+      "kind": "note",
+      "text": "Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN from a Twilio test account before running the server."
+    }
+  },
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T10:00:59.730Z"
+}

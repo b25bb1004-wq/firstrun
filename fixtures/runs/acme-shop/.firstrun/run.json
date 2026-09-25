@@ -1,0 +1,234 @@
+{
+  "id": "acme-shop",
+  "repo": "acme-labs/acme-shop",
+  "commit": "9d6540e963cc2f669d509be2349a2a16f97ca690",
+  "startedAt": "2026-09-25T09:12:04.000Z",
+  "phase": "done",
+  "plan": {
+    "repo": "acme-labs/acme-shop",
+    "commit": "9d6540e963cc2f669d509be2349a2a16f97ca690",
+    "image": "node:20.11.1-bookworm",
+    "runtime": {
+      "name": "node",
+      "version": "16",
+      "source": "README.md#Prerequisites"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/acme-labs/acme-shop.git && cd acme-shop",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 13,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "skip": "git clone: repository already mounted at /work"
+      },
+      {
+        "id": "S2",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S3",
+        "command": "cp .env.sample .env",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 15,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S4",
+        "command": "docker compose up -d postgres",
+        "kind": "services",
+        "source": {
+          "file": "README.md",
+          "line": 16,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S5",
+        "command": "npm run migrate",
+        "kind": "migrate",
+        "source": {
+          "file": "README.md",
+          "line": 17,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "R1",
+        "command": "echo \"SESSION_SECRET=$(openssl rand -hex 32)\" >> .env",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 18,
+          "section": "Getting started"
+        },
+        "origin": "repair"
+      },
+      {
+        "id": "S6",
+        "command": "npm run seed",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 18,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S7",
+        "command": "npm run build",
+        "kind": "build",
+        "source": {
+          "file": "README.md",
+          "line": 19,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S8",
+        "command": "npm run dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 20,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000,
+          "readyPattern": "Listening on"
+        }
+      },
+      {
+        "id": "S9",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 28,
+          "section": "Tests"
+        },
+        "origin": "readme"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node version",
+        "docs": "Node 16",
+        "truth": "20.11.1",
+        "source": ".nvmrc, package.json engines (>=20.11.0)"
+      },
+      {
+        "what": "Env template",
+        "docs": ".env.sample",
+        "truth": ".env.example",
+        "source": "repository tree"
+      },
+      {
+        "what": "Services",
+        "docs": "Postgres",
+        "truth": "Postgres 15 and Redis 7",
+        "source": "docker-compose.yml"
+      },
+      {
+        "what": "Migration script",
+        "docs": "npm run migrate",
+        "truth": "npm run db:migrate",
+        "source": "package.json scripts"
+      }
+    ],
+    "verify": {
+      "kind": "http",
+      "target": "http://localhost:3000/health"
+    }
+  },
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S3": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S4": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S5": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S6": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S7": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S8": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S9": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5"
+  ],
+  "bobcoins": 0.4,
+  "finishedAt": "2026-09-25T09:18:44.200Z",
+  "replay": {
+    "status": "passed",
+    "durationMs": 192400
+  },
+  "passport": {
+    "repo": "acme-labs/acme-shop",
+    "commit": "9d6540e963cc2f669d509be2349a2a16f97ca690",
+    "verifiedAt": "2026-09-25T09:18:44.350Z",
+    "verdict": "VERIFIED",
+    "image": "node:20.11.1-bookworm",
+    "runtime": "node 20.11.1",
+    "stepsTotal": 10,
+    "stepsFromReadme": 9,
+    "breaksFound": 5,
+    "breaksFixed": 5,
+    "needsHuman": 0,
+    "replaySeconds": 192,
+    "bobcoins": 0.4
+  }
+}

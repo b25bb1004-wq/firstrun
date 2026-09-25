@@ -1,0 +1,15 @@
+{
+  "repo": "harbor-labs/ingest-worker",
+  "commit": "e91cd769e6f9d6983455dfd3bb5a9ecabcfad663",
+  "verifiedAt": "2026-09-25T10:02:32.890Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.12-slim-bookworm",
+  "runtime": "python 3.12.4",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 2,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "replaySeconds": 65,
+  "bobcoins": 0
+}

@@ -1,0 +1,30 @@
+{
+  "id": "E3",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "npm start",
+    "exitCode": 1,
+    "durationMs": 2400,
+    "logTail": "  ▲ Next.js 14.2.3\nError: STRIPE_SECRET_KEY is missing or not a test key (expected sk_test_...)\n    at lib/stripe.ts:7:11",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "needs-secret",
+    "cause": "Checkout requires STRIPE_SECRET_KEY in sk_test_ format from a Stripe account; FirstRun cannot mint one.",
+    "by": "rules",
+    "confidence": 0.93,
+    "ruleId": "env.vendor-key-format"
+  },
+  "fix": {
+    "actions": [],
+    "doc": {
+      "kind": "note",
+      "text": "Add STRIPE_SECRET_KEY (sk_test_...) from the Stripe dashboard to .env.local."
+    }
+  },
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T10:02:18.660Z"
+}

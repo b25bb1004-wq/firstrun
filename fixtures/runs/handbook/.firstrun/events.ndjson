@@ -1,0 +1,55 @@
+{"t":"2026-09-25T10:00:04.000Z","run":"handbook","agent":"scout","type":"phase","data":{"phase":"scout"}}
+{"t":"2026-09-25T10:00:06.800Z","run":"handbook","agent":"scout","type":"facts","data":{"languages":["javascript","markdown"],"manifests":["package.json","package-lock.json"]}}
+{"t":"2026-09-25T10:00:06.920Z","run":"handbook","agent":"planner","type":"phase","data":{"phase":"plan"}}
+{"t":"2026-09-25T10:00:08.820Z","run":"handbook","agent":"planner","type":"plan","data":{"repo":"pinecrest/handbook","commit":"0d92025b50721febc8d54b367b19486325efa123","image":"node:20-bookworm","runtime":{"name":"node","version":"20","source":"README.md#Prerequisites"},"steps":[{"id":"S1","command":"npm ci","kind":"install","source":{"file":"README.md","line":12,"section":"Getting started"},"origin":"readme"},{"id":"S2","command":"npm run build","kind":"build","source":{"file":"README.md","line":13,"section":"Getting started"},"origin":"readme"},{"id":"S3","command":"npm run preview","kind":"serve","source":{"file":"README.md","line":14,"section":"Getting started"},"origin":"readme","serve":{"port":4321,"readyPattern":"Local"}}],"conflicts":[],"verify":{"kind":"http","target":"http://localhost:4321/"}}}
+{"t":"2026-09-25T10:00:09.120Z","run":"handbook","agent":"runner","type":"phase","data":{"phase":"coldstart"}}
+{"t":"2026-09-25T10:00:15.520Z","run":"handbook","agent":"runner","type":"step.start","data":{"stepId":"S1","n":1,"command":"npm ci"}}
+{"t":"2026-09-25T10:00:18.186Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/astro 40ms (cache miss)\n"}}
+{"t":"2026-09-25T10:00:20.853Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/@astrojs/mdx 77ms (cache miss)\n"}}
+{"t":"2026-09-25T10:00:23.520Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/sharp 114ms (cache miss)\n"}}
+{"t":"2026-09-25T10:00:26.186Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/shiki 151ms (cache miss)\n"}}
+{"t":"2026-09-25T10:00:28.853Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"\n"}}
+{"t":"2026-09-25T10:00:31.520Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"added 412 packages, and audited 413 packages in 21s\n"}}
+{"t":"2026-09-25T10:00:34.186Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"\n"}}
+{"t":"2026-09-25T10:00:36.853Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"found 0 vulnerabilities\n"}}
+{"t":"2026-09-25T10:00:39.520Z","run":"handbook","agent":"runner","type":"step.end","data":{"stepId":"S1","n":1,"command":"npm ci","exitCode":0,"durationMs":24000,"logTail":"npm http fetch GET 200 https://registry.npmjs.org/astro 40ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/@astrojs/mdx 77ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/sharp 114ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/shiki 151ms (cache miss)\n\nadded 412 packages, and audited 413 packages in 21s\n\nfound 0 vulnerabilities","logFile":"logs/S1-1.log","status":"passed"}}
+{"t":"2026-09-25T10:00:39.770Z","run":"handbook","agent":"runner","type":"step.start","data":{"stepId":"S2","n":1,"command":"npm run build"}}
+{"t":"2026-09-25T10:00:44.370Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"astro v4.9.2\n"}}
+{"t":"2026-09-25T10:00:48.970Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"[build] 148 page(s) built in 14.21s\n"}}
+{"t":"2026-09-25T10:00:53.570Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"[build] Complete!\n"}}
+{"t":"2026-09-25T10:00:58.170Z","run":"handbook","agent":"runner","type":"step.end","data":{"stepId":"S2","n":1,"command":"npm run build","exitCode":0,"durationMs":18400,"logTail":"astro v4.9.2\n[build] 148 page(s) built in 14.21s\n[build] Complete!","logFile":"logs/S2-1.log","status":"passed"}}
+{"t":"2026-09-25T10:00:58.420Z","run":"handbook","agent":"runner","type":"step.start","data":{"stepId":"S3","n":1,"command":"npm run preview"}}
+{"t":"2026-09-25T10:00:59.053Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S3","n":1,"chunk":"  astro  v4.9.2 ready in 212 ms\n\n"}}
+{"t":"2026-09-25T10:00:59.686Z","run":"handbook","agent":"runner","type":"step.log","data":{"stepId":"S3","n":1,"chunk":"┃ Local    http://localhost:4321/\n"}}
+{"t":"2026-09-25T10:01:00.320Z","run":"handbook","agent":"runner","type":"step.end","data":{"stepId":"S3","n":1,"command":"npm run preview","exitCode":0,"durationMs":1900,"logTail":"  astro  v4.9.2 ready in 212 ms\n\n┃ Local    http://localhost:4321/","logFile":"logs/S3-1.log","status":"passed"}}
+{"t":"2026-09-25T10:01:01.470Z","run":"handbook","agent":"verifier","type":"phase","data":{"phase":"replay"}}
+{"t":"2026-09-25T10:01:01.520Z","run":"handbook","agent":"verifier","type":"replay.start","data":{"status":"running","durationMs":0}}
+{"t":"2026-09-25T10:01:16.520Z","run":"handbook","agent":"verifier","type":"step.start","data":{"stepId":"S1","n":1,"command":"npm ci"}}
+{"t":"2026-09-25T10:01:19.186Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/astro 40ms (cache miss)\n"}}
+{"t":"2026-09-25T10:01:21.853Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/@astrojs/mdx 77ms (cache miss)\n"}}
+{"t":"2026-09-25T10:01:24.520Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/sharp 114ms (cache miss)\n"}}
+{"t":"2026-09-25T10:01:27.186Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"npm http fetch GET 200 https://registry.npmjs.org/shiki 151ms (cache miss)\n"}}
+{"t":"2026-09-25T10:01:29.853Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"\n"}}
+{"t":"2026-09-25T10:01:32.520Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"added 412 packages, and audited 413 packages in 21s\n"}}
+{"t":"2026-09-25T10:01:35.186Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"\n"}}
+{"t":"2026-09-25T10:01:37.853Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S1","n":1,"chunk":"found 0 vulnerabilities\n"}}
+{"t":"2026-09-25T10:01:40.520Z","run":"handbook","agent":"verifier","type":"step.end","data":{"stepId":"S1","n":1,"command":"npm ci","exitCode":0,"durationMs":24000,"logTail":"npm http fetch GET 200 https://registry.npmjs.org/astro 40ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/@astrojs/mdx 77ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/sharp 114ms (cache miss)\nnpm http fetch GET 200 https://registry.npmjs.org/shiki 151ms (cache miss)\n\nadded 412 packages, and audited 413 packages in 21s\n\nfound 0 vulnerabilities","logFile":"logs/replay-S1-1.log","status":"passed"}}
+{"t":"2026-09-25T10:01:40.640Z","run":"handbook","agent":"verifier","type":"step.start","data":{"stepId":"S2","n":1,"command":"npm run build"}}
+{"t":"2026-09-25T10:01:45.240Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"astro v4.9.2\n"}}
+{"t":"2026-09-25T10:01:49.840Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"[build] 148 page(s) built in 14.21s\n"}}
+{"t":"2026-09-25T10:01:54.440Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S2","n":1,"chunk":"[build] Complete!\n"}}
+{"t":"2026-09-25T10:01:59.040Z","run":"handbook","agent":"verifier","type":"step.end","data":{"stepId":"S2","n":1,"command":"npm run build","exitCode":0,"durationMs":18400,"logTail":"astro v4.9.2\n[build] 148 page(s) built in 14.21s\n[build] Complete!","logFile":"logs/replay-S2-1.log","status":"passed"}}
+{"t":"2026-09-25T10:01:59.160Z","run":"handbook","agent":"verifier","type":"step.start","data":{"stepId":"S3","n":1,"command":"npm run preview"}}
+{"t":"2026-09-25T10:01:59.793Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S3","n":1,"chunk":"  astro  v4.9.2 ready in 212 ms\n\n"}}
+{"t":"2026-09-25T10:02:00.426Z","run":"handbook","agent":"verifier","type":"step.log","data":{"stepId":"S3","n":1,"chunk":"┃ Local    http://localhost:4321/\n"}}
+{"t":"2026-09-25T10:02:01.060Z","run":"handbook","agent":"verifier","type":"step.end","data":{"stepId":"S3","n":1,"command":"npm run preview","exitCode":0,"durationMs":1900,"logTail":"  astro  v4.9.2 ready in 212 ms\n\n┃ Local    http://localhost:4321/","logFile":"logs/replay-S3-1.log","status":"passed"}}
+{"t":"2026-09-25T10:02:02.680Z","run":"handbook","agent":"verifier","type":"replay.end","data":{"status":"passed","durationMs":61160}}
+{"t":"2026-09-25T10:02:03.080Z","run":"handbook","agent":"scribe","type":"phase","data":{"phase":"publish"}}
+{"t":"2026-09-25T10:02:03.780Z","run":"handbook","agent":"scribe","type":"artifact","data":{"name":"README.md","path":"out/README.md"}}
+{"t":"2026-09-25T10:02:03.930Z","run":"handbook","agent":"scribe","type":"artifact","data":{"name":"README.diff","path":"out/README.diff"}}
+{"t":"2026-09-25T10:02:04.430Z","run":"handbook","agent":"scribe","type":"artifact","data":{"name":"FIRSTRUN.md","path":"out/FIRSTRUN.md"}}
+{"t":"2026-09-25T10:02:04.730Z","run":"handbook","agent":"scribe","type":"artifact","data":{"name":"passport.json","path":"out/passport.json"}}
+{"t":"2026-09-25T10:02:04.810Z","run":"handbook","agent":"scribe","type":"artifact","data":{"name":"passport.svg","path":"out/passport.svg"}}
+{"t":"2026-09-25T10:02:05.210Z","run":"handbook","agent":"scribe","type":"passport","data":{"repo":"pinecrest/handbook","commit":"0d92025b50721febc8d54b367b19486325efa123","verifiedAt":"2026-09-25T10:02:05.680Z","verdict":"VERIFIED","image":"node:20-bookworm","runtime":"node 20.17.0","stepsTotal":3,"stepsFromReadme":3,"breaksFound":0,"breaksFixed":0,"needsHuman":0,"replaySeconds":61,"bobcoins":0}}
+{"t":"2026-09-25T10:02:05.310Z","run":"handbook","agent":"scribe","type":"phase","data":{"phase":"done"}}
+{"t":"2026-09-25T10:02:05.330Z","run":"handbook","agent":"scribe","type":"done","data":{"verdict":"VERIFIED"}}

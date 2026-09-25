@@ -1,0 +1,130 @@
+{
+  "id": "telemetry-ui",
+  "repo": "orbit-dev/telemetry-ui",
+  "commit": "deaa51b9a5227741244254dbc79bdbfccf27792e",
+  "startedAt": "2026-09-25T10:00:05.000Z",
+  "phase": "done",
+  "plan": {
+    "repo": "orbit-dev/telemetry-ui",
+    "commit": "deaa51b9a5227741244254dbc79bdbfccf27792e",
+    "image": "node:20-bookworm",
+    "runtime": {
+      "name": "node",
+      "version": "20",
+      "source": ".nvmrc"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/orbit-dev/telemetry-ui.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 13,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "skip": "git clone: repository already mounted at /work"
+      },
+      {
+        "id": "R1",
+        "command": "corepack enable",
+        "kind": "prereq",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "repair"
+      },
+      {
+        "id": "S2",
+        "command": "pnpm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S3",
+        "command": "pnpm dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 15,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 5173,
+          "readyPattern": "ready in"
+        }
+      },
+      {
+        "id": "S4",
+        "command": "pnpm test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 16,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://localhost:5173/"
+    }
+  },
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S3": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S4": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "finishedAt": "2026-09-25T10:01:48.340Z",
+  "replay": {
+    "status": "passed",
+    "durationMs": 51160
+  },
+  "passport": {
+    "repo": "orbit-dev/telemetry-ui",
+    "commit": "deaa51b9a5227741244254dbc79bdbfccf27792e",
+    "verifiedAt": "2026-09-25T10:01:48.690Z",
+    "verdict": "VERIFIED",
+    "image": "node:20-bookworm",
+    "runtime": "node 20.17.0",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 1,
+    "breaksFixed": 1,
+    "needsHuman": 0,
+    "replaySeconds": 51,
+    "bobcoins": 0
+  }
+}

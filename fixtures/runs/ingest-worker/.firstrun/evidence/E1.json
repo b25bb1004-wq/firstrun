@@ -1,0 +1,44 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "poetry install",
+    "exitCode": 127,
+    "durationMs": 40,
+    "logTail": "sh: 1: poetry: not found",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "Poetry is not installed in a clean Python image and the README does not say how to get it.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "sh.command-not-found"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "pip install poetry==1.8.3",
+        "kind": "prereq"
+      }
+    ],
+    "doc": {
+      "kind": "insert-step",
+      "text": "pip install poetry==1.8.3"
+    }
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 2,
+    "command": "poetry install",
+    "exitCode": 0,
+    "durationMs": 26000,
+    "logTail": "Installing dependencies from lock file\nPackage operations: 38 installs, 0 updates, 0 removals\n  - Installing kafka-python (2.0.2)\n  - Installing pyarrow (16.1.0)\n  - Installing boto3 (1.34.113)\nInstalling the current project: ingest-worker (0.4.0)",
+    "logFile": "logs/S1-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:01:01.210Z"
+}

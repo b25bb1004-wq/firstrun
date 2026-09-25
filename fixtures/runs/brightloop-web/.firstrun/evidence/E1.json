@@ -1,0 +1,43 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "brew install imagemagick",
+    "exitCode": 127,
+    "durationMs": 40,
+    "logTail": "sh: 1: brew: not found",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "platform-specific",
+    "cause": "Homebrew is macOS-only; the Linux equivalent is the Debian imagemagick package.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "os.brew-on-linux"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "apt-get update && apt-get install -y imagemagick"
+      }
+    ],
+    "doc": {
+      "kind": "note",
+      "text": "Debian/Ubuntu: sudo apt-get install imagemagick"
+    }
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 2,
+    "command": "apt-get update && apt-get install -y imagemagick",
+    "exitCode": 0,
+    "durationMs": 16800,
+    "logTail": "Setting up imagemagick (8:6.9.11.60+dfsg-1.6) ...",
+    "logFile": "logs/S1-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:00:37.010Z"
+}

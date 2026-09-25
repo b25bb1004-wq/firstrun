@@ -1,0 +1,72 @@
+{
+  "repo": "kestrel-io/kestrel-cli",
+  "commit": "e9f6165b7090305e37b3e9375de42b60ed28fad6",
+  "image": "golang:1.22-bookworm",
+  "runtime": {
+    "name": "other",
+    "version": "go 1.22",
+    "source": "go.mod"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "go mod download",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 12,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "R1",
+      "command": "go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 13,
+        "section": "Getting started"
+      },
+      "origin": "repair"
+    },
+    {
+      "id": "S2",
+      "command": "make lint",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 13,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S3",
+      "command": "make build",
+      "kind": "build",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S4",
+      "command": "./bin/kestrel --version",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 15,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    }
+  ],
+  "conflicts": [],
+  "verify": {
+    "kind": "command",
+    "target": "./bin/kestrel --version"
+  }
+}

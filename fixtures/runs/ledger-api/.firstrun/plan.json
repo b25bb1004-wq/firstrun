@@ -1,0 +1,94 @@
+{
+  "repo": "northwind/ledger-api",
+  "commit": "8bc11e9c96a1cca44253510ae67d80e1e91d278f",
+  "image": "python:3.11-slim-bookworm",
+  "runtime": {
+    "name": "python",
+    "version": "3.9",
+    "source": "README.md#Prerequisites"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "python3 -m venv .venv && . .venv/bin/activate",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 12,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S2",
+      "command": "pip install -e .",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 13,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S3",
+      "command": "pip install -r requirements-dev.txt",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S4",
+      "command": "alembic upgrade head",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 15,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S5",
+      "command": "uvicorn ledger.main:app --port 8000",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 16,
+        "section": "Getting started"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 8000,
+        "readyPattern": "Application startup complete"
+      }
+    },
+    {
+      "id": "S6",
+      "command": "pytest -q",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 17,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "Python 3.9+",
+      "truth": ">=3.11",
+      "source": "pyproject.toml requires-python"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://localhost:8000/healthz"
+  }
+}

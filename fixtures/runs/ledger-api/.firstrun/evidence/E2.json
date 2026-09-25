@@ -1,0 +1,43 @@
+{
+  "id": "E2",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "pip install -r requirements-dev.txt",
+    "exitCode": 1,
+    "durationMs": 7600,
+    "logTail": "Collecting psycopg2==2.9.9\n  Downloading psycopg2-2.9.9.tar.gz (384 kB)\n  Preparing metadata (setup.py) ... error\n  error: subprocess-exited-with-error\n  Error: pg_config executable not found.\n  pg_config is required to build psycopg2 from source.",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-dependency",
+    "cause": "psycopg2 builds from source and needs pg_config from the libpq headers.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "pip.pg_config"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "apt-get update && apt-get install -y libpq-dev gcc"
+      }
+    ],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "libpq headers (Debian/Ubuntu: sudo apt-get install libpq-dev)"
+    }
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "pip install -r requirements-dev.txt",
+    "exitCode": 0,
+    "durationMs": 19000,
+    "logTail": "Collecting psycopg2==2.9.9\nCollecting pytest==8.2.0\nCollecting httpx==0.27.0\n  Downloading psycopg2-*.whl\n  Downloading pytest-*.whl\n  Downloading httpx-*.whl\nSuccessfully installed psycopg2-2.9.9 pytest-8.2.0 httpx-0.27.0",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:01:28.420Z"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "pip install -e .",
+    "exitCode": 1,
+    "durationMs": 4100,
+    "logTail": "Obtaining file:///work\n  Installing build dependencies ... done\nERROR: Package 'ledger-api' requires a different Python: 3.9.19 not in '>=3.11'",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "pyproject.toml requires Python >=3.11 but the README asks for 3.9+.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "pip.requires-python"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "python:3.11-slim-bookworm"
+      }
+    ],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Python 3.11+ (pyproject.toml requires >=3.11)"
+    }
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "pip install -e .",
+    "exitCode": 0,
+    "durationMs": 28000,
+    "logTail": "[firstrun] sandbox rebased onto python:3.11-slim-bookworm\nCollecting fastapi==0.111.0\nCollecting sqlalchemy==2.0.30\nCollecting alembic==1.13.1\nCollecting pydantic==2.7.1\nCollecting uvicorn==0.29.0\n  Downloading fastapi-*.whl\n  Downloading sqlalchemy-*.whl\n  Downloading alembic-*.whl\n  Downloading pydantic-*.whl\n  Downloading uvicorn-*.whl\nSuccessfully installed fastapi-0.111.0 sqlalchemy-2.0.30 alembic-1.13.1 pydantic-2.7.1 uvicorn-0.29.0",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:00:59.820Z"
+}

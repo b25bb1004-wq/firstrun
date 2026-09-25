@@ -1,0 +1,15 @@
+{
+  "repo": "orbit-dev/telemetry-ui",
+  "commit": "deaa51b9a5227741244254dbc79bdbfccf27792e",
+  "verifiedAt": "2026-09-25T10:01:48.690Z",
+  "verdict": "VERIFIED",
+  "image": "node:20-bookworm",
+  "runtime": "node 20.17.0",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 0,
+  "replaySeconds": 51,
+  "bobcoins": 0
+}

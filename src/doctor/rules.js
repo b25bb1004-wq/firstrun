@@ -267,6 +267,7 @@ export const RULES = [
       const cause = missing.length
         ? `The app requires ${shown} at startup, but the docs never mention ${list.length > 1 ? 'them' : 'it'}${envFile ? ` and ${envFile} is missing ${missing.length === list.length ? (list.length > 1 ? 'them' : 'it') : missing.join(', ')}` : ''}.`
         : `The app requires ${shown} from ${envFile}, but the docs never say to create .env from it.`;
+      if (doc && copyStep && doc.kind === 'note') doc.stepId = copyStep.id;
       return {
         ruleId: 'missing-env-var', class: kinds.every((k) => k === 'secret') && kinds.length ? 'needs-secret' : 'missing-env', confidence: 0.9,
         cause, fix: { actions, patches, doc },
@@ -306,6 +307,7 @@ export const RULES = [
         doc = { kind: 'insert-step', text: line, service: kind };
         actions.push({ type: 'insert-before', command: line, kind: 'services', silent: true });
       }
+      if (doc && composeStep && doc.kind === 'note') doc.stepId = composeStep.id;
       return {
         ruleId: 'missing-service', class: 'missing-service', confidence: 0.92,
         cause: `The app connects to ${label(kind)} on localhost:${port}, but the docs never start it${facts.compose && !def.fromCompose ? ` and ${facts.compose.file} doesn't define it` : ''}.`,

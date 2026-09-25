@@ -1,0 +1,15 @@
+{
+  "repo": "fernwood/ml-notebooks",
+  "commit": "3eba93bff7409ab4baae1d0f7f94927e96f70b41",
+  "verifiedAt": "2026-09-25T10:03:07.680Z",
+  "verdict": "VERIFIED",
+  "image": "python:3.11-slim-bookworm",
+  "runtime": "python 3.11.9",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 87,
+  "bobcoins": 0
+}

@@ -1,0 +1,11 @@
+--- a/README.md
++++ b/README.md
+@@ -14,6 +14,8 @@
+ npm start
+ ```
+ 
++> Needs a human: Pin Node 16 (last version with a mapnik prebuilt) or build Mapnik 3.1 from source; a maintainer should choose.
++
+ ## License
+ 
+ MIT

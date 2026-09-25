@@ -1,0 +1,93 @@
+{
+  "id": "ml-notebooks",
+  "repo": "fernwood/ml-notebooks",
+  "commit": "3eba93bff7409ab4baae1d0f7f94927e96f70b41",
+  "startedAt": "2026-09-25T10:00:14.000Z",
+  "phase": "done",
+  "plan": {
+    "repo": "fernwood/ml-notebooks",
+    "commit": "3eba93bff7409ab4baae1d0f7f94927e96f70b41",
+    "image": "python:3.11-slim-bookworm",
+    "runtime": {
+      "name": "python",
+      "version": "3.11",
+      "source": "README.md#Prerequisites"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "python -m venv .venv && . .venv/bin/activate",
+        "kind": "prereq",
+        "source": {
+          "file": "README.md",
+          "line": 12,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S2",
+        "command": "pip install -r requirements.txt",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 13,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      },
+      {
+        "id": "S3",
+        "command": "python -m nbconvert --execute --to notebook notebooks/01-quickstart.ipynb",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 14,
+          "section": "Getting started"
+        },
+        "origin": "readme"
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "exit",
+      "target": "python -m nbconvert --execute"
+    }
+  },
+  "steps": {
+    "S1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S3": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [],
+  "bobcoins": 0,
+  "finishedAt": "2026-09-25T10:03:07.330Z",
+  "replay": {
+    "status": "passed",
+    "durationMs": 87160
+  },
+  "passport": {
+    "repo": "fernwood/ml-notebooks",
+    "commit": "3eba93bff7409ab4baae1d0f7f94927e96f70b41",
+    "verifiedAt": "2026-09-25T10:03:07.680Z",
+    "verdict": "VERIFIED",
+    "image": "python:3.11-slim-bookworm",
+    "runtime": "python 3.11.9",
+    "stepsTotal": 3,
+    "stepsFromReadme": 3,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 0,
+    "replaySeconds": 87,
+    "bobcoins": 0
+  }
+}

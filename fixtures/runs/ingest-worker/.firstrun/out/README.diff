@@ -1,0 +1,27 @@
+--- a/README.md
++++ b/README.md
+@@ -2,6 +2,8 @@
+ 
+ Kafka consumer that lands events in S3 as Parquet.
+ 
++> Setup verified by FirstRun at `e91cd76` in `python:3.12-slim-bookworm`: clone to running in 1m05s.
++
+ ## Prerequisites
+ 
+ - Python 3.12
+@@ -11,12 +13,15 @@
+ ## Getting started
+ 
+ ```bash
++pip install poetry==1.8.3
+ poetry install
+ docker compose up -d kafka
+ poetry run python -m ingest.worker --once
+ poetry run pytest -m "not integration"
+ ```
+ 
++> Needs a human: Export AWS credentials with write access to the ingest bucket, or point S3_ENDPOINT at LocalStack.
++
+ ## License
+ 
+ MIT

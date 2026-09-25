@@ -1,0 +1,31 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -119,6 +119,8 @@ A boilerplate for [Node.js](https://nodejs.org/en) App.
+ 
+ # Install, Configure & Run
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `node:22` machine at `6b9bb70e23`.
++
+ Below mentioned are the steps to install, configure & run in your platform/distributions.
+ 
+ ```bash
+@@ -137,7 +139,7 @@ cd nodets;
+ # Install NPM dependencies.
+ # Note: You can review the list of dependencies from the below link.
+ # https://github.com/faizahmedfarooqui/nodets/network/dependencies
+-npm install;
++npm install --legacy-peer-deps
+ 
+ # Edit your DotEnv file using any editor of your choice.
+ # Please Note: You should add all the configurations details
+@@ -145,7 +147,9 @@ npm install;
+ vim .env;
+ 
+ # Run the app
++npm install
+ npm run dev;
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ```bash

@@ -1,0 +1,44 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "make lint",
+    "exitCode": 2,
+    "durationMs": 300,
+    "logTail": "golangci-lint run ./...\nmake: golangci-lint: No such file or directory\nmake: *** [Makefile:14: lint] Error 127",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "The lint target calls golangci-lint, which is not in a clean Go image and is not listed as a prerequisite.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "make.error-127"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1",
+        "kind": "prereq"
+      }
+    ],
+    "doc": {
+      "kind": "insert-step",
+      "text": "go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1"
+    }
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "make lint",
+    "exitCode": 0,
+    "durationMs": 23800,
+    "logTail": "golangci-lint run ./...\n0 issues.",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:01:34.220Z"
+}

@@ -1,0 +1,24 @@
+# kestrel
+
+A fast log shipper for the command line.
+
+> Setup verified by FirstRun at `e9f6165` in `golang:1.22-bookworm`: clone to running in 1m40s.
+
+## Prerequisites
+
+- Go 1.22
+- golangci-lint v1.59 (installed by the setup steps below)
+
+## Getting started
+
+```bash
+go mod download
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
+make lint
+make build
+./bin/kestrel --version
+```
+
+## License
+
+MIT

@@ -1,0 +1,79 @@
+{
+  "repo": "harbor-labs/ingest-worker",
+  "commit": "e91cd769e6f9d6983455dfd3bb5a9ecabcfad663",
+  "image": "python:3.12-slim-bookworm",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "pyproject.toml"
+  },
+  "steps": [
+    {
+      "id": "R1",
+      "command": "pip install poetry==1.8.3",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "repair"
+    },
+    {
+      "id": "S1",
+      "command": "poetry install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 14,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S2",
+      "command": "docker compose up -d kafka",
+      "kind": "services",
+      "source": {
+        "file": "README.md",
+        "line": 15,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S3",
+      "command": "poetry run python -m ingest.worker --once",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 16,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    },
+    {
+      "id": "S4",
+      "command": "poetry run pytest -m \"not integration\"",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 17,
+        "section": "Getting started"
+      },
+      "origin": "readme"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Storage",
+      "docs": "not mentioned",
+      "truth": "S3 bucket via AWS credentials",
+      "source": "ingest/sink.py"
+    }
+  ],
+  "verify": {
+    "kind": "command",
+    "target": "poetry run python -m ingest.worker --once"
+  }
+}

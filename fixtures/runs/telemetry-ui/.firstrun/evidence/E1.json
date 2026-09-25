@@ -1,0 +1,44 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "pnpm install",
+    "exitCode": 127,
+    "durationMs": 60,
+    "logTail": "sh: 1: pnpm: not found",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "pnpm is not installed in a clean Node image; package.json pins pnpm@9.1.0 via Corepack.",
+    "by": "rules",
+    "confidence": 0.97,
+    "ruleId": "sh.command-not-found"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "corepack enable",
+        "kind": "prereq"
+      }
+    ],
+    "doc": {
+      "kind": "insert-step",
+      "text": "corepack enable"
+    }
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "pnpm install",
+    "exitCode": 0,
+    "durationMs": 21000,
+    "logTail": "Lockfile is up to date, resolution step is skipped\nProgress: resolved 702, reused 0, downloaded 702, added 702, done\n\ndependencies:\n+ react 18.3.1\n+ uplot 1.6.30\n\nDone in 17.9s",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:00:40.330Z"
+}

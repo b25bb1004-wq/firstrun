@@ -1,0 +1,15 @@
+{
+  "repo": "kestrel-io/kestrel-cli",
+  "commit": "e9f6165b7090305e37b3e9375de42b60ed28fad6",
+  "verifiedAt": "2026-09-25T10:03:28.660Z",
+  "verdict": "VERIFIED",
+  "image": "golang:1.22-bookworm",
+  "runtime": "go 1.22.5",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 0,
+  "replaySeconds": 100,
+  "bobcoins": 0
+}

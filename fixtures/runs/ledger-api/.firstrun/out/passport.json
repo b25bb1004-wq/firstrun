@@ -1,0 +1,15 @@
+{
+  "repo": "northwind/ledger-api",
+  "commit": "8bc11e9c96a1cca44253510ae67d80e1e91d278f",
+  "verifiedAt": "2026-09-25T10:03:20.190Z",
+  "verdict": "VERIFIED",
+  "image": "python:3.11-slim-bookworm",
+  "runtime": "python 3.11.9",
+  "stepsTotal": 6,
+  "stepsFromReadme": 6,
+  "breaksFound": 2,
+  "breaksFixed": 2,
+  "needsHuman": 0,
+  "replaySeconds": 87,
+  "bobcoins": 0
+}

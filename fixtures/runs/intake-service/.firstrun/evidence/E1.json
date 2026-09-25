@@ -1,0 +1,44 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "flask --app intake db upgrade",
+    "exitCode": 1,
+    "durationMs": 1900,
+    "logTail": "Traceback (most recent call last):\n  File \"/work/intake/settings.py\", line 19, in <module>\n    CIPHER = Fernet(os.environ[\"INTAKE_SIGNING_KEY\"])\nValueError: Fernet key must be 32 url-safe base64-encoded bytes.",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "intake/settings.py builds a Fernet cipher from INTAKE_SIGNING_KEY, which must be a urlsafe base64 32-byte key; the example leaves it blank.",
+    "by": "bob",
+    "confidence": 0.82,
+    "bobcoins": 0.3
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "echo \"INTAKE_SIGNING_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')\" >> .env",
+        "kind": "env"
+      }
+    ],
+    "doc": {
+      "kind": "insert-step",
+      "text": "Generate INTAKE_SIGNING_KEY with cryptography.fernet"
+    }
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "flask --app intake db upgrade",
+    "exitCode": 0,
+    "durationMs": 2600,
+    "logTail": "INFO  [alembic.runtime.migration] Running upgrade  -> 0001, intake forms",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T10:00:54.730Z"
+}

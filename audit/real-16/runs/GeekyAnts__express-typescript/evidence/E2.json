@@ -1,0 +1,46 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 2923,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\nsh: 1: nodemon: not found\n\u001bc10:13:48 PM - Starting compilation in watch mode...\n\n\n[firstrun] server process exited before becoming ready on port 4040",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "Dependencies were never installed before \"npm run dev\"; the docs skip `npm install`.",
+    "by": "rules",
+    "ruleId": "deps-not-installed",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "npm install",
+        "kind": "install"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "npm install"
+    },
+    "log": "$ npm install → exit 1"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 2851,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\nsh: 1: nodemon: not found\n\u001bc10:13:52 PM - Starting compilation in watch mode...\n\n\n[firstrun] server process exited before becoming ready on port 4040",
+    "logFile": "logs/S5-2.log"
+  },
+  "status": "failed",
+  "at": "2026-09-24T22:13:54.841Z"
+}

@@ -1,0 +1,15 @@
+{
+  "repo": "lumen-health/intake-service",
+  "commit": "aaf1875dd97b579f2edc4a815c741063ab393dd9",
+  "verifiedAt": "2026-09-25T10:01:58.540Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.11-slim-bookworm",
+  "runtime": "python 3.11.9",
+  "stepsTotal": 6,
+  "stepsFromReadme": 5,
+  "breaksFound": 2,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "replaySeconds": 45,
+  "bobcoins": 0.3
+}

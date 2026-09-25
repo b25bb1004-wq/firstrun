@@ -1,0 +1,44 @@
+{
+  "id": "E4",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "npm run seed",
+    "exitCode": 1,
+    "durationMs": 3100,
+    "logTail": "\n> acme-shop@2.4.0 seed\n> tsx scripts/seed.ts\n\n/work/node_modules/zod/lib/types.js:43\n      const error = new ZodError(ctx.common.issues);\n                    ^\n\nZodError: [\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 32,\n    \"type\": \"string\",\n    \"inclusive\": true,\n    \"message\": \"String must contain at least 32 character(s)\",\n    \"path\": [\n      \"SESSION_SECRET\"\n    ]\n  }\n]\n    at get error [as error] (/work/node_modules/zod/lib/types.js:43:31)\n    at ZodObject.parse (/work/node_modules/zod/lib/types.js:166:22)\n    at <anonymous> (/work/src/config/env.ts:28:27)\n\nNode.js v20.11.1",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "src/config/env.ts requires SESSION_SECRET of at least 32 characters, but .env.example leaves it empty and the README never mentions it.",
+    "by": "bob",
+    "confidence": 0.86,
+    "bobcoins": 0.4
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "echo \"SESSION_SECRET=$(openssl rand -hex 32)\" >> .env",
+        "kind": "env"
+      }
+    ],
+    "doc": {
+      "kind": "insert-step",
+      "text": "echo \"SESSION_SECRET=$(openssl rand -hex 32)\" >> .env"
+    }
+  },
+  "after": {
+    "stepId": "S6",
+    "n": 2,
+    "command": "npm run seed",
+    "exitCode": 0,
+    "durationMs": 6400,
+    "logTail": "\n> acme-shop@2.4.0 seed\n> tsx scripts/seed.ts\n\n[seed] connected to postgres://acme@localhost:5432/acme\n[seed] users: 3\n[seed] products: 48\n[seed] orders: 12\n[seed] done in 1.9s",
+    "logFile": "logs/S6-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T09:13:47.850Z"
+}
