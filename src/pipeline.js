@@ -15,7 +15,7 @@ const MAX_REPAIRS_PER_STEP = 3;
 const MAX_REBASES = 3;
 
 /** Does the error a fix targeted still occur after the fix? */
-async function stillFailing(diagnosis, before, after, ctx) {
+export async function stillFailing(diagnosis, before, after, ctx) {
   if (diagnosis.ruleId) {
     const rule = RULES.find((r) => r.id === diagnosis.ruleId);
     if (rule) {
@@ -25,8 +25,12 @@ async function stillFailing(diagnosis, before, after, ctx) {
       } catch { return true; }
     }
   }
-  const sig = tail(before.out, 40).split('\n').reverse().find((l) => /error|ERR!|refused|not found|missing|cannot|No such|Traceback|exception/i.test(l));
-  return sig ? after.out.includes(sig.trim()) : true;
+  const sig = tail(before.out, 40).split('\n').reverse().find((l) => /error|ERR!|refused|not found|missing|cannot|No such|Traceback|exception|fatal:|failed|already exists|denied/i.test(l));
+  if (sig) return after.out.includes(sig.trim());
+  // No recognisable error line: judge by the last line of output. A different ending means the
+  // fix changed the failure (progress), so it shouldn't use up the step's repair budget.
+  const last = (out) => (out || '').split('\n').map((l) => l.trim()).filter(Boolean).pop() || '';
+  return last(before.out) === last(after.out);
 }
 
 export function makeBudget(total = 4, perCall = 1.5) {
