@@ -159,10 +159,13 @@ export function buildPlan(facts, { repo, commit } = {}) {
       chosen = shellBlocks.filter((b) => !sectionPath(md.sections, b.start).some(excludedHeading));
     }
     const before = steps.filter((s) => !s.skip).length;
+    // A section that scaffolds a new app for users is skipped as a whole: express splits its quick start
+    // over several blocks (`npm install -g express-generator`, then `express /tmp/foo`, `cd /tmp/foo`, …).
+    const isScaffold = (c) => { const t = c.text.trim().replace(/^sudo\s+/, ''); return SCAFFOLDER_RE.test(t) || NPM_INIT_SCAFFOLDER_RE.test(t); };
+    const scaffoldSections = new Set(chosen.filter((b) => blockCommands(b).some(isScaffold)).map((b) => sectionPath(md.sections, b.start).join(' › ')));
     for (const b of chosen) {
       const cmds = blockCommands(b);
-      // A block that scaffolds a new app for users should be skipped entirely.
-      if (cmds.some((c) => { const t = c.text.trim().replace(/^sudo\s+/, ''); return SCAFFOLDER_RE.test(t) || NPM_INIT_SCAFFOLDER_RE.test(t); })) {
+      if (scaffoldSections.has(sectionPath(md.sections, b.start).join(' › '))) {
         for (const c of cmds) {
           for (const rawPart of splitAnd(c.text)) {
             steps.push({ id: '', command: rawPart, kind: 'other', skip: 'scaffolds a new app for users; not this repo\'s setup', source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: sectionPath(md.sections, b.start).join(' › ') }, origin: 'readme' });
@@ -266,6 +269,10 @@ export function buildPlan(facts, { repo, commit } = {}) {
       steps.splice(lastInstall + 1, 0, { id: '', command: probeCmd, kind: 'test', probe: true, source: { ...steps[lastInstall].source }, origin: 'readme', synthetic: `checks that the installed \`${cli}\` command runs` });
     }
   }
+  // Skip installing the published package only when the docs also install this source (koa: `npm install`).
+  // When it's the only install they give (requests: `pip install requests`), that is the setup to test.
+  const SELF = 'installs the published package; you already have its source';
+  if (!steps.some((s) => !s.skip && s.kind === 'install')) for (const s of steps.filter((x) => x.skip === SELF)) { delete s.skip; s.kind = 'install'; }
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 
   // Runtime: what the docs tell a newcomer to install vs what the project really needs.
