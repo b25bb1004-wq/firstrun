@@ -111,3 +111,8 @@ test('apps that ship a CLI keep the setup steps that use it', async () => {
   const plan = buildPlan(await scout(root), { repo: 'x/acme' });
   assert.deepEqual(plan.steps.filter((s) => !s.skip).map((s) => s.command), ['npm install', 'acme migrate', 'npm start']);
 });
+
+test('prose output lines under a command are not run ("App is running ...")', () => {
+  const md = parseMarkdown('```bash\nnpm run dev\nApp is running ...\n\nPress CTRL + C to stop the process.\nPORT=4000 npm start\n```\n');
+  assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['npm run dev', 'PORT=4000 npm start']);
+});
