@@ -55,6 +55,27 @@ const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-
 /** The package that provides a CLI a script calls, when it isn't the CLI's own name. */
 const BIN_PACKAGE = { tsc: ['typescript'], nest: ['@nestjs/cli'], 'svelte-kit': ['@sveltejs/kit'], remix: ['@remix-run/dev'], playwright: ['playwright', '@playwright/test'] };
 
+/**
+ * Local connection URLs hard-coded as defaults in config source (`core/config.py`:
+ * WRITER_DB_URL = "mysql+aiomysql://fastapi:fastapi@localhost:3306/fastapi"), so a sidecar
+ * gets the credentials the app will actually use. Config-like files only, capped.
+ */
+function sourceUrls(facts) {
+  const out = {};
+  const files = (facts.files || [])
+    .filter((f) => /\.(py|[cm]?[jt]s|ya?ml|toml|ini|json)$/.test(f) && /(^|\/)(config|settings|database|db|env)[\w.-]*$|(^|\/)(config|settings)\//i.test(f) && !/node_modules|test/i.test(f))
+    .slice(0, 25);
+  for (const f of files) {
+    let text = '';
+    try { text = fs.readFileSync(path.join(facts.root, f), 'utf8').slice(0, 200_000); } catch { continue; }
+    for (const m of text.matchAll(/\b((?:postgres(?:ql)?|mysql|mariadb|mongodb|redis)(?:\+\w+)?:\/\/[^\s'"`@/]+@(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/[\w.-]*)?)/g)) {
+      const key = `SOURCE_DB_URL_${Object.keys(out).length + 1}`; // matches serviceFor's DB_URL lookup
+      if (!Object.values(out).includes(m[1])) out[key] = m[1];
+    }
+  }
+  return out;
+}
+
 function depRange(facts, name) {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, 'package.json'), 'utf8'));
@@ -406,7 +427,8 @@ export const RULES = [
       const kind = PORT_TO_SERVICE[port];
       if (!kind) return null;
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
-      const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv } });
+      // Env files win over defaults hard-coded in config source (listed last, so found last).
+      const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv, ...sourceUrls(facts) } });
       const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port }];
       if (socket) actions.push({ type: 'exec', command: `printf 'export PGHOST=127.0.0.1 PGUSER=%s PGPASSWORD=%s\\n' ${shq(def.env.POSTGRES_USER || 'postgres')} ${shq(def.env.POSTGRES_PASSWORD || 'postgres')} >> ~/.bashrc; export PGHOST=127.0.0.1 PGUSER=${def.env.POSTGRES_USER || 'postgres'} PGPASSWORD=${def.env.POSTGRES_PASSWORD || 'postgres'}` });
       const patches = [];
