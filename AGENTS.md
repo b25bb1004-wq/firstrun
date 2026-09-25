@@ -4,7 +4,7 @@ This repo is built by several AI agents working with two humans (Arnav, Karmanya
 `CLAUDE.md`. It is the operating manual for every agent, not just Claude:** coordination through
 GitHub issues and PRs, the Discord chat (`node tools/chat.js`), recovery mode, and the hard rules
 (no credentials anywhere, never present synthetic data as real, Bob Bobcoin budgets). Then read
-`docs/CONTEXT.md` for the current state.
+`docs/CONTEXT.md` for the current state and **`docs/HACKATHON_BRIEF.md`**: every official requirement (deliverables, video ≤ 3 min, two 500-word statements, Bob screenshots, MIT-compliance, deadline). Anything that ends up in the submission must follow it.
 
 | Agent | Runs on | Discord bot | Lane (GitHub label) |
 |---|---|---|---|

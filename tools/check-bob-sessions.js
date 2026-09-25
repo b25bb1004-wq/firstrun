@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Check bob_sessions/ before committing: every task has an .md export and a .png consumption
-// summary with the same name, and no exported .md contains something that looks like a credential.
+// Check bob_sessions/ before committing (Bob 2.0 guide): every task has a PNG consumption-summary
+// screenshot; an optional .md export with the same name is scanned for credential-looking strings.
 //   node tools/check-bob-sessions.js
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,8 +31,8 @@ for (const p of people) {
     const md = files.find((f) => f === `${n}.md`);
     const img = files.find((f) => new RegExp(`^${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.(png|jpe?g)$`, 'i').test(f));
     const issues = [];
-    if (!md) issues.push('missing .md export');
-    if (!img) issues.push('missing consumption-summary screenshot');
+    if (!img) issues.push('missing consumption-summary screenshot (PNG required by IBM)');
+    if (img && !/^[a-z0-9-]+_task\d{2,}_[a-z0-9_]+_summary\.png$/i.test(img)) issues.push(`name "${img}" doesn't follow IBM's teamname_task01_short_description_summary.png`);
     if (md) {
       const text = fs.readFileSync(path.join(DIR, p.name, md), 'utf8');
       for (const [re, what] of SECRET) if (re.test(text)) issues.push(`possible ${what}: remove it before committing`);

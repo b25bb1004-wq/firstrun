@@ -5,7 +5,7 @@ Four agents share this repo; who does what is in `AGENTS.md`.
 Two people, each with their own Claude Code, work on this repo during the IBM Bob 2.0 Hackathon
 (lablab.ai, 25 Sep 8:30 PM IST → **27 Sep 8:30 PM IST deadline**). Read this first, then
 **`docs/CONTEXT.md`** (living team context: state, decisions, log; update it after every merged PR or decision),
-`docs/WHY_FIRSTRUN.md` (problem, solution, rules, judging) and `README.md` (what exists).
+**`docs/HACKATHON_BRIEF.md`** (official requirements: read before any submission work), `docs/WHY_FIRSTRUN.md` (problem, solution, rules, judging) and `README.md` (what exists).
 
 ## Coordination protocol
 
