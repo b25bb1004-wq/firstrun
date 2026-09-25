@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FirstRun: your README, proven</title>
+<meta name="description" content="FirstRun follows your setup docs on a clean machine like a new hire, fixes what breaks, proves every fix, and hands you a README that works.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%230E1726'/%3E%3Cpath d='M9 11l6 5-6 5' stroke='%233DD68C' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M17 22h7' stroke='%23E4EAF3' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>try{var t=JSON.parse(localStorage.getItem('firstrun.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root, :root[data-theme="dark"] {
+  --ground:#0E1726; --ground-2:#0A111D; --panel:#132035; --panel-2:#192a43; --rule:#22354f; --rule-2:#2f4667;
+  --ink:#E6ECF5; --ink-2:#A3B4CB; --ink-3:#6D819D;
+  --pass:#3DD68C; --fail:#FF6167; --repair:#FFB224; --bob:#5E9EFF; --human:#D6A2FF;
+  --pass-t:rgba(61,214,140,.11); --fail-t:rgba(255,97,103,.11); --repair-t:rgba(255,178,36,.10); --bob-t:rgba(94,158,255,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --ground:#E8EDF3; --ground-2:#DDE4EC; --panel:#FFFFFF; --panel-2:#F2F5F9; --rule:#CBD4DF; --rule-2:#B3C0CF;
+  --ink:#0F1B2D; --ink-2:#44556C; --ink-3:#74849A;
+  --pass:#0B8F52; --fail:#D3313A; --repair:#A96400; --bob:#1F62D6; --human:#8A3FC8;
+  --pass-t:rgba(11,143,82,.10); --fail-t:rgba(211,49,58,.09); --repair-t:rgba(169,100,0,.10); --bob-t:rgba(31,98,214,.09);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.6 "IBM Plex Sans", system-ui, sans-serif; }
+a { color: inherit; }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .92em; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 600px) { .wrap { padding: 0 16px; } }
+
+.bar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.bar .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 600 18px "IBM Plex Sans Condensed", sans-serif; letter-spacing: .01em; }
+.brand svg { width: 26px; height: 26px; }
+.b-bg { fill: var(--panel-2); } .b-chev { stroke: var(--pass); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; } .b-cur { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.bar nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; }
+.bar nav a { text-decoration: none; color: var(--ink-2); }
+.bar nav a:hover { color: var(--ink); }
+.icon-btn { background: none; border: 1px solid var(--rule-2); color: var(--ink-2); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; display: grid; place-items: center; }
+@media (max-width: 640px) { .bar nav a.opt { display: none; } }
+
+.hero { padding: 72px 0 40px; }
+.eyebrow { font: 600 13px "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--pass); margin: 0 0 16px; }
+h1 { font: 700 clamp(40px, 7vw, 72px)/1.02 "IBM Plex Sans Condensed", sans-serif; letter-spacing: -.01em; margin: 0 0 20px; max-width: 14ch; }
+.lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--ink-2); max-width: 60ch; margin: 0 0 32px; }
+.stat { display: flex; gap: 28px; flex-wrap: wrap; margin: 0 0 40px; }
+.stat div { border-left: 3px solid var(--fail); padding-left: 14px; }
+.stat b { display: block; font: 700 34px/1.1 "IBM Plex Sans Condensed", sans-serif; }
+.stat span { color: var(--ink-2); font-size: 14px; }
+.stat div.ok { border-color: var(--pass); }
+
+.check { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 22px; }
+.check h2 { font: 600 20px "IBM Plex Sans Condensed", sans-serif; margin: 0 0 4px; }
+.check p.hint { color: var(--ink-3); margin: 0 0 14px; font-size: 14px; }
+.row { display: flex; gap: 10px; }
+.row input { flex: 1; min-width: 0; background: var(--ground-2); color: var(--ink); border: 1px solid var(--rule-2); border-radius: 10px; padding: 12px 14px; font: 15px "IBM Plex Mono", monospace; }
+.row input:focus { outline: 2px solid var(--bob); outline-offset: 1px; }
+.btn { background: var(--pass); color: #06210F; border: 0; border-radius: 10px; padding: 12px 18px; font: 600 15px "IBM Plex Sans", sans-serif; cursor: pointer; white-space: nowrap; }
+.btn[disabled] { opacity: .6; cursor: progress; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chips button { background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 12px; font: 13px "IBM Plex Mono", monospace; cursor: pointer; }
+.chips button:hover { color: var(--ink); border-color: var(--rule-2); }
+@media (max-width: 520px) { .row { flex-direction: column; } }
+
+#result { margin-top: 20px; }
+.err { color: var(--fail); background: var(--fail-t); border-radius: 10px; padding: 12px 14px; }
+.res-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 14px; }
+.res-head h3 { margin: 0; font: 600 19px "IBM Plex Sans Condensed", sans-serif; }
+.res-head .meta { color: var(--ink-3); font-size: 13px; }
+.sec-t { font: 600 12px "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 18px 0 8px; }
+.conf { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.conf li { background: var(--repair-t); border-left: 3px solid var(--repair); border-radius: 8px; padding: 10px 12px; }
+.conf .what { font-weight: 600; }
+.conf .src { color: var(--ink-3); font-size: 13px; }
+.none { background: var(--pass-t); border-left: 3px solid var(--pass); border-radius: 8px; padding: 10px 12px; }
+.steps { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.steps li { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--rule); align-items: baseline; }
+.steps li:first-child { border-top: 0; }
+.steps .id { color: var(--ink-3); font: 13px "IBM Plex Mono", monospace; }
+.steps .cmd { font: 14px "IBM Plex Mono", monospace; overflow-wrap: anywhere; }
+.steps .k { color: var(--ink-3); font-size: 12px; }
+.steps li.skip .cmd { color: var(--ink-3); text-decoration: line-through; }
+.steps li.skip .k { font-style: italic; }
+.next { margin-top: 18px; padding: 14px; border: 1px dashed var(--rule-2); border-radius: 10px; color: var(--ink-2); font-size: 15px; }
+.next code { background: var(--ground-2); padding: 2px 6px; border-radius: 6px; }
+
+section.band { padding: 64px 0; border-top: 1px solid var(--rule); }
+section.band h2 { font: 700 clamp(28px, 4vw, 40px)/1.1 "IBM Plex Sans Condensed", sans-serif; margin: 0 0 12px; }
+section.band > .wrap > p.sub { color: var(--ink-2); max-width: 64ch; margin: 0 0 28px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { display: block; background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; text-decoration: none; transition: border-color .15s; }
+a.card:hover { border-color: var(--rule-2); }
+.card h3 { margin: 0 0 6px; font: 600 19px "IBM Plex Sans Condensed", sans-serif; }
+.card p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.card .go { display: inline-block; margin-top: 12px; color: var(--pass); font-weight: 600; font-size: 14px; }
+.tag { display: inline-block; font: 600 11px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
+.tag.real { background: var(--pass-t); color: var(--pass); }
+.tag.demo { background: var(--bob-t); color: var(--bob); }
+
+.pipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; counter-reset: s; }
+.pipe div { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; counter-increment: s; }
+.pipe div::before { content: counter(s, decimal-leading-zero); font: 12px "IBM Plex Mono", monospace; color: var(--ink-3); }
+.pipe b { display: block; font: 600 18px "IBM Plex Sans Condensed", sans-serif; margin: 2px 0 4px; }
+.pipe span { color: var(--ink-2); font-size: 14px; }
+.pipe .d b { color: var(--repair); } .pipe .v b { color: var(--pass); }
+
+.ev { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 24px; }
+.ev div { border-radius: 12px; padding: 16px; }
+.ev .f { background: var(--fail-t); border-left: 3px solid var(--fail); }
+.ev .x { background: var(--repair-t); border-left: 3px solid var(--repair); }
+.ev .p { background: var(--pass-t); border-left: 3px solid var(--pass); }
+.ev b { display: block; margin-bottom: 4px; }
+.ev span { color: var(--ink-2); font-size: 14px; }
+
+.bob { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.bob .card { border-left: 3px solid var(--bob); }
+
+footer { border-top: 1px solid var(--rule); padding: 32px 0 48px; color: var(--ink-3); font-size: 14px; }
+footer p { margin: 0 0 8px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="FirstRun home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="6" class="b-bg"/><path d="M9 11l6 5-6 5" class="b-chev"/><path d="M17 22h7" class="b-cur"/></svg>
+      <span>FirstRun</span>
+    </a>
+    <nav>
+      <a href="#try">Try it</a>
+      <a href="#proof">Proof</a>
+      <a class="opt" href="#how">How it works</a>
+      <a class="opt" href="#bob">IBM Bob</a>
+    </nav>
+    <button class="icon-btn" id="theme" type="button" aria-label="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero" id="try">
+    <p class="eyebrow">Setup docs, verified from zero</p>
+    <h1>Your README, proven.</h1>
+    <p class="lede">FirstRun follows your setup docs on a clean machine exactly like a new hire would. It fixes every step that breaks, proves each fix by replaying from zero, and hands you a README that works.</p>
+
+    <div class="stat">
+      <div><b>12 of 14</b><span>popular READMEs broke when followed on a clean machine</span></div>
+      <div><b>72%</b><span>of eng leaders: new hires take 1+ month to ship 3 PRs (Cortex 2024)</span></div>
+      <div class="ok"><b>~45 s</b><span>to take a broken demo README to verified, with evidence</span></div>
+    </div>
+
+    <form class="check" id="form" autocomplete="off">
+      <h2>Check a README now</h2>
+      <p class="hint">Paste any public GitHub repo. FirstRun reads its docs next to its manifests, CI and code, and shows where they disagree. Takes about two seconds and runs nothing from the repo.</p>
+      <div class="row">
+        <input id="repo" name="repo" placeholder="owner/repo or https://github.com/owner/repo" aria-label="GitHub repository" spellcheck="false">
+        <button class="btn" id="go" type="submit">Check README</button>
+      </div>
+      <div class="chips" aria-label="Examples">
+        <button type="button" data-r="JKHeadley/rest-hapi">JKHeadley/rest-hapi</button>
+        <button type="button" data-r="GeekyAnts/express-typescript">GeekyAnts/express-typescript</button>
+        <button type="button" data-r="zhanymkanov/fastapi_production_template">zhanymkanov/fastapi_production_template</button>
+      </div>
+      <div id="result" aria-live="polite"></div>
+    </form>
+  </div>
+
+  <section class="band" id="proof">
+    <div class="wrap">
+      <h2>Don't take our word for it. Open the runs.</h2>
+      <p class="sub">Every run below is a real recording: each command FirstRun ran, its output, each repair, and the replay from zero. Click through to the evidence.</p>
+      <div class="cards">
+        <a class="card" href="/app/#/audit/real-16">
+          <span class="tag real">Real repos</span>
+          <h3>16 popular repos, one afternoon</h3>
+          <p>Public Node and Python projects pinned to exact commits, audited in parallel. 2 worked as written, 12 broke, 2 couldn't be followed to the end.</p>
+          <span class="go">Open the audit →</span>
+        </a>
+        <a class="card" href="/app/?replay=4#/run/acme-shop-3c0bc2b2">
+          <span class="tag demo">Demo repo</span>
+          <h3>acme-shop: 5 breaks → VERIFIED</h3>
+          <p>A Node + Postgres + Redis app whose README drifted in 5 realistic ways (we seeded them). Watch FirstRun find, fix and replay all five.</p>
+          <span class="go">Watch the replay →</span>
+        </a>
+        <a class="card" href="/app/#/">
+          <span class="tag real">Flight log</span>
+          <h3>Every run, every log</h3>
+          <p>The full dashboard: plans, failing output, evidence records, README diffs and Setup Passports.</p>
+          <span class="go">Open the dashboard →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how">
+    <div class="wrap">
+      <h2>Six agents, one newcomer's afternoon</h2>
+      <p class="sub">Deterministic rules handle the common breaks for free. IBM Bob handles what the rules don't recognise. Nothing counts as fixed until it passes on a brand-new machine.</p>
+      <div class="pipe">
+        <div><b>Scout</b><span>Reads docs next to manifests, lockfiles, compose, CI and the code that reads env vars.</span></div>
+        <div><b>Planner</b><span>Turns README prose into ordered steps and flags docs-vs-code conflicts.</span></div>
+        <div><b>Runner</b><span>Runs each step in a clean container with databases as sidecars.</span></div>
+        <div class="d"><b>Doctor</b><span>Diagnoses failures: rules first, IBM Bob for the long tail.</span></div>
+        <div class="v"><b>Verifier</b><span>Throws the machine away and replays the repaired guide from zero.</span></div>
+        <div><b>Scribe</b><span>Smallest README diff, Setup Passport, devcontainer, CI drift guard, PR.</span></div>
+      </div>
+      <div class="ev">
+        <div class="f"><b>1 · The failure</b><span>The exact command and its real output.</span></div>
+        <div class="x"><b>2 · The fix</b><span>What changed, and who diagnosed it: a named rule, or IBM Bob and the Bobcoins it cost.</span></div>
+        <div class="p"><b>3 · The pass</b><span>The same step passing, then again in the replay from zero.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="bob">
+    <div class="wrap">
+      <h2>Built on IBM Bob</h2>
+      <p class="sub">Bob is FirstRun's reasoning engine, its home inside the IDE, and the guide a newcomer talks to.</p>
+      <div class="bob">
+        <div class="card"><h3>🩺 Doctor, headless</h3><p>Bob Shell reads the repo and returns a structured fix. FirstRun refuses anything destructive, then proves the fix in the sandbox.</p></div>
+        <div class="card"><h3>🚀 FirstRun mode + MCP</h3><p>Plan, verify and inspect evidence from inside Bob IDE through FirstRun's MCP tools.</p></div>
+        <div class="card"><h3>🧭 Guide mode</h3><p>Ships into every verified repo and walks newcomers through steps that are known to work, with the fixes for errors already seen.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>Honest limits.</b> The hosted check reads public repositories and runs nothing. Full verification needs Docker and runs locally or in CI (<code>firstrun verify &lt;repo&gt;</code>). Linux containers only. Setups that need real cloud credentials end as "needs a human", never invented values.</p>
+    <p>Built for the IBM Bob 2.0 Hackathon on lablab.ai, September 2026.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('theme');
+  btn.addEventListener('click', function () {
+    var t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = t;
+    try { localStorage.setItem('firstrun.theme', JSON.stringify(t)); } catch (e) {}
+  });
+
+  var form = document.getElementById('form'), input = document.getElementById('repo'), go = document.getElementById('go'), out = document.getElementById('result');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  function render(r) {
+    var p = r.plan, f = r.facts;
+    var run = p.steps.filter(function (s) { return !s.skip; });
+    var html = '<div class="res-head"><h3><a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.repo) + '</a> <span class="mono meta">@ ' + esc(r.commit) + '</span></h3>' +
+      '<span class="meta">' + esc(f.stack || 'unknown stack') + ' · docs read: ' + esc((p.docsUsed && p.docsUsed.length ? p.docsUsed : f.docs).join(', ') || 'none found') + ' · ' + (r.downloadMs + r.analyzeMs) + ' ms</span></div>';
+
+    html += '<div class="sec-t">Where the docs and the code disagree</div>';
+    if (p.conflicts.length) {
+      html += '<ul class="conf">' + p.conflicts.map(function (c) {
+        return '<li><div class="what">' + esc(c.what) + '</div><div>Docs say <b>' + esc(c.docs) + '</b>, code says <b>' + esc(c.truth) + '</b></div><div class="src mono">' + esc(c.source) + '</div></li>';
+      }).join('') + '</ul>';
+    } else {
+      html += '<div class="none">No conflicts found statically. The full check runs every step to prove it.</div>';
+    }
+
+    html += '<div class="sec-t">What a newcomer would run (' + run.length + ' steps on ' + esc(p.image) + ')</div>';
+    if (p.steps.length) {
+      html += '<ol class="steps">' + p.steps.map(function (s) {
+        var src = s.source ? s.source.file + (s.source.line ? ':' + s.source.line : '') : '';
+        return '<li class="' + (s.skip ? 'skip' : '') + '"><span class="id">' + esc(s.id) + '</span><span class="cmd">' + esc(s.command) + '</span><span class="k">' + esc(s.skip ? 'skipped: ' + s.skip : s.kind + (src ? ' · ' + src : '')) + '</span></li>';
+      }).join('') + '</ol>';
+    } else {
+      html += '<div class="none">No setup commands found in the docs. That is a finding too: a newcomer has nothing to follow.</div>';
+    }
+    if (p.verify) html += '<p class="meta" style="color:var(--ink-3);font-size:13px;margin:8px 0 0">Done when: ' + esc(p.verify.kind === 'http' ? 'GET ' + p.verify.target : p.verify.target) + '</p>';
+
+    html += '<div class="next">This was the two-second static read. To <b>prove</b> it, FirstRun runs every step in a clean container, repairs what breaks with evidence, and replays from zero: <code>firstrun verify ' + esc(r.url) + '</code>. <a href="/app/?replay=4#/run/acme-shop-3c0bc2b2">See what a full run looks like →</a></div>';
+    out.innerHTML = html;
+  }
+
+  async function check(repo) {
+    if (!repo.trim()) { input.focus(); return; }
+    go.disabled = true; go.textContent = 'Reading…';
+    out.innerHTML = '<p style="color:var(--ink-3);margin:0">Downloading ' + esc(repo) + ' and reading its docs, manifests, CI and code…</p>';
+    try {
+      var res = await fetch('/api/check?repo=' + encodeURIComponent(repo.trim()));
+      var data = await res.json().catch(function () { return { error: 'The check failed (' + res.status + ').' }; });
+      if (!res.ok) throw new Error(data.error || ('The check failed (' + res.status + ').'));
+      render(data);
+      try { history.replaceState(null, '', '?repo=' + encodeURIComponent(repo.trim()) + '#try'); } catch (e) {}
+    } catch (e) {
+      out.innerHTML = '<div class="err">' + esc(e.message) + '</div>';
+    } finally {
+      go.disabled = false; go.textContent = 'Check README';
+    }
+  }
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); check(input.value); });
+  document.querySelectorAll('.chips button').forEach(function (b) {
+    b.addEventListener('click', function () { input.value = b.dataset.r; check(b.dataset.r); });
+  });
+  var q = new URLSearchParams(location.search).get('repo');
+  if (q) { input.value = q; check(q); }
+})();
+</script>
+</body>
+</html>

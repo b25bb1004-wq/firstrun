@@ -1,0 +1,16 @@
+{
+  "name": "rest-api-nodejs-mongodb",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "cp .env.example .env && App is running ... && Press CTRL + C to stop the process.",
+  "forwardPorts": [
+    3000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

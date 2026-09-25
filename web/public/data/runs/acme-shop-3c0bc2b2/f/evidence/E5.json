@@ -1,0 +1,59 @@
+{
+  "id": "E5",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 9444,
+    "logTail": "\n> acme-shop@1.4.0 dev\n> node --watch src/server.js\n\nFailed to start acme-shop: ReconnectStrategyError: connect ECONNREFUSED 127.0.0.1:6379\n    at RedisSocket._RedisSocket_shouldReconnect (/workspace/node_modules/@redis/client/dist/lib/client/socket.js:140:16)\n    at RedisSocket._RedisSocket_connect (/workspace/node_modules/@redis/client/dist/lib/client/socket.js:162:117)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Commander.connect (/workspace/node_modules/@redis/client/dist/lib/client/index.js:185:9)\n    at async Object.connect (/workspace/src/cache.js:20:23)\n    at async main (/workspace/src/server.js:10:3) {\n  originalError: Error: connect ECONNREFUSED 127.0.0.1:6379\n      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {\n    errno: -111,\n    code: 'ECONNREFUSED',\n    syscall: 'connect',\n    address: '127.0.0.1',\n    port: 6379\n  },\n  socketError: Error: connect ECONNREFUSED 127.0.0.1:6379\n      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {\n    errno: -111,\n    code: 'ECONNREFUSED',\n    syscall: 'connect',\n    address: '127.0.0.1',\n    port: 6379\n  }\n}\nFailed running 'src/server.js'\n\n[firstrun] the server crashed during startup and is not listening on port 3000",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "The app connects to Redis on localhost:6379, but the docs never start it and docker-compose.yml doesn't define it.",
+    "by": "rules",
+    "ruleId": "missing-service",
+    "confidence": 0.92
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "redis",
+        "image": "redis:7-alpine",
+        "env": {},
+        "port": 6379
+      }
+    ],
+    "patches": [
+      {
+        "path": "docker-compose.yml",
+        "op": "compose-add-service",
+        "name": "redis",
+        "image": "redis:7-alpine",
+        "port": 6379,
+        "env": {}
+      }
+    ],
+    "doc": {
+      "kind": "note",
+      "text": "docker-compose.yml now also starts Redis; `docker compose up -d` brings up everything the app needs.",
+      "service": "redis",
+      "stepId": "S5"
+    },
+    "log": "patched docker-compose.yml\nstarted redis:7-alpine as \"redis\" on localhost:6379"
+  },
+  "after": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "npm run dev",
+    "exitCode": 0,
+    "durationMs": 1471,
+    "logTail": "\n> acme-shop@1.4.0 dev\n> node --watch src/server.js\n\nacme-shop listening on http://localhost:3000\n\n[firstrun] GET http://127.0.0.1:3000/health → 200\n{\"status\":\"ok\",\"db\":\"up\",\"redis\":\"up\",\"uptime\":1}",
+    "logFile": "logs/S8-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-24T22:19:38.059Z"
+}

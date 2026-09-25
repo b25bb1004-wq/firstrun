@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,8 @@
+ 
+ ## Run
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `python:3.11` machine at `df4e6d4f81`.
++
+ ### Launch docker
+ ```shell
+ > docker-compose -f docker/docker-compose.yml up
+@@ -20,6 +22,7 @@
+ ```shell
+ > poetry shell
+ > poetry install
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ### Apply alembic revision

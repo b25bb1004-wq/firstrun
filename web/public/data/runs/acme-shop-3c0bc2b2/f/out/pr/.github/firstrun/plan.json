@@ -1,0 +1,87 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-24T22:19:53.101Z",
+  "commit": "c0661ce19b",
+  "image": "node:20",
+  "runtime": {
+    "name": "node",
+    "version": "20",
+    "source": ".nvmrc"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/health"
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S4",
+      "command": "cp .env.example .env",
+      "kind": "env"
+    },
+    {
+      "id": "S5",
+      "command": "docker compose up -d",
+      "kind": "services"
+    },
+    {
+      "id": "S6",
+      "command": "npm run db:migrate",
+      "kind": "migrate"
+    },
+    {
+      "id": "S7",
+      "command": "npm run db:seed",
+      "kind": "migrate"
+    },
+    {
+      "id": "S8",
+      "command": "npm run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    },
+    {
+      "id": "S9",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm ERR! engine Unsupported engine",
+      "cause": "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).",
+      "fix": "Node.js 20 (see .nvmrc)",
+      "evidence": "E1"
+    },
+    {
+      "signature": "cp: cannot stat '.env.sample': No such file or directory",
+      "cause": ".env.sample does not exist; the repo ships .env.example.",
+      "fix": "cp .env.example .env",
+      "evidence": "E2"
+    },
+    {
+      "signature": "npm error Missing script: \"migrate\"",
+      "cause": "The script \"migrate\" no longer exists; package.json has \"db:migrate\" (node scripts/migrate.js).",
+      "fix": "npm run db:migrate",
+      "evidence": "E3"
+    },
+    {
+      "signature": "Error: Missing required environment variable SESSION_SECRET",
+      "cause": "The app requires SESSION_SECRET at startup, but the docs never mention it and .env.example is missing it.",
+      "fix": ".env.example now includes SESSION_SECRET (required at startup).",
+      "evidence": "E4"
+    },
+    {
+      "signature": "socketError: Error: connect ECONNREFUSED 127.0.0.1:6379",
+      "cause": "The app connects to Redis on localhost:6379, but the docs never start it and docker-compose.yml doesn't define it.",
+      "fix": "docker-compose.yml now also starts Redis; `docker compose up -d` brings up everything the app needs.",
+      "evidence": "E5"
+    }
+  ]
+}

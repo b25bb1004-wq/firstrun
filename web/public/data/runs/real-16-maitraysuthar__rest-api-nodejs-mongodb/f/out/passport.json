@@ -1,0 +1,20 @@
+{
+  "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+  "commit": "6a1ba2da70",
+  "verifiedAt": "2026-09-24T22:19:56.086Z",
+  "verdict": "FAILED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 6,
+  "stepsFromReadme": 6,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  }
+}

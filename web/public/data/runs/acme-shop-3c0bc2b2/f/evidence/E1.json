@@ -1,0 +1,54 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "npm install",
+    "exitCode": 1,
+    "durationMs": 599,
+    "logTail": "npm ERR! code EBADENGINE\nnpm ERR! engine Unsupported engine\nnpm ERR! engine Not compatible with your version of node/npm: acme-shop@1.4.0\nnpm ERR! notsup Not compatible with your version of node/npm: acme-shop@1.4.0\nnpm ERR! notsup Required: {\"node\":\">=20\"}\nnpm ERR! notsup Actual:   {\"npm\":\"8.19.4\",\"node\":\"v16.20.2\"}\n\nnpm ERR! A complete log of this run can be found in:\nnpm ERR!     /root/.npm/_logs/2026-09-24T22_19_12_666Z-debug-0.log",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).",
+    "by": "rules",
+    "ruleId": "node-engine",
+    "confidence": 0.95
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "node:20",
+        "runtime": {
+          "name": "node",
+          "version": "20",
+          "source": ".nvmrc"
+        }
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Node.js 20 (see .nvmrc)",
+      "runtime": {
+        "name": "node",
+        "version": "20"
+      }
+    },
+    "log": "rebased onto node:20"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "npm install",
+    "exitCode": 0,
+    "durationMs": 3455,
+    "logTail": "\nadded 92 packages in 3s",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-24T22:19:17.677Z"
+}

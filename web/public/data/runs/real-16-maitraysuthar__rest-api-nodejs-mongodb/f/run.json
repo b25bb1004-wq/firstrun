@@ -1,0 +1,252 @@
+{
+  "id": "real-16-maitraysuthar__rest-api-nodejs-mongodb",
+  "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+  "commit": "6a1ba2da70",
+  "startedAt": "2026-09-24T22:18:54.313Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S4": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "skipped",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "mongodb service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"mongoose\"",
+      "source": "package.json"
+    }
+  ],
+  "plan": {
+    "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+    "commit": "6a1ba2da70",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/maitraysuthar/rest-api-nodejs-mongodb.git ./myproject",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 52,
+          "endLine": 52,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to install › Using Git (recommended)"
+        },
+        "origin": "readme",
+        "skip": "git clone: FirstRun starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd myproject",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 63,
+          "endLine": 63,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to install › Install npm dependencies after installing (Git or manual download)"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 64,
+          "endLine": 64,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to install › Install npm dependencies after installing (Git or manual download)"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "S4",
+        "command": "cp .env.example .env",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 72,
+          "endLine": 72,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to install › Setting up environments"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S5",
+        "command": "npm run dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 117,
+          "endLine": 117,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to run › Running API server locally"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "blocked"
+      },
+      {
+        "id": "S6",
+        "command": "Connected to mongodb:YOUR_DB_CONNECTION_STRING",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 123,
+          "endLine": 123,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to run › Running API server locally"
+        },
+        "origin": "readme",
+        "skip": "needs a value only you have (placeholder)",
+        "status": "skipped"
+      },
+      {
+        "id": "S7",
+        "command": "App is running ...",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 124,
+          "endLine": 124,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to run › Running API server locally"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S8",
+        "command": "Press CTRL + C to stop the process.",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 126,
+          "endLine": 126,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › How to run › Running API server locally"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S9",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 148,
+          "endLine": 148,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › Tests › Running Test Cases"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S10",
+        "command": "npm run lint",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 162,
+          "endLine": 162,
+          "section": "Nodejs Expressjs MongoDB Ready-to-use API Project Structure › ESLint › Running Eslint"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "mongodb service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"mongoose\"",
+        "source": "package.json"
+      }
+    ],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+    "commit": "6a1ba2da70",
+    "verifiedAt": "2026-09-24T22:19:56.086Z",
+    "verdict": "FAILED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 6,
+    "stepsFromReadme": 6,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    }
+  },
+  "finishedAt": "2026-09-24T22:19:56.356Z"
+}

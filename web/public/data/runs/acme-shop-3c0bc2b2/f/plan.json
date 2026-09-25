@@ -1,0 +1,198 @@
+{
+  "repo": "acme-shop",
+  "commit": "c0661ce19b",
+  "image": "node:20",
+  "runtime": {
+    "name": "node",
+    "version": "20",
+    "source": ".nvmrc"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "git clone https://github.com/acme-commerce/acme-shop.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 36,
+        "endLine": 36,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "skip": "git clone: FirstRun starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "cd acme-shop",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 37,
+        "endLine": 37,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 38,
+        "endLine": 38,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S4",
+      "command": "cp .env.example .env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 44,
+        "endLine": 44,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "readmeCommand": "cp .env.sample .env",
+      "evidence": [
+        "E2"
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "docker compose up -d",
+      "kind": "services",
+      "source": {
+        "file": "README.md",
+        "line": 50,
+        "endLine": 50,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S6",
+      "command": "npm run db:migrate",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 56,
+        "endLine": 56,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "readmeCommand": "npm run migrate",
+      "evidence": [
+        "E3",
+        "E4"
+      ]
+    },
+    {
+      "id": "S7",
+      "command": "npm run db:seed",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 57,
+        "endLine": 57,
+        "section": "acme-shop › Getting started › Setup"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S8",
+      "command": "npm run dev",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 63,
+        "endLine": 63,
+        "section": "acme-shop › Getting started › Run the server"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "repaired",
+      "evidence": [
+        "E5"
+      ],
+      "probe": {
+        "status": 200,
+        "body": "{\"status\":\"ok\",\"db\":\"up\",\"redis\":\"up\",\"uptime\":1}"
+      }
+    },
+    {
+      "id": "S9",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 74,
+        "endLine": 74,
+        "section": "acme-shop › Testing"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "Node.js 16+",
+      "truth": "20 (.nvmrc)",
+      "source": "README.md:28"
+    },
+    {
+      "what": "file .env.sample",
+      "docs": "cp .env.sample .env",
+      "truth": "does not exist in the repo",
+      "source": "README.md:44"
+    },
+    {
+      "what": "npm script \"migrate\"",
+      "docs": "npm run migrate",
+      "truth": "not in package.json scripts",
+      "source": "README.md:56"
+    },
+    {
+      "what": "env var SESSION_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/config.js:22",
+      "source": ".env.example"
+    },
+    {
+      "what": "redis service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"redis\"",
+      "source": "package.json"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/health"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "originalImage": "node:16",
+  "originalRuntime": {
+    "name": "node",
+    "version": "16",
+    "source": "README.md:28 (\"Node.js 16+\")"
+  }
+}

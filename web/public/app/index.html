@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FirstRun</title>
+  <meta name="description" content="FirstRun follows a README in a clean container like a newcomer, repairs what breaks with evidence, and issues a Setup Passport.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%230E1726'/%3E%3Cpath d='M9 11l6 5-6 5' stroke='%233DD68C' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M17 22h7' stroke='%23E4EAF3' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script>try{var t=JSON.parse(localStorage.getItem('firstrun.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/" aria-label="FirstRun home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="6" class="b-bg"/><path d="M9 11l6 5-6 5" class="b-chev"/><path d="M17 22h7" class="b-cur"/></svg>
+      <span>FirstRun</span>
+    </a>
+    <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+    <div class="bar-r">
+      <span class="bar-note">Setup docs, verified from zero</span>
+      <button class="icon-btn" id="theme" type="button" aria-label="Toggle theme"></button>
+    </div>
+  </header>
+  <div id="view"></div>
+  <script src="static-shim.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

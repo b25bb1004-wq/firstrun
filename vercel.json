@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": "web/public",
+  "functions": {
+    "api/check.js": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/api/runs", "destination": "/data/runs.json" },
+    { "source": "/api/audits", "destination": "/data/audits.json" },
+    { "source": "/api/audits/:id", "destination": "/data/audits/:id.json" },
+    { "source": "/api/runs/:id", "destination": "/data/runs/:id/run.json" },
+    { "source": "/api/runs/:id/evidence/:e", "destination": "/data/runs/:id/f/evidence/:e.json" },
+    { "source": "/api/runs/:id/file", "has": [{ "type": "query", "key": "path", "value": "(?<p>.+)" }], "destination": "/data/runs/:id/f/:p" }
+  ]
+}

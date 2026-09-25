@@ -1,0 +1,648 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -23,9 +23,11 @@ Responses from `/products` include an `X-Cache: HIT | MISS` header.
+ 
+ ## Getting started
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `node:20` machine at `c0661ce19b`: clone to running in 14s.
++
+ ### Prerequisites
+ 
+-- Node.js 16+
++- Node.js 20+
+ - Docker (for the local database)
+ 
+ ### Setup
+@@ -41,19 +43,23 @@ npm install
+ Create your local environment file:
+ 
+ ```bash
+-cp .env.sample .env
++cp .env.example .env
+ ```
+ 
++> **Note:** `.env.example` includes `SESSION_SECRET`, which the app requires at startup (any random string works locally).
++
+ Start the database:
+ 
+ ```bash
+ docker compose up -d
+ ```
+ 
++> **Note:** docker-compose.yml starts Redis; `docker compose up -d` brings up everything the app needs.
++
+ Create the schema and load some sample products:
+ 
+ ```bash
+-npm run migrate
++npm run db:migrate
+ npm run db:seed
+ ```
+ 
+diff --git a/.env.example b/.env.example
+--- a/.env.example
++++ b/.env.example
+@@ -1,3 +1,6 @@
+ # Copy to .env and adjust for your machine
+ DATABASE_URL=postgres://acme:acme@localhost:5432/acme
+ PORT=3000
++
++# Required at startup. Any random string works for local development.
++SESSION_SECRET=dev-df4d5a8114d02c9336a5d775
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -9,6 +9,10 @@ services:
+       - "5432:5432"
+     volumes:
+       - pgdata:/var/lib/postgresql/data
++  redis:
++    image: redis:7-alpine
++    ports:
++      - 6379:6379
+ 
+ volumes:
+   pgdata:
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,258 @@
++# Setup Passport: acme-shop
++
++✅ **VERIFIED**: FirstRun followed this project's setup docs on a clean `node:20` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `c0661ce19b` |
++| Verified | 2026-09-24 22:19 UTC |
++| Runtime | Node.js 20 (`node:20`) |
++| Clone to running, from zero | **14s** |
++| Steps followed | 7 from the docs, 0 added by FirstRun |
++| Breaks found / fixed | 5 / 5 |
++| Needs a human | 0 |
++| Done when | `GET http://127.0.0.1:3000/health` answers |
++
++**Before FirstRun**, a newcomer following the docs got stuck at `npm install` (README.md:38).
++
++## Verified setup
++
++```bash
++npm install
++cp .env.example .env
++docker compose up -d
++npm run db:migrate
++npm run db:seed
++npm run dev
++npm test
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Wrong runtime version <a id="e1"></a>
++
++- **Docs said:** `npm install` (README.md:38)
++- **Cause:** The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).
++- **Diagnosed by:** FirstRun rule `node-engine`, confidence 95%
++- **Doc change:** Node.js 20 (see .nvmrc)
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++npm ERR! code EBADENGINE
++npm ERR! engine Unsupported engine
++npm ERR! engine Not compatible with your version of node/npm: acme-shop@1.4.0
++npm ERR! notsup Not compatible with your version of node/npm: acme-shop@1.4.0
++npm ERR! notsup Required: {"node":">=20"}
++npm ERR! notsup Actual:   {"npm":"8.19.4","node":"v16.20.2"}
++
++npm ERR! A complete log of this run can be found in:
++npm ERR!     /root/.npm/_logs/2026-09-24T22_19_12_666Z-debug-0.log
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++rebased onto node:20
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++added 92 packages in 3s
++```
++</details>
++
++### E2: Stale file reference <a id="e2"></a>
++
++- **Docs said:** `cp .env.sample .env` (README.md:44)
++- **Cause:** .env.sample does not exist; the repo ships .env.example.
++- **Diagnosed by:** FirstRun rule `missing-copy-source`, confidence 92%
++- **Doc change:** cp .env.example .env
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++cp: cannot stat '.env.sample': No such file or directory
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++step command → cp .env.example .env
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++```
++</details>
++
++### E3: Renamed or missing script <a id="e3"></a>
++
++- **Docs said:** `npm run migrate` (README.md:56)
++- **Cause:** The script "migrate" no longer exists; package.json has "db:migrate" (node scripts/migrate.js).
++- **Diagnosed by:** FirstRun rule `missing-npm-script`, confidence 93%
++- **Doc change:** npm run db:migrate
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++npm error Missing script: "migrate"
++npm error
++npm error To see a list of scripts, run:
++npm error   npm run
++npm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-24T22_19_23_220Z-debug-0.log
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++step command → npm run db:migrate
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++> acme-shop@1.4.0 db:migrate
++> node scripts/migrate.js
++
++applied 001_create_products.sql
++applied 002_add_product_stock.sql
++migrations up to date
++```
++</details>
++
++### E4: Undocumented environment variable <a id="e4"></a>
++
++- **Docs said:** `npm run migrate` (README.md:56)
++- **Cause:** The app requires SESSION_SECRET at startup, but the docs never mention it and .env.example is missing it.
++- **Diagnosed by:** FirstRun rule `missing-env-var`, confidence 90%
++- **Doc change:** .env.example now includes SESSION_SECRET (required at startup).
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++
++Error: Missing required environment variable SESSION_SECRET
++    at required (/workspace/src/config.js:13:11)
++    at Object.<anonymous> (/workspace/src/config.js:22:18)
++    at Module._compile (node:internal/modules/cjs/loader:1521:14)
++    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
++    at Module.load (node:internal/modules/cjs/loader:1266:32)
++    at Module._load (node:internal/modules/cjs/loader:1091:12)
++    at Module.require (node:internal/modules/cjs/loader:1289:19)
++    at require (node:internal/modules/helpers:182:18)
++    at Object.<anonymous> (/workspace/src/db.js:4:16)
++    at Module._compile (node:internal/modules/cjs/loader:1521:14)
++
++Node.js v20.20.2
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++patched .env.example
++$ touch .env && printf '\n%s=%s\n' 'SESSION_SECRET' 'dev-df4d5a8114d02c9336a5d775' >> .env
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++> acme-shop@1.4.0 db:migrate
++> node scripts/migrate.js
++
++applied 001_create_products.sql
++applied 002_add_product_stock.sql
++migrations up to date
++```
++</details>
++
++### E5: Undocumented backing service <a id="e5"></a>
++
++- **Docs said:** `npm run dev` (README.md:63)
++- **Cause:** The app connects to Redis on localhost:6379, but the docs never start it and docker-compose.yml doesn't define it.
++- **Diagnosed by:** FirstRun rule `missing-service`, confidence 92%
++- **Doc change:** docker-compose.yml now also starts Redis; `docker compose up -d` brings up everything the app needs.
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++    port: 6379
++  },
++  socketError: Error: connect ECONNREFUSED 127.0.0.1:6379
++      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
++    errno: -111,
++    code: 'ECONNREFUSED',
++    syscall: 'connect',
++    address: '127.0.0.1',
++    port: 6379
++  }
++}
++Failed running 'src/server.js'
++
++[firstrun] the server crashed during startup and is not listening on port 3000
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++patched docker-compose.yml
++started redis:7-alpine as "redis" on localhost:6379
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++> acme-shop@1.4.0 dev
++> node --watch src/server.js
++
++acme-shop listening on http://localhost:3000
++
++[firstrun] GET http://127.0.0.1:3000/health → 200
++{"status":"ok","db":"up","redis":"up","uptime":1}
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Node.js version | Node.js 16+ | 20 (.nvmrc) | README.md:28 |
++| file .env.sample | cp .env.sample .env | does not exist in the repo | README.md:44 |
++| npm script "migrate" | npm run migrate | not in package.json scripts | README.md:56 |
++| env var SESSION_SECRET | not documented | read in src/config.js:22 | .env.example |
++| redis service | setup never starts it | dependency "redis" | package.json |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **FirstRun Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by FirstRun. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="191" height="20" role="img" aria-label="FirstRun: verified · 14s">
++  <title>FirstRun: verified · 14s</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="191" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="83" height="20" fill="#16181d"/>
++    <rect x="83" width="108" height="20" fill="#1f9d55"/>
++    <rect width="191" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="48.5" y="14">FirstRun</text>
++    <text x="137" y="14">verified · 14s</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,20 @@
++{
++  "repo": "acme-shop",
++  "commit": "c0661ce19b",
++  "verifiedAt": "2026-09-24T22:19:53.101Z",
++  "verdict": "VERIFIED",
++  "image": "node:20",
++  "runtime": "Node.js 20",
++  "stepsTotal": 7,
++  "stepsFromReadme": 7,
++  "breaksFound": 5,
++  "breaksFixed": 5,
++  "needsHuman": 0,
++  "replaySeconds": 14,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/health"
++  }
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,87 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-24T22:19:53.101Z",
++  "commit": "c0661ce19b",
++  "image": "node:20",
++  "runtime": {
++    "name": "node",
++    "version": "20",
++    "source": ".nvmrc"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/health"
++  },
++  "steps": [
++    {
++      "id": "S3",
++      "command": "npm install",
++      "kind": "install"
++    },
++    {
++      "id": "S4",
++      "command": "cp .env.example .env",
++      "kind": "env"
++    },
++    {
++      "id": "S5",
++      "command": "docker compose up -d",
++      "kind": "services"
++    },
++    {
++      "id": "S6",
++      "command": "npm run db:migrate",
++      "kind": "migrate"
++    },
++    {
++      "id": "S7",
++      "command": "npm run db:seed",
++      "kind": "migrate"
++    },
++    {
++      "id": "S8",
++      "command": "npm run dev",
++      "kind": "serve",
++      "serve": {
++        "port": 3000
++      }
++    },
++    {
++      "id": "S9",
++      "command": "npm test",
++      "kind": "test"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "npm ERR! engine Unsupported engine",
++      "cause": "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).",
++      "fix": "Node.js 20 (see .nvmrc)",
++      "evidence": "E1"
++    },
++    {
++      "signature": "cp: cannot stat '.env.sample': No such file or directory",
++      "cause": ".env.sample does not exist; the repo ships .env.example.",
++      "fix": "cp .env.example .env",
++      "evidence": "E2"
++    },
++    {
++      "signature": "npm error Missing script: \"migrate\"",
++      "cause": "The script \"migrate\" no longer exists; package.json has \"db:migrate\" (node scripts/migrate.js).",
++      "fix": "npm run db:migrate",
++      "evidence": "E3"
++    },
++    {
++      "signature": "Error: Missing required environment variable SESSION_SECRET",
++      "cause": "The app requires SESSION_SECRET at startup, but the docs never mention it and .env.example is missing it.",
++      "fix": ".env.example now includes SESSION_SECRET (required at startup).",
++      "evidence": "E4"
++    },
++    {
++      "signature": "socketError: Error: connect ECONNREFUSED 127.0.0.1:6379",
++      "cause": "The app connects to Redis on localhost:6379, but the docs never start it and docker-compose.yml doesn't define it.",
++      "fix": "docker-compose.yml now also starts Redis; `docker compose up -d` brings up everything the app needs.",
++      "evidence": "E5"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: FirstRun setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 FirstRun Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are FirstRun Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that FirstRun has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,39 @@
++# Verified setup for acme-shop
++
++Verified by FirstRun on 2026-09-24 at commit `c0661ce19b` on a clean `node:20` machine. Clone to running took 14s.
++
++Prerequisites: Node.js 20, Docker (for backing services).
++
++## Steps
++
++1. `npm install`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `cp .env.example .env`
++   - Kind: env (the README used to say `cp .env.sample .env`)
++   - Expect: exits with code 0.
++3. `docker compose up -d`
++   - Kind: services
++   - Expect: exits with code 0.
++4. `npm run db:migrate`
++   - Kind: migrate (the README used to say `npm run migrate`)
++   - Expect: exits with code 0.
++5. `npm run db:seed`
++   - Kind: migrate
++   - Expect: exits with code 0.
++6. `npm run dev`
++   - Kind: serve
++   - Expect: the app answers at http://127.0.0.1:3000/health (HTTP 200). Leave it running in its own terminal.
++7. `npm test`
++   - Kind: test
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `npm ERR! engine Unsupported engine` | The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc). | Node.js 20 (see .nvmrc) |
++| `cp: cannot stat '.env.sample': No such file or directory` | .env.sample does not exist; the repo ships .env.example. | cp .env.example .env |
++| `npm error Missing script: "migrate"` | The script "migrate" no longer exists; package.json has "db:migrate" (node scripts/migrate.js). | npm run db:migrate |
++| `Error: Missing required environment variable SESSION_SECRET` | The app requires SESSION_SECRET at startup, but the docs never mention it and .env.example is missing it. | .env.example now includes SESSION_SECRET (required at startup). |
++| `socketError: Error: connect ECONNREFUSED 127.0.0.1:6379` | The app connects to Redis on localhost:6379, but the docs never start it and docker-compose.yml doesn't define it. | docker-compose.yml now also starts Redis; `docker compose up -d` brings up everything the app needs. |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "acme-shop",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "npm install && cp .env.example .env && npm run db:migrate && npm run db:seed",
++  "forwardPorts": [
++    3000
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,18 @@
++services:
++  app:
++    image: node:20
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  postgres:
++    image: postgres:16-alpine
++    network_mode: service:app
++    restart: unless-stopped
++    environment:
++      POSTGRES_USER: acme
++      POSTGRES_PASSWORD: acme
++      POSTGRES_DB: acme
++  redis:
++    image: redis:7-alpine
++    network_mode: service:app
++    restart: unless-stopped
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -3,3 +3,6 @@ node_modules/
+ *.log
+ .DS_Store
+ coverage/
++
++# FirstRun local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

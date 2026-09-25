@@ -1,0 +1,13 @@
+{
+  "name": "git2txt",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "npm install -g git2txt && git2txt username/repository && git2txt git@github.com:username/repository && git2txt https://github.com/username/repository && git2txt username/repository && git2txt git@github.com:username/repository && git2txt username/repository --output=output.txt && git2txt username/repository --threshold=2 && git2txt username/repository --include-all && git2txt username/repository --debug",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

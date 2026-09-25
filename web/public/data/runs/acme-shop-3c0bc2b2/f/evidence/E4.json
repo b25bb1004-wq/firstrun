@@ -1,0 +1,55 @@
+{
+  "id": "E4",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 2,
+    "command": "npm run db:migrate",
+    "exitCode": 1,
+    "durationMs": 254,
+    "logTail": "\n> acme-shop@1.4.0 db:migrate\n> node scripts/migrate.js\n\n/workspace/src/config.js:13\n    throw new Error(`Missing required environment variable ${name}`);\n    ^\n\nError: Missing required environment variable SESSION_SECRET\n    at required (/workspace/src/config.js:13:11)\n    at Object.<anonymous> (/workspace/src/config.js:22:18)\n    at Module._compile (node:internal/modules/cjs/loader:1521:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)\n    at Module.load (node:internal/modules/cjs/loader:1266:32)\n    at Module._load (node:internal/modules/cjs/loader:1091:12)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at Object.<anonymous> (/workspace/src/db.js:4:16)\n    at Module._compile (node:internal/modules/cjs/loader:1521:14)\n\nNode.js v20.20.2",
+    "logFile": "logs/S6-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "The app requires SESSION_SECRET at startup, but the docs never mention it and .env.example is missing it.",
+    "by": "rules",
+    "ruleId": "missing-env-var",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "touch .env && printf '\\n%s=%s\\n' 'SESSION_SECRET' 'dev-df4d5a8114d02c9336a5d775' >> .env"
+      }
+    ],
+    "patches": [
+      {
+        "path": ".env.example",
+        "op": "append-env",
+        "key": "SESSION_SECRET",
+        "value": "dev-df4d5a8114d02c9336a5d775",
+        "comment": "Required at startup. Any random string works for local development."
+      }
+    ],
+    "doc": {
+      "kind": "note",
+      "text": ".env.example now includes SESSION_SECRET (required at startup).",
+      "envVar": "SESSION_SECRET",
+      "stepId": "S4"
+    },
+    "log": "patched .env.example\n$ touch .env && printf '\\n%s=%s\\n' 'SESSION_SECRET' 'dev-df4d5a8114d02c9336a5d775' >> .env\n"
+  },
+  "after": {
+    "stepId": "S6",
+    "n": 3,
+    "command": "npm run db:migrate",
+    "exitCode": 0,
+    "durationMs": 310,
+    "logTail": "\n> acme-shop@1.4.0 db:migrate\n> node scripts/migrate.js\n\napplied 001_create_products.sql\napplied 002_add_product_stock.sql\nmigrations up to date",
+    "logFile": "logs/S6-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-24T22:19:25.095Z"
+}

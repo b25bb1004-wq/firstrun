@@ -1,0 +1,20 @@
+{
+  "repo": "acme-shop",
+  "commit": "c0661ce19b",
+  "verifiedAt": "2026-09-24T22:19:53.101Z",
+  "verdict": "VERIFIED",
+  "image": "node:20",
+  "runtime": "Node.js 20",
+  "stepsTotal": 7,
+  "stepsFromReadme": 7,
+  "breaksFound": 5,
+  "breaksFixed": 5,
+  "needsHuman": 0,
+  "replaySeconds": 14,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/health"
+  }
+}

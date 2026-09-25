@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -55,6 +55,8 @@ docker --version
+ ```
+ 
+ ## Make
++
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `buildpack-deps:bookworm` machine at `96f10870e7`.
+ "Make" is a build automation tool that is primarily used to manage the compilation and building of software projects. It reads a file called a "Makefile" which specifies a set of rules and dependencies for building a project, and then executes the necessary commands to build the project according to those rules. Depending of your OS you will requiere to install it in different ways.
+ 
+ Mac
+@@ -65,6 +67,7 @@ xcode-select --install
+ Ubuntu
+ ```
+ sudo apt-get install build-essential
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ sudo apt-get -y install make
+ ```
+ 

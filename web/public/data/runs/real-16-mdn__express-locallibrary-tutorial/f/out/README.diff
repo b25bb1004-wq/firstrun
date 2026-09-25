@@ -1,0 +1,11 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,5 +1,7 @@
+ # express-locallibrary-tutorial
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `node:22` machine at `b378f3dd48`: clone to running in 5m01s.
++
+ Tutorial "Local Library" website written in in Node/Express.
+ 
+ ---

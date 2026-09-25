@@ -1,0 +1,42 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -23,9 +23,11 @@ Responses from `/products` include an `X-Cache: HIT | MISS` header.
+ 
+ ## Getting started
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `node:20` machine at `c0661ce19b`: clone to running in 14s.
++
+ ### Prerequisites
+ 
+-- Node.js 16+
++- Node.js 20+
+ - Docker (for the local database)
+ 
+ ### Setup
+@@ -41,19 +43,23 @@ npm install
+ Create your local environment file:
+ 
+ ```bash
+-cp .env.sample .env
++cp .env.example .env
+ ```
+ 
++> **Note:** `.env.example` includes `SESSION_SECRET`, which the app requires at startup (any random string works locally).
++
+ Start the database:
+ 
+ ```bash
+ docker compose up -d
+ ```
+ 
++> **Note:** docker-compose.yml starts Redis; `docker compose up -d` brings up everything the app needs.
++
+ Create the schema and load some sample products:
+ 
+ ```bash
+-npm run migrate
++npm run db:migrate
+ npm run db:seed
+ ```
+ 

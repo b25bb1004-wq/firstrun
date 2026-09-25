@@ -1,0 +1,46 @@
+{
+  "id": "E3",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "npm run migrate",
+    "exitCode": 1,
+    "durationMs": 194,
+    "logTail": "npm error Missing script: \"migrate\"\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-24T22_19_23_220Z-debug-0.log",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-script",
+    "cause": "The script \"migrate\" no longer exists; package.json has \"db:migrate\" (node scripts/migrate.js).",
+    "by": "rules",
+    "ruleId": "missing-npm-script",
+    "confidence": 0.93
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "npm run db:migrate"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "npm run db:migrate"
+    },
+    "log": "step command → npm run db:migrate"
+  },
+  "after": {
+    "stepId": "S6",
+    "n": 3,
+    "command": "npm run db:migrate",
+    "exitCode": 0,
+    "durationMs": 310,
+    "logTail": "\n> acme-shop@1.4.0 db:migrate\n> node scripts/migrate.js\n\napplied 001_create_products.sql\napplied 002_add_product_stock.sql\nmigrations up to date",
+    "logFile": "logs/S6-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-24T22:19:23.858Z",
+  "revealed": "E4"
+}

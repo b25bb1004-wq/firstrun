@@ -1,0 +1,18 @@
+services:
+  app:
+    image: node:20
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  postgres:
+    image: postgres:16-alpine
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: acme
+      POSTGRES_PASSWORD: acme
+      POSTGRES_DB: acme
+  redis:
+    image: redis:7-alpine
+    network_mode: service:app
+    restart: unless-stopped
