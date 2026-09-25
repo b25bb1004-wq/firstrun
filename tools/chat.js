@@ -99,6 +99,30 @@ async function send(text) {
   }
 }
 
+/** Hold a gateway connection so the bot shows as online ("Listening to the team") while waiting. Best effort. */
+function showOnline() {
+  if (typeof WebSocket === 'undefined') return;
+  let seq = null, beat = null;
+  try {
+    const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+    ws.onmessage = (e) => {
+      let p; try { p = JSON.parse(e.data); } catch { return; }
+      if (p.s != null) seq = p.s;
+      if (p.op === 10) {
+        beat = setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 1, d: seq })), p.d.heartbeat_interval);
+        ws.send(JSON.stringify({ op: 2, d: {
+          token: TOKEN, intents: 0,
+          properties: { os: process.platform, browser: 'firstrun-chat', device: 'firstrun-chat' },
+          presence: { status: 'online', since: null, afk: false, activities: [{ name: 'the team', type: 2 }] },
+        } }));
+      }
+      if (p.op === 1 && ws.readyState === 1) ws.send(JSON.stringify({ op: 1, d: seq }));
+    };
+    ws.onclose = () => clearInterval(beat);
+    ws.onerror = () => {};
+  } catch {}
+}
+
 const [cmd, ...rest] = process.argv.slice(2);
 const flag = (name, def) => { const i = rest.indexOf(`--${name}`); return i >= 0 ? rest[i + 1] : def; };
 
@@ -123,6 +147,7 @@ try {
     console.log(msgs.length ? msgs.map(format).join('\n\n') : 'No new messages.');
   } else if (cmd === 'wait') {
     const deadline = Date.now() + Number(flag('timeout', 1800)) * 1000;
+    showOnline();
     // Messages that arrived while nobody was waiting are delivered right away.
     for (let first = true; Date.now() < deadline; first = false) {
       if (!first) await sleep(4000);
