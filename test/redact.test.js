@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { redactSecrets, redactDeep, isPlainPlaceholder, REDACTED } from '../src/redact.js';
+import { redactTokens, redactSecrets, redactDeep, isPlainPlaceholder, REDACTED } from '../src/redact.js';
 import { Recorder } from '../src/recorder.js';
 
 // Construct synthetic tokens and variable assignments at runtime so
@@ -149,3 +149,55 @@ test('Recorder redacts secrets when writing events and logs', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('redactTokens preserves public dev secrets in files while redacting token shapes', () => {
+  const djangoKey = mk('django-insecure-', '9f823f923abc');
+  const dbPass = mk('Pass', 'w0rd!');
+  const wagtailToken = mk('wagtail_', '42d87e0d6b0593457a');
+  const ghpToken = mk('ghp_', '0123456789abcdefghijklmnopqrstuv');
+
+  const fileText = [
+    '# Setup Instructions',
+    mk('export SECRET_', `KEY=${djangoKey}`),
+    mk('DB_PASS', `WORD=${dbPass}`),
+    mk('export WAGTAIL_CLI_TOK', `EN=${wagtailToken}`),
+    `git clone https://${ghpToken}@github.com/org/repo.git`,
+  ].join('\n');
+
+  // File redaction (redactTokens): preserves setup secrets, masks real tokens
+  const fileClean = redactTokens(fileText);
+  assert.match(fileClean, new RegExp(djangoKey), 'Django secret key should be preserved in files');
+  assert.match(fileClean, new RegExp(dbPass), 'Database password should be preserved in files');
+  assert.doesNotMatch(fileClean, /wagtail_42d87e0/, 'Wagtail token must be masked in files');
+  assert.doesNotMatch(fileClean, /ghp_012345/, 'GitHub token must be masked in files');
+  assert.match(fileClean, new RegExp(mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`)));
+
+  // Log/events redaction (redactSecrets): masks both setup secrets and real tokens
+  const logClean = redactSecrets(fileText);
+  assert.doesNotMatch(logClean, /wagtail_42d87e0/);
+  assert.doesNotMatch(logClean, /ghp_012345/);
+  assert.match(logClean, new RegExp(mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`)));
+  assert.match(logClean, new RegExp(mk('export SECRET_', `KEY=${REDACTED}`)));
+  assert.match(logClean, new RegExp(mk('DB_PASS', `WORD=${REDACTED}`)));
+});
+
+test('redactDeep supports tokensOnly option for structured file data', () => {
+  const djangoKey = mk('django-insecure-', '9f823f923abc');
+  const wagtailToken = mk('wagtail_', '42d87e0d6b0593457a');
+
+  const data = {
+    steps: [
+      { cmd: mk('export SECRET_', `KEY=${djangoKey}`) },
+      { cmd: mk('export WAGTAIL_CLI_TOK', `EN=${wagtailToken}`) },
+    ],
+  };
+
+  const fileData = redactDeep(data, { tokensOnly: true });
+  assert.equal(fileData.steps[0].cmd, mk('export SECRET_', `KEY=${djangoKey}`));
+  assert.equal(fileData.steps[1].cmd, mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`));
+
+  const logData = redactDeep(data, { tokensOnly: false });
+  assert.equal(logData.steps[0].cmd, mk('export SECRET_', `KEY=${REDACTED}`));
+  assert.equal(logData.steps[1].cmd, mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`));
+});
+

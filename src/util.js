@@ -163,4 +163,4 @@ export function shq(s) {
   return `'${String(s).replace(/'/g, `'\\''`)}'`;
 }
 
-export { redactSecrets, redactDeep, isPlainPlaceholder, REDACTED } from './redact.js';
+export { redactTokens, redactSecrets, redactDeep, isPlainPlaceholder, REDACTED, TOKEN_PATTERNS } from './redact.js';

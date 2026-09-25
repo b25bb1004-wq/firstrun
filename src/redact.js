@@ -1,7 +1,7 @@
 export const REDACTED = '<redacted-by-firstrun>';
 
 // Known token prefixes that must always be masked anywhere they appear
-const TOKEN_PATTERNS = [
+export const TOKEN_PATTERNS = [
   /\bgh[pousr]_[A-Za-z0-9_]{10,}\b/g,
   /\bgithub_pat_[A-Za-z0-9_]{10,}\b/g,
   /\b(?:sk-ant-|sk-proj-|sk-)[A-Za-z0-9_-]{10,}\b/g,
@@ -13,6 +13,23 @@ const TOKEN_PATTERNS = [
   /\b[MN][A-Za-z0-9_-]{23,25}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b/g,
   /-----BEGIN [A-Z ]*PRIVATE KEY[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
 ];
+
+/**
+ * Mask only known token patterns (ghp_, sk-, xox, AKIA, wagtail_, PEM keys, etc.) in text.
+ * Safe for whole source and documentation files (README, compose, env files) so that
+ * valid local dev secrets (like Django's SECRET_KEY=django-insecure-... or DB_PASSWORD=Passw0rd!)
+ * are preserved and setup instructions remain working.
+ */
+export function redactTokens(text) {
+  if (text == null) return text;
+  if (typeof text !== 'string') return text;
+
+  let result = text;
+  for (const pat of TOKEN_PATTERNS) {
+    result = result.replace(pat, REDACTED);
+  }
+  return result;
+}
 
 // Secret-holding variable names in assignments
 const SECRET_VAR_REGEX = /^(?:export\s+)?([A-Za-z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD))$/i;
@@ -51,19 +68,16 @@ export function isPlainPlaceholder(val) {
 }
 
 /**
- * Mask token-shaped values and secrets in text, replacing them with <redacted-by-firstrun>.
- * Keeps readable plain-word placeholders intact.
+ * Mask token-shaped values and secret variable assignments in text.
+ * Used for runtime logs, events, command outputs, and evidence where sensitive
+ * values may have been logged or dumped.
  */
 export function redactSecrets(text) {
   if (text == null) return text;
   if (typeof text !== 'string') return text;
 
-  let result = text;
-
   // 1. Redact known token prefixes anywhere in text
-  for (const pat of TOKEN_PATTERNS) {
-    result = result.replace(pat, REDACTED);
-  }
+  let result = redactTokens(text);
 
   // 2. Redact shell and env variable assignments:
   // (export )?NAME_TOKEN=value or NAME_TOKEN="value"
@@ -92,15 +106,17 @@ export function redactSecrets(text) {
 
 /**
  * Deeply redact all strings within an object, array, or primitive.
+ * Pass { tokensOnly: true } to apply only token patterns (for files/manifests).
  */
-export function redactDeep(val) {
+export function redactDeep(val, { tokensOnly = false } = {}) {
+  const redactFn = tokensOnly ? redactTokens : redactSecrets;
   if (val == null) return val;
-  if (typeof val === 'string') return redactSecrets(val);
-  if (Array.isArray(val)) return val.map(redactDeep);
+  if (typeof val === 'string') return redactFn(val);
+  if (Array.isArray(val)) return val.map((v) => redactDeep(v, { tokensOnly }));
   if (typeof val === 'object' && val.constructor === Object) {
     const out = {};
     for (const [k, v] of Object.entries(val)) {
-      out[k] = redactDeep(v);
+      out[k] = redactDeep(v, { tokensOnly });
     }
     return out;
   }
