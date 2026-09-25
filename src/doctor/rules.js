@@ -716,6 +716,152 @@ export const RULES = [
     },
   },
   {
+    // No lockfile + an unbounded range (>=X, >X) lets `npm install` jump to a new major on a fresh clone.
+    // Fires on a build/type/import failure when exactly one unbounded dep is tied to it by the log
+    // (node_modules path, quoted module name) or by the blamed files' imports (one relative hop).
+    id: 'unbounded-range-no-lockfile',
+    test({ log, facts, plan }) {
+      if (!facts.node) return null;
+      // Condition 1: the log shows a build / type / import failure.
+      if (!/error TS\d+|SyntaxError|is not a function|Cannot find module|ERR_REQUIRE_ESM/.test(log)) return null;
+      // Condition 2: no lockfile in the project dir.
+      const lockfiles = ['package-lock.json', 'npm-shrinkwrap.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock'];
+      const dir = path.join(facts.root, facts.projectDir || '');
+      const hasLock = lockfiles.some((f) => { try { fs.statSync(path.join(dir, f)); return true; } catch { return false; } });
+      if (hasLock) return null;
+      // Condition 3 & 4: collect unbounded deps and pick the one named in the log.
+      let pkg = null;
+      let range = null;
+      try {
+        const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
+        const parsed = JSON.parse(raw);
+        const allDeps = { ...parsed.dependencies, ...parsed.devDependencies };
+        // A range is unbounded only when it is JUST `>=X` or `>X` (with optional whitespace and
+        // optional prerelease/build suffix) — anything with `<`, `||`, ` - `, or a second comparator
+        // after whitespace is bounded and must not fire.
+        const unbounded = Object.entries(allDeps).filter(([, r]) => {
+          const s = (r || '').trim();
+          return /^>=?\s*\d[\d.]*(?:-[^\s|<]*)?(?:\s*\+[^\s|<]*)?$/.test(s);
+        });
+        if (!unbounded.length) return null;
+
+        // ── package detection (evidence-based, not bare-word) ──────────────
+        // (a) node_modules/<pkg>/ path in the log (handles scoped packages too).
+        // (b) quoted module specifier in the log: '<pkg>' or "<pkg>".
+        // (c) import tracing: for each source file blamed in the log, read it and
+        //     collect package imports; also follow one hop of relative imports.
+        const escName = (n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        const hasEvidenceAB = (name) => {
+          const e = escName(name);
+          // (a) path evidence
+          if (new RegExp(`node_modules/${e}/`).test(log)) return true;
+          // (b) quoted specifier evidence
+          if (new RegExp(`['"]${e}['"/]`).test(log)) return true;
+          return false;
+        };
+
+        // Collect package names imported by a file (not relative imports).
+        const pkgImportsOf = (filePath) => {
+          let src = '';
+          try { src = fs.readFileSync(filePath, 'utf8'); } catch { return new Set(); }
+          const names = new Set();
+          const importRe = /(?:import\s+.*?\s+from\s+|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g;
+          for (const m of src.matchAll(importRe)) {
+            const spec = m[1];
+            if (spec.startsWith('.')) continue; // relative — skip for direct package collection
+            // Normalise @scope/pkg/sub → @scope/pkg, pkg/sub → pkg
+            const parts = spec.split('/');
+            const name = spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+            names.add(name);
+          }
+          return names;
+        };
+
+        // Collect relative imports of a file and return their resolved paths (try several extensions).
+        const resolveRelative = (fromFile, spec) => {
+          const base = path.resolve(path.dirname(fromFile), spec);
+          const tries = [base, `${base}.ts`, `${base}.tsx`, `${base}.js`, `${base}.mjs`, `${base}.cjs`,
+            path.join(base, 'index.ts'), path.join(base, 'index.js')];
+          for (const p of tries) { try { fs.statSync(p); return p; } catch {} }
+          return null;
+        };
+
+        const relImportsOf = (filePath) => {
+          let src = '';
+          try { src = fs.readFileSync(filePath, 'utf8'); } catch { return []; }
+          const paths = [];
+          const importRe = /(?:import\s+.*?\s+from\s+|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g;
+          for (const m of src.matchAll(importRe)) {
+            const spec = m[1];
+            if (!spec.startsWith('.')) continue;
+            const resolved = resolveRelative(filePath, spec);
+            if (resolved) paths.push(resolved);
+          }
+          return paths;
+        };
+
+        // Extract blamed source file paths from the log.
+        // Patterns: `src/models/User.ts(64,11):`, `at file:///app/src/x.js:3:1`, `/workspace/src/x.js:3`
+        const blamedFiles = new Set();
+        // Absolute paths are the sandbox's: the repo is mounted at /workspace, so map them to the host copy.
+        for (const m of log.matchAll(/(?:^|\s|\(|file:\/\/)(\/workspace\/[^\s():]+\.[cm]?[jt]sx?)(?::\d+|\(\d+,\d+\))/gm)) {
+          blamedFiles.add(path.join(facts.root, m[1].slice('/workspace/'.length)));
+        }
+        // Also relative paths like `src/models/User.ts(64,11):`
+        for (const m of log.matchAll(/\b((?:src|lib|app|dist)\/[^\s(]+\.[cm]?[jt]sx?)(?::\d+|:\d+:\d+|\(\d+,\d+\))/gm)) {
+          blamedFiles.add(path.join(dir, m[1]));
+        }
+
+        // Build the import-trace candidate set (c): direct imports + one-hop relative imports.
+        const importTracePkgs = new Set();
+        for (const f of blamedFiles) {
+          const direct = pkgImportsOf(f);
+          for (const n of direct) importTracePkgs.add(n);
+          for (const rel of relImportsOf(f)) {
+            for (const n of pkgImportsOf(rel)) importTracePkgs.add(n);
+          }
+        }
+
+        const hasEvidenceC = (name) => importTracePkgs.has(name);
+
+        // Classify each unbounded dep by evidence tier.
+        const abEvidence = unbounded.filter(([name]) => hasEvidenceAB(name));
+        if (abEvidence.length === 1) { [pkg, range] = abEvidence[0]; }
+        else if (abEvidence.length > 1) return null; // ambiguous even with strong evidence
+        else {
+          // Fall back to (c) import tracing.
+          const cEvidence = unbounded.filter(([name]) => hasEvidenceC(name));
+          if (cEvidence.length === 1) { [pkg, range] = cEvidence[0]; }
+          else return null; // 0 or ambiguous
+        }
+      } catch { return null; }
+      // Extract the floor version from >=X.Y.Z or >X.Y.Z; * / latest / x / empty have no floor.
+      const floor = range.match(/^>=?\s*(\d[\d.]*)/);
+      if (!floor || !floor[1]) return null;
+      const ver = floor[1];
+      // Determine the install tool from the plan's install step.
+      const installStep = plan.steps.find((s) => /^(npm\s+(i|install|ci)|yarn\s+(install)?$|pnpm\s+install|bun\s+install)/.test(s.command));
+      let installPrefix = 'npm install --no-save';
+      if (installStep) {
+        if (/^yarn\b/.test(installStep.command)) installPrefix = 'yarn add';
+        else if (/^pnpm\b/.test(installStep.command)) installPrefix = 'pnpm add';
+        else if (/^bun\b/.test(installStep.command)) installPrefix = 'bun add';
+        else if (/--legacy-peer-deps/.test(installStep.command)) installPrefix = 'npm install --no-save --legacy-peer-deps';
+      }
+      const cmd = `${installPrefix} ${pkg}@^${ver}`;
+      return {
+        ruleId: 'unbounded-range-no-lockfile', class: 'missing-dependency', confidence: 0.7,
+        cause: `${pkg} is declared as ${range} with no lockfile, so a fresh install gets a newer major of ${pkg} than the code was written for; pinning to ^${ver} restores the version the setup docs assumed.`,
+        fix: {
+          actions: [{ type: 'insert-before', command: cmd }],
+          patches: [],
+          doc: { kind: 'insert-step', text: cmd },
+        },
+      };
+    },
+  },
+  {
     id: 'apt-package-missing',
     test({ log, step }) {
       const m = log.match(/Unable to locate package ([\w.+-]+)|E: Package '([\w.+-]+)' has no installation candidate/);
