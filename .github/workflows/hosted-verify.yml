@@ -11,10 +11,14 @@ on:
         description: 'Git ref (branch, tag, or commit SHA)'
         required: false
         type: string
+      request_id:
+        description: 'Unique request ID for correlation'
+        required: true
+        type: string
 
 concurrency:
-  group: hosted-verify
-  cancel-in-progress: true
+  group: hosted-verify-${{ github.event.inputs.request_id }}
+  cancel-in-progress: false
 
 permissions: {}
 
@@ -25,6 +29,8 @@ jobs:
     steps:
       - name: Checkout FirstRun repo
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,33 +45,58 @@ jobs:
         id: validate
         run: |
           REPO="${{ github.event.inputs.repo }}"
-          if [[ ! $REPO =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]]; then
+          REF="${{ github.event.inputs.ref }}"
+          REQUEST_ID="${{ github.event.inputs.request_id }}"
+          
+          # Validate repo format
+          if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
             echo "error=Invalid repository format. Use owner/name." >> $GITHUB_OUTPUT
             exit 1
           fi
+          
+          # Validate ref format
+          if [[ -n "$REF" && ! "$REF" =~ ^[A-Za-z0-9._/-]{1,100}$ ]]; then
+            echo "error=Invalid ref format" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Prevent path traversal
+          if [[ "$REF" == *".."* ]]; then
+            echo "error=Invalid ref format" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
           echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "ref=$REF" >> $GITHUB_OUTPUT
 
       - name: Run FirstRun verify
         id: verify
         if: steps.validate.outputs.error == ''
+        env:
+          IN_REPO: ${{ steps.validate.outputs.repo }}
+          IN_REF: ${{ steps.validate.outputs.ref }}
         run: |
-          REPO="${{ steps.validate.outputs.repo }}"
-          REF="${{ github.event.inputs.ref }}"
-          URL="https://github.com/$REPO"
-          if [[ -n "$REF" && "$REF" != "" ]]; then
-            URL="$URL --ref $REF"
+          if [[ -z "$IN_REPO" ]]; then
+            echo "Missing repo input"
+            exit 1
           fi
-          echo "Running: node bin/firstrun.js verify $URL --brain rules --no-bob"
-          node bin/firstrun.js verify $URL --brain rules --no-bob
+          
+          args=(verify "https://github.com/$IN_REPO" --brain rules --out run-out --ref "$IN_REF")
+          # Remove empty ref
+          if [[ -z "$IN_REF" ]]; then
+            args=(verify "https://github.com/$IN_REPO" --brain rules --out run-out)
+          fi
+          echo "Running: node bin/firstrun.js ${args[@]}"
+          node bin/firstrun.js "${args[@]}"
         continue-on-error: true
 
       - name: Find run directory
         id: find_run
         if: steps.validate.outputs.error == ''
         run: |
-          # Find the most recent .firstrun directory
-          RUN_DIR=$(find .firstrun-work -maxdepth 1 -type d -name '*' 2>/dev/null | sort -r | head -1)
-          if [[ -z "$RUN_DIR" || ! -d "$RUN_DIR" ]]; then
+          # Use the explicit output directory
+          RUN_DIR="run-out"
+          if [[ ! -d "$RUN_DIR" ]]; then
             echo "error=No run directory found" >> $GITHUB_OUTPUT
             exit 1
           fi
@@ -83,7 +114,7 @@ jobs:
         if: steps.validate.outputs.error == '' && steps.find_run.outputs.run_dir != ''
         uses: actions/upload-artifact@v4
         with:
-          name: firstrun-verify-${{ steps.validate.outputs.repo }}
+          name: firstrun-verify-${{ steps.validate.outputs.repo | replace('/', '__') }}
           path: ${{ steps.find_run.outputs.run_dir }}
           retention-days: 7
 

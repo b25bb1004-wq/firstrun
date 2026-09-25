@@ -1,5 +1,6 @@
-// Hosted verify status: GET /api/verify-status?repo=owner/name&run_id=...
+// Hosted verify status: GET /api/verify-status?repo=owner/name&run_id=...&request_id=...
 import { parseGithubRepo } from '../src/remote.js';
+import { unzipSync, strFromU8 } from 'fflate';
 
 const GH_TOKEN = process.env.HOSTED_VERIFY_TOKEN;
 const GH_REPO = process.env.HOSTED_VERIFY_REPO || 'b25bb1004-wq/firstrun';
@@ -9,14 +10,12 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
   if (!GH_TOKEN) return res.status(500).json({ error: 'Server not configured: missing HOSTED_VERIFY_TOKEN' });
 
-  const { repo, run_id } = req.query;
+  const { repo, run_id, request_id } = req.query;
   if (!repo) return res.status(400).json({ error: 'Missing repo (owner/name)' });
 
-  let parsed;
-  try {
-    parsed = parseGithubRepo(repo);
-  } catch (e) {
-    return res.status(400).json({ error: e.message });
+  const parsed = parseGithubRepo(repo);
+  if (!parsed) {
+    return res.status(400).json({ error: 'Invalid repository format. Use owner/name or a GitHub URL.' });
   }
 
   const fullRepo = `${parsed.owner}/${parsed.name}`;
@@ -26,7 +25,7 @@ export default async function handler(req, res) {
     let runUrl = `https://api.github.com/repos/${GH_REPO}/actions/runs`;
     
     if (!runId) {
-      // Find the latest run for this repo input
+      // Find the run by request_id (most reliable)
       const params = new URLSearchParams({
         workflow: WORKFLOW,
         per_page: '20',
@@ -43,9 +42,19 @@ export default async function handler(req, res) {
         return res.status(502).json({ error: `GitHub API error: ${runsResp.status}` });
       }
       const runsData = await runsResp.json();
-      const run = runsData.workflow_runs?.find(r => 
-        r.inputs?.repo === fullRepo && r.conclusion !== 'cancelled'
+      
+      // First try to find by request_id in run name
+      let run = runsData.workflow_runs?.find(r => 
+        r.name && r.name.includes(request_id || '') && r.inputs?.repo === fullRepo && r.conclusion !== 'cancelled'
       );
+      
+      // Fallback to input matching
+      if (!run) {
+        run = runsData.workflow_runs?.find(r => 
+          r.inputs?.repo === fullRepo && r.conclusion !== 'cancelled'
+        );
+      }
+      
       if (!run) {
         return res.status(404).json({ error: 'No workflow run found for this repo', status: 'not_found' });
       }
@@ -99,17 +108,39 @@ export default async function handler(req, res) {
           const zipBuffer = await zipResp.arrayBuffer();
           
           // Extract passport and evidence from zip
-          // For now, return the artifact info - the UI can fetch the full data
+          const unzipped = unzipSync(new Uint8Array(zipBuffer));
+          const runJsonEntry = Object.values(unzipped).find(f => f.name.endsWith('run.json'));
+          
+          let passport = null;
+          let evidenceSummary = [];
+          
+          if (runJsonEntry) {
+            const runJson = JSON.parse(strFromU8(runJsonEntry));
+            passport = runJson.passport;
+            
+            // Summarize evidence
+            if (runJson.evidence && Array.isArray(runJson.evidence)) {
+              evidenceSummary = runJson.evidence.map(e => ({
+                step: e.step,
+                command: e.command,
+                outcome: e.outcome,
+                bobCoins: e.bobCoins || 0,
+                diagnosis: e.diagnosis ? 'rule' : 'unknown'
+              }));
+            }
+          }
+          
           return res.status(200).json({
             status: 'completed',
             conclusion: 'success',
             run_id: runId,
+            passport: passport,
+            evidence: evidenceSummary,
             artifact: {
               name: artifact.name,
               size: artifact.size_in_bytes,
-              download_url: artifact.archive_download_url,
             },
-            message: 'Verification completed. Artifact available for download.',
+            message: 'Verification completed successfully.',
           });
         }
         return res.status(200).json({
