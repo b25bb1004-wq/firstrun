@@ -3,8 +3,10 @@ import { parseMarkdown, isShellBlock, blockCommands, sectionPath } from './markd
 import { readText } from './util.js';
 
 const SETUP_HEADING = /(getting[\s-]*started|install|set[\s-]*up|quick[\s-]*start|develop|local(ly)?\b|run(ning)?\b|how to (run|use|start)|usage|build(ing)?\b|prereq|requirement|database|configur|environment|\btests?\b|testing|contribut|start(ing)?\b|hacking|bootstrap)/i;
-const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|windows|macos only|upgrad|migrating from|benchmark)/i;
-const DOCKER_ALT_HEADING = /(docker|container|compose|devcontainer|codespace|gitpod)/i;
+const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|macos only|upgrad|migrating from|benchmark)/i;
+// "Windows" sections are skipped, but "Pip (macOS, linux, unix, Windows)" applies to Linux too.
+const excludedHeading = (h) => EXCLUDED_HEADING.test(h) || (/\bwindows\b/i.test(h) && !/\b(linux|unix|all platforms)\b/i.test(h));
+const DOCKER_ALT_HEADING =/(docker|container|compose|devcontainer|codespace|gitpod)/i;
 
 export const DEFAULT_NODE = '22';
 export const DEFAULT_PYTHON = '3.12';
@@ -24,6 +26,11 @@ export function classify(cmd, facts) {
   const ctx = {};
   if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: FirstRun starts from a fresh clone already' };
   if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
+  if (/\b(user-?name|your-?(?:user|org|name)|owner|org)\/(repo|repository|project)\b|(^|\s)\/?path\/to\//i.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
+  if (/(~|\$HOME)\/Downloads\b|(^|\s)Downloads\//.test(c)) return { kind: 'other', skip: 'uses a file you download by hand first' };
+  if (/^(docker(-compose|\s+compose)\s+logs|tail\s+-[fF]\b|journalctl\b|kubectl\s+logs)/.test(c)) return { kind: 'other', skip: 'follows logs; not a setup step' };
+  if (/>>?\s*~?\/?\S*\.(bashrc|zshrc|bash_profile|profile|config\/fish\S*)\b|^set\s+fish_\w+/.test(c)) return { kind: 'other', skip: 'personal shell customisation, not project setup' };
+  if (/^(npm|pip3?|pipx|yarn|pnpm)\s+(uninstall|remove|rm)\b|^(poetry|npm|yarn|pnpm)\s+publish\b|^twine\s+upload\b/.test(c)) return { kind: 'other', skip: 'uninstall/publish: not part of setting up' };
   if (/^(poetry|pipenv|hatch)\s+shell\b/.test(c)) return { kind: 'env', skip: 'interactive subshell: FirstRun activates the same environment after install', subshell: c.split(/\s+/)[0] };
   if (/^(npm|yarn|pnpm|bun|make|just|npx|poetry\s+run|uv\s+run|pipenv\s+run)\s+(run\s+)?[\w:-]*(lint|prettier|format|fmt|coverage|\bcov\b|watch|storybook|husky|pre-?commit|commitlint|release|deploy|publish|typecheck|type-check|\bmm\b|makemigrations|downgrade|rollback|docs?:)/i.test(c)
     || /^(pre-commit|eslint|prettier|black|ruff|flake8|mypy|isort|pylint)\b/.test(c)) {
@@ -37,7 +44,7 @@ export function classify(cmd, facts) {
   if (/^(curl|wget)\s+(-\w+\s+)*https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)/.test(c)) return { kind: 'test', probe: true };
   if (/^docker(-compose|\s+compose)\s+(up|start)\b/.test(c)) return { kind: 'services' };
   if (/^docker\s+run\b/.test(c) && /\b(postgres|redis|mysql|mariadb|mongo|rabbitmq|elasticsearch|memcached|minio|mailhog|localstack)/i.test(c)) return { kind: 'services' };
-  if (/^docker(-compose|\s+compose)?\s+(build|run|exec|push|pull|login)\b|^docker\s+/.test(c)) return { kind: 'other', skip: 'container-based alternative workflow' };
+  if (/^docker(-compose|\s+compose)?\s+(build|run|exec|push|pull|login)\b|^docker(-compose)?\s+/.test(c)) return { kind: 'other', skip: 'container-based alternative workflow' };
   if (/^(cp|mv|copy)\s+\S*\.env|^(cp|mv)\s+\S*env\S*\s|^export\s+[A-Z_]+=|^echo\s+.+>>?\s*\.env|^touch\s+\.env|^source\s+\.env|^set\s+-a/.test(c)) return { kind: 'env' };
   if (/^(source|\.)\s+\S*(venv|env)\S*\/bin\/activate|^python3?\s+-m\s+venv\b|^virtualenv\b|^(uv\s+venv)/.test(c)) return { kind: 'install' };
   if (/^(npm\s+(i|install|ci)\b|yarn(\s+install)?$|yarn\s+install\b|pnpm\s+(i|install)\b|bun\s+install\b|pip3?\s+install\b|python3?\s+-m\s+pip\s+install\b|poetry\s+install\b|uv\s+(sync|pip\s+install)\b|pipenv\s+install\b|corepack\s+enable\b|npm\s+install\s+-g\b|bundle\s+install\b|composer\s+install\b|go\s+mod\s+download\b)/.test(c)) return { kind: 'install' };
@@ -47,6 +54,15 @@ export function classify(cmd, facts) {
   if (SERVE_RE.test(c)) return { kind: 'serve' };
   if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|^make(\s+(build|all))?$|^tsc\b|^npx\s+tsc\b|^python3?\s+setup\.py\s+(build|develop)/.test(c)) return { kind: 'build' };
   return { kind: 'other', ...ctx };
+}
+
+/** Does any part of a (piped) command invoke the project's own CLI? */
+function usesProjectCli(cmd, facts) {
+  if (!facts.cli?.length) return false;
+  return cmd.split('|').some((seg) => {
+    const first = seg.trim().replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '').split(/\s+/)[0];
+    return facts.cli.includes(first);
+  });
 }
 
 function managerOf(cmd) {
@@ -91,7 +107,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const shellBlocks = md.blocks.filter(isShellBlock);
     const inSetup = (b) => {
       const p = sectionPath(md.sections, b.start);
-      if (p.some((h) => EXCLUDED_HEADING.test(h))) return false;
+      if (p.some(excludedHeading)) return false;
       return p.some((h) => SETUP_HEADING.test(h));
     };
     let chosen = shellBlocks.filter(inSetup);
@@ -99,12 +115,14 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const nonDocker = chosen.filter((b) => !sectionPath(md.sections, b.start).some((h) => DOCKER_ALT_HEADING.test(h)));
     if (nonDocker.length) chosen = nonDocker;
     if (!chosen.length && docFile === facts.docs[0]) {
-      chosen = shellBlocks.filter((b) => !sectionPath(md.sections, b.start).some((h) => EXCLUDED_HEADING.test(h)));
+      chosen = shellBlocks.filter((b) => !sectionPath(md.sections, b.start).some(excludedHeading));
     }
     const before = steps.filter((s) => !s.skip).length;
     for (const b of chosen) {
       const cmds = blockCommands(b);
       const managers = new Set();
+      // A block that runs the project's own CLI is a usage example as a whole ("cat values.yaml | jello …").
+      const usageBlock = cmds.some((c) => classify(c.text, facts).kind !== 'install' && usesProjectCli(c.text, facts));
       for (const c of cmds) {
         for (const rawPart of splitAnd(c.text)) {
           // "--env local|dev|prod" documents choices; a newcomer picks the first.
@@ -119,6 +137,8 @@ export function buildPlan(facts, { repo, commit } = {}) {
             origin: 'readme',
           };
           if (cls.skip) step.skip = cls.skip;
+          // Lines calling the CLI are usage; in a usage block, so are plain helpers like "cat values.yaml".
+          else if (step.kind !== 'install' && (usesProjectCli(part, facts) || (usageBlock && step.kind === 'other'))) step.usage = true;
           if (cls.subshell) step.subshell = cls.subshell;
           if (rawPart !== part) step.docCommand = rawPart;
           if (cls.probe) step.probe = true;
@@ -172,6 +192,20 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const activate = tool === 'poetry' ? 'source "$(poetry env info --path)/bin/activate"' : tool === 'pipenv' ? 'source "$(pipenv --venv)/bin/activate"' : 'source "$(hatch env find)/bin/activate"';
     const synthetic = { id: '', command: activate, kind: 'env', source: { ...sub.source }, origin: 'readme', synthetic: `emulates \`${sub.command}\`` };
     steps.splice(install ? steps.indexOf(install) + 1 : steps.indexOf(sub) + 1, 0, synthetic);
+  }
+  // A CLI tool is set up once its command runs; its usage examples need the reader's own input.
+  // Apps that ship a CLI *and* use it for setup ("acme migrate") keep those steps.
+  const cli = facts.cli?.[0];
+  const cliTool = cli && !steps.some((s) => !s.skip && !s.usage && (s.kind === 'serve' || s.kind === 'test'));
+  for (const s of steps.filter((x) => x.usage)) {
+    delete s.usage;
+    if (cliTool) s.skip = 'usage example: runs the tool on your own input once it is installed';
+  }
+  if (cliTool) {
+    const lastInstall = steps.map((s) => !s.skip && s.kind === 'install').lastIndexOf(true);
+    if (lastInstall >= 0) {
+      steps.splice(lastInstall + 1, 0, { id: '', command: `${cli} --help`, kind: 'test', probe: true, source: { ...steps[lastInstall].source }, origin: 'readme', synthetic: `checks that the installed \`${cli}\` command runs` });
+    }
   }
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 

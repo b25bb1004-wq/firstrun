@@ -77,6 +77,16 @@ export function isShellBlock(block) {
  * Turn a shell block into commands: strips prompts, joins backslash
  * continuations, drops comments and output lines in prompt-style blocks.
  */
+/** Lines that cannot be a shell command: JSON/YAML fragments, bare values, `name = value` with spaces. */
+function looksLikeOutput(line) {
+  return /^[{}\]]/.test(line)              // { } ]
+    || /^\[\s*$|^\[\s*["\d{]|^\[\[(?!\s)/.test(line) // [ alone or before a JSON value; "[ -f" / "[[ -d" are shell tests
+    || /^["'][^"']*["']\s*[:,]/.test(line) // "key": … / "item",
+    || /^-?\d+(\.\d+)?,?$/.test(line)      // 1,  2.5
+    || /^(true|false|null),?$/.test(line)
+    || /^[\w.[\]"']+\s+=\s/.test(line);    // _.foo = "bar" (shell assignments have no spaces)
+}
+
 export function blockCommands(block) {
   const raw = block.lines;
   const nonEmpty = raw.filter((l) => l.text.trim() && !l.text.trim().startsWith('#'));
@@ -101,6 +111,7 @@ export function blockCommands(block) {
       if (!m) continue; // output line
       body = m[1];
     } else if (/^[$%]\s+/.test(body)) body = body.replace(/^[$%]\s+/, '');
+    else if (looksLikeOutput(body)) continue; // sample output pasted under the command, no prompt to tell them apart
     body = body.replace(/\s+#\s.*$/, '').replace(/\s*;\s*$/, ''); // trailing comment, stray semicolon
     if (/\\$/.test(body)) { acc = { text: body.replace(/\\$/, '').trim(), line, endLine: line }; continue; }
     cmds.push({ text: body, line, endLine: line });

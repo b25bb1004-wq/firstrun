@@ -1,4 +1,6 @@
 import { test } from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,4 +62,52 @@ test('notes-api-py: planner finds the Python drifts statically', async () => {
   assert.equal(plan.image, 'python:3.8');
   const what = plan.conflicts.map((c) => c.what);
   for (const w of ['Python version', 'file requirements/dev.txt', 'file app.py', 'env var NOTES_API_TOKEN']) assert.ok(what.includes(w), w);
+});
+
+test('blockCommands drops sample output pasted under a command without a prompt', () => {
+  const md = parseMarkdown('```bash\necho \'{"foo":1}\' | jello\n{\n  "foo": 1,\n  "baz": [\n    1,\n    2\n  ]\n}\n_.foo = "bar"\n```\n');
+  assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['echo \'{"foo":1}\' | jello']);
+});
+
+test('classify skips placeholders, hand downloads, log tails, shell customisation and publishing', () => {
+  const facts = { files: [], cli: [] };
+  for (const cmd of [
+    'git2txt https://github.com/username/repository',
+    'pip install --user ~/Downloads/please_cli*',
+    'docker-compose logs -f',
+    'tail -f logs/app.log',
+    "echo 'please' >> ~/.bashrc",
+    'set fish_greeting please',
+    'pip uninstall please-cli',
+    'poetry publish',
+  ]) assert.ok(classify(cmd, facts).skip, `should skip: ${cmd}`);
+  assert.equal(classify('docker-compose exec node npm i', facts).skip, 'container-based alternative workflow');
+});
+
+test('CLI tools: usage examples are skipped and the plan checks the installed command instead', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-cli-'));
+  fs.writeFileSync(path.join(root, 'README.md'), [
+    '# tool', '', '## Install', '', '### Pip (macOS, linux, unix, Windows)', '', '```bash', 'pip3 install tool', '```', '',
+    '## Usage', '', '```bash', '$ cat values.yaml', '$ tool -Rr \'x\'', '```', '',
+  ].join('\n'));
+  fs.writeFileSync(path.join(root, 'pyproject.toml'), '[project]\nname = "tool"\n\n[project.scripts]\ntool = "tool.cli:main"\n');
+  return scout(root).then((facts) => {
+    assert.deepEqual(facts.cli, ['tool']);
+    const plan = buildPlan(facts, { repo: 'x/tool' });
+    assert.deepEqual(plan.steps.filter((s) => !s.skip).map((s) => s.command), ['pip3 install tool', 'tool --help']);
+    assert.deepEqual(plan.verify, { kind: 'command', target: 'tool --help' });
+  });
+});
+
+test('shell tests like "[ -f .env ]" are commands, not sample output', () => {
+  const md = parseMarkdown('```bash\n[ -f .env ] || cp .env.example .env\n[[ -d node_modules ]] || npm install\nnpm start\n```\n');
+  assert.deepEqual(blockCommands(md.blocks[0]).map((c) => c.text), ['[ -f .env ] || cp .env.example .env', '[[ -d node_modules ]] || npm install', 'npm start']);
+});
+
+test('apps that ship a CLI keep the setup steps that use it', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-app-cli-'));
+  fs.writeFileSync(path.join(root, 'README.md'), '# acme\n\n## Getting started\n\n```bash\nnpm install\nacme migrate\nnpm start\n```\n');
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: 'acme', bin: { acme: 'bin/acme.js' }, scripts: { start: 'node server.js' } }));
+  const plan = buildPlan(await scout(root), { repo: 'x/acme' });
+  assert.deepEqual(plan.steps.filter((s) => !s.skip).map((s) => s.command), ['npm install', 'acme migrate', 'npm start']);
 });

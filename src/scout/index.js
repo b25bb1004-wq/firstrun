@@ -228,7 +228,33 @@ export async function scout(root) {
   facts.stack = facts.node && facts.python
     ? (files.filter((f) => f.endsWith('.py')).length > files.filter((f) => /\.[jt]sx?$/.test(f)).length ? 'python' : 'node')
     : facts.node ? 'node' : facts.python ? 'python' : 'other';
+  facts.cli = cliNames(facts, read, has);
   return facts;
+}
+
+/** Commands the project itself installs (package.json "bin", Python console scripts). */
+function cliNames(facts, read, has) {
+  const names = new Set();
+  if (has('package.json')) {
+    try {
+      const pkg = JSON.parse(read('package.json'));
+      if (typeof pkg.bin === 'string' && pkg.name) names.add(pkg.name.split('/').pop());
+      else if (pkg.bin && typeof pkg.bin === 'object') Object.keys(pkg.bin).forEach((k) => names.add(k));
+    } catch {}
+  }
+  // [project.scripts] / [tool.poetry.scripts]: every "name = ..." line until the next table.
+  const pyproject = has('pyproject.toml') ? read('pyproject.toml') || '' : '';
+  let inScripts = false;
+  for (const line of pyproject.split(/\r?\n/)) {
+    if (/^\s*\[/.test(line)) { inScripts = /^\s*\[(project\.scripts|tool\.poetry\.scripts)\]\s*$/.test(line); continue; }
+    const k = inScripts && line.match(/^\s*["']?([\w.-]+)["']?\s*=/);
+    if (k) names.add(k[1]);
+  }
+  // setup.py / setup.cfg console_scripts: "name = package.module:function"
+  const setup = (has('setup.py') ? read('setup.py') || '' : '') + (has('setup.cfg') ? read('setup.cfg') || '' : '');
+  const cs = setup.match(/console_scripts[\s\S]{0,400}/);
+  if (cs) for (const k of cs[0].matchAll(/([\w.-]+)\s*=\s*[\w.]+:\w+/g)) names.add(k[1]);
+  return [...names].filter((n) => n.length > 1);
 }
 
 export function summarizeFacts(f) {
