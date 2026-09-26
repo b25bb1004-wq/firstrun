@@ -130,7 +130,7 @@ export class Sandbox {
       '#!/bin/sh',
       '# HUMBLE: behave like apt on a fresh machine with someone answering its prompt.',
       'real=/usr/bin/$(basename "$0")',
-      'if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null | grep -v -e lock -e partial)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
+      'if [ -z "$(ls /var/lib/apt/lists/*_Packages 2>/dev/null)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
       'case "$1" in install|upgrade|dist-upgrade|remove) exec "$real" -y "$@";; *) exec "$real" "$@";; esac',
     ].join('\n');
     await this.writeFile('/firstrun/shims/apt', apt);
@@ -286,7 +286,8 @@ export class Sandbox {
       '',
     ].join('\n'));
     const started = Date.now();
-    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
+    const exitFile = `/firstrun/serve-${id}.exit`;
+    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash -c 'bash /firstrun/step-${id}.sh; echo $? > ${exitFile}' > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
     let seen = 0;
     let lastOut = '';
     let crashSeenAt = 0;
@@ -300,13 +301,13 @@ export class Sandbox {
       const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
       const portOpen = port ? (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${port}) >/dev/null 2>&1`])).code === 0 : false;
       if (portOpen || (ready && ready.test(lastOut))) {
-        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile };
+        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile, logFile, logSeen: lastOut.length };
       }
       // The app may announce a different port than the one we guessed ("Uvicorn running on
       // http://0.0.0.0:8000"). If that port is really listening, the app is up.
       const announced = announcedPort(lastOut, this.services.map((s) => s.port).filter(Boolean));
       if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
-        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced };
+        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced, logFile, logSeen: lastOut.length };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
       // But a crash while a watch-mode compiler is still on its first build isn't final: `tsc --watch & nodemon dist`
@@ -321,12 +322,33 @@ export class Sandbox {
         }
       }
       if (!alive && Date.now() - started > 2000) {
+        // Exit 0 without ever listening: a one-shot command (a CLI example, a script), not a server.
+        // It did what it was asked (commander printed the documented output, then was failed for not
+        // listening on 8080). Report it as passed and let the caller skip the HTTP probe.
+        const code = (await run('docker', ['exec', this.name, 'cat', exitFile])).out.trim();
+        if (code === '0') {
+          return { exitCode: 0, out: `${lastOut}
+[firstrun] the command finished (exit 0) without starting a server: a one-shot command, not an app to keep running
+`, durationMs: Date.now() - started, oneShot: true };
+        }
         await this._killServeGroup(id);
         return { exitCode: 1, out: `${lastOut}\n[firstrun] server process exited before becoming ready${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
       }
     }
     await this._killServeGroup(id);
     return { exitCode: 124, out: `${lastOut}\n[firstrun] server did not become ready${port ? ` on port ${port}` : ''} within ${Math.round(timeoutMs / 1000)}s\n`, durationMs: Date.now() - started };
+  }
+
+  /**
+   * After a failed probe: what the server printed since it said "ready", and whether it is still alive.
+   * sahat, taxonomy and GeekyAnts all printed "ready", crashed, and ended as "unknown" because
+   * nobody read the log again.
+   */
+  async serveAftermath(r) {
+    if (!r?.logFile) return { out: '', alive: false };
+    const log = (await run('docker', ['exec', this.name, 'cat', r.logFile])).out;
+    const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${r.pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
+    return { out: log.slice(r.logSeen || 0), alive };
   }
 
   /**
@@ -404,7 +426,7 @@ export class Sandbox {
    * Start a backing service as a sidecar sharing this container's network, so
    * the app reaches it on localhost like on a developer laptop.
    */
-  async addService({ name, image, env = {}, port }) {
+  async addService({ name, image, env = {}, port, volumes = [], composeDir = null }) {
     const prev = this.services.find((s) => s.name === name);
     if (prev && prev.image === image) return { already: true };
     // Same service, different image (mongo:7 → mongo:4.4 for a legacy driver): replace the sidecar.
@@ -416,9 +438,23 @@ export class Sandbox {
     const ctr = `${this.name}-${name}`.replace(/[^a-zA-Z0-9_.-]/g, '-');
     const args = ['run', '-d', '--name', ctr, '--label', `firstrun=${this.label}`, '--network', `container:${this.name}`];
     for (const [k, v] of Object.entries(env)) args.push('-e', `${k}=${v}`);
+    for (const vol of (volumes || [])) {
+      if (typeof vol !== 'string' || !vol.includes(':')) continue;
+      const [src, ...dstParts] = vol.split(':');
+      const dst = dstParts.join(':').replace(/:ro$|:rw$/, '');
+      // Only files from the repo itself (init.sql, config), read-only. The compose file and the image are both
+      // repo-controlled: an absolute path (`/:/host`) or one that climbs out (`../../`) would hand the host's
+      // files to an image the repo chose. Named volumes (`db-data:/var/lib/...`) are skipped: sidecars start fresh.
+      if (path.isAbsolute(src) || /^[A-Za-z]:/.test(src) || src.startsWith('~')) continue;
+      if (!(src.startsWith('.') || src.includes('/'))) continue;
+      const repoRoot = path.resolve(this.repoDir);
+      const hostSrc = path.resolve(repoRoot, composeDir || '.', src);
+      if (hostSrc !== repoRoot && !hostSrc.startsWith(repoRoot + path.sep)) continue;
+      if (fs.existsSync(hostSrc)) args.push('-v', `${hostSrc}:${dst}:ro`);
+    }
     args.push(image);
     await must('docker', args);
-    this.services.push({ name, image, env, port, container: ctr });
+    this.services.push({ name, image, env, port, volumes, composeDir, container: ctr });
     if (port) {
       const started = Date.now();
       while (Date.now() - started < 60_000) {
@@ -428,6 +464,14 @@ export class Sandbox {
             // The port opens during initdb; wait for the real server.
             for (let i = 0; i < 30; i++) {
               if ((await run('docker', ['exec', ctr, 'pg_isready', '-q', '-h', '127.0.0.1'])).code === 0) break;
+              await sleep(1000);
+            }
+            await sleep(1500);
+          }
+          if (/mysql|mariadb/i.test(image)) {
+            const pass = env.MYSQL_ROOT_PASSWORD || env.MYSQL_PASSWORD || 'root';
+            for (let i = 0; i < 30; i++) {
+              if ((await run('docker', ['exec', ctr, 'mysqladmin', 'ping', '-h', '127.0.0.1', `-p${pass}`, '--silent'])).code === 0) break;
               await sleep(1000);
             }
             await sleep(1500);
@@ -443,7 +487,7 @@ export class Sandbox {
 
   /** Throw away this machine and start again from a different base image. */
   async rebase(image) {
-    const services = this.services.map(({ name, image: img, env, port }) => ({ name, image: img, env, port }));
+    const services = this.services.map(({ name, image: img, env, port, volumes, composeDir }) => ({ name, image: img, env, port, volumes, composeDir }));
     await this.stop();
     this.image = image;
     this.name = `firstrun-${shortId()}`;

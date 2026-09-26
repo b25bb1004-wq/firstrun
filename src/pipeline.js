@@ -6,6 +6,7 @@ import { Recorder } from './recorder.js';
 import { diagnose, fixSignature } from './doctor/index.js';
 import { RULES } from './doctor/rules.js';
 import { needsBobPlanner, bobPlan } from './brain/planner.js';
+import { bobReviewPlan } from './brain/review.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
@@ -41,6 +42,27 @@ export async function restoreCwd(sandbox, cwd) {
   await sandbox.writeFile('/firstrun/cwd', cwd);
 }
 
+/**
+ * A step the Doctor inserted (a fix) failed. Run the rules (never Bob) on it once; if one returns a
+ * command-only fix (replace-step), rewrite the inserted step and report what changed. null otherwise.
+ */
+export async function repairInsertedStep(ns, attempt, { facts, plan, sandbox, tried }) {
+  const log = attempt.out || '';
+  for (const rule of RULES) {
+    let d = null;
+    try { d = await rule.test({ step: ns, attempt, log, facts, plan, sandbox, tried: tried || new Set(), history: [], sandboxEnv: {} }); } catch { d = null; }
+    if (!d?.fix) continue;
+    const acts = d.fix.actions || [];
+    if (acts.length !== 1 || acts[0].type !== 'replace-step' || acts[0].command === ns.command) continue;
+    const from = ns.command;
+    ns.command = acts[0].command;
+    return { from, ruleId: d.ruleId || rule.id, cause: d.cause };
+  }
+  return null;
+}
+
+// A failure in one of these kinds blocks every later step; any other failure only blocks its own doc section.
+export const HARD_BLOCK_KINDS = new Set(['install', 'prereq', 'env', 'services', 'migrate', 'build']);
 /** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
 const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
 
@@ -114,6 +136,16 @@ export async function verifyRepo(repoDir, opts = {}) {
         }
       }
     }
+    // Bob reviews the lines the rules can't vouch for, once, before anything runs (≤ 0.2 Bobcoins).
+    if (brain !== 'rules' && plan.plannedBy !== 'bob' && budget.remaining() > 0) {
+      const rv = await bobReviewPlan({ plan, facts, budget, maxCost: Math.min(0.2, budget.remaining()) });
+      if (rv.asked) {
+        rec.state.bobcoins = budget.spent();
+        rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', review: true, asked: rv.asked, skipped: rv.skipped.length, bobcoins: rv.bobcoins, ok: rv.ok, taskId: rv.taskId, error: rv.error });
+        for (const s of rv.skipped) say('planner', `IBM Bob: skip \`${s.command}\` (${s.reason})`);
+        plan.bobReview = { asked: rv.asked, skipped: rv.skipped, bobcoins: rv.bobcoins, ok: rv.ok };
+      }
+    }
     plan.originalImage = plan.image;
     plan.originalRuntime = { ...plan.runtime };
     for (const s of plan.steps) s.status = s.skip ? 'skipped' : 'pending';
@@ -167,14 +199,31 @@ export async function verifyRepo(repoDir, opts = {}) {
           }
           rec.savePlan(plan);
         }
-        if (r.exitCode === 0 && plan.verify.kind === 'http') {
+        if (r.oneShot) {
+          // Not a server after all: it ran to completion. Nothing to probe; the step passed on its exit code.
+          step.oneShot = true;
+          if (plan.verify.kind === 'http') {
+            // Nothing will ever answer the URL. If the docs promised one, that promise is itself drift: say so.
+            if (plan.verify.fromDocs && !plan.conflicts.some((c) => c.what === 'app URL')) {
+              plan.conflicts.push({ what: 'app URL', docs: plan.verify.target, truth: `\`${step.command}\` finishes and exits; nothing serves that URL`, source: plan.verify.docsSource || 'README' });
+            }
+            plan.verify = { kind: 'exit', target: 'all steps exit 0' };
+            rec.savePlan(plan);
+          }
+        } else if (r.exitCode === 0 && plan.verify.kind === 'http') {
           const p = await box.probe(plan.verify.target, { timeoutMs: 45_000 });
           r.out += `\n[firstrun] GET ${plan.verify.target} → ${p.status || 'no response'}${p.body ? `\n${tail(p.body, 6)}` : ''}\n`;
           // A URL the docs give must succeed. When the docs name none, "/" is our guess: an API
           // with no root route answers 404, which still proves the server is up and serving.
           const answers = !plan.verify.fromDocs && p.status && p.status < 500;
           if (!p.ok && answers) r.out += `[firstrun] the docs name no URL to check; the server answered ${p.status} on / so it is up\n`;
-          if (!p.ok && !answers) r.exitCode = 1;
+          if (!p.ok && !answers) {
+            r.exitCode = 1;
+            // It said "ready" but doesn't answer: show what it printed since, so the Doctor sees the real crash.
+            const after = await box.serveAftermath(r);
+            if (after.out.trim()) r.out += `\n[firstrun] the server's output after the check:\n${tail(after.out, 40)}\n`;
+            r.out += after.alive ? '[firstrun] the server process is still running but does not answer\n' : '[firstrun] the server process has exited\n';
+          }
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
@@ -219,7 +268,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       for (const a of step.prereqs || []) {
         if (a.type === 'exec') await box.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
         else if (a.type === 'write') await box.writeFile(a.path, a.content);
-        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
       }
     };
     const addPrereq = (step, a) => {
@@ -235,9 +284,23 @@ export async function verifyRepo(repoDir, opts = {}) {
 
     let i = 0;
     let stopped = null;
+    // Steps form a graph, not a chain: a failed install/env/services/migrate/build step blocks
+    // everything after it (later steps need it), but a failed start, usage or other step only
+    // blocks the rest of its own doc section. One bad line can't hide the rest of the docs
+    // (vargasjona: 20 steps blocked by one line; fastify: a macOS-only snippet hid the real setup).
+    const blockers = [];
+    const blockedBy = (s) => blockers.find((b) => b.hard || (b.file === s.source?.file && b.section === s.source?.section));
     while (i < plan.steps.length) {
       const step = plan.steps[i];
       if (step.skip) { i++; continue; }
+      const blocker = blockedBy(step);
+      if (blocker) {
+        step.status = 'blocked';
+        step.blockedBy = blocker.id;
+        rec.stepStatus(step.id, 'blocked');
+        i++;
+        continue;
+      }
       if (opts.maxMinutes && Date.now() - startedAt > opts.maxMinutes * 60_000) {
         say('runner', `time budget of ${opts.maxMinutes} min reached; stopping before ${step.id}`);
         stopped = step.id;
@@ -268,6 +331,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       let repaired = false;
       let restart = false;
       let totalRepairs = 0;
+      let lastDiagnosis = null;
       const history = [];
       const stepEvidence = [];
       for (let k = 0; k < MAX_REPAIRS_PER_STEP && !repaired; k++) {
@@ -284,6 +348,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           },
         });
         rec.emitEvent('doctor', 'diagnosis', { stepId: step.id, diagnosis });
+        lastDiagnosis = diagnosis;
         const evId = `E${rec.state.evidence.length + 1}`;
         const { out: _o, ...before } = attempt;
         if (!fix) {
@@ -318,7 +383,7 @@ export async function verifyRepo(repoDir, opts = {}) {
             restart = true;
             fixLog.push(`rebased onto ${a.image}`);
           } else if (a.type === 'service') {
-            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
             fixLog.push(`started ${a.image} as "${a.name}" on localhost:${a.port}${r.ready === false ? ' (not ready!)' : ''}`);
             addPrereq(step, a);
           } else if (a.type === 'exec') {
@@ -352,7 +417,20 @@ export async function verifyRepo(repoDir, opts = {}) {
             rec.emitEvent('planner', 'step.inserted', { step: ns, before: step.id });
             rec.emitEvent('planner', 'plan', plan);
             if (!restart) {
-              const ia = await execStep(ns);
+              let ia = await execStep(ns);
+              // The fix's own step can fail for a reason a rule already knows (zhanymkanov: the inserted
+              // `poetry install` hit "No file/folder found for package", which poetry-no-root fixes).
+              // Rules only, no Bob, one retry: diagnose the inserted step like any other step.
+              if (ia.exitCode !== 0) {
+                const again = await repairInsertedStep(ns, ia, { facts, plan, sandbox, tried });
+                if (again) {
+                  fixLog.push(`$ ${again.from} → exit ${ia.exitCode}; ${again.ruleId}: ${again.cause}; retrying as \`${ns.command}\``);
+                  // The dashboard and replay must show what actually runs.
+                  rec.savePlan(plan);
+                  rec.emitEvent('planner', 'plan', plan);
+                  ia = await execStep(ns);
+                }
+              }
               ns.status = ia.exitCode === 0 ? 'passed' : 'failed';
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
@@ -426,8 +504,13 @@ export async function verifyRepo(repoDir, opts = {}) {
       step.status = 'needs-human';
       rec.stepStatus(step.id, 'needs-human');
       if (step.kind === 'test' || step.probe) { i++; continue; }
-      stopped = step.id;
-      break;
+      // A step HUMBLE's sandbox can't run (it needs a Docker engine inside the container) says nothing about the
+      // steps after it: don't block them (HUMBLE's own README: `ui` doesn't depend on `verify`).
+      if (lastDiagnosis?.class === 'sandbox-limit') { i++; continue; }
+      const hard = HARD_BLOCK_KINDS.has(step.kind);
+      blockers.push({ id: step.id, hard, file: step.source?.file, section: step.source?.section });
+      if (hard) { stopped = step.id; break; }
+      i++;
     }
     if (stopped) {
       for (const s of plan.steps) if (s.status === 'pending') { s.status = 'blocked'; rec.stepStatus(s.id, 'blocked'); }
@@ -442,13 +525,13 @@ export async function verifyRepo(repoDir, opts = {}) {
     const replayable = !stopped;
     if (replayable && opts.replay !== false) {
       rec.phase('replay', 'verifier');
-      rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
+      rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human' && s.status !== 'blocked').length });
       const t0 = Date.now();
       replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, cacheVolume, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
       let failed = null;
       for (const step of plan.steps) {
-        if (step.skip || step.status === 'needs-human') continue;
+        if (step.skip || step.status === 'needs-human' || step.status === 'blocked') continue;
         await applyPrereqs(replayBox, step);
         const a = await execStep(step, { agent: 'verifier', box: replayBox });
         if (a.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }

@@ -1,0 +1,18 @@
+services:
+  app:
+    image: python:3.10
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  db:
+    image: postgres:18.1
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: changeme
+  redis:
+    image: redis:8.4
+    network_mode: service:app
+    restart: unless-stopped

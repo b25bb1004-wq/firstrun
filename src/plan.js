@@ -1,6 +1,205 @@
 import path from 'node:path';
 import { parseMarkdown, isShellBlock, blockCommands, sectionPath } from './markdown.js';
 import { readText } from './util.js';
+import { ciFindings, ciPlanSteps } from './ci-reference.js';
+
+/** Parse reStructuredText and extract shell commands with line numbers and section headings.
+ * Supports:
+ * - Code blocks: .. code-block:: bash|sh|shell|console|text
+ * - Indented blocks after a paragraph ending in ::
+ * - RST headings: title line followed by = - ~ ^ line of same length
+ */
+function parseRST(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const headings = [];
+  const blocks = [];
+  let i = 0;
+  
+  // First pass: find all headings (RST style)
+  while (i < lines.length) {
+    const line = lines[i];
+    // Check for RST heading: a line followed by a line of = - ~ ^ of same length
+    if (i + 1 < lines.length) {
+      const nextLine = lines[i + 1];
+      const trimmed = line.trim();
+      const nextTrimmed = nextLine.trim();
+      if (trimmed && nextTrimmed && /^[=\-~^]+$/.test(nextTrimmed) && nextTrimmed.length === trimmed.length) {
+        const level = nextTrimmed[0] === '=' ? 1 : nextTrimmed[0] === '-' ? 2 : nextTrimmed[0] === '~' ? 3 : 4;
+        headings.push({ level, text: trimmed, line: i });
+        i += 2;
+        continue;
+      }
+    }
+    i++;
+  }
+  
+  // Second pass: find code blocks
+  i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    // Check for .. code-block:: directive
+    const codeBlockMatch = line.match(/^\s*\.\.\s+code-block::\s*(bash|sh|shell|console)?\s*$/i);
+    if (codeBlockMatch) {
+      const lang = (codeBlockMatch[1] || '').toLowerCase();
+      const startLine = i;
+      i++;
+      // Skip blank lines after the directive
+      while (i < lines.length && lines[i].trim() === '') i++;
+      // Get the indentation of the first content line
+      let baseIndent = null;
+      const codeLines = [];
+      while (i < lines.length) {
+        const l = lines[i];
+        if (l.trim() === '') {
+          codeLines.push({ text: '', line: i });
+          i++;
+          continue;
+        }
+        const indent = l.length - l.trimStart().length;
+        if (baseIndent === null) {
+          baseIndent = indent;
+        }
+        if (indent < baseIndent && l.trim() !== '') {
+          // End of code block (less indented non-empty line)
+          break;
+        }
+        codeLines.push({ text: l.slice(baseIndent), line: i });
+        i++;
+      }
+      blocks.push({
+        start: startLine,
+        end: i - 1,
+        lang: lang,
+        lines: codeLines
+      });
+      continue;
+    }
+    
+    // Check for :: at end of paragraph (literal block)
+    if (line.trim().endsWith('::') && !line.trim().startsWith('..')) {
+      const startLine = i;
+      i++;
+      // Skip blank lines
+      while (i < lines.length && lines[i].trim() === '') i++;
+      // Get indentation
+      let baseIndent = null;
+      const codeLines = [];
+      while (i < lines.length) {
+        const l = lines[i];
+        if (l.trim() === '') {
+          codeLines.push({ text: '', line: i });
+          i++;
+          continue;
+        }
+        const indent = l.length - l.trimStart().length;
+        if (baseIndent === null) {
+          baseIndent = indent;
+        }
+        if (indent < baseIndent && l.trim() !== '') {
+          break;
+        }
+        codeLines.push({ text: l.slice(baseIndent), line: i });
+        i++;
+      }
+      if (codeLines.length > 0) {
+        blocks.push({
+          start: startLine,
+          end: i - 1,
+          lang: 'literal',
+          lines: codeLines
+        });
+      }
+      continue;
+    }
+    
+    i++;
+  }
+  
+  // Compute section ranges (each heading runs until next same-or-higher level)
+  const sections = headings.map((h, idx) => {
+    let end = lines.length - 1;
+    for (let j = idx + 1; j < headings.length; j++) {
+      if (headings[j].level <= h.level) { end = headings[j].line - 1; break; }
+    }
+    const next = headings[idx + 1];
+    return { ...h, end, bodyEnd: next ? next.line - 1 : lines.length - 1 };
+  });
+  
+  // Assign each block to its section
+  for (const b of blocks) {
+    let best = null;
+    for (const s of sections) {
+      if (s.line <= b.start && b.start <= s.end && (!best || s.level >= best.level)) {
+        best = s;
+      }
+    }
+    b.section = best;
+  }
+  
+  return { lines, headings, sections, blocks };
+}
+
+/** Check if a block is a shell block (language is bash, sh, shell, console, or literal blocks with prompts) */
+function isRSTShellBlock(block) {
+  const SHELL_LANGS = new Set(['bash', 'sh', 'shell', 'console']);
+  if (SHELL_LANGS.has(block.lang)) return true;
+  // For literal blocks, check if they have any prompted lines
+  if (block.lang === 'literal') {
+    return block.lines.some((l) => /^\s*[\$>]\s+\S/.test(l.text));
+  }
+  return false;
+}
+
+/** Get section path for a line number */
+function rstSectionPath(sections, line) {
+  return sections.filter((s) => s.line <= line && line <= s.end).sort((a, b) => a.level - b.level).map((s) => s.text);
+}
+
+/** Extract commands from an RST block (similar to blockCommands but for RST) */
+function rstBlockCommands(block) {
+  const raw = block.lines;
+  const nonEmpty = raw.filter((l) => l.text.trim() && !l.text.trim().startsWith('#'));
+  
+  // For literal blocks, only take lines that start with a shell prompt
+  if (block.lang === 'literal') {
+    const promptedLines = raw.filter((l) => /^\s*[\$>]\s+\S/.test(l.text));
+    if (promptedLines.length === 0) return [];
+    return promptedLines.map(({ text, line }) => {
+      const m = text.trim().match(/^[\$>]\s+(.*)$/);
+      return { text: m ? m[1].trim() : text.trim(), line, endLine: line };
+    });
+  }
+  
+  // For code-block:: bash|sh|shell|console, process normally (all lines are commands)
+  const gtPrompts = nonEmpty.length > 0 && nonEmpty.every((l) => /^\s*>\s+\S/.test(l.text));
+  const hasPrompts = gtPrompts || raw.some((l) => /^\s*[\$%]\s+\S/.test(l.text));
+  const cmds = [];
+  let acc = null;
+  for (const { text, line } of raw) {
+    let t = text.replace(/\s+$/, '');
+    if (acc) {
+      acc.text += ' ' + t.trim().replace(/\\$/, '').trim();
+      acc.endLine = line;
+      if (!/\\$/.test(t)) { cmds.push(acc); acc = null; }
+      continue;
+    }
+    const trimmed = t.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    let body = trimmed;
+    if (hasPrompts) {
+      const m = trimmed.match(gtPrompts ? /^>\s+(.*)$/ : /^[\$%]\s+(.*)$/);
+      if (!m) continue;
+      body = m[1];
+    } else if (/^[\$%]\s+/.test(body)) body = body.replace(/^[\$%]\s+/, '');
+    body = body.replace(/\s+#\s.*$/, '').replace(/\s*;\s*$/, '');
+    if (/\\$/.test(body)) { acc = { text: body.replace(/\\$/, '').trim(), line, endLine: line }; continue; }
+    cmds.push({ text: body, line, endLine: line });
+  }
+  if (acc) cmds.push(acc);
+  return cmds;
+}
+
+export { parseRST, isRSTShellBlock, rstSectionPath, rstBlockCommands };
 
 const SETUP_HEADING = /(getting[\s-]*started|install|set[\s-]*up|quick[\s-]*start|develop|local(ly)?\b|run(ning)?\b|how to (run|use|start)|usage|build(ing)?\b|prereq|requirement|database|configur|environment|\btests?\b|testing|contribut|start(ing)?\b|hacking|bootstrap)/i;
 const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|macos only|upgrad|migrating from|benchmark)/i;
@@ -18,12 +217,41 @@ export function imageFor(runtime, version) {
 }
 
 const SERVE_RE = /^(?:(?:npm|pnpm|bun)\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|yarn\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|npx\s+(?:next|vite|nodemon|ts-node|tsx)\b(?!.*\bbuild\b)|node\s+\S+\.(?:m?js|cjs)(?!\S)|nodemon\b|next\s+dev|vite(?:\s|$)(?!.*build)|python3?\s+(?:-m\s+)?(?:\S+\.py|flask|uvicorn|http\.server|manage\.py\s+runserver)|flask\s+(?:--app\s+\S+\s+)?run|uvicorn\s|gunicorn\s|hypercorn\s|streamlit\s+run|fastapi\s+(?:dev|run)|poetry\s+run\s+(?:python\s+\S+\.py|uvicorn|flask|gunicorn|python\s+manage\.py\s+runserver)|uv\s+run\s+(?:uvicorn|flask|python\s+\S+\.py|fastapi)|pipenv\s+run\s+(?:python|flask|uvicorn)|rails\s+s|make\s+(?:run|dev|serve|start))/i;
-const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|python3?\s+manage\.py\s+test|make\s+test|go\s+test)/i;
+const TEST_RE = /^(?:node\s+--test\b|(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
 
 export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
   const c = cmd.trim().replace(/^sudo\s+/, '').replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '');
   const ctx = {};
+
+  // ── 1. NON-COMMANDS ─────────────────────────────────────────────────────
+  // Skip version/output lines (1.50.0, 40-char hex hash, x64)
+  if (/^(\d+\.\d+\.\d+|[a-f0-9]{40}|x64|arm64|amd64)$/i.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip lines starting with prompt characters
+  if (/^[»❯$#>]\s/.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip key=value config lines with a dot in the key (sonar.login=abc)
+  if (/^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*=\S+$/.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip prose with square brackets (cd ~/dev [or your preferred dev directory])
+  // Only brackets holding an instruction to the reader: `pip install -e ".[dev]"` and `[ -f .env ] || cp …` are real commands.
+  // `[optional]` is not in the list: `mkdir myapp [optional]` is a command with an optional argument.
+  if (/\[\s*(?:or|your|e\.g\.|i\.e\.|replace|choose|if)\b[^\]]*\]/i.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+
+  // ── 2. PLATFORM ──────────────────────────────────────────────────────────
+  // Skip macOS-only lines
+  // /Applications/ or a .app bundle ANYWHERE in the line (fastify: `mkdir -p /Applications/VSCodeFastify/…`,
+  // `alias code-fastify="/Applications/…/Visual Studio Code.app/Contents/…"`), ~/Library/, xattr, brew.
+  if (/\/Applications\//.test(c) || /^xattr\b/.test(c) || /\.app(\/|\s|["']|$)/.test(c) || /^brew\s+/.test(c) || /~\/Library\//.test(c)) {
+    return { kind: 'prereq', skip: 'macOS-only command' };
+  }
+
   if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: HUMBLE starts from a fresh clone already' };
   if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
   if (/\b(user-?name|your-?(?:user|org|name)|owner|org)\/(repo|repository|project)\b|(^|\s)\/?path\/to\//i.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
@@ -34,12 +262,25 @@ export function classify(cmd, facts) {
   if (/^vagrant\s+(up|ssh|provision|halt)\b/.test(c)) return { kind: 'other', skip: 'VM-based alternative workflow' };
   // Self-install: "npm install koa" inside koa's own repo installs the published package, not this source.
   // A CLI tool's README install ("pip3 install jello") is the setup being tested; only libraries are skipped.
-  const selfInstallName = facts?.cli?.length ? null : facts?.selfName;
+  // Adding the package as a dependency (`uv add "fastapi[standard]"`, `poetry add requests`) is always about a
+  // project of yours, never this repo, even for CLIs: a package can't depend on itself.
+  const norm = (n) => String(n || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
+  const addSelf = c.match(/^(?:uv|poetry|pdm)\s+add\s+["']?((?:@[\w.-]+\/)?[\w.-]+)(?:\[[^\]]*\])?/);
+  if (addSelf && facts?.selfName && norm(addSelf[1]) === norm(facts.selfName)) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+  // Only skip self-install check for pip/npm/etc if this is a CLI tool (not a library).
+  // CLI tool = has CLI bin AND no serve/test steps (it's a tool, not an app)
+  const isCliTool = facts?.cli?.length > 0 && !facts.scripts?.test && !facts.scripts?.start;
+  const selfInstallName = isCliTool ? null : facts?.selfName;
   if (selfInstallName) {
     const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
-    const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+([\w.-]+)(?:==\S+)?(?:\s|$)/);
+    const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+["']?([\w.-]+)(?:\[[^\]]*\])?(?:==[^\s"']+)?["']?(?:\s|$)/);
     if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfInstallName.toLowerCase().replace(/[-_]/g, '-')) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+    // bun add, deno add
+    const bunSelf = c.match(/^bun\s+add\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
+    if (bunSelf && bunSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+    const denoSelf = c.match(/^deno\s+add\s+(?:npm:)?((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
+    if (denoSelf && denoSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
   }
   // Live-service tests: the script name contains ":live" or ends with "-live".
   const liveScript = c.match(/^(?:npm|yarn|pnpm)\s+(?:run\s+)?([\w:.-]+)$/);
@@ -55,7 +296,8 @@ export function classify(cmd, facts) {
   if (/^(apt(-get)?|yum|dnf|apk|pacman)\s/.test(c)) return { kind: 'prereq' };
   if (/^(code|cursor|idea|subl|vim|nano)\s/.test(c)) return { kind: 'other', skip: 'opens an editor' };
   if (/^(curl|wget)\s+(-\w+\s+)*https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)/.test(c)) return { kind: 'test', probe: true };
-  if (/^docker(-compose|\s+compose)\s+(up|start)\b/.test(c)) return { kind: 'services' };
+  // `docker compose -f docker/docker-compose.yml up -d db` is services; `docker compose run app npm start` is not.
+  if (/^docker(-compose|\s+compose)(\s+(-f|--file|-p|--project-name|--env-file|--profile)\s+\S+)*\s+(up|start)\b/.test(c)) return { kind: 'services' };
   if (/^docker\s+run\b/.test(c) && /\b(postgres|redis|mysql|mariadb|mongo|rabbitmq|elasticsearch|memcached|minio|mailhog|localstack)/i.test(c)) return { kind: 'services' };
   if (/^docker(-compose|\s+compose)?\s+(build|run|exec|push|pull|login)\b|^docker(-compose)?\s+/.test(c)) return { kind: 'other', skip: 'container-based alternative workflow' };
   if (/^(cp|mv|copy)\s+\S*\.env|^(cp|mv)\s+\S*env\S*\s|^export\s+[A-Z_]+=|^echo\s+.+>>?\s*\.env|^touch\s+\.env|^source\s+\.env|^set\s+-a/.test(c)) return { kind: 'env' };
@@ -63,7 +305,11 @@ export function classify(cmd, facts) {
   if (/^(npm\s+(i|install|ci)\b|yarn(\s+install)?$|yarn\s+install\b|pnpm\s+(i|install)\b|bun\s+install\b|pip3?\s+install\b|python3?\s+-m\s+pip\s+install\b|poetry\s+install\b|uv\s+(sync|pip\s+install)\b|pipenv\s+install\b|corepack\s+enable\b|npm\s+install\s+-g\b|bundle\s+install\b|composer\s+install\b|go\s+mod\s+download\b)/.test(c)) return { kind: 'install' };
   if (/(migrat|prisma\s+(migrate|db\s+push|generate)|knex\s+migrate|sequelize(-cli)?\s+db:|alembic\s+upgrade|manage\.py\s+(migrate|makemigrations)|db:(migrate|setup|push|reset|create)|typeorm\s+migration|drizzle-kit|createdb\b|psql\b|mysql\s+-u)/i.test(c)) return { kind: 'migrate' };
   if (/(db:seed|\bseed\b|loaddata|fixtures?\b)/i.test(c)) return { kind: 'migrate' };
-  if (TEST_RE.test(c)) return { kind: 'test' };
+  // `uv run ./manage.py test`, `poetry run pytest`: the runner prefix doesn't change what the command is.
+  if (TEST_RE.test(c) || TEST_RE.test(c.replace(/^(?:uv|poetry|pipenv|pdm|hatch)\s+run\s+/, ''))) return { kind: 'test' };
+  // `node bin/firstrun.js plan …` runs this repo's own CLI (a package.json bin): a one-shot command, not a server.
+  const nodeFile = c.match(/^node\s+(?:\.\/)?(\S+\.(?:m?js|cjs))(?:\s|$)/);
+  if (nodeFile && facts?.binPaths?.includes(nodeFile[1])) return { kind: 'other', ...ctx };
   if (SERVE_RE.test(c)) return { kind: 'serve' };
   if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|^make(\s+(build|all))?$|^tsc\b|^npx\s+tsc\b|^python3?\s+setup\.py\s+(build|develop)/.test(c)) return { kind: 'build' };
   return { kind: 'other', ...ctx };
@@ -94,6 +340,10 @@ export function declaredRuntime(text, runtime) {
     const v = m[1];
     if (runtime === 'node' && (Number(v) < 4 || Number(v) > 30)) continue;
     const line = text.slice(0, m.index).split('\n').length;
+    // A version in a HEADING is a feature note, not a setup requirement (koa: '### async functions (node v7.6+)').
+    const lineText = text.split('\n')[line - 1] || '';
+    const nextLine = text.split('\n')[line] || '';
+    if (/^\s{0,3}#{1,6}\s/.test(lineText) || /^\s*(=+|-+)\s*$/.test(nextLine)) continue;
     // minimum: trailing "+" or "or higher/later/newer/above", or a range prefix like ">=" / "at least"
     const minimum = !!(m[2]?.trim() || /(?:>=|≥|at least\s*)\s*v?\d/.test(m[0]));
     return { version: v, line, match: m[0].trim(), minimum };
@@ -226,6 +476,100 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (docFile === facts.docs[0] && steps.filter((s) => !s.skip).length >= 2) break;
   }
 
+  // Also process RST docs (facts.docsRst) for reStructuredText setup guides
+  for (const docFile of facts.docsRst) {
+    const text = readText(path.join(facts.root, docFile));
+    if (!text) continue;
+    const rst = parseRST(text);
+    const shellBlocks = rst.blocks.filter(isRSTShellBlock);
+    const inSetup = (b) => {
+      const p = rstSectionPath(rst.sections, b.start);
+      if (p.some(excludedHeading)) return false;
+      return p.some((h) => SETUP_HEADING.test(h));
+    };
+    let chosen = shellBlocks.filter(inSetup);
+    // Drop "run it with Docker" sections when a non-Docker path exists.
+    const nonDocker = chosen.filter((b) => !rstSectionPath(rst.sections, b.start).some((h) => DOCKER_ALT_HEADING.test(h)));
+    if (nonDocker.length) chosen = nonDocker;
+    if (!chosen.length && docFile === facts.docsRst[0] && facts.docs.length === 0) {
+      chosen = shellBlocks.filter((b) => !rstSectionPath(rst.sections, b.start).some(excludedHeading));
+    }
+    const before = steps.filter((s) => !s.skip).length;
+    const isScaffold = (c) => { const t = c.text.trim().replace(/^sudo\s+/, ''); return SCAFFOLDER_RE.test(t) || NPM_INIT_SCAFFOLDER_RE.test(t); };
+    const scaffoldSections = new Set(chosen.filter((b) => rstBlockCommands(b).some(isScaffold)).map((b) => rstSectionPath(rst.sections, b.start).join(' › ')));
+    for (const b of chosen) {
+      const cmds = rstBlockCommands(b);
+      if (scaffoldSections.has(rstSectionPath(rst.sections, b.start).join(' › '))) {
+        for (const c of cmds) {
+          for (const rawPart of splitAnd(c.text)) {
+            steps.push({ id: '', command: rawPart, kind: 'other', skip: 'scaffolds a new app for users; not this repo\'s setup', source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: rstSectionPath(rst.sections, b.start).join(' › ') }, origin: 'readme' });
+          }
+        }
+        continue;
+      }
+      const managers = new Set();
+      const usageBlock = cmds.some((c) => classify(c.text, classifyFacts).kind !== 'install' && usesProjectCli(c.text, facts));
+      for (const c of cmds) {
+        for (const rawPart of splitAnd(c.text)) {
+          const part = rawPart.replace(/(^|[\s=])([\w.-]+)((?:\|[\w.-]+)+)(?=\s|$)/g, '$1$2');
+          const cls = classify(part, classifyFacts);
+          if (cls.runtimeHint) runtimeHint = true;
+          const step = {
+            id: '',
+            command: part,
+            kind: cls.kind,
+            source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: rstSectionPath(rst.sections, b.start).join(' › ') },
+            origin: 'readme',
+          };
+          if (cls.skip) step.skip = cls.skip;
+          else if (step.kind !== 'install' && (usesProjectCli(part, facts) || (usageBlock && step.kind === 'other'))) step.usage = true;
+          if (cls.subshell) step.subshell = cls.subshell;
+          if (rawPart !== part) step.docCommand = rawPart;
+          if (cls.probe) step.probe = true;
+          const mgr = managerOf(part);
+          if (step.kind === 'install' && mgr && ['npm', 'yarn', 'pnpm', 'bun'].includes(mgr)) {
+            if (managers.size && !managers.has(mgr)) {
+              const preferred = facts.node?.packageManager;
+              if (mgr !== preferred) step.skip = `alternative package manager (project uses ${preferred})`;
+            }
+            managers.add(mgr);
+          }
+          if (/^cd\s+(\S+)$/.test(part)) {
+            const target = part.slice(3).trim().replace(/\/$/, '');
+            const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+            const prevClone = steps.length && /^git\s+clone/.test(steps[steps.length - 1].command);
+            if (prevClone || (repoName && target.toLowerCase() === repoName.toLowerCase()) || !facts.files.some((f) => f.startsWith(`${target}/`))) {
+              if (prevClone || (repoName && target.toLowerCase() === repoName.toLowerCase())) step.skip = 'cd into the clone: already there';
+            }
+          }
+          if (seen.has(step.command) && !step.skip) continue;
+          seen.add(step.command);
+          steps.push(step);
+        }
+      }
+    }
+    if (steps.filter((s) => !s.skip).length > before) docsUsed.push(docFile);
+  }
+
+  // ── CI FALLBACK ──
+  // When the docs give no runnable steps at all (every docs step skipped or none),
+  // but CI has a tested Linux job, plan that job's setup steps from CI.
+  // Only for repos that HAVE docs files (README, CONTRIBUTING, etc.) but no runnable steps.
+  // Repos with NO docs files (like koajs/koa) use the existing library/CLI contributor path logic.
+  const hasDocsFiles = (facts.docs?.length || 0) + (facts.docsRst?.length || 0) > 0;
+  const hasRunnableDocSteps = steps.some((s) => !s.skip && s.origin === 'readme');
+  if (hasDocsFiles && !hasRunnableDocSteps) {
+    const ciSteps = ciPlanSteps(facts, classify, classifyFacts);
+    if (ciSteps && ciSteps.length) {
+      // Add CI steps with origin 'ci'
+      for (const cs of ciSteps) {
+        steps.push({ id: '', ...cs });
+      }
+      // Mark the plan as from CI
+      // (we'll add this to the returned object below)
+    }
+  }
+
   // Order: tests after the app is running, keep everything else in doc order.
   const serveIdx = steps.findIndex((s) => s.kind === 'serve' && !s.skip);
   if (serveIdx >= 0) {
@@ -274,7 +618,246 @@ export function buildPlan(facts, { repo, commit } = {}) {
   // When pip's is the only install they give (requests: `pip install requests`), that is the setup to test.
   // npm refuses to install a package inside itself, so `npm install koa` stays skipped (the Doctor adds `npm install`).
   const SELF = 'installs the published package; you already have its source';
-  if (!steps.some((s) => !s.skip && s.kind === 'install')) for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
+  // Only re-enable pip self-install for NON-library/CLI projects
+  if (!steps.some((s) => !s.skip && s.kind === 'install')) {
+    // Use the same library/CLI detection as below
+    const isLib = (() => {
+      // Check Node library
+      if (facts.node?.name) {
+        const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+        if (repoName) {
+          const pkgName = facts.node.name.split('/').pop();
+          if (pkgName === repoName) return true;
+        }
+      }
+      // Check Python library (pyproject.toml name matches repo)
+      if (facts.python && facts.python.pyproject) {
+        const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+        if (repoName && selfName === repoName) return true;
+      }
+      return false;
+    })();
+    // CLI tools are NOT libraries - their README install IS the setup
+    const isCli = facts.cli?.length > 0 && !steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    const isLibOrCli = isLib || isCli;
+    if (!isLibOrCli) {
+      for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
+    }
+  }
+
+  // ── 3. AUDIENCE ─────────────────────────────────────────────────────────────
+  // If the repo is a LIBRARY or CLI (package name equals repo name, no app to start),
+  // skip user-install lines of that same package for ANY manager.
+  // Then make sure contributor path is planned (from CONTRIBUTING or CI workflows).
+  function isLibraryOrCli(facts) {
+    const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+    if (!repoName) return false;
+    // A Django app with a package.json for its frontend (wagtail/bakerydemo) is an app, not a library.
+    if (readText(path.join(facts.root, 'manage.py')) != null || steps.some((s) => /(^|\s|\/)manage\.py\s/.test(s.command))) return false;
+    // A Node repo that starts (scripts.start) and exports nothing (no main/exports) is an app, even when its package
+    // name equals the repo name (madhums/node-express-mongoose regressed VERIFIED → PARTIAL on a CI test otherwise).
+    try {
+      const pkg = JSON.parse(readText(path.join(facts.root, facts.projectDir || '', 'package.json')) || 'null');
+      if (pkg && pkg.scripts?.start && !pkg.main && !pkg.exports) return false;
+    } catch {}
+    // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
+    // BUT NOT if it's a CLI tool (has CLI bin and no serve/start/test scripts in package.json).
+    const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
+    const hasNodeServeScript = facts.node?.scripts && (facts.node.scripts.start || facts.node.scripts.serve || facts.node.scripts.dev || facts.node.scripts.test);
+    // For Python: check pyproject.toml [project.scripts] for entry points
+    let hasPythonServeScript = false;
+    if (facts.python?.pyproject) {
+      try {
+        const pyp = readText(path.join(facts.root, 'pyproject.toml'));
+        // Check for [project.scripts] section - if it has entries that look like serve/test/start
+        const scriptsSection = pyp.match(/\[project\.scripts\]([\s\S]*?)(?=\n\[)/);
+        if (scriptsSection) {
+          const lines = scriptsSection[1].split('\n');
+          for (const line of lines) {
+            const m = line.match(/^\s*(\w+)\s*=/);
+            if (m) {
+              const name = m[1];
+              if (/^(start|serve|dev|test|run)$/i.test(name)) hasPythonServeScript = true;
+            }
+          }
+        }
+      } catch {}
+    }
+    const hasServeScript = hasNodeServeScript || hasPythonServeScript;
+    const isCli = facts.cli?.length > 0 && !hasServeScript;
+    // Repo names often carry the ecosystem (`commander.js` publishes `commander`, `node-foo` publishes `foo`).
+    const bare = (x) => n(x).replace(/-(js|ts|py|node)$/, '').replace(/^(node|py|python)-/, '');
+    return !!selfName && (n(selfName) === n(repoName) || bare(selfName) === bare(repoName)) && !isCli;
+  }
+
+  function isCliTool(facts, steps) {
+    // Has a CLI bin but no serve/test steps (it's a CLI tool, not an app)
+    const hasServeOrTest = steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    return facts.cli?.length > 0 && !hasServeOrTest;
+  }
+
+  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts, steps);
+  if (isLibOrCli && selfName) {
+    // Skip self-install for LIBRARIES only (not CLI tools)
+    // For CLI tools, the README install instruction IS the setup being tested
+    if (isLibraryOrCli(facts) && !isCliTool(facts, steps)) {
+      for (const s of steps) {
+        if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
+          // Already skipped by classify
+          continue;
+        }
+        // Check for additional self-install patterns not caught by classify
+        if (s.kind === 'install') {
+          const mgrPatterns = [
+            /^bun\s+add\s+/,
+            /^deno\s+add\s+(?:npm:)?/,
+            /^yarn\s+add\s+/,
+            /^pnpm\s+add\s+/,
+          ];
+          for (const pattern of mgrPatterns) {
+            if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+              s.skip = 'installs the published package; you already have its source';
+              break;
+            }
+          }
+          // Also check plain pip install <selfName> (not caught by classify when CLI exists)
+          const pipSelf = s.command.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+["']?([\w.-]+)(?:\[[^\]]*\])?(?:==[^\s"']+)?["']?(?:\s|$)/);
+          if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfName.toLowerCase().replace(/[-_]/g, '-')) {
+            s.skip = 'installs the published package; you already have its source';
+          }
+        }
+      }
+    }
+  }
+
+  // Library/CLI repos: user guides and example programs are for people USING the package (final-engine run, 27 Sep).
+  if (isLibraryOrCli(facts)) {
+    // fastify: docs/Guides/Getting-Started.md builds the reader's own app (`npm i fastify-cli`, `npm start`).
+    const USER_GUIDE = /(^|\/)(docs?|guides?)\/(.*\/)?[^/]*(getting[-_ ]?started|quick[-_ ]?start|tutorial|usage|recipes?|examples?)[^/]*$/i;
+    for (const s of steps) {
+      if (s.skip || s.origin === 'ci' || !s.source?.file) continue;
+      if (USER_GUIDE.test(s.source.file) && !/contribut|develop|hacking/i.test(s.source.file)) s.skip = 'user guide for people using this library, not setup of this repo';
+    }
+    // commander: `extra --help`, `program -b subcommand`: example programs the docs invent, which neither the repo,
+    // its package bins nor any tool provides.
+    const KNOWN = /^(node|npm|npx|yarn|pnpm|bun|deno|python3?|pip3?|pipx|uv|poetry|pipenv|pdm|hatch|tox|nox|pytest|make|just|task|cargo|go|java|mvn|gradle|ruby|bundle|rake|php|composer|docker|docker-compose|git|cd|cp|mv|mkdir|rm|ln|cat|echo|export|source|\.|touch|chmod|curl|wget|tar|unzip|sudo|apt|apt-get|sh|bash|env|set|test|\[|corepack|nvm|pyenv|asdf|rustup|dotnet|flask|django-admin|uvicorn|gunicorn|alembic|prisma|next|vite|tsc|jest|vitest|mocha|eslint|prettier|nodemon|pm2|redis-server|redis-cli|psql|mysql|mongosh|createdb)$/;
+    const bins = new Set([...(facts.cli || []), ...(facts.binPaths || [])]);
+    for (const s of steps) {
+      if (s.skip || s.origin === 'ci') continue;
+      // `node string-util.js split …` names a file that isn't where the command says (it lives in examples/).
+      const nodeFile = s.command.match(/^node\s+(?!-)(\S+\.(?:m?js|cjs))\b/);
+      const nf = nodeFile && nodeFile[1].replace(/^\.\//, '');
+      if (nf && !(facts.files || []).includes(nf) && (facts.files || []).some((f) => f.endsWith('/' + nf))) {
+        s.skip = `usage example: \`${nodeFile[1]}\` is not in the repo at that path`;
+        continue;
+      }
+      if (s.kind !== 'other') continue;
+      const first = s.command.trim().replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '').split(/\s+/)[0];
+      if (!first || KNOWN.test(first) || bins.has(first) || first.includes('/') || /\.(m?js|cjs|py|sh|ts)$/.test(first)) continue;
+      if ((facts.files || []).includes(first)) continue;
+      s.skip = `usage example: \`${first}\` is an example program in the docs, not a command this repo provides`;
+    }
+  }
+
+  // Ensure contributor path is planned from CONTRIBUTING or CI workflows
+  // We'll collect CI commands and add them if not already present
+  // A CI `run:` block can hold several commands (requests: `make` + newline + `python -m pip install …`), so every
+  // line is a candidate on its own, and each goes through classify like a README line: lint, coverage, macOS
+  // (`make brew-test`) and publishing never become the check that setup worked.
+  const ciLines = (facts.ci?.commands || []).flatMap((c) => String(c.run || '').replace(/\\\n\s*/g, ' ').split('\n'))
+    .map((l) => l.trim()).filter((l) => l && !l.startsWith('#') && !classify(l, classifyFacts).skip);
+  const plainFirst = (a, b) => a.length - b.length;
+  const ciInstallCommands = ciLines
+    .filter((l) => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install|pip\s+install\s+-e\s+\.|uv\s+sync|poetry\s+install|make\s+install)(\s|$)/.test(l))
+    .sort(plainFirst);
+  const ciTestCommands = ciLines
+    .filter((l) => TEST_RE.test(l) || /^(npm|yarn|pnpm)\s+run\s+test[\w:-]*$/.test(l) || /^make\s+(test|check|ci)$/.test(l))
+    .sort(plainFirst);
+  
+  // Only when the docs give no contributor path of their own, and only for libraries/CLIs whose README
+  // is written for users: one install and one test command from CI, install first. Apps keep their
+  // documented steps untouched (appending every CI command to every repo changed plans that worked).
+  const ciSource = { file: 'CI', line: 0, section: 'GitHub Actions' };
+  if (isLibOrCli && !steps.some((s) => !s.skip && s.kind === 'install') && ciInstallCommands[0]) {
+    const at = steps.findIndex((s) => !s.skip && s.kind === 'test');
+    const st = { id: '', command: ciInstallCommands[0], kind: 'install', source: ciSource, origin: 'ci', synthetic: 'from CI workflow' };
+    if (at >= 0) steps.splice(at, 0, st); else steps.push(st);
+  }
+  // Tests only after an install: a CI test with nothing installed (requests: `make ci`) can only fail.
+  // When CI's test is a variant we don't run (koa: `npm run test:coverage`), the package's own `test` script is.
+  const hasInstall = steps.some((s) => !s.skip && s.kind === 'install');
+  // Same package manager as the install (`bun test` is Bun's own runner, not the script, so `bun run test`).
+  const mgr = (steps.find((s) => !s.skip && s.kind === 'install')?.command.match(/^(npm|yarn|pnpm|bun)\b/) || [])[1] || 'npm';
+  const pkgTest = facts.node?.scripts?.test && !/no test specified/.test(facts.node.scripts.test) ? (mgr === 'bun' ? 'bun run test' : `${mgr} test`) : null;
+  // The package's own test script beats a CI line (axios' CI also has a `bun test` job for Bun users).
+  const libTest = pkgTest || ciTestCommands[0];
+  if (isLibOrCli && hasInstall && !steps.some((s) => !s.skip && s.kind === 'test') && libTest) {
+    steps.push({ id: '', command: libTest, kind: 'test', source: libTest === ciTestCommands[0] ? ciSource : { file: 'package.json', line: 0, section: 'scripts.test' }, origin: libTest === ciTestCommands[0] ? 'ci' : 'package', synthetic: libTest === ciTestCommands[0] ? 'from CI workflow' : 'the package\'s own test script' });
+  }
+  // A library whose docs only install the published package, with no contributor setup HUMBLE can find:
+  // say so rather than invent one (psf/requests' saved docs).
+  if (isLibOrCli && steps.some((s) => s.skip === SELF) && !steps.some((s) => !s.skip && (s.kind === 'install' || s.kind === 'test'))) {
+    notes.push('The docs only show installing the published package. No setup from source was found in the README, CONTRIBUTING or CI, so there is no contributor path to prove.');
+  }
+
+  // ── 4. ALTERNATIVES ─────────────────────────────────────────────────────────
+  // Lines that do the same job next to each other form one group:
+  // python -m venv .venv vs uv venv .venv
+  // pip install -r X vs uv pip install -r X
+  // npm install vs yarn vs pnpm install
+  // bun add vs deno add
+  // Run only one per group: the one matching the lockfile or CI; otherwise the first.
+  const alternativeGroups = [
+    // venv alternatives
+    { pattern: /^(python3?\s+-m\s+venv\s+\.venv|uv\s+venv\s+\.venv)$/, reason: 'venv' },
+    // pip/uv pip install -r alternatives
+    { pattern: /^(pip3?\s+install\s+-r|uv\s+pip\s+install\s+-r)/, reason: 'pip install -r' },
+    // npm/yarn/pnpm/bun install alternatives
+    { pattern: /^(npm\s+(i|install|ci)\b|yarn(\s+install)?\b|pnpm\s+(i|install)\b|bun\s+install\b)$/, reason: 'package manager install' },
+    // bun/deno add alternatives
+    { pattern: /^(bun\s+add\s+|deno\s+add\s+(?:npm:)?)/, reason: 'add package' },
+  ];
+
+  for (const group of alternativeGroups) {
+    const matches = steps
+      .map((s, i) => ({ step: s, index: i }))
+      .filter(({ step }) => !step.skip && group.pattern.test(step.command));
+    
+    if (matches.length > 1) {
+      // Find the one matching lockfile or CI
+      let preferred = null;
+      if (facts.node?.lockfile) {
+        const lockfileMgr = facts.node.lockfile === 'package-lock.json' ? 'npm'
+          : facts.node.lockfile === 'yarn.lock' ? 'yarn'
+          : facts.node.lockfile === 'pnpm-lock.yaml' ? 'pnpm'
+          : facts.node.lockfile === 'bun.lockb' || facts.node.lockfile === 'bun.lock' ? 'bun'
+          : null;
+        if (lockfileMgr) {
+          preferred = matches.find(({ step }) => step.command.startsWith(lockfileMgr));
+        }
+      }
+      // Check CI for preferred manager
+      if (!preferred) {
+        const ciInstall = (facts.ci?.commands || []).find(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install)/.test(c.run));
+        if (ciInstall) {
+          const ciMgr = ciInstall.run.match(/^(npm|yarn|pnpm|bun)/)?.[1];
+          if (ciMgr) {
+            preferred = matches.find(({ step }) => step.command.startsWith(ciMgr));
+          }
+        }
+      }
+      // Default to first
+      const keep = preferred || matches[0];
+      
+      // Skip the rest
+      for (const { step, index } of matches) {
+        if (step !== keep.step) {
+          step.skip = `alternative to the step above (${group.reason})`;
+        }
+      }
+    }
+  }
+
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 
   // Runtime: what the docs tell a newcomer to install vs what the project really needs.
@@ -302,6 +885,13 @@ export function buildPlan(facts, { repo, commit } = {}) {
     // Test at the version the docs give, minimum or not ("v7.6+" included): a newcomer who installs
     // exactly that is who a stale README breaks (koa says 7.6+ but its tests need 18). The Doctor rebases.
     runtime = { name: runtimeName, version: declared.version, source: `${facts.docs[0]}:${declared.line} ("${declared.match}")` };
+    // "X or higher" is a floor: a newcomer installs the current LTS, not X. Never go below the project's own engines
+    // floor either (koa: README floor 7.6, engines >= 18, CI 22–26 → node:7 had no `npm ci`).
+    // Only package.json `engines` is a hard floor (npm itself enforces it); .nvmrc etc. stay a docs-vs-code conflict
+    // for the Doctor to prove (acme-shop's seeded "Node 16+ vs .nvmrc 20" break).
+    if (declared.minimum && runtimeName === 'node' && /engines/.test(truth?.source || '') && Number(truth.version) > Number(declared.version)) {
+      runtime = { name: 'node', version: String(truth.version), source: `${truth.source}; the docs' "${declared.match}" is below the project's own engines floor` };
+    }
     if (truth && lowerMajor(declared.version, truth.version)) {
       conflicts.push({ what: `${runtimeName === 'node' ? 'Node.js' : 'Python'} version`, docs: declared.match, truth: `${truth.version} (${truth.source})`, source: `${facts.docs[0]}:${declared.line}` });
     }
@@ -377,8 +967,15 @@ export function buildPlan(facts, { repo, commit } = {}) {
     serve.serve = { port };
     verify = { kind: 'http', target: `http://127.0.0.1:${port}${url?.[2] && url[1] === String(port) ? url[2] : '/'}`, ...(url && url[1] === String(port) ? { fromDocs: true } : {}) };
   } else if (steps.some((s) => s.kind === 'test' && !s.skip)) {
-    verify = { kind: 'command', target: steps.filter((s) => s.kind === 'test' && !s.skip).pop().command };
+    // Strongest honest proof first: a probe of what was installed (`git2txt --help`, a curl), then the docs'
+    // own test, then a test taken from CI.
+    const tests = steps.filter((s) => s.kind === 'test' && !s.skip);
+    const pick = tests.find((s) => s.probe) || tests.filter((s) => s.origin !== 'ci').pop() || tests.pop();
+    verify = { kind: 'command', target: pick.command };
   }
+
+  // CI as the reference path: where the docs' path differs from what CI runs on a clean Linux machine.
+  for (const f of ciFindings({ facts, steps, classify, classifyFacts, docFile: facts.docs[0], readmeText })) conflicts.push(f);
 
   return {
     repo: repo || path.basename(facts.root),
@@ -390,6 +987,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     notes,
     verify,
     docsUsed,
+    fromCI: steps.some((s) => s.origin === 'ci'),
   };
 }
 

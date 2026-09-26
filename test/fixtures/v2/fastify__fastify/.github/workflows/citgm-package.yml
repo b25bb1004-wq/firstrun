@@ -1,0 +1,105 @@
+name: CITGM Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to test'
+        required: true
+        type: string
+
+      node-version:
+        description: 'Node version to test'
+        required: true
+        type: choice
+        options:
+          - '24'
+          - '26'
+          - 'lts/*'
+          - 'nightly'
+          - 'current'
+        default: '24'
+      os:
+        description: 'Operating System'
+        required: false
+        type: choice
+        default: 'ubuntu-latest'
+        options:
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macos-latest'
+  workflow_call:
+    inputs:
+      package:
+        description: 'Package to test'
+        required: true
+        type: string
+      node-version:
+        description: 'Node version to test'
+        required: true
+        type: string
+        default: '24'
+      os:
+        description: 'Operating System'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+
+permissions:
+  contents: read
+
+jobs:
+  core-plugins:
+    name: CITGM
+    runs-on: ${{inputs.os}}
+    permissions:
+      contents: read
+    steps:
+        - name: Check out Fastify
+          uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+          with:
+            persist-credentials: false
+
+        - name: Use Node.js
+          uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+          with:
+            node-version: ${{ inputs.node-version }}
+            cache: 'npm'
+            cache-dependency-path: package.json
+            check-latest: true
+
+        - name: Install Dependencies for Fastify
+          run: |
+            npm install --production --ignore-scripts
+        - name: Npm Link Fastify
+          run: |
+            npm link
+        - name: Determine repository URL of ${{inputs.package}}
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+          id: repository-url
+          with:
+            result-encoding: string
+            script: |
+              const response = await fetch('https://registry.npmjs.org/${{inputs.package}}')
+              const data = await response.json()
+              const repositoryUrl = data.repository.url
+              const result = repositoryUrl.match( /.*\/([a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+)\.git/)[1]
+              return result
+        - name: Check out ${{inputs.package}}
+          uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+          with:
+            repository: ${{ steps.repository-url.outputs.result }}
+            path: package
+            persist-credentials: false
+        - name: Install Dependencies for ${{inputs.package}}
+          working-directory: package
+          run: |
+            npm install --ignore-scripts
+        - name: Sym Link Fastify
+          working-directory: package
+          run: |
+            npm link fastify
+        - name: Run Tests of ${{inputs.package}}
+          working-directory: package
+          run: |
+            npm test

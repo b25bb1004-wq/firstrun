@@ -1,0 +1,86 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T11:50:53.386Z",
+  "commit": "f7f73aa7d0",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S9",
+      "command": "xattr -dr com.apple.quarantine /Applications/VSCodeFastify/Visual\\ Studio\\ Code.app",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "mkdir -p /Applications/VSCodeFastify/code-portable-data/{user-data,extensions}",
+      "kind": "other"
+    },
+    {
+      "id": "S11",
+      "command": "alias code-fastify=\"/Applications/VSCodeFastify/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code\"",
+      "kind": "other"
+    },
+    {
+      "id": "S12",
+      "command": "❯ code-fastify --version",
+      "kind": "other"
+    },
+    {
+      "id": "S13",
+      "command": "1.50.0",
+      "kind": "other"
+    },
+    {
+      "id": "S14",
+      "command": "93c2f0fbf16c5a4b10e4d5f89737d9c2c25488a3",
+      "kind": "other"
+    },
+    {
+      "id": "S15",
+      "command": "x64",
+      "kind": "other"
+    },
+    {
+      "id": "S16",
+      "command": "code-fastify --install-extension dbaeumer.vscode-eslint",
+      "kind": "other"
+    },
+    {
+      "id": "S17",
+      "command": "[ -d /Applications/VSCodeFastify/code-portable-data/extensions/dbaeumer.vscode-eslint-* ] && echo \"found\"",
+      "kind": "other"
+    },
+    {
+      "id": "S18",
+      "command": "code-fastify .",
+      "kind": "other"
+    },
+    {
+      "id": "S21",
+      "command": "npm i fastify-plugin @fastify/mongodb",
+      "kind": "install"
+    },
+    {
+      "id": "S22",
+      "command": "npm i fastify-cli",
+      "kind": "install"
+    },
+    {
+      "id": "S23",
+      "command": "npm start",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    }
+  ],
+  "knownFailures": []
+}

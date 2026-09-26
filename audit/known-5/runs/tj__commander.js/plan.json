@@ -1,0 +1,258 @@
+{
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4+dirty",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install commander",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 64,
+        "endLine": 64,
+        "section": "Commander.js › Installation"
+      },
+      "origin": "readme",
+      "skip": "installs the published package; you already have its source",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "node split.js -s - --fits a-b-c",
+      "kind": "serve",
+      "source": {
+        "file": "Readme.md",
+        "line": 94,
+        "endLine": 94,
+        "section": "Commander.js › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "node split.js -s - --first a-b-c",
+      "kind": "serve",
+      "source": {
+        "file": "Readme.md",
+        "line": 97,
+        "endLine": 97,
+        "section": "Commander.js › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "node string-util.js help split",
+      "kind": "serve",
+      "source": {
+        "file": "Readme.md",
+        "line": 128,
+        "endLine": 128,
+        "section": "Commander.js › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S5",
+      "command": "node examples/string-util.js split --separator=- a-b-c",
+      "kind": "serve",
+      "source": {
+        "file": "Readme.md",
+        "line": 141,
+        "endLine": 141,
+        "section": "Commander.js › Quick Start"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 8080
+      },
+      "status": "needs-human",
+      "readmeCommand": "node string-util.js split --separator=- a-b-c",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S6",
+      "command": "extra --help",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 431,
+        "endLine": 431,
+        "section": "Commander.js › Options › More configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S7",
+      "command": "extra --drink huge",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 443,
+        "endLine": 443,
+        "section": "Commander.js › Options › More configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S8",
+      "command": "PORT=80 extra --donate --free-drink",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 446,
+        "endLine": 446,
+        "section": "Commander.js › Options › More configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S9",
+      "command": "extra --disable-server --port 8000",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 449,
+        "endLine": 449,
+        "section": "Commander.js › Options › More configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S10",
+      "command": "program -b subcommand",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 996,
+        "endLine": 996,
+        "section": "Commander.js › Bits and pieces › Parsing Configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S11",
+      "command": "program subcommand -b",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 997,
+        "endLine": 997,
+        "section": "Commander.js › Bits and pieces › Parsing Configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S12",
+      "command": "program --port=80 arg",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 1010,
+        "endLine": 1010,
+        "section": "Commander.js › Bits and pieces › Parsing Configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S13",
+      "command": "program arg --port=80",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 1011,
+        "endLine": 1011,
+        "section": "Commander.js › Bits and pieces › Parsing Configuration"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S14",
+      "command": "npm run-script <command> [-- <args>]",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 1091,
+        "endLine": 1091,
+        "section": "Commander.js › Bits and pieces › npm run-script"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "file split.js",
+      "docs": "node split.js -s - --fits a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:94"
+    },
+    {
+      "what": "file split.js",
+      "docs": "node split.js -s - --first a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:97"
+    },
+    {
+      "what": "file string-util.js",
+      "docs": "node string-util.js help split",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:128"
+    },
+    {
+      "what": "file string-util.js",
+      "docs": "node string-util.js split --separator=- a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:141"
+    },
+    {
+      "what": "env var FORCE_COLOR",
+      "docs": "not documented",
+      "truth": "read in lib/command.js:2783",
+      "source": "README"
+    },
+    {
+      "what": "env var CLICOLOR_FORCE",
+      "docs": "not documented",
+      "truth": "read in lib/command.js:2787",
+      "source": "README"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/"
+  },
+  "docsUsed": [
+    "Readme.md"
+  ],
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

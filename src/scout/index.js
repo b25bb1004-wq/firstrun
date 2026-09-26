@@ -52,21 +52,53 @@ export async function scout(root) {
   const files = await listFiles(root);
   const has = (f) => files.includes(f);
   const read = (f) => readText(path.join(root, f));
-  const facts = { root, files, loadsDotenv: false, docs: [], node: null, python: null, compose: null, envExample: null, envVarsInCode: [], ci: { nodeVersions: [], pythonVersions: [], services: [], commands: [] }, ports: [], makeTargets: [] };
+  const facts = { root, files, loadsDotenv: false, docs: [], docsRst: [], node: null, python: null, compose: null, envExample: null, envVarsInCode: [], ci: { nodeVersions: [], pythonVersions: [], services: [], commands: [] }, ports: [], makeTargets: [] };
 
   // Docs a newcomer reads, in priority order.
   const readme = files.find((f) => /^readme(\.md|\.markdown|\.rst|\.txt)?$/i.test(f));
   if (readme) facts.docs.push(readme);
+
+  // First, collect special contributing/development/installation docs (both .md and .rst) that go to docsRst
+  // These are: CONTRIBUTING.rst, DEVELOPMENT.rst, and docs/**/contributing.(md|rst), docs/**/development.(md|rst), docs/**/installation.(md|rst)
+  // Also consider examples/**/README.(md|rst) for tutorial setup guides (e.g., flask examples/tutorial/README.rst)
+  const extraDocPatterns = [
+    /^contributing\.rst$/i,
+    /^development\.rst$/i,
+    /^docs?\/contributing\.(md|rst)$/i,
+    /^docs?\/development\.(md|rst)$/i,
+    /^docs?\/.*\/contributing\.(md|rst)$/i,
+    /^docs?\/.*\/development\.(md|rst)$/i,
+  ];
+  const specialDocs = files.filter((f) => {
+    if (f === readme) return false;
+    if (/node_modules|test|fixture/i.test(f)) return false;
+    return extraDocPatterns.some((re) => re.test(f));
+  });
+  // Deduplicate while preserving order
+  const seenDocs = new Set();
+  for (const f of specialDocs) {
+    if (!seenDocs.has(f)) {
+      seenDocs.add(f);
+      facts.docsRst.push(f);
+    }
+  }
+
   for (const f of files) {
     if (f === readme) continue;
+    // Skip files already added to docsRst via special patterns
+    if (facts.docsRst.includes(f)) continue;
     if (/^(contributing|development|developing|setup|install|installation|getting[-_]started|hacking)\.md$/i.test(f)) facts.docs.push(f);
     else if (/^docs?\/(.*\/)?(setup|development|developing|getting[-_]started|install(ation)?|local[-_]dev(elopment)?|contributing|quick[-_]?start)\.md$/i.test(f)) facts.docs.push(f);
   }
 
   // reStructuredText setup docs (flask, httpie): listed apart until the planner parses .rst (src/markdown.js).
-  const SETUP_NAME = /(contributing|development|developing|setup|install(ation)?|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
-  facts.docsRst = files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
-    && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5);
+  const SETUP_NAME = /(contributing|development|developing|setup|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
+  facts.docsRst.push(...files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
+    && !facts.docsRst.includes(f)  // Skip already added files
+    && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5));
+
+  // Cap total docsRst at 5
+  if (facts.docsRst.length > 5) facts.docsRst.length = 5;
 
   // Onboarding material that isn't Markdown (PDF handbooks, reStructuredText, wiki exports):
   // the rule-based planner can't read these; IBM Bob's document understanding can.
@@ -129,7 +161,8 @@ export async function scout(root) {
   }
 
   // docker compose
-  const composeFile = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml', 'docker-compose.dev.yml'].find(has);
+  const composeFile = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml', 'docker-compose.dev.yml'].find(has)
+    || files.find((f) => /(^|\/)(docker-)?compose(\.[^/]*)?\.ya?ml$/i.test(f) && !/node_modules|test|fixture|(^|\/)(examples?|demos?|samples?|playground)\//i.test(f));
   if (composeFile) {
     try {
       const doc = YAML.parse(read(composeFile)) || {};
@@ -141,6 +174,7 @@ export async function scout(root) {
         environment: Array.isArray(s.environment)
           ? Object.fromEntries(s.environment.map((e) => String(e).split(/=(.*)/s).slice(0, 2)))
           : s.environment || {},
+        volumes: (s.volumes || []).map((v) => typeof v === 'object' ? `${v.source || ''}:${v.target || ''}` : String(v)),
       }));
       facts.compose = { file: composeFile, services };
     } catch (e) {
@@ -154,7 +188,9 @@ export async function scout(root) {
 
   // env vars read in code, python app entrypoints, ports
   const vars = new Map();
-  const codeFiles = files.filter((f) => CODE_EXT.test(f) && !/(^|\/)(test|tests|__tests__|spec|e2e|fixtures|migrations|scripts\/ci)\//i.test(f) && !/\.(test|spec)\.[jt]sx?$/.test(f) && !/(^|\/)test_[^/]*\.py$/.test(f)).slice(0, 1500);
+  // examples/, demos/, samples/ are separate projects that show how to USE this one: their env vars and ports are
+  // not this repo's (HUMBLE's own README: "done when" became Redis :6379 from examples/acme-shop).
+  const codeFiles = files.filter((f) => CODE_EXT.test(f) && !/(^|\/)(test|tests|__tests__|spec|e2e|fixtures|migrations|scripts\/ci|examples?|demos?|samples?|playground)\//i.test(f) && !/\.(test|spec)\.[jt]sx?$/.test(f) && !/(^|\/)test_[^/]*\.py$/.test(f)).slice(0, 1500);
   for (const f of codeFiles) {
     const text = read(f);
     if (!text || text.length > 400_000) continue;
@@ -198,19 +234,35 @@ export async function scout(root) {
   // CI workflows: the closest thing to a verified setup most repos have
   for (const f of files.filter((x) => /^\.github\/workflows\/.+\.ya?ml$/.test(x))) {
     let doc;
-    try { doc = YAML.parse(read(f)); } catch { continue; }
-    for (const job of Object.values(doc?.jobs || {})) {
+    const text = read(f) || '';
+    try { doc = YAML.parse(text); } catch { continue; }
+    const lines = text.split('\n');
+    let cursor = 0; // steps appear in file order, so each `run:` is found after the previous one
+    const lineOf = (run) => {
+      const first = String(run).trim().split('\n')[0].trim();
+      for (let i = cursor; i < lines.length; i++) if (lines[i].includes(first)) { cursor = i + 1; return i + 1; }
+      return 0;
+    };
+    for (const [jobId, job] of Object.entries(doc?.jobs || {})) {
       for (const [name, svc] of Object.entries(job?.services || {})) facts.ci.services.push({ name, image: svc?.image, workflow: f });
       const matrix = job?.strategy?.matrix || {};
+      const resolve = (v) => {
+        const mm = String(v ?? '').match(/\$\{\{\s*matrix\.([\w-]+)\s*\}\}/);
+        return mm ? [].concat(matrix[mm[1]] || []) : v != null ? [v] : [];
+      };
+      // Which machines the job runs on: `runs-on: ubuntu-latest`, or a matrix of them. Unknown counts as Linux.
+      const os = [].concat(resolve(job?.['runs-on'])).flat().map(String);
+      const linux = !os.length || os.some((o) => /ubuntu|linux|\$\{\{/i.test(o));
+      // Store job info for dependency resolution
+      facts.ci.jobs = facts.ci.jobs || [];
+      facts.ci.jobs.push({ name: jobId, needs: job?.needs ? (Array.isArray(job.needs) ? job.needs : [job.needs]) : [], workflow: f });
       for (const step of job?.steps || []) {
         const w = step?.with || {};
-        const resolve = (v) => {
-          const mm = String(v ?? '').match(/\$\{\{\s*matrix\.([\w-]+)\s*\}\}/);
-          return mm ? [].concat(matrix[mm[1]] || []) : v != null ? [v] : [];
-        };
         if (/actions\/setup-node/.test(step?.uses || '')) resolve(w['node-version']).forEach((v) => facts.ci.nodeVersions.push({ version: majorOf(v), workflow: f }));
         if (/actions\/setup-python/.test(step?.uses || '')) resolve(w['python-version']).forEach((v) => facts.ci.pythonVersions.push({ version: majorOf(v), workflow: f }));
-        if (step?.run) facts.ci.commands.push({ run: String(step.run).trim(), workflow: f });
+        // A step guarded to one OS (`if: runner.os == 'Windows'`) is not on the Linux path.
+        const onlyOther = /runner\.os\s*==\s*['"](windows|macos)['"]|matrix\.os\s*==\s*['"](windows|macos)/i.test(String(step?.if || ''));
+        if (step?.run) facts.ci.commands.push({ run: String(step.run).trim(), workflow: f, line: lineOf(step.run), job: jobId, os, linux: linux && !onlyOther });
       }
     }
   }
@@ -257,6 +309,13 @@ export async function scout(root) {
     ? (files.filter((f) => f.endsWith('.py')).length > files.filter((f) => /\.[jt]sx?$/.test(f)).length ? 'python' : 'node')
     : facts.node ? 'node' : facts.python ? 'python' : 'other';
   facts.cli = cliNames(facts, read, has);
+  // Files package.json `bin` points at: `node bin/tool.js <cmd>` runs this repo's CLI, it doesn't start a server.
+  facts.binPaths = (() => {
+    try {
+      const pkg = JSON.parse(read('package.json') || '{}');
+      return (typeof pkg.bin === 'string' ? [pkg.bin] : Object.values(pkg.bin || {})).map((x) => String(x).replace(/^\.\//, ''));
+    } catch { return []; }
+  })();
   return facts;
 }
 

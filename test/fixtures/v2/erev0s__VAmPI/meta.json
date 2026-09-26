@@ -1,0 +1,11 @@
+{
+  "repo": "erev0s/VAmPI",
+  "commit": "f16052dce83f05847133ec98f01c5193a41de7d8",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "requirements.txt",
+    "Dockerfile",
+    ".github/workflows/docker-image.yml"
+  ]
+}

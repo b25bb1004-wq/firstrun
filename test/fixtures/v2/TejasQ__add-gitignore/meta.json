@@ -1,0 +1,11 @@
+{
+  "repo": "TejasQ/add-gitignore",
+  "commit": "055263530693c4339e82b16a8e8a89e66e02e871",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "package.json",
+    "yarn.lock.head"
+  ]
+}

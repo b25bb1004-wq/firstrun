@@ -75,7 +75,7 @@ export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
 }
 
 export function printPassport(d, p = console.log) {
-  const color = d.verdict === 'VERIFIED' ? green : d.verdict === 'PARTIAL' ? yellow : red;
+  const color = d.verdict === 'VERIFIED' ? green : d.verdict === 'PARTIAL' ? yellow : d.verdict === 'INCONCLUSIVE' ? cyan : red;
   p('');
   p(color(bold(`  ┌─ SETUP PASSPORT ${'─'.repeat(40)}`)));
   p(`  │ ${bold(d.repo)} @ ${d.commit}`);

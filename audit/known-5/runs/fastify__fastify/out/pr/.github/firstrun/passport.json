@@ -1,0 +1,21 @@
+{
+  "repo": "fastify/fastify",
+  "commit": "f7f73aa7d0",
+  "verifiedAt": "2026-09-26T11:50:53.386Z",
+  "verdict": "FAILED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 14,
+  "stepsFromReadme": 14,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0.24,
+  "diagnosedByBob": 1,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  }
+}

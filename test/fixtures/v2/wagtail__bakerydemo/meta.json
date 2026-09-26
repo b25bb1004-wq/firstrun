@@ -1,0 +1,19 @@
+{
+  "repo": "wagtail/bakerydemo",
+  "commit": "c8f8255593c0efcfab5fef2fb19d60895227748a",
+  "source": "known-10-v3",
+  "files": [
+    "CONTRIBUTING.md",
+    "package.json",
+    "package-lock.json.head",
+    "requirements.txt",
+    "Makefile",
+    "docker-compose.yml",
+    "Dockerfile",
+    ".nvmrc",
+    ".python-version",
+    ".github/workflows/docker.yml",
+    ".github/workflows/nightly.yml",
+    ".github/workflows/ci.yml"
+  ]
+}

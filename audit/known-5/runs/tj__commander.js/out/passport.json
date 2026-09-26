@@ -1,0 +1,21 @@
+{
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4+dirty",
+  "verifiedAt": "2026-09-26T11:50:37.690Z",
+  "verdict": "FAILED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 9,
+  "stepsFromReadme": 9,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0.19,
+  "diagnosedByBob": 2,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/"
+  }
+}

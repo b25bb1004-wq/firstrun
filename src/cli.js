@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyRepo } from './pipeline.js';
 import { scout } from './scout/index.js';
 import { buildPlan } from './plan.js';
-import { audit, fetchRepo } from './audit.js';
+import { audit, fetchRepo, auditExitCode } from './audit.js';
 import { staticDrift, replayVerifiedPlan, guardComment } from './drift.js';
 import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.js';
 import { cleanupAll } from './sandbox.js';
@@ -67,6 +67,12 @@ async function resolveTarget(target, args) {
 export async function main(argv) {
   const [cmd, ...rest] = argv;
   const args = parseArgs(rest);
+  // Asking for help never runs anything. `audit --help` once started a real 16-repo audit and `verify --help`
+  // started a container: --help / -h on ANY command prints the help and returns before a sandbox exists.
+  if (args.help || args.h || rest.includes('--help') || rest.includes('-h')) {
+    console.log(HELP);
+    return 0;
+  }
   switch (cmd) {
     case 'verify': {
       const root = await resolveTarget(args._[0], args);
@@ -82,7 +88,7 @@ export async function main(argv) {
         console.log(`  ${dim('PR files')} ${path.join(res.dir, 'out', 'pr')}  ${dim('(firstrun apply / firstrun pr)')}`);
         console.log(`  ${dim('watch')}    firstrun ui --root ${path.dirname(res.dir)}`);
       }
-      return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : 0) : 1;
+      return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : res.passport.verdict === 'INCONCLUSIVE' ? 0 : 0) : 1;
     }
     case 'run': {
       const root = await resolveTarget(args._[0], args);
@@ -158,7 +164,7 @@ export async function main(argv) {
           if (ev.type === 'repo.start') console.log(`${cyan('▶')} ${ev.data.slug}`);
           if (ev.type === 'repo.done') {
             const p = ev.data.passport;
-            const col = ev.data.verdict === 'VERIFIED' ? green : ev.data.verdict === 'PARTIAL' ? yellow : red;
+            const col = ev.data.verdict === 'VERIFIED' ? green : ev.data.verdict === 'PARTIAL' ? yellow : ev.data.verdict === 'INCONCLUSIVE' ? cyan : red;
             console.log(`${col('■')} ${ev.data.slug}: ${col(bold(ev.data.verdict))}${p ? dim(` · breaks ${p.breaksFound} found / ${p.breaksFixed} fixed · replay ${fmtDuration(p.replaySeconds * 1000)}`) : ''}${ev.data.error ? red(` · ${ev.data.error}`) : ''}`);
           }
         },
@@ -166,7 +172,10 @@ export async function main(argv) {
       const s = state.summary;
       console.log(`\n${bold(`${s.brokeOnCleanMachine} of ${s.total} READMEs broke on a clean machine`)} · ${s.repairedAutomatically} repaired automatically · ${s.breaksFixed}/${s.breaksFound} breaks fixed with evidence`);
       console.log(dim(`results: ${dir}`));
-      return 0;
+      const exitCode = auditExitCode(state.repos.filter((r) => r.status === 'done'));
+      const failed = state.repos.filter((r) => r.status === 'done' && (r.verdict === 'FAILED' || r.verdict === 'ERROR')).length;
+      console.log(`audit: ${state.repos.length} repos, ${failed} failed`);
+      return exitCode;
     }
     case 'guard': {
       const root = path.resolve(args._[0] || '.');

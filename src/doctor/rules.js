@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
+import { TOOLBOX } from './toolbox.js';
 import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './services.js';
 
 /**
@@ -116,6 +117,12 @@ function joiDefaults(facts) {
 function prismaSchema(facts) {
   const f = (facts.files || []).find((x) => /(^|\/)schema\.prisma$/.test(x));
   try { return f ? fs.readFileSync(path.join(facts.root, f), 'utf8') : ''; } catch { return ''; }
+}
+
+/** The Node major the sandbox runs (plan.runtime or the image tag), or null. */
+function runtimeMajor(ctx) {
+  const v = ctx?.plan?.runtime?.name === 'node' ? ctx.plan.runtime.version : (String(ctx?.image || ctx?.plan?.image || '').match(/^node:(\d+)/) || [])[1];
+  return Number(String(v || '').match(/\d+/)?.[0]) || null;
 }
 
 function depRange(facts, name) {
@@ -587,7 +594,7 @@ export const RULES = [
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
       // Env files win over defaults hard-coded in config source (listed last, so found last).
       const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv, ...sourceUrls(facts) } });
-      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port }];
+      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port, volumes: def.volumes || [], composeDir: def.composeDir || null }];
       if (socket) actions.push({ type: 'exec', command: `printf 'export PGHOST=127.0.0.1 PGUSER=%s PGPASSWORD=%s\\n' ${shq(def.env.POSTGRES_USER || 'postgres')} ${shq(def.env.POSTGRES_PASSWORD || 'postgres')} >> ~/.bashrc; export PGHOST=127.0.0.1 PGUSER=${def.env.POSTGRES_USER || 'postgres'} PGPASSWORD=${def.env.POSTGRES_PASSWORD || 'postgres'}` });
       const patches = [];
       let doc;
@@ -599,8 +606,11 @@ export const RULES = [
           : { kind: 'insert-step', text: 'docker compose up -d', service: kind };
         if (!composeStep) actions.push({ type: 'insert-before', command: 'docker compose up -d', kind: 'services', silent: true });
       } else if (def.fromCompose) {
-        doc = { kind: 'insert-step', text: `docker compose up -d ${def.name}`, service: kind };
-        actions.push({ type: 'insert-before', command: `docker compose up -d ${def.name}`, kind: 'services', silent: true });
+        const cmd = facts.compose?.file && facts.compose.file !== 'docker-compose.yml' && facts.compose.file !== 'compose.yml'
+          ? `docker compose -f ${facts.compose.file} up -d ${def.name}`
+          : `docker compose up -d ${def.name}`;
+        doc = { kind: 'insert-step', text: cmd, service: kind };
+        actions.push({ type: 'insert-before', command: cmd, kind: 'services', silent: true });
       } else {
         const line = dockerRunLine(def);
         doc = { kind: 'insert-step', text: line, service: kind };
@@ -718,7 +728,8 @@ export const RULES = [
       const tool = m[1];
       const installs = {
         yarn: 'corepack enable', pnpm: 'corepack enable',
-        poetry: 'pip install poetry', pipenv: 'pip install pipenv', uv: 'pip install uv', tox: 'pip install tox', nox: 'pip install nox',
+        poetry: TOOLBOX.poetry, pipenv: 'pip install pipenv', uv: TOOLBOX.uv, tox: 'pip install tox', nox: 'pip install nox',
+        bun: TOOLBOX.bun, deno: TOOLBOX.deno, just: TOOLBOX.just,
         make: 'apt-get update && apt-get install -y make', psql: 'apt-get update && apt-get install -y postgresql-client',
         createdb: 'apt-get update && apt-get install -y postgresql-client', redis_cli: 'apt-get update && apt-get install -y redis-tools',
         'redis-cli': 'apt-get update && apt-get install -y redis-tools', jq: 'apt-get update && apt-get install -y jq',
@@ -987,6 +998,190 @@ export const RULES = [
           : 'This step needs a real third-party credential; HUMBLE will not invent one.',
         ask: { kind: 'secret', name: names.join(', ') || 'API key', names, why: `${m[0]} while running this step${who ? ` (${who})` : ''}` },
         fix: null,
+      };
+    },
+  },
+  // ── Engine v2: failures that used to end as "unknown" (audit of 31 repos, 2026-09-26) ──
+  {
+    // please: "Hello! What can I call you?: Aborted!" The program waits for a person to answer.
+    id: 'interactive-prompt',
+    test({ log, step }) {
+      const m = log.match(/([^\n]*\?\s*:?\s*)(?:Aborted!|EOFError: EOF when reading a line)|EOFError: EOF when reading a line|Inappropriate ioctl for device|(?:stdin|input) is not a (?:TTY|terminal)/i);
+      if (!m) return null;
+      const q = m[1]?.trim().replace(/\s*:$/, '');
+      return {
+        ruleId: 'interactive-prompt', class: 'interactive', confidence: 0.85,
+        cause: `\`${step.command}\` stops to ask a question${q ? ` ("${q.slice(0, 80)}")` : ''} and waits for a person to type an answer. Everything before it is proven; this step needs you at the keyboard, and the docs don't say so.`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // vargasjona: "Package 'build-essential' has no installation candidate" on a machine whose package lists were never downloaded.
+    id: 'apt-lists-missing',
+    test({ log, step, tried }) {
+      if (!/has no installation candidate|Unable to locate package/.test(log) || !/\bapt(-get)?\s+(-\S+\s+)*install\b/.test(step.command)) return null;
+      if ([...(tried || [])].some((t) => String(t).includes('apt-get update'))) return null;
+      return {
+        ruleId: 'apt-lists-missing', class: 'missing-tool', confidence: 0.85,
+        cause: 'apt has no package lists yet (a fresh Ubuntu machine or container), so it cannot find the package. The docs skip `apt-get update`.',
+        fix: { actions: [{ type: 'insert-before', command: 'apt-get update', kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'sudo apt-get update' } },
+      };
+    },
+  },
+  {
+    // przemek: `npm test` runs jest, but jest is not in package.json at all.
+    id: 'test-runner-undeclared',
+    test(ctx) {
+      const { log, facts } = ctx;
+      const m = log.match(/(?:sh|bash): (?:\d+: )?(jest|vitest|mocha|ava|tap|nyc|c8|karma|jasmine): (?:command )?not found/);
+      if (!m || !facts.node) return null;
+      const bin = m[1];
+      const deps = facts.node.deps || [];
+      if (deps.includes(bin)) return null; // declared: deps-not-installed covers it
+      let extra = '';
+      if (bin === 'jest') {
+        const cfg = (facts.files || []).find((f) => /^jest\.config\.(js|cjs|mjs|ts)$/.test(f));
+        let text = '';
+        try { text = cfg ? fs.readFileSync(path.join(facts.root, cfg), 'utf8') : ''; } catch {}
+        if (/ts-jest/.test(text) && !deps.includes('ts-jest')) extra += ' ts-jest';
+        if (!deps.includes('@types/jest') && (facts.files || []).includes('tsconfig.json')) extra += ' @types/jest';
+      }
+      // Pin the runner to the version the project's own companions expect. przemek declares ts-jest ^27 and
+      // @types/jest ^27 but not jest; unpinned `npm install jest` got jest 30, which needs Node 18+ and crashed on
+      // node:16 ("availableParallelism is not a function"). Companion major first, else a major that fits the runtime.
+      const major = (r) => (String(r || '').match(/(\d+)/) || [])[1];
+      let pin = '';
+      if (bin === 'jest') {
+        const m2 = major(depRange(facts, 'ts-jest')) || major(depRange(facts, '@types/jest')) || major(depRange(facts, 'babel-jest'));
+        const nodeMajor = Number(String(facts.node?.engines || '').match(/(\d+)/)?.[1] || 0) || null;
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        pin = m2 ? `@${m2}` : (runtime && runtime < 18) || (nodeMajor && nodeMajor < 18 && !runtime) ? '@29' : '';
+      } else if (bin === 'vitest') {
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        if (runtime && runtime < 18) pin = '@0';
+      }
+      const cmd = `npm install --no-save ${bin}${pin}${extra}`;
+      return {
+        ruleId: 'test-runner-undeclared', class: 'missing-dependency', confidence: 0.85,
+        cause: `The test script runs \`${bin}\`, but ${bin} is not in package.json, so installing the project never installs it. It only works on machines that already have it.`,
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd.replace(' --no-save', ' --save-dev') } },
+      };
+    },
+  },
+  {
+    // full-stack-fastapi: "bash: scripts/prestart.sh: No such file or directory". The file exists, in backend/.
+    id: 'wrong-directory',
+    test({ log, step, facts }) {
+      const m = log.match(/(?:bash|sh|python3?|node): (?:line \d+: |\d+: )?(?:can't open file ['"]?)?(?:\/workspace\/)?([\w.-]+\/[\w./-]+|[\w.-]+\.(?:sh|py|js|ts|mjs|cjs))['"]?:? (?:\[Errno 2\] )?No such file or directory/);
+      if (!m) return null;
+      const rel = m[1].replace(/^\.\//, '');
+      const hits = (facts.files || []).filter((f) => f === rel || f.endsWith('/' + rel));
+      if (hits.length !== 1 || hits[0] === rel) return null;
+      const dir = hits[0].slice(0, -rel.length - 1);
+      const cmd = `cd ${dir} && ${step.command}`;
+      return {
+        ruleId: 'wrong-directory', class: 'wrong-order', confidence: 0.85,
+        cause: `\`${step.command}\` must run inside \`${dir}/\` (the file is \`${hits[0]}\`), but the docs never say to change into that folder.`,
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
+    // rest-hapi: the Quick Start clones rest-hapi-demo, then runs `npm start`, which this repo doesn't have.
+    id: 'docs-for-other-repo',
+    test({ log, plan }) {
+      if (!/Missing script: "?[\w:.-]+"?/.test(log)) return null;
+      const re = /^git clone\s+(?:--\S+\s+)*\S*github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:\s|$)/;
+      const clone = plan.steps.find((s) => re.test(s.command));
+      if (!clone) return null;
+      const [, owner, name] = clone.command.match(re);
+      const [pOwner, pName] = String(plan.repo || '').split('/');
+      if (!pName || (name.toLowerCase() === pName.toLowerCase() && owner.toLowerCase() === pOwner.toLowerCase())) return null;
+      if (/your-?(user)?name|username/i.test(owner)) return null;
+      return {
+        ruleId: 'docs-for-other-repo', class: 'docs-mismatch', confidence: 0.8,
+        cause: `The setup steps are for a different repository: they clone \`${owner}/${name}\` (${clone.source?.file || 'README'}:${clone.source?.line || '?'}), not \`${plan.repo}\`. Someone following them in this repo gets commands that don't exist here.`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // maitraysuthar ("0 passing, 2 failing"), teamhide ("5 failed, 33 passed, 16 errors"): the suite ran; some tests fail.
+    // That is the health of the test suite on a clean machine, not a broken setup step.
+    id: 'failing-tests',
+    test({ log, step }) {
+      if (step.kind !== 'test') return null;
+      const mocha = log.match(/(\d+) passing[\s\S]{0,400}?(\d+) failing/);
+      const jest = log.match(/Tests:\s+(\d+) failed, (?:\d+ skipped, )?(?:(\d+) passed, )?(\d+) total/);
+      const py = log.match(/=+ (?:(\d+) failed)?(?:, )?(?:(\d+) passed)?(?:, )?(?:\d+ skipped, )?(?:(\d+) errors?)?[^=\n]* in [\d.]+s/);
+      let failed = 0, total = 0;
+      if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
+      else if (jest) { failed = +jest[1]; total = +jest[3]; }
+      else if (py && (py[1] || py[3])) { failed = (+py[1] || 0) + (+py[3] || 0); total = failed + (+py[2] || 0); }
+      if (!failed) return null;
+      const db = /OperationalError|ECONNREFUSED|Access denied for user|could not connect|Connection refused/i.test(log);
+      const timeouts = /Timeout of \d+ms exceeded|TimeoutError|timed out/i.test(log);
+      const why = db ? ' The failures are database connection or permission errors: the tests expect a database set up differently from the one the docs start.'
+        : timeouts ? ' The failures are timeouts, which usually means a service the tests call is not running.' : '';
+      return {
+        ruleId: 'failing-tests', class: 'failing-tests', confidence: 0.8,
+        cause: `The test suite runs, but ${failed} of ${total} tests fail on a clean setup.${why}`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // sahat e2e: Playwright downloaded Chromium, but the machine lacks the shared libraries it needs
+    // ("chrome-headless-shell: error while loading shared libraries"). The docs skip `playwright install-deps`.
+    id: 'browser-system-libs',
+    test({ log, tried }) {
+      if (!/ms-playwright\/[\w.-]+\/[^\n]*error while loading shared libraries|Host system is missing dependencies to run browsers/.test(log)) return null;
+      const cmd = 'npx playwright install-deps chromium';
+      if ([...(tried || [])].some((t) => String(t).includes('install-deps'))) return null;
+      return {
+        ruleId: 'browser-system-libs', class: 'missing-tool', confidence: 0.88,
+        cause: 'Playwright\'s Chromium is downloaded, but this Linux machine lacks the system libraries it needs to start, so every browser test fails at launch. The docs skip `npx playwright install-deps`.',
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    // HUMBLE verifying its own README: `firstrun verify examples/acme-shop` starts containers, and the clean machine
+    // has no Docker daemon (only HUMBLE's docker shim, which exits 97). The docs list Docker as a requirement and a
+    // newcomer's laptop has it: this is a limit of HUMBLE's sandbox (no nested Docker), not a README problem.
+    id: 'needs-docker-daemon',
+    test({ log }) {
+      if (!/docker run [^\n]*failed \(97\)|is not available on the clean machine \(no Docker daemon\)|Cannot connect to the Docker daemon/.test(log)) return null;
+      return {
+        ruleId: 'needs-docker-daemon', class: 'sandbox-limit', confidence: 0.9,
+        cause: 'This step starts Docker containers itself, and HUMBLE\'s clean machine has no Docker engine inside it (no nested Docker). On a newcomer\'s laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.',
+        fix: null,
+      };
+    },
+  },
+  {
+    // axios (final-engine run, 27 Sep): the README says Node.js v19, so HUMBLE ran node:19; the test toolchain imports
+    // `styleText` from node:util, which only newer Node has: "The requested module 'node:util' does not provide an
+    // export named 'styleText'". CI runs a newer Node: that's the truth to follow.
+    id: 'node-builtin-missing',
+    test({ log, facts, plan }) {
+      if (plan.runtime?.name !== 'node') return null;
+      const m = log.match(/The requested module 'node:([\w/]+)' does not provide an export named '(\w+)'|TypeError: \(0 , _?node[\w$]*\)?\.?(\w+)\)? is not a function|(\w+) is not a function[\s\S]{0,80}node:(util|fs|os|test|process)/);
+      if (!m) return null;
+      const ci = (facts.ci?.nodeVersions || []).map((v) => Number(v.version)).filter((v) => v > 0);
+      const target = String(Math.max(22, ...ci.filter((v) => v <= 24)));
+      if (Number(plan.runtime.version) >= Number(target)) return null;
+      const what = m[1] ? `\`${m[2]}\` from node:${m[1]}` : 'a Node built-in';
+      const src = ci.length ? `CI (${facts.ci.nodeVersions[0].workflow})` : 'the Node.js LTS';
+      return {
+        ruleId: 'node-builtin-missing', class: 'runtime-version', confidence: 0.85,
+        cause: `Node.js ${plan.runtime.version} (what the docs say) is too old: the project's toolchain uses ${what}, which that version doesn't have. ${ci.length ? `CI runs Node ${ci.join(', ')}.` : ''}`.trim(),
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
+        },
       };
     },
   },
