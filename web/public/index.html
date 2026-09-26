@@ -101,6 +101,7 @@ a.card:hover { border-color: var(--rule-2); }
 .tag { display: inline-block; font: 600 11px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
 .tag.real { background: var(--pass-t); color: var(--pass); }
 .tag.demo { background: var(--bob-t); color: var(--bob); }
+.tag.partial { background: var(--repair-t); color: var(--repair); }
 
 .pipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; counter-reset: s; }
 .pipe div { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; counter-increment: s; }
@@ -120,6 +121,41 @@ a.card:hover { border-color: var(--rule-2); }
 .bob { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .bob .card { border-left: 3px solid var(--bob); }
 
+/* Lens Section & HUD Mockup */
+.lens-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; margin-top: 16px; }
+@media (max-width: 860px) { .lens-grid { grid-template-columns: 1fr; } }
+.lens-info h3 { font: 700 clamp(24px, 3.2vw, 34px)/1.12 "IBM Plex Sans Condensed", sans-serif; margin: 0 0 16px; }
+.lens-info p { color: var(--ink-2); font-size: 15px; margin: 0 0 14px; }
+.kbd-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--panel-2); border: 1px solid var(--rule-2); border-radius: 8px; padding: 3px 8px; font: 600 13px "IBM Plex Mono", monospace; color: var(--ink); }
+kbd { background: var(--ground-2); border: 1px solid var(--rule-2); border-radius: 4px; padding: 2px 6px; font-size: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.lens-cli { background: var(--ground-2); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; font: 13.5px "IBM Plex Mono", monospace; color: var(--ink); margin: 16px 0; overflow-x: auto; }
+.lens-cli span.prompt { color: var(--pass); margin-right: 6px; user-select: none; }
+.lens-cli span.comment { color: var(--ink-3); }
+.lens-note { font-size: 13.5px; color: var(--ink-2); border-left: 3px solid var(--pass); padding-left: 12px; margin-top: 16px; line-height: 1.6; }
+.lens-note strong { color: var(--ink); }
+
+.lens-mock { position: relative; background: #080D16; border: 1px solid var(--rule); border-radius: 14px; padding: 18px; overflow: hidden; box-shadow: 0 16px 40px -16px rgba(0,0,0,.7); }
+.lens-caption { font: 600 11px "IBM Plex Mono", monospace; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.lens-caption span.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pass); display: inline-block; }
+.mock-terminal { background: #050911; border: 1px solid #1C2B40; border-radius: 10px; padding: 12px 14px; font: 12.5px/1.6 "IBM Plex Mono", monospace; color: #8F9CAE; position: relative; }
+.mock-terminal .term-head { display: flex; gap: 6px; margin-bottom: 10px; }
+.mock-terminal .circle { width: 9px; height: 9px; border-radius: 50%; background: #26364D; }
+.mock-terminal .t-cmd { color: #D1DBE8; font-weight: 500; }
+.mock-terminal .t-err { color: #FF7B80; position: relative; display: inline-block; }
+.mock-circling { position: absolute; inset: -4px -8px; border: 2px dashed var(--pass); border-radius: 12px; animation: pulseGlow 2.5s infinite ease-in-out; pointer-events: none; }
+@keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 8px rgba(61,214,140,.3); border-color: var(--pass); } 50% { box-shadow: 0 0 16px rgba(61,214,140,.6); border-color: #64E7A6; } }
+@media (prefers-reduced-motion: reduce) { .mock-circling { animation: none; } }
+
+.mock-overlay-card { margin-top: 14px; background: var(--panel); border: 1px solid var(--pass); border-radius: 12px; padding: 14px 16px; box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+.mock-overlay-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px; }
+.mock-overlay-head b { color: var(--ink); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.mock-overlay-head span.badge { background: var(--pass-t); color: var(--pass); border: 1px solid var(--pass); border-radius: 4px; padding: 2px 6px; font: 600 10.5px "IBM Plex Mono", monospace; }
+.mock-fix-box { background: var(--pass-t); border-left: 3px solid var(--pass); border-radius: 6px; padding: 8px 10px; margin: 8px 0; font-size: 13px; }
+.mock-fix-box code { font: 600 12.5px "IBM Plex Mono", monospace; color: var(--pass); }
+.mock-ask-row { display: flex; gap: 8px; margin-top: 10px; }
+.mock-ask-row input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid var(--rule-2); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--ink); outline: none; }
+.mock-ask-row button { background: var(--bob); color: #061836; border: 0; border-radius: 6px; padding: 7px 12px; font: 600 12px "IBM Plex Sans", sans-serif; cursor: pointer; white-space: nowrap; }
+
 footer { border-top: 1px solid var(--rule); padding: 32px 0 48px; color: var(--ink-3); font-size: 14px; }
 footer p { margin: 0 0 8px; max-width: 80ch; }
 </style>
@@ -134,6 +170,7 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
     <nav>
       <a href="#try">Try it</a>
       <a href="#proof">Proof</a>
+      <a class="opt" href="#lens">Lens</a>
       <a class="opt" href="#how">How it works</a>
       <a class="opt" href="#bob">IBM Bob</a>
     </nav>
@@ -192,6 +229,66 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
           <p>The full dashboard: plans, failing output, evidence records, README diffs and Setup Passports.</p>
           <span class="go">Open the dashboard →</span>
         </a>
+        <div class="card">
+          <span class="tag partial">Real before / after</span>
+          <h3>maitraysuthar: FAILED → PARTIAL</h3>
+          <p><code>maitraysuthar/rest-api-nodejs-mongodb</code> went from FAILED (0 fixed) to PARTIAL with the app running: bcrypt rebuilt on Node 16, the placeholder MONGODB_URL replaced with the local URL from the file's own comment, replay from zero 23 s.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="lens">
+    <div class="wrap">
+      <div class="lens-grid">
+        <div class="lens-info">
+          <p class="eyebrow">Desktop Companion · FirstRun Lens</p>
+          <h3>Circle anything on screen. Get a proven fix instantly.</h3>
+          <p>Press <span class="kbd-pill"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></span> and circle anything on screen — an error in a terminal, a config line, or a stack trace. Lens reads it instantly via local OCR.</p>
+          <p>If it is a failure FirstRun has already fixed and proven for this project, you get the <strong>verified fix instantly, for free (0 Bobcoins)</strong>. For anything else, ask IBM Bob in the <strong>🧭 FirstRun Guide</strong> mode, which reads the project before answering.</p>
+          <div class="lens-cli">
+            <span class="prompt">$</span>cd lens &amp;&amp; npm install &amp;&amp; cd ..<br>
+            <span class="prompt">$</span>node bin/firstrun.js lens examples/acme-shop <span class="comment"># tray app; Ctrl+Shift+Space to circle</span>
+          </div>
+          <div class="lens-note">
+            <strong>Privacy &amp; Speed:</strong> Text is read locally on your machine (<code class="mono">tesseract.js</code>). Only questions you choose to submit go to Bob.<br>
+            <strong>Tip:</strong> Most mouse software can map a side button to <code class="mono">Ctrl+Shift+Space</code> for one-click circling.
+          </div>
+        </div>
+
+        <div class="lens-mock" aria-label="FirstRun Lens illustrated HUD overlay">
+          <div class="lens-caption">
+            <span class="dot"></span> Illustration · acme-shop (demo repo, seeded breaks)
+          </div>
+          <div class="mock-terminal">
+            <div class="term-head">
+              <span class="circle"></span><span class="circle"></span><span class="circle"></span>
+            </div>
+            <div><span class="prompt" style="color:var(--pass)">dev@laptop</span>:<span style="color:#78A9FF">~/acme-shop</span>$ <span class="t-cmd">npm run dev</span></div>
+            <div style="margin-top:6px;color:#A3B4CB">&gt; acme-shop@1.0.0 dev</div>
+            <div>&gt; node --watch src/server.js</div>
+            <div style="margin-top:6px;position:relative;display:inline-block">
+              <span class="t-err">Failed to start acme-shop: ReconnectStrategyError: connect ECONNREFUSED 127.0.0.1:6379</span>
+              <div class="mock-circling" title="Circled with Ctrl+Shift+Space"></div>
+            </div>
+          </div>
+
+          <div class="mock-overlay-card">
+            <div class="mock-overlay-head">
+              <b><span>◎</span> FirstRun Lens · acme-shop</b>
+              <span class="badge">VERIFIED FIX · 0 Bobcoins</span>
+            </div>
+            <div class="mock-fix-box">
+              <div style="color:var(--ink-3);font-size:11px;margin-bottom:2px">PROVEN REPAIR FOR THIS ERROR</div>
+              <div>Start Redis container on port 6379 (missing-service rule):</div>
+              <div style="margin-top:4px"><code>docker compose up -d redis</code></div>
+            </div>
+            <div class="mock-ask-row">
+              <input type="text" value="Why did this break?" readonly aria-label="Question for Bob">
+              <button type="button">Ask Bob</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
