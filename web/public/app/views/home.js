@@ -18,7 +18,7 @@ export function mountHome(root) {
         <a class="audit-card" href="#/audit/${a.id}">
           <span class="ac-id">${a.id}</span>
           <span class="ac-line"><b>${a.broke}</b> of <b>${a.repos}</b> READMEs broke on a clean machine</span>
-          <span class="ac-bar">${['VERIFIED', 'PARTIAL', 'FAILED'].map(v => h`<i class="v-${v.toLowerCase()}" style="flex:${a.verdicts[v] || 0}"></i>`)}<i class="v-pending" style="flex:${a.repos - a.done}"></i></span>
+          <span class="ac-bar">${['VERIFIED', 'PARTIAL', 'FAILED', 'NO-SETUP-DOCS'].map(v => h`<i class="v-${v.toLowerCase()}" style="flex:${a.verdicts[v] || 0}"></i>`)}<i class="v-pending" style="flex:${a.repos - a.done}"></i></span>
           <span class="ac-meta mono">${a.done}/${a.repos} audited ${a.startedAt ? '· ' + when(a.startedAt) : ''}</span>
         </a>`)}</div></section>` : ''}
       <section class="home-sec"><h2>Runs ${liveRuns.length ? h`<span class="live-pill">${icon('dot')} ${liveRuns.length} live</span>` : ''}</h2>
