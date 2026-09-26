@@ -1,0 +1,12 @@
+{
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+  "source": "known-5",
+  "files": [
+    "CONTRIBUTING.md",
+    "package.json",
+    "package-lock.json.head",
+    ".github/workflows/tests.yml",
+    ".github/workflows/codeql-analysis.yml"
+  ]
+}

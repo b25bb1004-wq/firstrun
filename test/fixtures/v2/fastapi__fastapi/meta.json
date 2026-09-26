@@ -1,0 +1,31 @@
+{
+  "repo": "fastapi/fastapi",
+  "commit": "192b12197eb04c2b4a691cce7d87261b21716714",
+  "source": "known-5",
+  "files": [
+    "README.md",
+    "docs/en/docs/contributing.md",
+    "pyproject.toml",
+    ".python-version",
+    ".github/workflows/label-approved.yml",
+    ".github/workflows/pre-commit.yml",
+    ".github/workflows/sponsors.yml",
+    ".github/workflows/create-draft-release.yml",
+    ".github/workflows/test.yml",
+    ".github/workflows/bump-pre-commit-hooks.yml",
+    ".github/workflows/add-to-project.yml",
+    ".github/workflows/issue-manager.yml",
+    ".github/workflows/zizmor.yml",
+    ".github/workflows/detect-conflicts.yml",
+    ".github/workflows/translate.yml",
+    ".github/workflows/notify-translations.yml",
+    ".github/workflows/publish.yml",
+    ".github/workflows/prepare-release.yml",
+    ".github/workflows/topic-repos.yml",
+    ".github/workflows/smokeshow.yml",
+    ".github/workflows/deploy-docs.yml",
+    ".github/workflows/test-redistribute.yml",
+    ".github/workflows/guard-dependencies.yml",
+    ".github/workflows/build-docs.yml"
+  ]
+}

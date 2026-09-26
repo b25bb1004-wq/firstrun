@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - run: uv venv
+      - run: uv pip install -r requirements/development.txt
+      - run: uv run make lint-server
+  lint-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm ci
+      - uses: j178/prek-action@v2
+      - run: make lint-client
+  test-server:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: bakerydemo.settings.test
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - run: uv venv
+      - run: uv pip install -r requirements/development.txt
+      - run: uv run ./manage.py check
+      - run: uv run ./manage.py makemigrations --check --noinput
+      - run: uv run ./manage.py test

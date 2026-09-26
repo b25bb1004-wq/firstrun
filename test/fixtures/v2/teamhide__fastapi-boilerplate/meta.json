@@ -1,0 +1,13 @@
+{
+  "repo": "teamhide/fastapi-boilerplate",
+  "commit": "df4e6d4f817ec187eeaf2d1c5a877b27c06bb77b",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "migrations/README",
+    "pyproject.toml",
+    "poetry.lock.head",
+    "Makefile",
+    "docker/docker-compose.yml"
+  ]
+}

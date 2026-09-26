@@ -1,0 +1,12 @@
+{
+  "repo": "przemek-nowicki/node-express-template.ts",
+  "commit": "d731e5cef4509064df94db8cd10fccbd981693e5",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "src/core/README.md",
+    "src/components/user/README.md",
+    "package.json",
+    "Dockerfile"
+  ]
+}

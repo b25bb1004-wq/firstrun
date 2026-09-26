@@ -1,0 +1,11 @@
+{
+  "repo": "sahat/hackathon-starter",
+  "commit": "410fccec23f6d4b509397b408ba7745f0f469027",
+  "source": "known-10-v3",
+  "files": [
+    "README.md",
+    "package.json",
+    ".github/workflows/build.yml",
+    ".github/workflows/dependabot-automerge.yml"
+  ]
+}
