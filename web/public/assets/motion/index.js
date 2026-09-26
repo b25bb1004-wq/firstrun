@@ -11,7 +11,12 @@ for (const el of document.querySelectorAll('[data-motion]')) {
   import(`./${name}.js`).then((m) => m.init?.(el, { reduced })).catch(() => { /* not built yet: the page works without it */ });
 }
 
-if (!reduced && 'IntersectionObserver' in window) {
+// Reveal is an enhancement: content must never stay hidden. Skip it when the page opens at an anchor (#proof), in a
+// background tab, or without an observer, and reveal everything after 2.5 s in case the observer never fires
+// (link previews, crawlers, print).
+const revealAll = () => { for (const b of document.querySelectorAll('.will-reveal')) { b.classList.add('revealed'); b.classList.remove('will-reveal'); } };
+if (!reduced && !location.hash && document.visibilityState === 'visible' && 'IntersectionObserver' in window) {
+  setTimeout(revealAll, 2500);
   const blocks = [...document.querySelectorAll('[data-reveal]')];
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
