@@ -1,6 +1,6 @@
-# FirstRun Explainer Video — Visual Storyboard
+# FirstRun Pitch Video — Visual Storyboard
 
-Keyframe storyboard generated for the 90-second animated explainer video based on Karmanya's shooting script ([`docs/pitch/animated-video-script.md`](../animated-video-script.md)).
+Keyframe storyboard generated for the animated video based on Karmanya's shooting script ([`docs/pitch/animated-video-script.md`](../animated-video-script.md)).
 
 - **Format**: 16:9, 1080p / 4K
 - **Palette**: Deep navy night (`#0b1220`), Verify green (`#3ddc84`), Bob electric blue (`#4c8dff`), warm amber desk light (`#d97706`), muted red error (`#ef4444`).
@@ -9,7 +9,52 @@ Keyframe storyboard generated for the 90-second animated explainer video based o
 
 ---
 
-## ACT 1: The Problem (0:00–0:25)
+## 🎬 20-Second Animated Teaser (Fast Cuts)
+
+Total Duration: **20 s** · Voice-Over: **17 s**
+
+### Clip 1: Day One · 0:00–0:04 (4 s)
+![Clip 1: Day One](shot01.jpg)
+> **VO**: *"Day one. The README says it just works."*  
+> **Visual**: Rain streaks down the window at night. Slow dolly-in on the Newcomer opening their laptop under the warm desk lamp.
+
+---
+
+### Clip 2: It Doesn't · 0:04–0:08 (4 s)
+![Clip 2: It Doesn't](shot02.jpg)
+> **VO**: *"It doesn't."*  
+> **Visual**: Over-the-shoulder view. Command blocks rise from the keyboard into a tower; a top block flashes red and the tower collapses in slow motion as the developer's face drops.  
+> **On-screen (Edit, last second)**: `9 of 14 public READMEs broke on a clean machine.`
+
+---
+
+### Clip 3: Bob and the Crew · 0:08–0:12 (4 s)
+![Clip 3: Bob and the Crew](shot06.jpg)
+![Clip 3B: Clean Machine](shot07.jpg)
+> **VO**: *"FirstRun sends in IBM Bob and his crew, on a brand-new machine…"*  
+> **Visual**: Bob's blue four-point spark bursts into light; six friendly robots pop out and march into a vast, empty glass room floating in dark space.
+
+---
+
+### Clip 4: Fix It, Then Prove It from Zero (The Money Shot) · 0:12–0:17 (5 s)
+![Clip 4A: Doctor repair](shot09.jpg)
+![Clip 4B: Shatter and rebuild](shot10.jpg)
+> **VO**: *“…to follow your docs, fix what breaks, and prove it from zero.”*  
+> **Visual**: Stepping stone cracks muted red; Doctor robot patches it green. Verifier robot raises its magnifying glass: the glass room shatters into millions of crystalline shards frozen in bullet time, reverses and rebuilds from zero, and the crew races through as every stone lights green.  
+> **On-screen (Edit)**: `✓ proven from zero`
+
+---
+
+### Clip 5: Proven · 0:17–0:20 (3 s)
+![Clip 5A: Scribe stamp](shot11.jpg)
+![Clip 5B: Hero lockup](shot14.jpg)
+> **VO**: *"FirstRun. Your README, proven."*  
+> **Visual**: Crisp document gets stamped with an emerald-green verified shield badge; camera settles on the blue spark beside the green shield on navy.  
+> **On-screen (Edit)**: **FirstRun** · *"Your README, proven."* · *"Powered by IBM Bob"* · `firstrun.dev`
+
+---
+
+## Complete 14-Shot Extended Storyboard Archive
 
 ### Shot 1: Day One (Cinematic Cold Open) — 7 s
 ![Shot 1](shot01.jpg)
