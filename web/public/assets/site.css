@@ -444,6 +444,9 @@ body { font-size: 18px; line-height: 1.55; letter-spacing: 0.005em; }
   color: var(--blue, #2440ff);
   border: 1px solid var(--blue, #2440ff);
 }
+.diff-after .diff-header {
+  flex-direction: row-reverse;
+}
 .diff-meta {
   font-family: var(--mono);
   font-size: 12px;
@@ -452,10 +455,10 @@ body { font-size: 18px; line-height: 1.55; letter-spacing: 0.005em; }
 .diff-code {
   flex: 1;
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.65;
   white-space: pre;
-  overflow-x: auto;
+  overflow: hidden;
 }
 .c-comment { color: var(--muted); opacity: 0.8; }
 .c-add { color: var(--blue, #2440ff); font-weight: 600; }
