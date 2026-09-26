@@ -1,4 +1,4 @@
-# FirstRun: the problem, the solution, and why this solution
+# HUMBLE: the problem, the solution, and why this solution
 
 *Team brief for the IBM Bob 2.0 Hackathon (lablab.ai, 25–27 Sep 2026). Last updated 25 Sep 2026.*
 
@@ -37,15 +37,15 @@ person to find out is a newcomer**: a new hire, an intern or an open-source cont
 
 ### Our own evidence
 
-FirstRun followed the READMEs of **16 real, popular public repos** (pinned to exact commits) on a
+HUMBLE followed the READMEs of **16 real, popular public repos** (pinned to exact commits) on a
 clean machine. **Only 2 of 16 worked as written.** The other 14 had 18 breaks between them, and two
 runs couldn't finish at all. The audit is in `audit/real-16/`.
 
 ---
 
-## 2. The solution: FirstRun
+## 2. The solution: HUMBLE
 
-**One line:** FirstRun acts like a brand-new contributor. It follows your README literally on a
+**One line:** HUMBLE acts like a brand-new contributor. It follows your README literally on a
 clean machine, fixes whatever breaks, proves each fix, and gives you back a README that is *proven*
 to work.
 
@@ -78,18 +78,18 @@ A maintainer doesn't have to trust an AI's opinion. They review **proof**.
 
 - **Drift guard:** a GitHub Action runs `firstrun guard` on every PR, so an added env var or a
   version bump without a docs update gets flagged before merge.
-- **Guide mode:** a Bob mode (🧭 FirstRun Guide) walks a newcomer through the *verified* steps on
+- **Guide mode:** a Bob mode (🧭 HUMBLE Guide) walks a newcomer through the *verified* steps on
   their own machine. It already knows the recorded failure signatures, e.g. "if you see
   `ECONNREFUSED :6379`, start Redis."
 
 ### Where IBM Bob fits (Bob IDE must be a core component, per the rules)
 
-- **Reasoning engine:** Bob Shell runs headlessly in the 🩺 FirstRun Doctor mode. It reads the repo
-  and returns a structured JSON fix, which FirstRun validates (destructive commands are refused)
+- **Reasoning engine:** Bob Shell runs headlessly in the 🩺 HUMBLE Doctor mode. It reads the repo
+  and returns a structured JSON fix, which HUMBLE validates (destructive commands are refused)
   and then **proves in the sandbox**.
 - **Its home:** custom Bob modes plus an MCP server, so you can plan, verify and inspect evidence
   from inside Bob IDE.
-- **The newcomer's guide:** the Guide mode ships into every repo FirstRun verifies.
+- **The newcomer's guide:** the Guide mode ships into every repo HUMBLE verifies.
 
 ---
 
@@ -104,15 +104,15 @@ We chose this through a scored comparison (see `~\Downloads\context.md` and the 
 | AI code review | Crowded field, so it scored low on originality |
 | Postmortem-to-guardrail | Already built on IBM Bob (Scar Tissue, TechXchange 2026 hackathon) |
 | "Explain my codebase" onboarding bots | Crowded among Bob entries (Atlas, Reposense, context-onboarding-buddy, ai-repo-navigator) |
-| FirstRun as originally written | Too broad (platform matrix, architecture maps, day-1 guide), so we narrowed it on 25 Sep |
+| HUMBLE as originally written | Too broad (platform matrix, architecture maps, day-1 guide), so we narrowed it on 25 Sep |
 
-### What makes FirstRun different from existing tools
+### What makes HUMBLE different from existing tools
 
-| Tool | What it does | What FirstRun adds |
+| Tool | What it does | What HUMBLE adds |
 |---|---|---|
-| Dev Containers | Someone writes the config by hand | FirstRun *derives* it from a run that passed |
-| Doc Detective, Runme | Test README code blocks and *report* failures | FirstRun *repairs* the README and proves the repair |
-| DeepWiki, Swimm | Explain the code | FirstRun proves the setup actually runs |
+| Dev Containers | Someone writes the config by hand | HUMBLE *derives* it from a run that passed |
+| Doc Detective, Runme | Test README code blocks and *report* failures | HUMBLE *repairs* the README and proves the repair |
+| DeepWiki, Swimm | Explain the code | HUMBLE proves the setup actually runs |
 | Copilot setup steps, Repo2Run | Get the environment running *for the bot* (Repo2Run: 86% of Python repos) | **Our wedge is the human-facing README**: fix the docs a person reads, with evidence |
 
 ### Why the design choices hold up

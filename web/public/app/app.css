@@ -1,4 +1,4 @@
-/* FirstRun dashboard — flight-recorder aesthetic. Colour is reserved for status. */
+/* HUMBLE dashboard — flight-recorder aesthetic. Colour is reserved for status. */
 
 *, *::before, *::after { box-sizing: border-box; }
 html { font-size: clamp(14px, .79vw, 16px); -webkit-text-size-adjust: 100%; }

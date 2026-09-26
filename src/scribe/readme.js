@@ -19,7 +19,10 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
   const byLine = new Map();
   for (const s of steps) {
     if (s.origin !== 'readme') continue;
+    // Steps IBM Bob's planner read from prose may cite a file without a line (or a line outside it): the
+    // README diff can't anchor them, so they're left to FIRSTRUN.md instead of crashing the Scribe.
     const k = s.source.line - 1;
+    if (!Number.isInteger(k) || k < 0 || k >= lines.length) continue;
     if (!byLine.has(k)) byLine.set(k, []);
     byLine.get(k).push(s);
   }
@@ -58,7 +61,7 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
       }
       if (s.status === 'needs-human') {
         const e = evFor(s).slice(-1)[0];
-        out.push(`${indent}# FirstRun: this step still fails on a clean machine: ${e?.diagnosis?.cause || 'see FIRSTRUN.md'}`);
+        out.push(`${indent}# HUMBLE: this step still fails on a clean machine: ${e?.diagnosis?.cause || 'see FIRSTRUN.md'}`);
         changed = true;
       }
     }
@@ -67,8 +70,8 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
     // Keep an unchanged multi-line command as written; rewrite only what changed.
     const cmdLine = `${indent}${prompt}${parts.join(' && ')}`;
     const needsCmdRewrite = group.some((s) => s.readmeCommand && s.readmeCommand !== s.command);
-    const finalLines = needsCmdRewrite ? [...out.filter((l) => !l.includes('# FirstRun:')), cmdLine, ...out.filter((l) => l.includes('# FirstRun:'))]
-      : [...out.filter((l) => !l.includes('# FirstRun:')), ...lines.slice(lineIdx, lineIdx + span + 1), ...out.filter((l) => l.includes('# FirstRun:'))];
+    const finalLines = needsCmdRewrite ? [...out.filter((l) => !l.includes('# HUMBLE:')), cmdLine, ...out.filter((l) => l.includes('# HUMBLE:'))]
+      : [...out.filter((l) => !l.includes('# HUMBLE:')), ...lines.slice(lineIdx, lineIdx + span + 1), ...out.filter((l) => l.includes('# HUMBLE:'))];
     replacements.set(lineIdx, { lines: finalLines, span: needsCmdRewrite ? span : span });
   }
 
@@ -110,7 +113,7 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
     if (setupHeading && i === setupHeading.line && passport) {
       out.push('', verificationLine(passport));
       if (prereqAdded.length) {
-        out.push('', 'Prerequisites verified by FirstRun:', '', ...[...new Set(prereqAdded)].map((p) => `- ${p}`));
+        out.push('', 'Prerequisites verified by HUMBLE:', '', ...[...new Set(prereqAdded)].map((p) => `- ${p}`));
         prereqAdded = [];
       }
     }
@@ -131,5 +134,5 @@ function noteText(e) {
 export function verificationLine(p) {
   const when = p.verifiedAt.slice(0, 10);
   const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : '❌';
-  return `${icon} **${p.verdict === 'VERIFIED' ? 'Verified' : p.verdict === 'PARTIAL' ? 'Partly verified' : 'Not verified'} by [FirstRun](FIRSTRUN.md)** on ${when} from a clean \`${p.image}\` machine at \`${p.commit}\`${p.verdict !== 'FAILED' ? `: clone to running in ${fmtDuration(p.replaySeconds * 1000)}` : ''}.`;
+  return `${icon} **${p.verdict === 'VERIFIED' ? 'Verified' : p.verdict === 'PARTIAL' ? 'Partly verified' : 'Not verified'} by [HUMBLE](FIRSTRUN.md)** on ${when} from a clean \`${p.image}\` machine at \`${p.commit}\`${p.verdict !== 'FAILED' ? `: clone to running in ${fmtDuration(p.replaySeconds * 1000)}` : ''}.`;
 }

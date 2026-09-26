@@ -27,7 +27,7 @@ export async function fetchRepo(url, ref, { slug } = {}) {
 }
 
 /**
- * The swarm: one FirstRun agent team per repository, several at once. Each
+ * The swarm: one HUMBLE agent team per repository, several at once. Each
  * team scouts, plans, cold-starts, repairs and replays its repo independently;
  * the audit collects every Setup Passport into one scoreboard.
  */

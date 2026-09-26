@@ -111,18 +111,19 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
   rec.savePlan(plan);
   rec.emitEvent('planner', 'plan', plan);
   if (!plan.steps.some((s) => !s.skip)) {
-    rec.emitEvent('planner', 'done', { verdict: 'NO-SETUP-DOCS' });
+    // Nothing to follow is a finding, never a pass.
     rec.phase('done', 'runner');
-    rec.emitEvent('runner', 'done', { verdict: 'WORKS-AS-WRITTEN', firstFailure: null });
-    return { agent: 'runner', verdict: 'WORKS-AS-WRITTEN', firstFailure: null, runDir: dir };
+    rec.emitEvent('runner', 'done', { verdict: 'NO-SETUP-DOCS', firstFailure: null });
+    return { agent: 'runner', verdict: 'NO-SETUP-DOCS', firstFailure: null, runDir: dir };
   }
   rec.phase('coldstart', 'runner');
   const cacheVolume = `firstrun-cache-${path.basename(dir)}`;
   await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
   await run('docker', ['volume', 'create', '--label', `firstrun=${path.basename(dir)}`, cacheVolume]);
   const sandbox = new Sandbox({ image: plan.image, repoDir: root, label: path.basename(dir), cacheVolume, log: () => {} });
-  await sandbox.start();
   let firstFailure = null;
+  try {
+  await sandbox.start();
   for (let i = 0; i < plan.steps.length; i++) {
     const step = plan.steps[i];
     if (step.skip) continue;
@@ -138,7 +139,7 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
         if (!p.ok) r.exitCode = 1;
       }
     } else {
-      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? (Number(process.env.FIRSTRUN_TEST_MINUTES) || 5) * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
     }
     const attempt = {
       stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs,
@@ -151,7 +152,11 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
       break;
     }
   }
-  await sandbox.stop();
+  } finally {
+    // Always clean up: the box and this run's package cache.
+    await sandbox.stop().catch(() => {});
+    await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  }
   const verdict = firstFailure ? 'BROKEN-AS-WRITTEN' : 'WORKS-AS-WRITTEN';
   rec.phase('done', 'runner');
   rec.emitEvent('runner', 'done', { verdict, firstFailure });
@@ -166,30 +171,33 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
  * Result: { agent:'verifier', replay:{ status, durationMs } }.
  * Exit 0 pass / 1 fail.
  */
-export async function runVerifier(runDir, { out } = {}) {
+export async function runVerifier(runDir, { out, repo } = {}) {
   const dir = path.resolve(runDir);
-  const run = readJson(path.join(dir, 'run.json'));
-  if (!run) throw new Error(`no run.json in ${dir}; point verifier at a finished run folder`);
-  const plan = readJson(path.join(dir, 'plan.json')) || run.plan;
+  const saved = readJson(path.join(dir, 'run.json'));
+  if (!saved) throw new Error(`no run.json in ${dir}; point verifier at a finished run folder`);
+  const plan = readJson(path.join(dir, 'plan.json')) || saved.plan;
   if (!plan?.steps?.length) throw new Error(`${dir} has no plan.json or empty steps; the run did not finish`);
-  const passport = run.passport;
+  const passport = saved.passport;
   if (!passport) throw new Error(`${dir} has no passport yet; the run did not finish`);
 
   // Replay in a new isolated directory
-  const replayDir = path.resolve(out || path.join(dir, '..', `verifier-${shortId()}`));
-  const rec = new Recorder(replayDir, { id: path.basename(replayDir), repo: run.repo });
+  const replayDir = path.resolve(out || path.join(dir, `verifier-${shortId()}`)); // inside .firstrun, never in the repo
+  const rec = new Recorder(replayDir, { id: path.basename(replayDir), repo: saved.repo });
   rec.phase('replay', 'verifier');
   rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
   const t0 = Date.now();
 
-  const facts = await scout(path.resolve(run.repo)); // need the repo path - use run.json's repo field
+  // The repo is the folder that holds .firstrun (run.json's repo is a label like owner/name).
+  const repoDir = repo ? path.resolve(repo) : path.basename(dir) === '.firstrun' ? path.dirname(dir) : null;
+  if (!repoDir || !fs.existsSync(repoDir)) throw new Error(`can't find the repo for ${dir}; pass --repo <dir>`);
+  const facts = await scout(repoDir);
   const cacheVolume = `firstrun-cache-${path.basename(replayDir)}`;
   await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
   await run('docker', ['volume', 'create', '--label', `firstrun=${path.basename(replayDir)}`, cacheVolume]);
-  const sandbox = new Sandbox({ image: plan.image, repoDir: path.resolve(run.repo), label: path.basename(replayDir), cacheVolume, log: () => {} });
-  await sandbox.start();
-
+  const sandbox = new Sandbox({ image: plan.image, repoDir, label: path.basename(replayDir), cacheVolume, log: () => {} });
   let failed = null;
+  try {
+  await sandbox.start();
   for (const step of plan.steps) {
     if (step.skip || step.status === 'needs-human') continue;
     // Apply prereqs from the verified run
@@ -209,15 +217,17 @@ export async function runVerifier(runDir, { out } = {}) {
         if (!p.ok && !answers) { r.exitCode = 1; r.out += `\nGET ${plan.verify.target} → ${p.status}`; }
       }
     } else {
-      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? (Number(process.env.FIRSTRUN_TEST_MINUTES) || 5) * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
     }
     rec.flushLog(step.id, 1);
     rec.emitEvent('verifier', 'step.end', { stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs, status: r.exitCode === 0 ? 'passed' : 'failed' });
     if (r.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
     if (r.exitCode !== 0) failed = failed || step.id;
   }
-
-  await sandbox.stop();
+  } finally {
+    await sandbox.stop().catch(() => {});
+    await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  }
   const replay = { status: failed ? 'failed' : 'passed', durationMs: Date.now() - t0, failedStep: failed || undefined };
   rec.phase('done', 'verifier');
   rec.emitEvent('verifier', 'replay.end', replay);

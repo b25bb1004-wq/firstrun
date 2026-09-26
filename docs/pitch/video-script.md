@@ -1,7 +1,7 @@
 # Video script (target 4:00, hard limits 3:00–5:00)
 
 *Draft for issue #1. `{{NAME}}` is the product name placeholder until Arnav decides (currently
-FirstRun, maybe Proofread). Spoken lines are ~560 words, about 4 minutes at a calm pace.*
+HUMBLE, maybe Proofread). Spoken lines are ~560 words, about 4 minutes at a calm pace.*
 
 **Honesty rules for this video** (from `CLAUDE.md`):
 - acme-shop is a **demo repo with seeded breaks**, so it gets an on-screen label every time it
@@ -78,8 +78,8 @@ Open one evidence record.
 
 ## 6 · IBM Bob (2:30–3:10)
 
-**Screen:** Bob IDE in 🚀 FirstRun mode calling the MCP tools; then an evidence card labelled
-"diagnosed by IBM Bob"; then 🧭 FirstRun Guide answering a newcomer.
+**Screen:** Bob IDE in 🚀 HUMBLE mode calling the MCP tools; then an evidence card labelled
+"diagnosed by IBM Bob"; then 🧭 HUMBLE Guide answering a newcomer.
 
 > Rules handle the common breaks for free. For a failure no rule knows, {{NAME}} asks IBM Bob.
 > Bob Shell runs headlessly in our Doctor mode, reads the repository and returns a structured

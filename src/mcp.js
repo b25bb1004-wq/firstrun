@@ -11,7 +11,7 @@ import { staticDrift } from './drift.js';
 import { readJson } from './util.js';
 
 /**
- * FirstRun as tools for IBM Bob (Model Context Protocol, stdio). With
+ * HUMBLE as tools for IBM Bob (Model Context Protocol, stdio). With
  * .bob/mcp.json in place, Bob's agent can plan, verify, inspect evidence and
  * guard against drift without leaving the IDE.
  */
@@ -82,11 +82,11 @@ export async function startMcp() {
 
   server.registerTool('firstrun_status', {
     title: 'Run status',
-    description: 'Current phase, per-step status, evidence records and (when finished) the Setup Passport of a FirstRun run.',
+    description: 'Current phase, per-step status, evidence records and (when finished) the Setup Passport of a HUMBLE run.',
     inputSchema: { run: z.string().describe('runId from firstrun_verify, or a repo path / .firstrun directory') },
   }, async ({ run }) => {
     const dir = runDir(run);
-    if (!dir) return text(`No FirstRun run found for ${run}.`);
+    if (!dir) return text(`No HUMBLE run found for ${run}.`);
     return text({ finished: runs.get(run)?.done ?? !!readJson(path.join(dir, 'run.json'))?.finishedAt, ...summarize(dir) });
   });
 

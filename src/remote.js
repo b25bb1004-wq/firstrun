@@ -28,7 +28,7 @@ export class CheckError extends Error {
 async function download(owner, name, ref, dir) {
   const url = `https://codeload.github.com/${owner}/${name}/tar.gz/${ref ? encodeURIComponent(ref).replace(/%2F/g, '/') : 'HEAD'}`;
   const res = await fetch(url, { redirect: 'follow', headers: { 'User-Agent': 'firstrun-check' } });
-  if (res.status === 404) throw new CheckError(404, `${owner}/${name}${ref ? `@${ref}` : ''} was not found, or it is private. FirstRun's hosted check reads public repositories only.`);
+  if (res.status === 404) throw new CheckError(404, `${owner}/${name}${ref ? `@${ref}` : ''} was not found, or it is private. HUMBLE's hosted check reads public repositories only.`);
   if (!res.ok) throw new CheckError(502, `GitHub returned ${res.status} for ${owner}/${name}.`);
   if (Number(res.headers.get('content-length') || 0) > MAX_BYTES) throw new CheckError(413, 'This repository is too large for the hosted check. Run `firstrun plan` locally instead.');
 

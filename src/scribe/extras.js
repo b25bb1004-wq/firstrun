@@ -4,7 +4,7 @@ import { errorSignature } from '../util.js';
 
 const REPO = process.env.FIRSTRUN_GITHUB || 'b25bb1004-wq/firstrun';
 
-/** A devcontainer that reproduces exactly the machine FirstRun verified on. */
+/** A devcontainer that reproduces exactly the machine HUMBLE verified on. */
 export function devcontainer({ plan, services, name }) {
   const setup = plan.steps.filter((s) => !s.skip && s.status !== 'needs-human' && ['install', 'env', 'build', 'migrate', 'other'].includes(s.kind) && !/^cd\s/.test(s.command));
   const post = setup.map((s) => s.command).join(' && ') || undefined;
@@ -20,7 +20,7 @@ export function devcontainer({ plan, services, name }) {
       },
     };
   }
-  // Sidecars share the app container's network, the same topology FirstRun verified.
+  // Sidecars share the app container's network, the same topology HUMBLE verified.
   const compose = { services: { app: { image: plan.image, command: 'sleep infinity', volumes: ['..:/workspace:cached'] } } };
   for (const s of services) {
     compose.services[s.name] = { image: s.image, network_mode: 'service:app', restart: 'unless-stopped' };
@@ -48,7 +48,7 @@ function json(o) {
 
 /** The drift guard: re-check setup on PRs that touch setup-relevant files. */
 export function workflow() {
-  return `name: FirstRun setup guard
+  return `name: HUMBLE setup guard
 on:
   pull_request:
     paths:
@@ -94,7 +94,7 @@ jobs:
 /**
  * A Clicky-style onboarding buddy that lives in the newcomer's IDE: an IBM Bob
  * custom mode that walks them through the verified setup one step at a time,
- * checks each result, and recognises the failure signatures FirstRun recorded.
+ * checks each result, and recognises the failure signatures HUMBLE recorded.
  */
 export function bobGuide({ plan, evidence, passport }) {
   const steps = plan.steps.filter((s) => !s.skip && s.status !== 'needs-human');
@@ -106,9 +106,9 @@ export function bobGuide({ plan, evidence, passport }) {
     customModes: [
       {
         slug: 'firstrun-guide',
-        name: '🧭 FirstRun Guide',
+        name: '🧭 HUMBLE Guide',
         description: 'Walks you from git clone to a running app using the verified setup',
-        roleDefinition: 'You are FirstRun Guide, a patient onboarding buddy for this repository. You help a new contributor get the project running on their machine for the first time, using a setup procedure that FirstRun has verified from a clean machine.',
+        roleDefinition: 'You are HUMBLE Guide, a patient onboarding buddy for this repository. You help a new contributor get the project running on their machine for the first time, using a setup procedure that HUMBLE has verified from a clean machine.',
         whenToUse: 'Use when someone is setting up this repository for the first time, or their local setup is broken.',
         customInstructions: [
           'Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It is the source of truth; the README may be older.',
@@ -126,12 +126,12 @@ export function bobGuide({ plan, evidence, passport }) {
   };
   const md = [];
   md.push(`# Verified setup for ${passport.repo}`, '');
-  md.push(`Verified by FirstRun on ${passport.verifiedAt.slice(0, 10)} at commit \`${passport.commit}\` on a clean \`${passport.image}\` machine. Clone to running took ${passport.replaySeconds}s.`, '');
+  md.push(`Verified by HUMBLE on ${passport.verifiedAt.slice(0, 10)} at commit \`${passport.commit}\` on a clean \`${passport.image}\` machine. Clone to running took ${passport.replaySeconds}s.`, '');
   md.push(`Prerequisites: ${passport.runtime}${steps.some((s) => s.kind === 'services') ? ', Docker (for backing services)' : ''}.`, '');
   md.push('## Steps', '');
   steps.forEach((s, i) => {
     md.push(`${i + 1}. \`${s.command}\``);
-    md.push(`   - Kind: ${s.kind}${s.origin === 'repair' ? ' (added by FirstRun: the README missed it)' : ''}${s.readmeCommand ? ` (the README used to say \`${s.readmeCommand}\`)` : ''}`);
+    md.push(`   - Kind: ${s.kind}${s.origin === 'repair' ? ' (added by HUMBLE: the README missed it)' : ''}${s.readmeCommand ? ` (the README used to say \`${s.readmeCommand}\`)` : ''}`);
     if (s.kind === 'serve') md.push(`   - Expect: the app answers at ${plan.verify.target}${s.probe?.status ? ` (HTTP ${s.probe.status})` : ''}. Leave it running in its own terminal.`);
     else md.push('   - Expect: exits with code 0.');
   });

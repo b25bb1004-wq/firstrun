@@ -41,9 +41,13 @@ export async function restoreCwd(sandbox, cwd) {
   await sandbox.writeFile('/firstrun/cwd', cwd);
 }
 
+/** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
+const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
+
 export function makeBudget(total = 4, perCall = 1.5) {
   let spent = 0;
-  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent };
+  // cap(): what one Bob call may spend now, never more than the run has left (a 1-Bobcoin run spent 1.45 on huggingface_hub).
+  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent, cap: () => Math.max(0, Math.min(perCall, total - spent)) };
 }
 
 async function gitInfo(dir) {
@@ -174,7 +178,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
-        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
+        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? TEST_MINUTES * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
         r = await box.exec(step.command, opts);
         // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
         const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
@@ -249,6 +253,17 @@ export async function verifyRepo(repoDir, opts = {}) {
       }
       if (!firstFailure) firstFailure = { stepId: step.id, command: step.command, source: step.source };
       rec.stepStatus(step.id, 'failed');
+      // A test suite that doesn't finish in time is a finding, not something to retry: another attempt costs the
+      // same minutes on a guess (huggingface_hub: 2 x 12 min). Record it, keep going, spend no Bobcoins.
+      if (step.kind === 'test' && attempt.exitCode === 124) {
+        const { out: _o, ...before } = attempt;
+        rec.evidence({ id: `E${rec.state.evidence.length + 1}`, stepId: step.id, before, fix: null, after: null, status: 'needs-human', at: nowIso(),
+          diagnosis: { class: 'slow-tests', by: 'rules', ruleId: 'test-timeout', confidence: 0.9, cause: `\`${step.command}\` did not finish within ${TEST_MINUTES} min on a clean machine. The setup before it is proven; the docs should name a quick subset for newcomers and say the full suite is for CI.` } });
+        step.status = 'needs-human';
+        rec.stepStatus(step.id, 'needs-human');
+        i++;
+        continue;
+      }
       // ── Repair loop ────────────────────────────────────────────────
       let repaired = false;
       let restart = false;

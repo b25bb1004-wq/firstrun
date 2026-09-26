@@ -10,7 +10,7 @@ import { serviceKind } from '../doctor/services.js';
 import { ensureDir, writeJson, run, readText, errorSignature, redactTokens, redactDeep } from '../util.js';
 import { estimateTimeLost } from '../time-lost.js';
 
-/** Unified diff between two texts, via git (always available where FirstRun runs). */
+/** Unified diff between two texts, via git (always available where HUMBLE runs). */
 export async function unifiedDiff(a, b, label) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'firstrun-diff-'));
   const fa = path.join(tmp, 'a'), fb = path.join(tmp, 'b');
@@ -128,5 +128,5 @@ function verifiedPlan(plan, passport, evidence = []) {
 
 function withGitignore(text) {
   if (text && /^\/?\.firstrun\/?\s*$/m.test(text)) return null;
-  return `${text ? `${text.replace(/\s*$/, '')}\n\n` : ''}# FirstRun local run output (the verified plan lives in .github/firstrun/)\n.firstrun/\n`;
+  return `${text ? `${text.replace(/\s*$/, '')}\n\n` : ''}# HUMBLE local run output (the verified plan lives in .github/firstrun/)\n.firstrun/\n`;
 }
