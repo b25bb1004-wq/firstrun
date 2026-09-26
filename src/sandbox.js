@@ -215,7 +215,9 @@ export class Sandbox {
    */
   async exec(command, { onData, timeoutMs = 20 * 60_000, detectServer = true } = {}) {
     const id = ++this.seq;
-    await this.writeFile(`/firstrun/step-${id}.sh`, this.wrap(command));
+    // `timeout` runs the step in its own process group; record it so stopServers() can end a
+    // step that was left running as a detected server.
+    await this.writeFile(`/firstrun/step-${id}.sh`, `cut -d' ' -f5 /proc/$$/stat > /firstrun/step-${id}.pid\n${this.wrap(command)}`);
     const secs = Math.ceil(timeoutMs / 1000);
     const started = Date.now();
     let soFar = '';
@@ -241,6 +243,7 @@ export class Sandbox {
       return { exitCode: 0, out: `${soFar}\n[firstrun] still running and listening on port ${first.server}: treating this step as the app server\n`, durationMs: Date.now() - started, detectedServer: first.server };
     }
     const r = first.r;
+    await run('docker', ['exec', this.name, 'rm', '-f', `/firstrun/step-${id}.pid`]); // finished: nothing to stop
     let out = r.out;
     if (r.code === 124) out += `\n[firstrun] step timed out after ${secs}s\n`;
     return { exitCode: r.code, out, durationMs: r.durationMs };
@@ -260,9 +263,13 @@ export class Sandbox {
   /**
    * Start a long-running command (a dev server) in the background and wait
    * until it is reachable on `port`, it prints `readyPattern`, or it dies.
+   * On SUCCESS the process group is left running (the verify probe needs it).
+   * On FAILURE (crash, exit, or not-ready timeout) the process group is killed
+   * so that watchers (nodemon, tsc --watch) cannot interfere with later repairs.
    */
   async serve(command, { port, readyPattern, timeoutMs = 120_000, onData } = {}) {
     const id = ++this.seq;
+    const pidFile = `/firstrun/serve-${id}.pid`;
     const logFile = `/firstrun/serve-${id}.log`;
     // Persist state before backgrounding so the server sees exported vars / venv.
     await this.writeFile(`/firstrun/step-${id}.sh`, [
@@ -273,7 +280,7 @@ export class Sandbox {
       '',
     ].join('\n'));
     const started = Date.now();
-    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > /firstrun/serve-${id}.pid; wait`]);
+    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
     let seen = 0;
     let lastOut = '';
     let crashSeenAt = 0;
@@ -284,30 +291,87 @@ export class Sandbox {
       const logR = await run('docker', ['exec', this.name, 'cat', logFile]);
       lastOut = logR.out;
       if (lastOut.length > seen) { onData?.(lastOut.slice(seen)); seen = lastOut.length; }
-      const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat /firstrun/serve-${id}.pid 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
+      const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
       const portOpen = port ? (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${port}) >/dev/null 2>&1`])).code === 0 : false;
       if (portOpen || (ready && ready.test(lastOut))) {
-        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid` };
+        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile };
       }
       // The app may announce a different port than the one we guessed ("Uvicorn running on
       // http://0.0.0.0:8000"). If that port is really listening, the app is up.
       const announced = announcedPort(lastOut, this.services.map((s) => s.port).filter(Boolean));
       if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
-        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid`, port: announced };
+        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
       if (FATAL.test(lastOut)) {
         crashSeenAt = crashSeenAt || Date.now();
         if (lastOut.length !== crashLen) { crashLen = lastOut.length; crashSeenAt = Date.now(); }
         if (Date.now() - crashSeenAt > 6000) {
+          await this._killServeGroup(id);
           return { exitCode: 1, out: `${lastOut}\n[firstrun] the server crashed during startup and is not listening${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
         }
       }
       if (!alive && Date.now() - started > 2000) {
+        await this._killServeGroup(id);
         return { exitCode: 1, out: `${lastOut}\n[firstrun] server process exited before becoming ready${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
       }
     }
+    await this._killServeGroup(id);
     return { exitCode: 124, out: `${lastOut}\n[firstrun] server did not become ready${port ? ` on port ${port}` : ''} within ${Math.round(timeoutMs / 1000)}s\n`, durationMs: Date.now() - started };
+  }
+
+  /**
+   * Kill the process group for a serve step by its sequence id.
+   * Reads /firstrun/serve-<id>.pid (the setsid session leader), sends SIGTERM
+   * to the whole group, waits ~2 s, then SIGKILL. Errors are ignored because
+   * the process may already be gone.
+   */
+  async _killServeGroup(id) {
+    const pidFile = `/firstrun/serve-${id}.pid`;
+    // TERM the group, wait 2 s for a clean exit, then KILL any survivors.
+    await run('docker', ['exec', this.name, 'bash', '-c',
+      `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && { kill -TERM -- -$pid 2>/dev/null; sleep 2; kill -KILL -- -$pid 2>/dev/null; } ; true`]);
+  }
+
+  /**
+   * Kill every background server that is still running:
+   *   - serve() servers: /firstrun/serve-*.pid (each is a setsid session leader).
+   *   - exec() auto-detected servers: /firstrun/step-*.pid.
+   * Servers are restarted by the next attempt, so killing them here is safe.
+   * Sidecar services (compose containers with mongo/redis/etc.) are left alone.
+   */
+  async stopServers() {
+    // Kill all serve-*.pid process groups (TERM then KILL after 2 s).
+    await run('docker', ['exec', this.name, 'bash', '-c', [
+      'for f in /firstrun/serve-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -TERM -- -$pid 2>/dev/null;',
+      'done;',
+      'sleep 2;',
+      'for f in /firstrun/serve-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -KILL -- -$pid 2>/dev/null;',
+      'done;',
+      // Also kill any exec() auto-detected server steps tracked by step-*.pid files.
+      'for f in /firstrun/step-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -TERM -- -$pid 2>/dev/null;',
+      'done;',
+      'sleep 2;',
+      'for f in /firstrun/step-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -KILL -- -$pid 2>/dev/null;',
+      'done;',
+      'true',
+    ].join(' ')]);
   }
 
   /** HTTP probe from inside the container (the app listens on its own localhost). */
