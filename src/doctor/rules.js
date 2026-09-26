@@ -119,6 +119,12 @@ function prismaSchema(facts) {
   try { return f ? fs.readFileSync(path.join(facts.root, f), 'utf8') : ''; } catch { return ''; }
 }
 
+/** The Node major the sandbox runs (plan.runtime or the image tag), or null. */
+function runtimeMajor(ctx) {
+  const v = ctx?.plan?.runtime?.name === 'node' ? ctx.plan.runtime.version : (String(ctx?.image || ctx?.plan?.image || '').match(/^node:(\d+)/) || [])[1];
+  return Number(String(v || '').match(/\d+/)?.[0]) || null;
+}
+
 function depRange(facts, name) {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, facts.projectDir || '', 'package.json'), 'utf8'));
@@ -1026,7 +1032,8 @@ export const RULES = [
   {
     // przemek: `npm test` runs jest, but jest is not in package.json at all.
     id: 'test-runner-undeclared',
-    test({ log, facts }) {
+    test(ctx) {
+      const { log, facts } = ctx;
       const m = log.match(/(?:sh|bash): (?:\d+: )?(jest|vitest|mocha|ava|tap|nyc|c8|karma|jasmine): (?:command )?not found/);
       if (!m || !facts.node) return null;
       const bin = m[1];
@@ -1040,7 +1047,21 @@ export const RULES = [
         if (/ts-jest/.test(text) && !deps.includes('ts-jest')) extra += ' ts-jest';
         if (!deps.includes('@types/jest') && (facts.files || []).includes('tsconfig.json')) extra += ' @types/jest';
       }
-      const cmd = `npm install --no-save ${bin}${extra}`;
+      // Pin the runner to the version the project's own companions expect. przemek declares ts-jest ^27 and
+      // @types/jest ^27 but not jest; unpinned `npm install jest` got jest 30, which needs Node 18+ and crashed on
+      // node:16 ("availableParallelism is not a function"). Companion major first, else a major that fits the runtime.
+      const major = (r) => (String(r || '').match(/(\d+)/) || [])[1];
+      let pin = '';
+      if (bin === 'jest') {
+        const m2 = major(depRange(facts, 'ts-jest')) || major(depRange(facts, '@types/jest')) || major(depRange(facts, 'babel-jest'));
+        const nodeMajor = Number(String(facts.node?.engines || '').match(/(\d+)/)?.[1] || 0) || null;
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        pin = m2 ? `@${m2}` : (runtime && runtime < 18) || (nodeMajor && nodeMajor < 18 && !runtime) ? '@29' : '';
+      } else if (bin === 'vitest') {
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        if (runtime && runtime < 18) pin = '@0';
+      }
+      const cmd = `npm install --no-save ${bin}${pin}${extra}`;
       return {
         ruleId: 'test-runner-undeclared', class: 'missing-dependency', confidence: 0.85,
         cause: `The test script runs \`${bin}\`, but ${bin} is not in package.json, so installing the project never installs it. It only works on machines that already have it.`,
@@ -1094,8 +1115,14 @@ export const RULES = [
       const mocha = log.match(/(\d+) passing[\s\S]{0,400}?(\d+) failing/);
       const jest = log.match(/Tests:\s+(\d+) failed, (?:\d+ skipped, )?(?:(\d+) passed, )?(\d+) total/);
       const py = log.match(/=+ (?:(\d+) failed)?(?:, )?(?:(\d+) passed)?(?:, )?(?:\d+ skipped, )?(?:(\d+) errors?)?[^=\n]* in [\d.]+s/);
+      // node:test / TAP summary (commander): '# tests 1373' … '# fail 4'.
+      const tap = log.match(/^# tests (\d+)[\s\S]{0,200}?^# fail (\d+)/m);
+      // vitest: 'Tests  3 failed | 120 passed (123)'.
+      const vitest = log.match(/Tests\s+(\d+) failed\s*\|[^\n]*?\((\d+)\)/);
       let failed = 0, total = 0;
-      if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
+      if (tap) { failed = +tap[2]; total = +tap[1]; }
+      else if (vitest) { failed = +vitest[1]; total = +vitest[2]; }
+      else if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
       else if (jest) { failed = +jest[1]; total = +jest[3]; }
       else if (py && (py[1] || py[3])) { failed = (+py[1] || 0) + (+py[3] || 0); total = failed + (+py[2] || 0); }
       if (!failed) return null;
@@ -1139,50 +1166,90 @@ export const RULES = [
       };
     },
   },
-  {
-    // vargasjona: `source "$(poetry env info --path)/bin/activate"` → "/bin/activate: No such file or directory".
-    // `poetry env info --path` prints nothing because no environment exists: the docs never run `poetry install`
-    // (they jump to `poetry shell`). Same shape for pipenv (`pipenv --venv`).
-    id: 'venv-not-created',
-    test({ log, step, plan }) {
-      if (!/(^|\s)\/bin\/activate: No such file or directory/.test(log)) return null;
-      const tool = /poetry\s+env\s+info/.test(step.command) ? 'poetry' : /pipenv\s+--venv/.test(step.command) ? 'pipenv' : null;
-      if (!tool) return null;
-      const installed = plan.steps.some((s) => ['passed', 'repaired'].includes(s.status) && new RegExp(`^${tool}\\s+(install|sync)\\b`).test(s.command));
-      if (installed) return null;
-      const cmd = `${tool} install`;
-      return {
-        ruleId: 'venv-not-created', class: 'wrong-order', confidence: 0.88,
-        cause: `\`${step.command}\` activates the project's ${tool === 'poetry' ? 'Poetry' : 'Pipenv'} environment, but none exists yet: the docs never run \`${cmd}\`, so the path is empty.`,
-        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
-      };
+    {
+      // vargasjona: `source "$(poetry env info --path)/bin/activate"` → "/bin/activate: No such file or directory".
+      // `poetry env info --path` prints nothing because no environment exists: the docs never run `poetry install`
+      // (they jump to `poetry shell`). Same shape for pipenv (`pipenv --venv`).
+      id: 'venv-not-created',
+      test({ log, step, plan }) {
+        if (!/(^|\s)\/bin\/activate: No such file or directory/.test(log)) return null;
+        const tool = /poetry\s+env\s+info/.test(step.command) ? 'poetry' : /pipenv\s+--venv/.test(step.command) ? 'pipenv' : null;
+        if (!tool) return null;
+        const installed = plan.steps.some((s) => ['passed', 'repaired'].includes(s.status) && new RegExp('^' + tool + '\\s+(install|sync)\\b').test(s.command));
+        if (installed) return null;
+        const cmd = `${tool} install`;
+        return {
+          ruleId: 'venv-not-created', class: 'wrong-order', confidence: 0.88,
+          cause: `\`${step.command}\` activates the project's ${tool === 'poetry' ? 'Poetry' : 'Pipenv'} environment, but none exists yet: the docs never run \`${cmd}\`, so the path is empty.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+        };
+      },
     },
-  },
-  {
-    // vargasjona: the README allows Python ">3.9,<3.12", but poetry.lock pins a torch wheel built for CPython 3.11
-    // only (`torch-2.0.0+cpu-cp311-cp311-linux_x86_64.whl`), so `poetry install` on 3.10 stops with
-    // "Package … cannot be installed in the current environment". The lockfile is the truth: use the wheel's Python.
-    id: 'wheel-python-mismatch',
-    test({ log, plan }) {
-      if (plan.runtime?.name !== 'python') return null;
-      if (!/cannot be installed in the current environment|is not a supported wheel on this platform/.test(log)) return null;
-      const tag = log.match(/[-_]cp3(\d{1,2})-(?:cp3\d{1,2}|abi3|none)-/);
-      if (!tag) return null;
-      const target = `3.${tag[1]}`;
-      if (String(plan.runtime.version).startsWith(target)) return null;
-      const src = 'a locked wheel built only for CPython ' + target;
-      return {
-        ruleId: 'wheel-python-mismatch', class: 'runtime-version', confidence: 0.88,
-        cause: `The docs allow Python ${plan.runtime.version}, but the lockfile pins ${tag[0].replace(/^[-_]/, '').replace(/-$/, '')} wheels, which only install on Python ${target}. A newcomer on ${plan.runtime.version} cannot install the dependencies.`,
-        fix: {
-          actions: [{ type: 'rebase', image: imageFor('python', target), runtime: { name: 'python', version: target, source: src } }],
-          patches: [],
-          doc: { kind: 'prerequisite', text: `Python ${target} (the lockfile's wheels are built for CPython ${target})`, runtime: { name: 'python', version: target } },
-        },
-      };
+    {
+      // vargasjona: the README allows Python ">3.9,<3.12", but poetry.lock pins a torch wheel built for CPython 3.11
+      // only (`torch-2.0.0+cpu-cp311-cp311-linux_x86_64.whl`), so `poetry install` on 3.10 stops with
+      // "Package … cannot be installed in the current environment". The lockfile is the truth: use the wheel's Python.
+      id: 'wheel-python-mismatch',
+      test({ log, plan }) {
+        if (plan.runtime?.name !== 'python') return null;
+        if (!/cannot be installed in the current environment|is not a supported wheel on this platform/.test(log)) return null;
+        const tag = log.match(/[-_]cp3(\d{1,2})-(?:cp3\d{1,2}|abi3|none)-/);
+        if (!tag) return null;
+        const target = `3.${tag[1]}`;
+        if (String(plan.runtime.version).startsWith(target)) return null;
+        const src = 'a locked wheel built only for CPython ' + target;
+        return {
+          ruleId: 'wheel-python-mismatch', class: 'runtime-version', confidence: 0.88,
+          cause: `The docs allow Python ${plan.runtime.version}, but the lockfile pins ${tag[0].replace(/^[-_]/, '').replace(/-$/, '')} wheels, which only install on Python ${target}. A newcomer on ${plan.runtime.version} cannot install the dependencies.`,
+          fix: {
+            actions: [{ type: 'rebase', image: imageFor('python', target), runtime: { name: 'python', version: target, source: src } }],
+            patches: [],
+            doc: { kind: 'prerequisite', text: `Python ${target} (the lockfile's wheels are built for CPython ${target})`, runtime: { name: 'python', version: target } },
+          },
+        };
+      },
     },
-  },
-];
+    {
+      // axios (final-engine run, 27 Sep): the README says Node.js v19, so HUMBLE ran node:19; the test toolchain imports
+      // `styleText` from node:util, which only newer Node has: "The requested module 'node:util' does not provide an
+      // export named 'styleText'". CI runs a newer Node: that's the truth to follow.
+      id: 'node-builtin-missing',
+      test({ log, facts, plan }) {
+        if (plan.runtime?.name !== 'node') return null;
+        const m = log.match(/The requested module 'node:([\w/]+)' does not provide an export named '(\w+)'|TypeError: \(0 , _?node[\w$]*\)?\.?(\w+)\)? is not a function|(\w+) is not a function[\s\S]{0,80}node:(util|fs|os|test|process)/);
+        if (!m) return null;
+        const ci = (facts.ci?.nodeVersions || []).map((v) => Number(v.version)).filter((v) => v > 0);
+        const target = String(Math.max(22, ...ci.filter((v) => v <= 24)));
+        if (Number(plan.runtime.version) >= Number(target)) return null;
+        const what = m[1] ? `\`${m[2]}\` from node:${m[1]}` : 'a Node built-in';
+        const src = ci.length ? `CI (${facts.ci.nodeVersions[0].workflow})` : 'the Node.js LTS';
+        return {
+          ruleId: 'node-builtin-missing', class: 'runtime-version', confidence: 0.85,
+          cause: `Node.js ${plan.runtime.version} (what the docs say) is too old: the project's toolchain uses ${what}, which that version doesn't have. ${ci.length ? `CI runs Node ${ci.join(', ')}.` : ''}`.trim(),
+          fix: {
+            actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+            patches: [],
+            doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
+          },
+        };
+      },
+    },
+    {
+      // axios (Docker proof, 27 Sep): vitest's browser tests need Playwright's browsers, which a fresh clone never
+      // downloads: "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/…".
+      id: 'browser-not-downloaded',
+      test({ log, tried }) {
+        if (!/Executable doesn't exist at [^\n]*ms-playwright|Please run the following command to download new browsers/.test(log)) return null;
+        const cmd = 'npx playwright install --with-deps chromium';
+        if ([...(tried || [])].some((t) => String(t).includes('playwright install'))) return null;
+        return {
+          ruleId: 'browser-not-downloaded', class: 'missing-tool', confidence: 0.88,
+          cause: 'The browser tests need Playwright\'s Chromium, which is downloaded separately from npm install; the docs never say to run `npx playwright install`.',
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'npx playwright install --with-deps chromium' } },
+        };
+      },
+    },
+  ];
 
 function label(kind) {
   return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;

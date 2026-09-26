@@ -106,7 +106,7 @@ test('declaredRuntime: "Node.js >= 18" returns minimum=true', () => {
   assert.equal(r.minimum, true);
 });
 
-test('buildPlan: "node v7.6+" is tested as written (Node 7) and flagged against engines >= 18 (koa); the Doctor rebases', async () => {
+test('buildPlan: a docs minimum below package.json engines runs at the engines floor (koa: v7.6+ vs >= 18) and stays a conflict', async () => {
   const root = tmp();
   fs.writeFileSync(path.join(root, 'README.md'), [
     '# koa', '', '## Requires', '',
@@ -119,8 +119,9 @@ test('buildPlan: "node v7.6+" is tested as written (Node 7) and flagged against 
     name: 'koa', scripts: { test: 'node --test' }, engines: { node: '>= 18' },
   }));
   const plan = buildPlan(await scout(root));
-  // A newcomer who installs exactly what the docs say is who a stale README breaks (acme-shop's seeded "16+" works the same way).
-  assert.equal(plan.image, 'node:7');
+  // engines is a hard floor npm enforces: never run below it (Edith's v2-31 rerun: node:7 had no `npm ci`).
+  // acme-shop's seeded "16+ vs .nvmrc 20" still runs at 16: .nvmrc is not a hard floor.
+  assert.equal(plan.image, 'node:18');
   const c = plan.conflicts.find((x) => x.what === 'Node.js version');
   assert.ok(c, 'docs minimum below engines is a conflict');
   assert.match(c.truth, /18/);

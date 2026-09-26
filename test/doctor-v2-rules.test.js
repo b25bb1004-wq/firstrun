@@ -313,3 +313,50 @@ test('wheel-python-mismatch: a locked cp311 wheel on Python 3.10 rebases to 3.11
   assert.equal(rule.test({ log, plan: { runtime: { name: 'python', version: '3.11' } } }), null);
   assert.equal(rule.test({ log: 'Cannot install torch.', plan: { runtime: { name: 'python', version: '3.10' } } }), null);
 });
+
+// Real v2 run (26 Sep, final engine): przemek declares ts-jest ^27 / @types/jest ^27 but not jest; the unpinned
+// `npm install --no-save jest` pulled jest 30, which crashed on node:16 ("availableParallelism is not a function").
+import fsPin from 'node:fs';
+import osPin from 'node:os';
+import pathPin from 'node:path';
+test('test-runner-undeclared pins jest to the companion major (ts-jest ^27 → jest@27)', () => {
+  const root = fsPin.mkdtempSync(pathPin.join(osPin.tmpdir(), 'pin-'));
+  fsPin.writeFileSync(pathPin.join(root, 'package.json'), JSON.stringify({ devDependencies: { 'ts-jest': '^27.1.1', '@types/jest': '^27.0.3' } }));
+  const rule = RULES.find((r) => r.id === 'test-runner-undeclared');
+  const d = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: ['ts-jest', '@types/jest'] } }, plan: { runtime: { name: 'node', version: '16' } } });
+  assert.match(d.fix.actions[0].command, /^npm install --no-save jest@27\b/);
+});
+test('test-runner-undeclared: no companion, old Node → a jest major that runs on it', () => {
+  const root = fsPin.mkdtempSync(pathPin.join(osPin.tmpdir(), 'pin-'));
+  fsPin.writeFileSync(pathPin.join(root, 'package.json'), '{}');
+  const rule = RULES.find((r) => r.id === 'test-runner-undeclared');
+  const d = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: [] } }, plan: { runtime: { name: 'node', version: '16' } } });
+  assert.match(d.fix.actions[0].command, /jest@29/);
+  const d22 = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: [] } }, plan: { runtime: { name: 'node', version: '22' } } });
+  assert.match(d22.fix.actions[0].command, /--no-save jest$/);
+});
+
+// Real final-engine run (27 Sep): axios on node:19 (README) — its toolchain needs node:util.styleText.
+test('node-builtin-missing: a missing Node built-in export rebases to CI/LTS Node', () => {
+  const rule = RULES.find((r) => r.id === 'node-builtin-missing');
+  const log = "import { formatWithOptions, styleText } from \"node:util\";\nSyntaxError: The requested module 'node:util' does not provide an export named 'styleText'";
+  const d = rule.test({ log, facts: { ci: { nodeVersions: [{ version: '22', workflow: '.github/workflows/ci.yml' }] } }, plan: { runtime: { name: 'node', version: '19' } } });
+  assert.equal(d.fix.actions[0].type, 'rebase');
+  assert.match(d.fix.actions[0].image, /node:22/);
+  assert.equal(rule.test({ log, facts: {}, plan: { runtime: { name: 'node', version: '22' } } }), null);
+  assert.equal(rule.test({ log: 'Error: Cannot find module x', facts: {}, plan: { runtime: { name: 'node', version: '19' } } }), null);
+});
+
+// Docker proof (27 Sep): commander's node:test summary and axios's missing Playwright browsers.
+test('failing-tests reads the node:test TAP summary (commander: 4 of 1373)', () => {
+  const rule = RULES.find((r) => r.id === 'failing-tests');
+  const log = 'not ok 26 - Command.configureOutput()\n# tests 1373\n# suites 90\n# pass 1368\n# fail 4\n# cancelled 0';
+  const d = rule.test({ log, step: { kind: 'test' } });
+  assert.match(d.cause, /4 of 1373 tests fail/);
+});
+test('browser-not-downloaded: Playwright browsers missing → install them', () => {
+  const rule = RULES.find((r) => r.id === 'browser-not-downloaded');
+  const d = rule.test({ log: "Error: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell", tried: new Set() });
+  assert.equal(d.fix.actions[0].command, 'npx playwright install --with-deps chromium');
+  assert.equal(rule.test({ log: 'npm ERR! missing script', tried: new Set() }), null);
+});
