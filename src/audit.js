@@ -27,7 +27,7 @@ export async function fetchRepo(url, ref, { slug } = {}) {
 }
 
 /**
- * The swarm: one FirstRun agent team per repository, several at once. Each
+ * The swarm: one HUMBLE agent team per repository, several at once. Each
  * team scouts, plans, cold-starts, repairs and replays its repo independently;
  * the audit collects every Setup Passport into one scoreboard.
  */
@@ -71,7 +71,8 @@ export async function audit(listFile, { concurrency = 3, brain = 'rules', bobBud
       try {
         const src = await fetchRepo(r.url, r.ref, { slug: r.slug });
         const res = await verifyRepo(src, {
-          out: path.join(dir, r.runDir), brain, budget, maxMinutes: 20, repoLabel: r.url.replace(/^https:\/\/github\.com\//, ''), id: `${auditId}-${r.slug}`,
+          // Audits are the numbers we quote: replay cold (no package cache) so "clone to running" means from zero.
+          out: path.join(dir, r.runDir), brain, budget, maxMinutes: 20, cache: false, repoLabel: r.url.replace(/^https:\/\/github\.com\//, ''), id: `${auditId}-${r.slug}`,
           onRecorder: (rec) => {
             printer?.(rec, r.slug);
             rec.on('event', (ev) => {

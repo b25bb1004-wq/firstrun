@@ -3,7 +3,7 @@ import YAML from 'yaml';
 import { readText } from './util.js';
 
 /**
- * Repo patches are the file changes FirstRun proposes in its PR (for example a
+ * Repo patches are the file changes HUMBLE proposes in its PR (for example a
  * missing variable in .env.example, or a missing Redis service in
  * docker-compose.yml). They are kept as operations and folded into final file
  * contents on demand, so the replay runs against exactly what the PR contains.

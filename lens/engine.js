@@ -1,4 +1,4 @@
-// FirstRun Lens engine: read what was circled (OCR), match it against fixes FirstRun has
+// HUMBLE Lens engine: read what was circled (OCR), match it against fixes HUMBLE has
 // already proven for this project (free, instant), and ask IBM Bob about anything else.
 import { createWorker } from 'tesseract.js';
 import { askBob } from '../src/brain/bob.js';
@@ -20,7 +20,7 @@ export { loadKnownFixes, matchKnownFix } from '../src/known-fixes.js';
 // ---------------------------------------------------------------- IBM Bob
 export async function askBobAbout({ project, text, question, imageFile }) {
   const request = [
-    '# FirstRun Lens: a newcomer circled something on their screen',
+    '# HUMBLE Lens: a newcomer circled something on their screen',
     '',
     'They are setting up or working in the repository in this workspace. Below is the text read (by OCR, so it may contain small errors) from the area they circled.',
     imageFile ? `The screenshot of the circled area is at \`${imageFile}\` if you can read images.` : '',

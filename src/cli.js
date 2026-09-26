@@ -10,10 +10,10 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runPlanner, runDoctor, runScribe } from './solo.js';
+import { runScout, runPlanner, runDoctor, runScribe, runRunner, runVerifier } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
-const HELP = `${bold('FirstRun')}: your README, proven.
+const HELP = `${bold('HUMBLE')}: your README, proven.
 
 Follows a repository's setup docs on a clean machine like a brand-new contributor,
 repairs what breaks with evidence, replays the fixed guide from zero, and writes a
@@ -22,9 +22,11 @@ corrected README plus a Setup Passport.
 ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
+  firstrun run    [path|github-url] [--ref <sha>] [--as-written] [--out <dir>] [--json]
+  firstrun replay <run-dir> [--json]     Verifier alone: replay a finished run's repaired guide from zero
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
-  firstrun doctor --log <file|-> [--repo <dir>] [--bob-budget 1]   Doctor alone: diagnose one failure
+  firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]   Doctor alone: diagnose one failure
   firstrun scribe <run-dir>              Scribe alone: rewrite the report and passport from a finished run
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
@@ -35,7 +37,7 @@ ${bold('Usage')}
   firstrun mcp                           MCP server for IBM Bob (stdio)
   firstrun lens   [path]                 circle anything on screen and ask about it (Ctrl+Shift+Space)
   firstrun dock   [path]                 floating Dock: run agents and watch them live (Alt+Command+Space / Ctrl+Alt+Space)
-  firstrun bob install                   install FirstRun's custom modes for Bob Shell
+  firstrun bob install                   install HUMBLE's custom modes for Bob Shell
   firstrun clean                         remove leftover sandbox containers
 `;
 
@@ -68,7 +70,7 @@ export async function main(argv) {
   switch (cmd) {
     case 'verify': {
       const root = await resolveTarget(args._[0], args);
-      console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root}`);
+      console.log(`${bold(cyan('HUMBLE'))} ${dim('·')} ${root}`);
       const res = await verifyRepo(root, {
         brain: args.brain || 'auto', bobBudget: Number(args['bob-budget'] ?? 4), out: args.out, keep: !!args.keep,
         replay: args.replay !== false, cache: args.cache !== false, flags: args.flags || '',
@@ -81,6 +83,29 @@ export async function main(argv) {
         console.log(`  ${dim('watch')}    firstrun ui --root ${path.dirname(res.dir)}`);
       }
       return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : 0) : 1;
+    }
+    case 'run': {
+      const root = await resolveTarget(args._[0], args);
+      if (!args['as-written']) {
+        console.error('Usage: firstrun run <repo> --as-written [--out <dir>] [--json]');
+        return 2;
+      }
+      console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root} ${dim('· --as-written')}`);
+      const r = await runRunner(root, { out: args.out, asWritten: true });
+      if (args.json) { console.log(JSON.stringify(r)); return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1; }
+      const col = r.verdict === 'WORKS-AS-WRITTEN' ? green : red;
+      console.log(`  ${col(bold(r.verdict))}${r.firstFailure ? ` ${dim(`(failed at ${r.firstFailure.stepId}: ${r.firstFailure.command}, exit ${r.firstFailure.exitCode})`)}` : ''}`);
+      console.log(`  ${dim('events:')} ${r.runDir}`);
+      return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1;
+    }
+    case 'replay': {
+      const dir = path.resolve(args._[0] || '.');
+      if (!fs.existsSync(path.join(dir, 'run.json'))) { console.error('Usage: firstrun replay <run-dir> [--out <dir>] [--json]'); return 2; }
+      const r = await runVerifier(dir, { out: args.out, repo: args.repo });
+      if (args.json) { console.log(JSON.stringify(r)); return r.replay.status === 'passed' ? 0 : 1; }
+      const col = r.replay.status === 'passed' ? green : red;
+      console.log(`${bold('Verifier')}: ${col(bold(r.replay.status === 'passed' ? 'REPLAY PASSED' : 'REPLAY FAILED'))} in ${Math.round(r.replay.durationMs / 1000)} s ${dim(`(events: ${r.runDir})`)}`);
+      return r.replay.status === 'passed' ? 0 : 1;
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);
@@ -126,7 +151,7 @@ export async function main(argv) {
     case 'audit': {
       const list = args._[0] || 'audit/repos.json';
       const concurrency = Number(args.concurrency || 3);
-      console.log(`${bold(cyan('FirstRun swarm'))} ${dim('·')} ${list} ${dim(`· ${concurrency} repos at a time`)}`);
+      console.log(`${bold(cyan('HUMBLE swarm'))} ${dim('·')} ${list} ${dim(`· ${concurrency} repos at a time`)}`);
       const { dir, state } = await audit(path.resolve(list), {
         concurrency, brain: args.brain || 'rules', bobBudget: Number(args['bob-budget'] ?? 0), limit: args.limit ? Number(args.limit) : undefined, only: args.only, id: args.id, rerun: args.rerun,
         onEvent: (ev) => {
@@ -163,7 +188,7 @@ export async function main(argv) {
     case 'apply': {
       const root = path.resolve(args._[0] || '.');
       const pr = path.join(args.run || path.join(root, '.firstrun'), 'out', 'pr');
-      if (!fs.existsSync(pr)) { console.error('No FirstRun output found. Run `firstrun verify` first.'); return 1; }
+      if (!fs.existsSync(pr)) { console.error('No HUMBLE output found. Run `firstrun verify` first.'); return 1; }
       const files = readJson(path.join(pr, '..', 'files.json'), []);
       for (const f of files) {
         fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
@@ -181,7 +206,7 @@ export async function main(argv) {
       await main(['apply', root]);
       const files = readJson(path.join(root, '.firstrun', 'out', 'files.json'), []);
       await run('git', ['-C', root, 'add', ...files]);
-      await run('git', ['-C', root, 'commit', '-m', `docs: verified setup (FirstRun: ${pass.breaksFixed} setup breaks fixed with evidence)`]);
+      await run('git', ['-C', root, 'commit', '-m', `docs: verified setup (HUMBLE: ${pass.breaksFixed} setup breaks fixed with evidence)`]);
       const push = await run('git', ['-C', root, 'push', '-u', 'origin', branch]);
       if (push.code !== 0) { console.error(push.out); return 1; }
       const body = fs.readFileSync(path.join(root, 'FIRSTRUN.md'), 'utf8');
@@ -194,14 +219,14 @@ export async function main(argv) {
       const roots = [].concat(args.root || []).filter(Boolean);
       const port = Number(args.port || 4173);
       await startServer({ port, roots: roots.length ? roots.map((r) => path.resolve(r)) : [process.cwd()] });
-      console.log(`${bold(cyan('FirstRun dashboard'))} → http://localhost:${port}`);
+      console.log(`${bold(cyan('HUMBLE dashboard'))} → http://localhost:${port}`);
       return new Promise(() => {});
     }
     case 'lens': {
       const { spawn } = await import('node:child_process');
       const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
       const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
-      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Lens first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      if (!fs.existsSync(electron)) { console.log(`Install HUMBLE Lens first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
       const project = path.resolve(args._[0] || '.');
       const env = { ...process.env };
       delete env.ELECTRON_RUN_AS_NODE;
@@ -212,7 +237,7 @@ export async function main(argv) {
       const { spawn } = await import('node:child_process');
       const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
       const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
-      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Dock first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      if (!fs.existsSync(electron)) { console.log(`Install HUMBLE Dock first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
       const project = path.resolve(args._[0] || '.');
       const env = { ...process.env, FIRSTRUN_DOCK: '1' };
       delete env.ELECTRON_RUN_AS_NODE;
@@ -227,7 +252,7 @@ export async function main(argv) {
     case 'bob': {
       if (args._[0] === 'install') {
         const f = installGlobalModes();
-        console.log(`${green('✓')} FirstRun modes installed for Bob Shell: ${f}`);
+        console.log(`${green('✓')} HUMBLE modes installed for Bob Shell: ${f}`);
       }
       const s = await bobStatus({ force: true });
       console.log(s.ok ? `${green('✓')} Bob Shell ${s.version}` : `${red('✗')} ${s.reason}`);

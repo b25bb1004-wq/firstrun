@@ -1,6 +1,6 @@
-# FirstRun — architecture and contracts
+# HUMBLE — architecture and contracts
 
-FirstRun treats a repository's README as an executable procedure. It follows the
+HUMBLE treats a repository's README as an executable procedure. It follows the
 setup instructions in a clean container exactly as a newcomer would, repairs what
 breaks, backs every repair with an evidence record, replays the repaired plan from
 zero, and publishes a corrected README plus a Setup Passport.

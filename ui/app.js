@@ -1,4 +1,4 @@
-// FirstRun dashboard: hash router and global chrome.
+// HUMBLE dashboard: hash router and global chrome.
 import { h, icon, store } from './lib.js';
 import { mountHome } from './views/home.js';
 import { mountRun } from './views/run.js';
@@ -42,7 +42,7 @@ function route() {
   else ctl = mountHome(view);
   current = { key, ctl };
   ctl.init?.();
-  document.title = { run: `${r.id} · FirstRun`, audit: `${r.id} audit · FirstRun`, guide: `${r.id} guide · FirstRun`, home: 'FirstRun' }[r.kind];
+  document.title = { run: `${r.id} · HUMBLE`, audit: `${r.id} audit · HUMBLE`, guide: `${r.id} guide · HUMBLE`, home: 'HUMBLE' }[r.kind];
 }
 
 // theme: dark by default, persisted per viewer

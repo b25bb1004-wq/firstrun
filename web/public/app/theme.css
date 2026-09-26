@@ -1,4 +1,4 @@
-/* FirstRun theme: the one place for colour, type and state tokens.
+/* HUMBLE theme: the one place for colour, type and state tokens.
  * Linked by the dashboard (ui/index.html) and, via /app/theme.css on the hosted site, by the
  * landing page, so both stay in step. Change the look here, not in app.css or the landing page.
  * State colours (pass / fail / repair / bob / human) must stay distinguishable in both themes. */
@@ -40,6 +40,8 @@
   --stamp-pass: #17865A;
   --stamp-partial: #B06F0C;
   --stamp-failed: #BF2F32;
+  --stamp-nodocs: #6D819D;
+  --nodocs: #6D819D;
 
   --shadow: 0 24px 48px -24px rgba(0, 0, 0, .75);
   --scrim: rgba(4, 9, 17, .62);
@@ -76,5 +78,7 @@
 
   --shadow: 0 20px 40px -24px rgba(15, 27, 45, .45);
   --scrim: rgba(15, 27, 45, .38);
+  --stamp-nodocs: #74849A;
+  --nodocs: #74849A;
   color-scheme: light;
 }

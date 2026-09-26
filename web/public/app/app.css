@@ -1,4 +1,4 @@
-/* FirstRun dashboard — flight-recorder aesthetic. Colour is reserved for status. */
+/* HUMBLE dashboard — flight-recorder aesthetic. Colour is reserved for status. */
 
 *, *::before, *::after { box-sizing: border-box; }
 html { font-size: clamp(14px, .79vw, 16px); -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,7 @@ button { font: inherit; color: inherit; }
 .v-verified .gv, .vchip.v-verified { color: var(--pass); }
 .v-partial .gv, .vchip.v-partial { color: var(--repair); }
 .v-failed .gv, .vchip.v-failed { color: var(--fail); }
+.v-no-setup-docs .gv, .vchip.v-no-setup-docs { color: var(--nodocs, var(--ink-3)); }
 .g-live .gv { color: var(--ink-3); font-size: 1rem; }
 .g-live.on .gv { color: var(--live); }
 .g-live.on .gv::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--live); margin-right: 7px; vertical-align: 1px; animation: pulse 1.4s ease-out infinite; }
@@ -325,6 +326,7 @@ details.log pre { margin: 8px 0 0; padding: 10px 14px; background: var(--ground-
 .v-verified .pp-stamp, .g-stamp.v-verified { color: var(--stamp-pass); }
 .v-partial .pp-stamp, .g-stamp.v-partial { color: var(--stamp-partial); }
 .v-failed .pp-stamp, .g-stamp.v-failed { color: var(--stamp-failed); }
+.v-no-setup-docs .pp-stamp, .g-stamp.v-no-setup-docs { color: var(--stamp-nodocs, var(--ink-3)); }
 .mrz { display: grid; margin: 0 -22px; padding: 10px 22px 12px; background: rgba(255, 255, 255, .6); border-top: 1px solid rgba(22, 38, 58, .15); font: 500 .82rem/1.45 "IBM Plex Mono", monospace; letter-spacing: .14em; color: #22313f; white-space: pre; overflow: hidden; }
 .pp-guide { margin-top: 12px; }
 .passport.fresh { animation: ppIn .8s cubic-bezier(.2, .8, .2, 1) both; }
@@ -408,6 +410,7 @@ body.drawer-open { overflow: hidden; }
 .au-verdicts { grid-column: 1 / -1; display: flex; gap: 3px; height: 26px; }
 .vb { display: grid; place-items: center; border-radius: 3px; min-width: 0; transition: flex .6s ease; font: 600 .8rem "IBM Plex Mono", monospace; color: var(--ground); }
 .vb.v-verified { background: var(--pass); } .vb.v-partial { background: var(--repair); } .vb.v-failed { background: var(--fail); }
+.vb.v-no-setup-docs { background: var(--nodocs, var(--ink-3)); color: var(--ground); }
 .vb.v-pending { background: repeating-linear-gradient(135deg, var(--rule) 0 6px, transparent 6px 12px); }
 .au-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
 .tile {
@@ -417,6 +420,7 @@ body.drawer-open { overflow: hidden; }
 a.tile[href]:hover { border-color: var(--ink-3); }
 .tile::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--rule); }
 .tile.v-verified::before { background: var(--pass); } .tile.v-partial::before { background: var(--repair); } .tile.v-failed::before { background: var(--fail); }
+.tile.v-no-setup-docs::before { background: var(--nodocs, var(--ink-3)); }
 .tile.t-running::before { background: linear-gradient(90deg, transparent, var(--live), transparent); background-size: 50% 100%; background-repeat: no-repeat; animation: scan 1.8s linear infinite; }
 .tile.t-running { border-color: color-mix(in srgb, var(--live) 45%, transparent); }
 .tile.t-queued { background: transparent; border-style: dashed; }
@@ -440,6 +444,7 @@ a.tile[href]:hover { border-color: var(--ink-3); }
 .t-cmd { display: block; margin-top: 6px; font-size: .8rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .t-cmd.dim { color: var(--ink-3); }
 .t-result { color: var(--ink-2); }
+.t-result.t-nodocs { color: var(--ink-3); font-style: italic; }
 .t-reps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .t-reps li { font: 500 .72rem/1.6 "IBM Plex Sans Condensed", sans-serif; padding: 0 6px; border-radius: 3px; background: var(--repair-t); color: var(--repair); }
 .t-reps li.r-needs-human { background: var(--human-t); color: var(--human); }
@@ -447,6 +452,7 @@ a.tile[href]:hover { border-color: var(--ink-3); }
 .t-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .t-verdict { font: 700 .95rem/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: .08em; padding: 5px 8px 4px; border: 2px solid currentColor; border-radius: 3px; transform: rotate(-3deg); }
 .v-verified .t-verdict { color: var(--pass); } .v-partial .t-verdict { color: var(--repair); } .v-failed .t-verdict { color: var(--fail); }
+.v-no-setup-docs .t-verdict { color: var(--nodocs, var(--ink-3)); }
 .t-time { font-size: .76rem; color: var(--ink-3); }
 .t-state { font-size: .78rem; color: var(--ink-3); }
 .tile.landed .t-verdict { animation: stampSmall .5s cubic-bezier(.3, 1.6, .5, 1) both; }
@@ -516,7 +522,7 @@ a.tile[href]:hover { border-color: var(--ink-3); }
 .ac-line { font: 600 1.4rem/1.15 "IBM Plex Sans Condensed", sans-serif; }
 .ac-bar { display: flex; gap: 2px; height: 8px; }
 .ac-bar i { border-radius: 2px; }
-.ac-bar .v-verified { background: var(--pass); } .ac-bar .v-partial { background: var(--repair); } .ac-bar .v-failed { background: var(--fail); } .ac-bar .v-pending { background: var(--rule); }
+.ac-bar .v-verified { background: var(--pass); } .ac-bar .v-partial { background: var(--repair); } .ac-bar .v-failed { background: var(--fail); } .ac-bar .v-no-setup-docs { background: var(--nodocs, var(--ink-3)); } .ac-bar .v-pending { background: var(--rule); }
 .ac-meta { font-size: .8rem; color: var(--ink-3); }
 .runs { width: 100%; border-collapse: collapse; font-size: .95rem; }
 .runs th { text-align: left; font: 500 .8rem "IBM Plex Sans", sans-serif; color: var(--ink-3); padding: 8px 12px; border-bottom: 1px solid var(--rule); }
@@ -607,3 +613,32 @@ a.tile[href]:hover { border-color: var(--ink-3); }
   .runs th:nth-child(4), .runs td:nth-child(4) { display: none; }
 }
 @media (max-width: 460px) { .au-grid { grid-template-columns: 1fr; } }
+
+/* Replay controls (?replay=): shown only while a recorded run is replayed */
+#replay-bar { margin-bottom: 16px; }
+.rp-control-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  padding: 10px 16px; background: var(--panel); border: 1px solid var(--rule-2); border-radius: 8px;
+}
+.rp-badge {
+  display: flex; align-items: center; gap: 8px; color: var(--ink);
+  font: 600 .8rem/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .06em;
+}
+.rp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); }
+.rp-dot.paused { background: var(--repair); }
+.rp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.btn-rp-toggle { min-width: 80px; font-weight: 600; }
+.rp-speeds { display: flex; gap: 4px; padding: 3px; background: var(--raise); border: 1px solid var(--rule); border-radius: 6px; }
+.btn-rp-speed {
+  padding: 4px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--ink-2); cursor: pointer;
+  font: 500 .8rem/1.2 "IBM Plex Mono", ui-monospace, monospace;
+}
+.btn-rp-speed:hover { color: var(--ink); }
+.btn-rp-speed:focus-visible { outline: 2px solid var(--bob); outline-offset: 1px; }
+.btn-rp-speed.active { background: var(--bob-t); color: var(--bob); font-weight: 600; }
+.btn-rp-restart { font-size: .85rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .rp-dot.playing { animation: rp-pulse 1.5s ease-in-out infinite; }
+  .btn-rp-speed { transition: color .15s ease, background-color .15s ease; }
+}
+@keyframes rp-pulse { 50% { opacity: .4; transform: scale(.85); } }

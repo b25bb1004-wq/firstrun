@@ -1,6 +1,6 @@
 # Demo script (3–4 minutes)
 
-The story: *setup docs are untested code. FirstRun tests them the way a newcomer lives them,
+The story: *setup docs are untested code. HUMBLE tests them the way a newcomer lives them,
 fixes them with proof, and keeps them true, with IBM Bob as the reasoning engine and the
 newcomer's guide.*
 
@@ -56,12 +56,12 @@ human · clone → running in 14 s. Show the README diff: six small line edits, 
 
 ## 2:30 · IBM Bob (40 s)
 
-- In **Bob IDE**, switch to the **🚀 FirstRun** mode and ask: *"Verify examples/notes-api-py and
+- In **Bob IDE**, switch to the **🚀 HUMBLE** mode and ask: *"Verify examples/notes-api-py and
   explain what a newcomer would have hit."* Bob calls `firstrun_plan` / `firstrun_verify` /
   `firstrun_status` over MCP and narrates the evidence.
 - Show a failure no rule knows, diagnosed **by IBM Bob** (Bob Shell headless,
   `firstrun-doctor` mode): the evidence card is labelled "diagnosed by IBM Bob · 0.4 Bobcoins".
-- Switch to **🧭 FirstRun Guide** in the fixed repo: Bob walks a newcomer through the verified
+- Switch to **🧭 HUMBLE Guide** in the fixed repo: Bob walks a newcomer through the verified
   steps and recognises a known failure signature. This is the Clicky-style onboarding buddy,
   grounded in a run that actually passed.
 
@@ -73,7 +73,7 @@ evidence."** (Numbers from `audit/real-16-v2/audit.json`.)
 
 ## 3:40 · Close (15 s)
 
-*"FirstRun makes the README the most tested file in the repo: verified, repaired with evidence,
+*"HUMBLE makes the README the most tested file in the repo: verified, repaired with evidence,
 and guarded on every PR. It saves new hires their first week and seniors their afternoons."*
 
 ---

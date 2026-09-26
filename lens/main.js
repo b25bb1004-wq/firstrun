@@ -1,6 +1,6 @@
-// FirstRun Lens: press the hotkey, circle anything on screen, get an answer.
+// HUMBLE Lens: press the hotkey, circle anything on screen, get an answer.
 //   npx electron lens [project dir]      (or: node bin/firstrun.js lens [project dir])
-// FirstRun Dock: floating always-on-top button + panel (issue #90, DOCK_CONTRACT §4-5).
+// HUMBLE Dock: floating always-on-top button + panel (issue #90, DOCK_CONTRACT §4-5).
 import { app, BrowserWindow, globalShortcut, desktopCapturer, screen, ipcMain, Tray, Menu, nativeImage, dialog, clipboard } from 'electron';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,7 +8,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ocr, warmOcr, loadKnownFixes, matchKnownFix, askBobAbout } from './engine.js';
 import { runAgent, open as openArtifact } from './dock-bridge.js';
-import { initialState } from '../src/dock-state.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const HOTKEYS = ['CommandOrControl+Shift+Space', 'Alt+Shift+Q'];
@@ -67,10 +66,7 @@ function toggleDockPanel() {
   });
   dockPanel.setAlwaysOnTop(true, 'floating');
   dockPanel.setVisibleOnAllWorkspaces(true);
-  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'), { query: { project } });
-  dockPanel.webContents.on('did-finish-load', () => {
-    pushState(initialState(project, 'all'));
-  });
+  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'));
   dockPanel.on('closed', () => { dockPanel = null; });
 }
 
@@ -90,17 +86,6 @@ ipcMain.on('dock:open', (_e, { what, runDir }) => { openArtifact(what, runDir); 
 
 ipcMain.on('dock:lens', () => openLens());
 ipcMain.on('dock:toggle', () => toggleDockPanel());
-ipcMain.on('dock:secret:set', async (_e, { name, value }) => {
-  try {
-    const { setSecret } = await import('../src/secrets.js');
-    setSecret(name, value);
-  } catch (err) {
-    console.error('Failed to set secret:', err.message);
-  }
-});
-ipcMain.on('dock:ask:answer', (_e, { id, answer }) => {
-  dockBridge?.answerAsk?.(id, answer);
-});
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -135,7 +120,7 @@ async function openLens() {
     overlay.focus();
     if (process.env.FIRSTRUN_LENS_DEBUG) console.log('display', display.bounds, display.workArea, display.scaleFactor, 'window', overlay.getBounds());
   } catch (e) {
-    dialog.showErrorBox('FirstRun Lens', `Could not capture the screen: ${e.message}`);
+    dialog.showErrorBox('HUMBLE Lens', `Could not capture the screen: ${e.message}`);
     overlay?.close();
   } finally {
     busy = false;
@@ -168,7 +153,7 @@ function trayIcon() {
 
 function buildTray() {
   tray ??= new Tray(trayIcon());
-  tray.setToolTip(`FirstRun Lens · ${hotkey || 'no hotkey'} · ${project}`);
+  tray.setToolTip(`HUMBLE Lens · ${hotkey || 'no hotkey'} · ${project}`);
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: `Circle to ask  (${hotkey || 'no hotkey'})`, click: openLens },
     { label: 'Open HUMBLE Dock', click: toggleDockPanel },
@@ -178,7 +163,7 @@ function buildTray() {
       if (!r.canceled && r.filePaths[0]) { project = r.filePaths[0]; buildTray(); }
     } },
     { type: 'separator' },
-    { label: 'Quit FirstRun Lens', click: () => app.quit() },
+    { label: 'Quit HUMBLE Lens', click: () => app.quit() },
   ]));
   tray.on('click', openLens);
 }
@@ -190,7 +175,7 @@ app.whenReady().then(() => {
   buildTray();
   createDockButton();
   warmOcr(CACHE).catch(() => {});
-  console.log(`FirstRun Lens ready. Press ${hotkey || '(no hotkey available; click the tray icon)'} and circle anything. Project: ${project}`);
+  console.log(`HUMBLE Lens ready. Press ${hotkey || '(no hotkey available; click the tray icon)'} and circle anything. Project: ${project}`);
   console.log(`HUMBLE Dock ready. ${dockHotkey ? `Press ${dockHotkey} or click` : 'Click'} the Bob button (top-left) to open it.`);
 });
 app.on('window-all-closed', (e) => e.preventDefault?.()); // stay in the tray

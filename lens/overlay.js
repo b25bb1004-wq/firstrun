@@ -124,9 +124,9 @@
       const k = r.known;
       html += `<div class="block known"><div class="label">Known issue · proven fix</div>${esc(k.cause)}
         ${looksLikeCommand(k.fix) ? cmdRow(k.fix) : `<div style="margin-top:6px"><b>Fix:</b> ${esc(k.fix)}</div>`}
-        <div class="meta">Verified by FirstRun${k.repo ? ` in ${esc(k.repo)}` : ''}${k.verifiedAt ? ` on ${esc(k.verifiedAt.slice(0, 10))}` : ''} · evidence ${esc(k.evidence)} · no Bobcoins spent</div></div>`;
+        <div class="meta">Verified by HUMBLE${k.repo ? ` in ${esc(k.repo)}` : ''}${k.verifiedAt ? ` on ${esc(k.verifiedAt.slice(0, 10))}` : ''} · evidence ${esc(k.evidence)} · no Bobcoins spent</div></div>`;
     } else if (r.text) {
-      html += '<div class="status">FirstRun hasn\'t seen this before. Ask IBM Bob, who will read your project first.</div>';
+      html += '<div class="status">HUMBLE hasn\'t seen this before. Ask IBM Bob, who will read your project first.</div>';
       html += '<div class="chips"><button class="chip" data-q="What is this, in plain words?">Explain this</button><button class="chip" data-q="How do I fix this?">How do I fix this?</button><button class="chip" data-q="Where in this project does this come from?">Where does this come from?</button></div>';
     } else {
       html += '<div class="status">I couldn\'t read any text there. Circle a bit wider, or type a question about it.</div>';

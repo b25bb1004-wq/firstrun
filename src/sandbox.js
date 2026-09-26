@@ -13,6 +13,12 @@ import { run, must, sleep, shortId, shq, tail } from './util.js';
  */
 const FATAL = /Failed running '|\[nodemon\] app crashed|Traceback \(most recent call last\)|UnhandledPromiseRejection|ECONNREFUSED|EADDRINUSE|Error: Cannot find module|ERROR:\s+Application startup failed|Error loading ASGI app|ModuleNotFoundError|ImportError|RuntimeError:|Missing required environment variable|Waiting for file changes before restarting/;
 
+/** True while a watch-mode compiler (tsc --watch) has started its first build but not reported it finished. */
+export function compilingFirstTime(out) {
+  const s = String(out || '');
+  return /Starting compilation in watch mode/.test(s) && !/Found \d+ errors?\. Watching for file changes|Watching for file changes/.test(s);
+}
+
 /** The port a dev server says it is listening on, from lines such as "Uvicorn running on http://0.0.0.0:8000",
  * "Listening on port 4000", "Local: http://localhost:5173/", "Server started at http://127.0.0.1:8080". */
 export function announcedPort(out, exclude = []) {
@@ -96,19 +102,19 @@ export class Sandbox {
    * Commands a newcomer's laptop has that the clean machine doesn't, translated without touching the docs:
    * - sudo: the container already runs as root, so it just runs the command.
    * - docker / docker-compose called from scripts (a justfile, a Makefile): there is no daemon here.
-   *   "up" asks FirstRun (exit 97 + /firstrun/services.request) to start the services as sidecars,
+   *   "up" asks HUMBLE (exit 97 + /firstrun/services.request) to start the services as sidecars,
    *   then the step is retried and the shim sees they are running.
    */
   async installShims() {
     const sudo = [
       '#!/bin/sh',
-      '# FirstRun: the clean machine runs as root, so sudo just runs the command.',
+      '# HUMBLE: the clean machine runs as root, so sudo just runs the command.',
       'while [ $# -gt 0 ]; do case "$1" in -u|-g|-C|-D|-h|-p|-r|-t|-U) shift 2;; --) shift; break;; -*) shift;; *) break;; esac; done',
       'exec "$@"',
     ].join('\n');
     const docker = [
       '#!/bin/sh',
-      '# FirstRun: no Docker daemon on the clean machine; FirstRun starts services as sidecars.',
+      '# HUMBLE: no Docker daemon on the clean machine; HUMBLE starts services as sidecars.',
       'me=$(basename "$0"); cmd="$me $*"',
       'case " $* " in',
       '  *" up "*|*" start "*|"run "*|" run "*)',
@@ -122,7 +128,7 @@ export class Sandbox {
     // a fresh laptop has lists and a human at the keyboard.
     const apt = [
       '#!/bin/sh',
-      '# FirstRun: behave like apt on a fresh machine with someone answering its prompt.',
+      '# HUMBLE: behave like apt on a fresh machine with someone answering its prompt.',
       'real=/usr/bin/$(basename "$0")',
       'if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null | grep -v -e lock -e partial)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
       'case "$1" in install|upgrade|dist-upgrade|remove) exec "$real" -y "$@";; *) exec "$real" "$@";; esac',
@@ -303,7 +309,10 @@ export class Sandbox {
         return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
-      if (FATAL.test(lastOut)) {
+      // But a crash while a watch-mode compiler is still on its first build isn't final: `tsc --watch & nodemon dist`
+      // on a fresh clone starts nodemon before dist/ exists, and nodemon restarts once the build lands (GeekyAnts).
+      if (FATAL.test(lastOut) && compilingFirstTime(lastOut)) { crashSeenAt = 0; crashLen = 0; }
+      else if (FATAL.test(lastOut)) {
         crashSeenAt = crashSeenAt || Date.now();
         if (lastOut.length !== crashLen) { crashLen = lastOut.length; crashSeenAt = Date.now(); }
         if (Date.now() - crashSeenAt > 6000) {
@@ -396,7 +405,13 @@ export class Sandbox {
    * the app reaches it on localhost like on a developer laptop.
    */
   async addService({ name, image, env = {}, port }) {
-    if (this.services.some((s) => s.name === name)) return { already: true };
+    const prev = this.services.find((s) => s.name === name);
+    if (prev && prev.image === image) return { already: true };
+    // Same service, different image (mongo:7 → mongo:4.4 for a legacy driver): replace the sidecar.
+    if (prev) {
+      await run('docker', ['rm', '-f', prev.container]);
+      this.services.splice(this.services.indexOf(prev), 1);
+    }
     await this.ensureImage(image);
     const ctr = `${this.name}-${name}`.replace(/[^a-zA-Z0-9_.-]/g, '-');
     const args = ['run', '-d', '--name', ctr, '--label', `firstrun=${this.label}`, '--network', `container:${this.name}`];

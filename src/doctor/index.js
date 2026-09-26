@@ -25,7 +25,7 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
       if (!res) continue;
       if (res.fix && tried.has(fixSignature(ctx.step.id, res.fix))) continue;
       return {
-        diagnosis: { class: res.class, cause: res.cause, by: 'rules', ruleId: res.ruleId, confidence: res.confidence },
+        diagnosis: { class: res.class, cause: res.cause, by: 'rules', ruleId: res.ruleId, confidence: res.confidence, ...(res.ask ? { ask: res.ask } : {}), ...(res.choice ? { choice: res.choice } : {}) },
         fix: res.fix,
       };
     }
@@ -33,15 +33,15 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   if (brain === 'rules') {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure (run with --brain auto to ask IBM Bob).', by: 'rules', confidence: 0 }, fix: null };
   }
-  if (bobBudget && bobBudget.remaining() <= 0) {
+  if (bobBudget && (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) < 0.05) {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure and the Bobcoin budget for this run is spent.', by: 'rules', confidence: 0 }, fix: null };
   }
   const request = doctorRequest(ctx);
-  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
+  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
   bobBudget?.spend(res.bobcoins || 0);
   onBob?.(res);
-  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || bobBudget.remaining() > 0)) {
-    const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
+  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) >= 0.05)) {
+    const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
     bobBudget?.spend(retry.bobcoins || 0);
     onBob?.(retry);
     res = { ...retry, bobcoins: (res.bobcoins || 0) + (retry.bobcoins || 0) };
@@ -56,6 +56,12 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   // Source edits Bob proposed are not applied; keep them on the diagnosis so the evidence shows them to the maintainer.
   const suggestions = v.suggestions || v.fix?.suggestions;
   const diagnosis = { ...v.diagnosis, by: 'bob', bobcoins: res.bobcoins, taskId: res.taskId, ...(suggestions?.length ? { suggestions } : {}) };
+  // Check Bob against the log: "unreachable" while the log shows HTTP responses is wrong (huggingface_hub: hub-ci
+  // answered 200 OK). Keep his diagnosis, but lower its confidence and say what the log shows.
+  if (/unreachable|offline|cannot (?:be )?reach|no network|not reachable/i.test(diagnosis.cause || '') && /HTTP\/[\d.]+ [23]\d\d/.test(ctx.log || '')) {
+    diagnosis.confidence = Math.min(diagnosis.confidence ?? 0.5, 0.4);
+    diagnosis.checked = 'The log shows successful HTTP responses from the network, so "unreachable" is not supported; the calls are more likely slow.';
+  }
   if (v.fix && tried.has(fixSignature(ctx.step.id, v.fix))) return { diagnosis, fix: null };
   return { diagnosis, fix: v.fix };
 }
@@ -107,7 +113,7 @@ export function validateBobFix(j) {
 
 function doctorRequest(ctx) {
   const { step, attempt, facts, plan, history = [] } = ctx;
-  return `# FirstRun Doctor request
+  return `# HUMBLE Doctor request
 
 A newcomer is following this repository's setup documentation, command by command, on a
 clean Linux machine (Docker image \`${ctx.image}\`, working directory = repo root, running as root,
@@ -129,9 +135,9 @@ ${tail(attempt.out, 80)}
 \`\`\`
 
 ## Setup plan so far
-${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by FirstRun)' : ''}`).join('\n')}
+${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by HUMBLE)' : ''}`).join('\n')}
 
-## What FirstRun already knows
+## What HUMBLE already knows
 \`\`\`json
 ${JSON.stringify(summarizeFacts(facts), null, 2)}
 \`\`\`

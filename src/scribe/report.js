@@ -15,14 +15,14 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
   const L = [];
   const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : '❌';
   L.push(`# Setup Passport: ${p.repo}`, '');
-  L.push(`${icon} **${p.verdict}**: FirstRun followed this project's setup docs on a clean \`${p.image}\` machine, repaired what broke, then replayed the corrected guide from zero.`, '');
+  L.push(`${icon} **${p.verdict}**: HUMBLE followed this project's setup docs on a clean \`${p.image}\` machine, repaired what broke, then replayed the corrected guide from zero.`, '');
   L.push('| | |', '|---|---|');
   L.push(`| Commit | \`${p.commit}\` |`);
   L.push(`| Verified | ${p.verifiedAt.replace('T', ' ').slice(0, 16)} UTC |`);
   L.push(`| Runtime | ${p.runtime} (\`${p.image}\`) |`);
   const replayLabel = p.packageCache ? 'Clone to running (cached packages)' : 'Clone to running, from zero';
   L.push(`| ${replayLabel} | **${p.replaySeconds ? fmtDuration(p.replaySeconds * 1000) : 'n/a'}** |`);
-  L.push(`| Steps followed | ${p.stepsFromReadme} from the docs, ${p.stepsTotal - p.stepsFromReadme} added by FirstRun |`);
+  L.push(`| Steps followed | ${p.stepsFromReadme} from the docs, ${p.stepsTotal - p.stepsFromReadme} added by HUMBLE |`);
   L.push(`| Breaks found / fixed | ${p.breaksFound} / ${p.breaksFixed} |`);
   L.push(`| Needs a human | ${p.needsHuman} |`);
   L.push(`| Done when | ${p.verify.kind === 'http' ? `\`GET ${p.verify.target}\` answers` : p.verify.kind === 'command' ? `\`${p.verify.target}\` passes` : 'every step exits cleanly'} |`);
@@ -33,7 +33,7 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
     L.push('_Replay reused this run\'s package downloads from cold start (npm, yarn, pip, uv cache)._', '');
   }
   if (firstFailure) {
-    L.push(`**Before FirstRun**, a newcomer following the docs got stuck at \`${firstFailure.command}\` (${firstFailure.source.file}:${firstFailure.source.line}).`, '');
+    L.push(`**Before HUMBLE**, a newcomer following the docs got stuck at \`${firstFailure.command}\` (${firstFailure.source.file}:${firstFailure.source.line}).`, '');
   }
 
   L.push('## Verified setup', '', '```bash');
@@ -50,9 +50,17 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
       L.push(`### ${e.id}: ${classLabel(e.diagnosis.class)} <a id="${e.id.toLowerCase()}"></a>`, '');
       L.push(`- **Docs said:** \`${step?.readmeCommand || e.before.command}\` (${step?.source.file}:${step?.source.line})`);
       L.push(`- **Cause:** ${e.diagnosis.cause}`);
-      L.push(`- **Diagnosed by:** ${e.diagnosis.by === 'bob' ? `IBM Bob (${e.diagnosis.bobcoins ?? 0} Bobcoins)` : `FirstRun rule \`${e.diagnosis.ruleId}\``}, confidence ${Math.round((e.diagnosis.confidence || 0) * 100)}%`);
+      L.push(`- **Diagnosed by:** ${e.diagnosis.by === 'bob' ? `IBM Bob (${e.diagnosis.bobcoins ?? 0} Bobcoins)` : `HUMBLE rule \`${e.diagnosis.ruleId}\``}, confidence ${Math.round((e.diagnosis.confidence || 0) * 100)}%`);
       if (e.fix?.doc) L.push(`- **Doc change:** ${e.fix.doc.text}`);
       for (const s of e.diagnosis.suggestions || []) L.push(`- **Suggested code change for the maintainer (not applied):** \`${s.path}\``);
+      const ch = e.diagnosis.choice;
+      if (ch) {
+        const applied = ch.options.find((o) => o.applied);
+        if (applied) L.push(`- **Applied (setup only, proven here):** ${applied.label}`);
+        for (const o of ch.options.filter((x) => !x.applied)) L.push(`- **Maintainer's choice instead:** ${o.label}`);
+      }
+      const ask = e.diagnosis.ask;
+      if (ask?.kind === 'secret') L.push(`- **Needs your key:** \`${ask.name}\`. Set it with \`firstrun secrets set ${(ask.names || [ask.name])[0]}\`, then prove it again. The value stays in your local key store.`);
       L.push(`- **Result:** ${e.status === 'verified' ? 'fixed and verified' : e.status === 'needs-human' ? 'needs a maintainer' : e.status === 'progressed' ? `worked: cleared this error, then the step failed on a later problem${e.revealed ? ` ([${e.revealed}](#${e.revealed.toLowerCase()}))` : ''}` : 'fix did not work'}`, '');
       L.push('<details><summary>Before (failing output)</summary>', '', '```', tail(e.before.logTail, 14), '```', '</details>', '');
       if (e.fix?.log) L.push('<details><summary>Fix applied</summary>', '', '```', tail(e.fix.log, 14), '```', '</details>', '');
@@ -85,7 +93,7 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
       `replay wall-clock **${tl.real?.replaySeconds ? fmtDuration(tl.real.replaySeconds * 1000) : 'n/a'}**.`, '');
   }
   L.push('## Keeping it true', '', 'The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer\'s first run.', '');
-  L.push('Newcomers using IBM Bob can switch to the **FirstRun Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.', '');
-  L.push('---', `Generated by FirstRun. Verified plan: \`.github/firstrun/plan.json\`.`);
+  L.push('Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.', '');
+  L.push('---', `Generated by HUMBLE. Verified plan: \`.github/firstrun/plan.json\`.`);
   return L.join('\n') + '\n';
 }

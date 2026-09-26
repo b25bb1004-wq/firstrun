@@ -7,7 +7,7 @@ import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './servi
 /**
  * Deterministic diagnosis rules. Each rule looks at a failed step's output and
  * returns { ruleId, class, cause, confidence, fix } or null. A fix has sandbox
- * `actions` (to repair this run), repo `patches` (files FirstRun will change in
+ * `actions` (to repair this run), repo `patches` (files HUMBLE will change in
  * the PR) and a `doc` change (what the README must say instead).
  *
  * Rules only claim failures they understand; everything else goes to IBM Bob.
@@ -49,7 +49,27 @@ function runtimeCause(plan, label, target, src) {
 }
 
 /** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
-/** Value for dev secrets FirstRun has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
+/** Third-party services whose keys HUMBLE can't create. It tries a well-formed fake first (many apps only check
+ * that the key exists, or its prefix, at startup) and asks a human only if the provider rejects it. */
+const PROVIDER = /^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY|TWITTER|FACEBOOK|LINKEDIN)/;
+export const FAKE_MARK = 'humble_placeholder';
+/** A fake in the shape the provider's SDK expects, and obviously not a real key (no secret scanner matches it). */
+export function fakeFor(name) {
+  const n = name.toUpperCase();
+  if (/^STRIPE.*(PUBLISHABLE|_PK$|PUBLIC)/.test(n)) return `pk_test_${FAKE_MARK}`;
+  if (/^STRIPE.*WEBHOOK/.test(n)) return `whsec_${FAKE_MARK}`;
+  if (/^STRIPE/.test(n)) return `sk_test_${FAKE_MARK}`;
+  if (/(CLIENT_?ID|APP_?ID|_ID)$/.test(n)) return `${FAKE_MARK}_client_id`;
+  return `${FAKE_MARK}_not_a_real_key`;
+}
+/** Human-readable provider for a variable name ("STRIPE_SECRET_KEY" → "Stripe"). */
+export function providerOf(name) {
+  const m = name.toUpperCase().match(PROVIDER);
+  const p = m ? m[1].replace(/_$/, '') : name;
+  return { HF: 'Hugging Face', HUGGING: 'Hugging Face', OPENAI: 'OpenAI', AWS: 'AWS', GCP: 'Google Cloud', GITHUB: 'GitHub', AUTH0: 'Auth0' }[p] || p.charAt(0) + p.slice(1).toLowerCase();
+}
+
+/** Value for dev secrets HUMBLE has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
 export const DEV_SECRET = 'change.me.local.dev.only.not.a.secret';
 
 const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-_ ]?me|xxx+|todo|replace[-_ ]?me|placeholder)$/i;
@@ -120,9 +140,7 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
   if (/(^|_)(URL|URI|ORIGIN|ENDPOINT)$/.test(n)) return { value: 'http://localhost:3000', kind: 'local' };
-  if (/^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY)/.test(n)) {
-    return { value: 'changeme', kind: 'secret' };
-  }
+  if (PROVIDER.test(n)) return { value: fakeFor(n), kind: 'fake' };
   // One obvious, non-secret value, the same in the sandbox and in the PR's .env.example: a random-looking
   // string there would read as a leaked credential (and trip secret scanners). Long enough for min-length checks.
   if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: DEV_SECRET, kind: 'generated' };
@@ -193,7 +211,7 @@ export const RULES = [
       if (bcryptMajor && bcryptMajor < 6) {
         return {
           ruleId: 'node-native-build', class: 'runtime-version', confidence: 0.8,
-          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which FirstRun leaves to a human.`,
+          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which HUMBLE leaves to a human.`,
           fix: null,
         };
       }
@@ -383,7 +401,7 @@ export const RULES = [
           for (const n of missing) {
             const { value, kind } = devValue(n, ctx);
             kinds.push(kind);
-            patches.push({ path: envFile, op: 'append-env', key: n, value, comment: kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
+            patches.push({ path: envFile, op: 'append-env', key: n, value, comment: kind === 'fake' ? `Placeholder so the app starts. Features that call ${providerOf(n)} need your own key.` : kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
             actions.push({ type: 'exec', command: `touch .env && printf '\\n%s=%s\\n' ${shq(n)} ${shq(value)} >> .env` });
           }
           doc = doc || { kind: 'note', text: `${envFile} now includes ${missing.join(', ')} (required at startup).`, envVar: missing.join('`, `') };
@@ -452,7 +470,7 @@ export const RULES = [
         if (/_NAME$/.test(n) && !/DB|DATABASE|USER/.test(n)) { values[n] = { value: n.toLowerCase().replace(/_name$/, ''), kind: 'local' }; continue; }
         if (/^(MYSQL|MARIADB)_DATABASE$|^POSTGRES_DB$/.test(n)) { values[n] = { value: 'app', kind: 'local' }; continue; }
         const d = devValue(n, ctx);
-        if (['local', 'generated'].includes(d.kind)) values[n] = d;
+        if (['local', 'generated', 'fake'].includes(d.kind)) values[n] = d;
       }
       // A database URL must agree with the credentials set next to it, so the sidecar and the app match.
       for (const n of names.filter((x) => /DATABASE_URL|DB_URL/.test(x))) {
@@ -466,11 +484,12 @@ export const RULES = [
       if (!sets.length) return null;
       const missing = names.filter((n) => !values[n]);
       const actions = [{ type: 'exec', command: `touch .env && { grep -v -E '^(${sets.map(([k]) => k).join('|')})=' .env; ${sets.map(([k, v]) => `printf '%s=%s\\n' ${shq(k)} ${shq(v.value)}`).join('; ')}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }];
-      const patches = envFile ? sets.map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
+      const patches = envFile ? sets.filter(([, v]) => v.kind !== 'fake').map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
+      const fakes = sets.filter(([, v]) => v.kind === 'fake').map(([k]) => k);
       const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
       return {
         ruleId: 'env-empty-value', class: 'missing-env', confidence: 0.85,
-        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. FirstRun fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
+        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. HUMBLE fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${fakes.length ? `; ${fakes.join(', ')} get${fakes.length === 1 ? 's' : ''} a placeholder so the app can start (features that call ${[...new Set(fakes.map(providerOf))].join(', ')} need a real key)` : ''}${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
         fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has working local values for the variables that were blank (${shown}).` } },
       };
     },
@@ -532,8 +551,24 @@ export const RULES = [
       const envNote = `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.`;
       return {
         ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
-        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
+        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; HUMBLE sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
         fix: { actions, patches, doc: mailDoc || { kind: 'note', text: envNote } },
+      };
+    },
+  },
+  {
+    // MongoDB 6+ dropped the legacy opcodes that old drivers still send (GeekyAnts: connect-mongo 2 → "Unsupported
+    // OP_QUERY command: insert"). The app connects but every write fails, so run the newest server that driver speaks.
+    id: 'mongo-legacy-driver',
+    test({ log, sandbox }) {
+      if (!/Unsupported OP_QUERY command|legacy-opcode-removal/.test(log)) return null;
+      const mongo = (sandbox?.services || []).find((s) => s.name === 'mongo');
+      if (mongo && /^mongo:(4|3)\b/.test(mongo.image)) return null;
+      const text = 'MongoDB 4.4 (this project\'s driver can\'t talk to MongoDB 6+): docker run -d -p 27017:27017 mongo:4.4';
+      return {
+        ruleId: 'mongo-legacy-driver', class: 'runtime-version', confidence: 0.85,
+        cause: 'The app\'s MongoDB driver uses legacy opcodes that MongoDB 6 and later removed ("Unsupported OP_QUERY command"), so it connects but every write fails. The docs don\'t say which MongoDB to run; the driver needs 4.4 or older.',
+        fix: { actions: [{ type: 'service', name: 'mongo', image: 'mongo:4.4', env: {}, port: 27017 }], patches: [], doc: { kind: 'prerequisite', text } },
       };
     },
   },
@@ -875,6 +910,11 @@ export const RULES = [
       const cmd = `${installPrefix} ${pkg}@^${ver}`;
       return {
         ruleId: 'unbounded-range-no-lockfile', class: 'missing-dependency', confidence: 0.7,
+        // Two valid fixes; the setup-only one is applied and proven, the other is the maintainer's call (never blocks).
+        choice: { name: `${pkg} version`, options: [
+          { id: 'A', label: `Pin ${pkg} to ^${ver} (the version the code was written for)`, setupOnly: true, applied: true },
+          { id: 'B', label: `Update the code for the latest ${pkg} and commit a lockfile`, setupOnly: false },
+        ] },
         cause: `${pkg} is declared as ${range} with no lockfile, so a fresh install gets a newer major of ${pkg} than the code was written for; pinning to ^${ver} restores the version the setup docs assumed.`,
         fix: {
           actions: [{ type: 'insert-before', command: cmd }],
@@ -934,12 +974,18 @@ export const RULES = [
   },
   {
     id: 'secret-required',
-    test({ log }) {
+    test({ log, sandboxEnv = {} }) {
       const m = log.match(/(?:Invalid|Incorrect|missing) API key|401 Unauthorized|AuthenticationError|invalid_api_key|No API key provided|You didn't provide an API key/i);
       if (!m) return null;
+      // The keys HUMBLE faked (or that are still empty or 'changeme') are the ones to ask a human for.
+      const names = Object.entries(sandboxEnv).filter(([k, v]) => PROVIDER.test(k) && (String(v).includes(FAKE_MARK) || v === '' || v === 'changeme')).map(([k]) => k);
+      const who = [...new Set(names.map(providerOf))].join(', ');
       return {
         ruleId: 'secret-required', class: 'needs-secret', confidence: 0.7,
-        cause: 'This step needs a real third-party credential; FirstRun will not invent one.',
+        cause: names.length
+          ? `${who} rejected the placeholder HUMBLE used for ${names.join(', ')}: this step calls the real service, so it needs your own key. HUMBLE will not invent one.`
+          : 'This step needs a real third-party credential; HUMBLE will not invent one.',
+        ask: { kind: 'secret', name: names.join(', ') || 'API key', names, why: `${m[0]} while running this step${who ? ` (${who})` : ''}` },
         fix: null,
       };
     },

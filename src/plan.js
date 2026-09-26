@@ -24,7 +24,7 @@ export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
   const c = cmd.trim().replace(/^sudo\s+/, '').replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '');
   const ctx = {};
-  if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: FirstRun starts from a fresh clone already' };
+  if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: HUMBLE starts from a fresh clone already' };
   if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
   if (/\b(user-?name|your-?(?:user|org|name)|owner|org)\/(repo|repository|project)\b|(^|\s)\/?path\/to\//i.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
   if (/(~|\$HOME)\/Downloads\b|(^|\s)Downloads\//.test(c)) return { kind: 'other', skip: 'uses a file you download by hand first' };
@@ -44,7 +44,7 @@ export function classify(cmd, facts) {
   // Live-service tests: the script name contains ":live" or ends with "-live".
   const liveScript = c.match(/^(?:npm|yarn|pnpm)\s+(?:run\s+)?([\w:.-]+)$/);
   if (liveScript && (/:live/.test(liveScript[1]) || /-live$/.test(liveScript[1]))) return { kind: 'other', skip: 'runs against live third-party services; needs real accounts' };
-  if (/^(poetry|pipenv|hatch)\s+shell\b/.test(c)) return { kind: 'env', skip: 'interactive subshell: FirstRun activates the same environment after install', subshell: c.split(/\s+/)[0] };
+  if (/^(poetry|pipenv|hatch)\s+shell\b/.test(c)) return { kind: 'env', skip: 'interactive subshell: HUMBLE activates the same environment after install', subshell: c.split(/\s+/)[0] };
   if (/^(npm|yarn|pnpm|bun|make|just|npx|poetry\s+run|uv\s+run|pipenv\s+run)\s+(run\s+)?[\w:-]*(lint|prettier|format|fmt|coverage|\bcov\b|watch|storybook|husky|pre-?commit|commitlint|release|deploy|publish|typecheck|type-check|\bmm\b|makemigrations|downgrade|rollback|docs?:)/i.test(c)
     || /^(pre-commit|eslint|prettier|black|ruff|flake8|mypy|isort|pylint)\b/.test(c)) {
     return { kind: 'other', skip: 'developer tooling, not needed to run the project' };
@@ -290,7 +290,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     // Note the secondary stack so the report says the repo has two. A note, not a conflict: conflicts mean
     // "docs say X, code says Y" and feed the drift guard; a two-stack repo isn't docs drift.
     const other = runtimeName === 'node' ? 'Python' : 'Node.js';
-    notes.push(`The repo has both Node.js and Python; FirstRun used the ${runtimeName === 'node' ? 'Node.js' : 'Python'} image because the first install step is ${runtimeName}. The ${other} part was not set up separately.`);
+    notes.push(`The repo has both Node.js and Python; HUMBLE used the ${runtimeName === 'node' ? 'Node.js' : 'Python'} image because the first install step is ${runtimeName}. The ${other} part was not set up separately.`);
   }
   const truth = runtimeName === 'node' ? facts.node?.truth : runtimeName === 'python' ? facts.python?.truth : null;
   const readmeText = facts.docs.map((d) => readText(path.join(facts.root, d)) || '').join('\n');
@@ -342,8 +342,11 @@ export function buildPlan(facts, { repo, commit } = {}) {
     }
   }
   const documented = new Set([...Object.keys(facts.envExample?.keys || {})]);
+  // Maintainer tooling (release notes, publishing, deploy, CI helpers) isn't part of a newcomer's setup:
+  // huggingface_hub's GITHUB_TOKEN, read only by utils/release_notes/, was flagged as undocumented.
+  const maintainerOnly = (f) => /(^|\/)(\.github|release[_-]?notes?|releases?|publish\w*|deploy\w*|changelog|ci)(\/|\.|$)/i.test(f || '');
   for (const v of facts.envVarsInCode) {
-    if (v.required && !documented.has(v.name) && !readmeText.includes(v.name)) {
+    if (v.required && !maintainerOnly(v.file) && !documented.has(v.name) && !readmeText.includes(v.name)) {
       conflicts.push({ what: `env var ${v.name}`, docs: 'not documented', truth: `read in ${v.file}:${v.line}`, source: facts.envExample?.file || 'README' });
     }
   }

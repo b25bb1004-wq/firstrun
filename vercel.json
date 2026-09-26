@@ -4,7 +4,9 @@
   "buildCommand": "",
   "outputDirectory": "web/public",
   "functions": {
-    "api/check.js": { "maxDuration": 60 }
+    "api/check.js": { "maxDuration": 60 },
+    "api/verify.js": { "maxDuration": 30 },
+    "api/verify-status.js": { "maxDuration": 30 }
   },
   "redirects": [
     { "source": "/audit", "destination": "/app/#/audit/real-16-v2", "permanent": false },

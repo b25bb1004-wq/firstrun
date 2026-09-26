@@ -1,11 +1,11 @@
-// Fixes FirstRun has proven for a project (knownFailures in its verified plan), and fuzzy
+// Fixes HUMBLE has proven for a project (knownFailures in its verified plan), and fuzzy
 // matching of on-screen error text against them. No dependencies: Lens and the tests share it.
 import fs from 'node:fs';
 import path from 'node:path';
 
 const PLAN_PATHS = [['.github', 'firstrun', 'plan.json'], ['.firstrun', 'out', 'pr', '.github', 'firstrun', 'plan.json']];
 
-/** Verified plans in the project (and, for FirstRun's own repo, its example runs). */
+/** Verified plans in the project (and, for HUMBLE's own repo, its example runs). */
 export function loadKnownFixes(project) {
   const roots = [project];
   const examples = path.join(project, 'examples');
