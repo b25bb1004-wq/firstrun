@@ -1166,47 +1166,90 @@ export const RULES = [
       };
     },
   },
-  {
-    // axios (final-engine run, 27 Sep): the README says Node.js v19, so HUMBLE ran node:19; the test toolchain imports
-    // `styleText` from node:util, which only newer Node has: "The requested module 'node:util' does not provide an
-    // export named 'styleText'". CI runs a newer Node: that's the truth to follow.
-    id: 'node-builtin-missing',
-    test({ log, facts, plan }) {
-      if (plan.runtime?.name !== 'node') return null;
-      const m = log.match(/The requested module 'node:([\w/]+)' does not provide an export named '(\w+)'|TypeError: \(0 , _?node[\w$]*\)?\.?(\w+)\)? is not a function|(\w+) is not a function[\s\S]{0,80}node:(util|fs|os|test|process)/);
-      if (!m) return null;
-      const ci = (facts.ci?.nodeVersions || []).map((v) => Number(v.version)).filter((v) => v > 0);
-      const target = String(Math.max(22, ...ci.filter((v) => v <= 24)));
-      if (Number(plan.runtime.version) >= Number(target)) return null;
-      const what = m[1] ? `\`${m[2]}\` from node:${m[1]}` : 'a Node built-in';
-      const src = ci.length ? `CI (${facts.ci.nodeVersions[0].workflow})` : 'the Node.js LTS';
-      return {
-        ruleId: 'node-builtin-missing', class: 'runtime-version', confidence: 0.85,
-        cause: `Node.js ${plan.runtime.version} (what the docs say) is too old: the project's toolchain uses ${what}, which that version doesn't have. ${ci.length ? `CI runs Node ${ci.join(', ')}.` : ''}`.trim(),
-        fix: {
-          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
-          patches: [],
-          doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
-        },
-      };
+    {
+      // vargasjona: `source "$(poetry env info --path)/bin/activate"` → "/bin/activate: No such file or directory".
+      // `poetry env info --path` prints nothing because no environment exists: the docs never run `poetry install`
+      // (they jump to `poetry shell`). Same shape for pipenv (`pipenv --venv`).
+      id: 'venv-not-created',
+      test({ log, step, plan }) {
+        if (!/(^|\s)\/bin\/activate: No such file or directory/.test(log)) return null;
+        const tool = /poetry\s+env\s+info/.test(step.command) ? 'poetry' : /pipenv\s+--venv/.test(step.command) ? 'pipenv' : null;
+        if (!tool) return null;
+        const installed = plan.steps.some((s) => ['passed', 'repaired'].includes(s.status) && new RegExp('^' + tool + '\\s+(install|sync)\\b').test(s.command));
+        if (installed) return null;
+        const cmd = `${tool} install`;
+        return {
+          ruleId: 'venv-not-created', class: 'wrong-order', confidence: 0.88,
+          cause: `\`${step.command}\` activates the project's ${tool === 'poetry' ? 'Poetry' : 'Pipenv'} environment, but none exists yet: the docs never run \`${cmd}\`, so the path is empty.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+        };
+      },
     },
-  },
-  {
-    // axios (Docker proof, 27 Sep): vitest's browser tests need Playwright's browsers, which a fresh clone never
-    // downloads: "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/…".
-    id: 'browser-not-downloaded',
-    test({ log, tried }) {
-      if (!/Executable doesn't exist at [^\n]*ms-playwright|Please run the following command to download new browsers/.test(log)) return null;
-      const cmd = 'npx playwright install --with-deps chromium';
-      if ([...(tried || [])].some((t) => String(t).includes('playwright install'))) return null;
-      return {
-        ruleId: 'browser-not-downloaded', class: 'missing-tool', confidence: 0.88,
-        cause: 'The browser tests need Playwright\'s Chromium, which is downloaded separately from npm install; the docs never say to run `npx playwright install`.',
-        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'npx playwright install --with-deps chromium' } },
-      };
+    {
+      // vargasjona: the README allows Python ">3.9,<3.12", but poetry.lock pins a torch wheel built for CPython 3.11
+      // only (`torch-2.0.0+cpu-cp311-cp311-linux_x86_64.whl`), so `poetry install` on 3.10 stops with
+      // "Package … cannot be installed in the current environment". The lockfile is the truth: use the wheel's Python.
+      id: 'wheel-python-mismatch',
+      test({ log, plan }) {
+        if (plan.runtime?.name !== 'python') return null;
+        if (!/cannot be installed in the current environment|is not a supported wheel on this platform/.test(log)) return null;
+        const tag = log.match(/[-_]cp3(\d{1,2})-(?:cp3\d{1,2}|abi3|none)-/);
+        if (!tag) return null;
+        const target = `3.${tag[1]}`;
+        if (String(plan.runtime.version).startsWith(target)) return null;
+        const src = 'a locked wheel built only for CPython ' + target;
+        return {
+          ruleId: 'wheel-python-mismatch', class: 'runtime-version', confidence: 0.88,
+          cause: `The docs allow Python ${plan.runtime.version}, but the lockfile pins ${tag[0].replace(/^[-_]/, '').replace(/-$/, '')} wheels, which only install on Python ${target}. A newcomer on ${plan.runtime.version} cannot install the dependencies.`,
+          fix: {
+            actions: [{ type: 'rebase', image: imageFor('python', target), runtime: { name: 'python', version: target, source: src } }],
+            patches: [],
+            doc: { kind: 'prerequisite', text: `Python ${target} (the lockfile's wheels are built for CPython ${target})`, runtime: { name: 'python', version: target } },
+          },
+        };
+      },
     },
-  },
-];
+    {
+      // axios (final-engine run, 27 Sep): the README says Node.js v19, so HUMBLE ran node:19; the test toolchain imports
+      // `styleText` from node:util, which only newer Node has: "The requested module 'node:util' does not provide an
+      // export named 'styleText'". CI runs a newer Node: that's the truth to follow.
+      id: 'node-builtin-missing',
+      test({ log, facts, plan }) {
+        if (plan.runtime?.name !== 'node') return null;
+        const m = log.match(/The requested module 'node:([\w/]+)' does not provide an export named '(\w+)'|TypeError: \(0 , _?node[\w$]*\)?\.?(\w+)\)? is not a function|(\w+) is not a function[\s\S]{0,80}node:(util|fs|os|test|process)/);
+        if (!m) return null;
+        const ci = (facts.ci?.nodeVersions || []).map((v) => Number(v.version)).filter((v) => v > 0);
+        const target = String(Math.max(22, ...ci.filter((v) => v <= 24)));
+        if (Number(plan.runtime.version) >= Number(target)) return null;
+        const what = m[1] ? `\`${m[2]}\` from node:${m[1]}` : 'a Node built-in';
+        const src = ci.length ? `CI (${facts.ci.nodeVersions[0].workflow})` : 'the Node.js LTS';
+        return {
+          ruleId: 'node-builtin-missing', class: 'runtime-version', confidence: 0.85,
+          cause: `Node.js ${plan.runtime.version} (what the docs say) is too old: the project's toolchain uses ${what}, which that version doesn't have. ${ci.length ? `CI runs Node ${ci.join(', ')}.` : ''}`.trim(),
+          fix: {
+            actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+            patches: [],
+            doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
+          },
+        };
+      },
+    },
+    {
+      // axios (Docker proof, 27 Sep): vitest's browser tests need Playwright's browsers, which a fresh clone never
+      // downloads: "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/…".
+      id: 'browser-not-downloaded',
+      test({ log, tried }) {
+        if (!/Executable doesn't exist at [^\n]*ms-playwright|Please run the following command to download new browsers/.test(log)) return null;
+        const cmd = 'npx playwright install --with-deps chromium';
+        if ([...(tried || [])].some((t) => String(t).includes('playwright install'))) return null;
+        return {
+          ruleId: 'browser-not-downloaded', class: 'missing-tool', confidence: 0.88,
+          cause: 'The browser tests need Playwright\'s Chromium, which is downloaded separately from npm install; the docs never say to run `npx playwright install`.',
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'npx playwright install --with-deps chromium' } },
+        };
+      },
+    },
+  ];
 
 function label(kind) {
   return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;
