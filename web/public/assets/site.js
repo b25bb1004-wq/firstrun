@@ -47,3 +47,38 @@
     }, { passive: true });
   }
 })();
+
+// Premium layer (emil-design-eng): spring-smoothed pointer tilt on the hero shapes, and clip-path image reveals.
+(function () {
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) return;
+
+  // Decorative mouse tracking must not snap to the pointer: a damped spring gives it weight.
+  var layer = document.querySelector('.hero-full .shapes');
+  if (layer && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    var target = { x: 0, y: 0 }, pos = { x: 0, y: 0 }, vel = { x: 0, y: 0 }, running = false;
+    var k = 0.06, damping = 0.82; // soft spring, no bounce to speak of
+    function step() {
+      ['x', 'y'].forEach(function (a) {
+        vel[a] = (vel[a] + (target[a] - pos[a]) * k) * damping;
+        pos[a] += vel[a];
+      });
+      layer.style.transform = 'rotateX(' + (-pos.y * 6).toFixed(2) + 'deg) rotateY(' + (pos.x * 8).toFixed(2) + 'deg) translate3d(' + (pos.x * 18).toFixed(1) + 'px,' + (pos.y * 14).toFixed(1) + 'px,0)';
+      if (Math.abs(target.x - pos.x) + Math.abs(target.y - pos.y) + Math.abs(vel.x) + Math.abs(vel.y) > 0.001) requestAnimationFrame(step);
+      else running = false;
+    }
+    document.querySelector('.hero-full').addEventListener('pointermove', function (e) {
+      target.x = e.clientX / innerWidth - 0.5; target.y = e.clientY / innerHeight - 0.5;
+      if (!running) { running = true; requestAnimationFrame(step); }
+    });
+  }
+
+  // Images wipe up into view once. Visible by default; only hidden when we can observe them.
+  if (!('IntersectionObserver' in window) || location.hash || document.visibilityState !== 'visible') return;
+  var imgs = [].slice.call(document.querySelectorAll('.gallery img, .shot img'));
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('clip-shown'); e.target.classList.remove('clip-hidden'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -80px 0px' });
+  imgs.forEach(function (i) { if (i.getBoundingClientRect().top > innerHeight) { i.classList.add('clip-hidden'); io.observe(i); } });
+  setTimeout(function () { imgs.forEach(function (i) { i.classList.add('clip-shown'); i.classList.remove('clip-hidden'); }); }, 4000);
+})();

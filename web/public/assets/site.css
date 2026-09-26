@@ -193,3 +193,44 @@ section { padding: clamp(72px, 11vw, 140px) 0; }
 .will-reveal { opacity: 0; transform: translateY(44px) scale(.985); }
 .revealed { transition: opacity 1s var(--ease), transform 1.1s var(--ease); }
 h2.revealed { transition-duration: 1.2s; }
+
+/* ===== v4: premium polish (emil-design-eng: custom curves, press feedback, stagger + blur, clip reveals) ===== */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); }
+html { -webkit-tap-highlight-color: transparent; }
+::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--ink); }
+h1, h2, h3 { text-wrap: balance; } p { text-wrap: pretty; }
+section[id] { scroll-margin-top: 80px; }
+
+/* Press feedback on everything pressable (not hover motion: it answers the user's press) */
+.btn, .theme, .gallery-nav button, .examples button { transition: transform 160ms var(--ease-out), background-color 200ms ease, color 200ms ease, border-color 200ms ease; }
+.btn:active, .theme:active, .gallery-nav button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .top nav a { transition: color 200ms ease; } }
+
+/* Hero entrance: staggered rise that sharpens out of a slight blur, once, on load */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-full .inner > * { animation: rise 900ms var(--ease-out) both; }
+  .hero-full .inner > :nth-child(1) { animation-delay: 60ms; }
+  .hero-full .inner > :nth-child(2) { animation-delay: 140ms; }
+  .hero-full .inner > :nth-child(3) { animation-delay: 240ms; }
+  .hero-full .inner > :nth-child(4) { animation-delay: 320ms; }
+  .hero-full .inner > :nth-child(5) { animation-delay: 400ms; }
+  .hero-full .shape { opacity: 0; animation: shape-in 1400ms var(--ease-out) 300ms forwards, drift var(--d, 14s) ease-in-out 1700ms infinite alternate; }
+  @keyframes rise { from { opacity: 0; transform: translateY(24px); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+  @keyframes shape-in { from { opacity: 0; transform: scale(0.9); } to { opacity: .9; transform: none; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-full .inner > * { animation: fade 400ms ease both; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+/* Scroll reveal: rise + clear a small blur (masks the crossfade) */
+.will-reveal { opacity: 0; transform: translateY(32px); filter: blur(6px); }
+.revealed { opacity: 1; transform: none; filter: blur(0); transition: opacity 900ms var(--ease-out), transform 1000ms var(--ease-out), filter 900ms var(--ease-out); }
+
+/* Image wipes up into view once (clip-path reveal) */
+.clip-hidden { clip-path: inset(0 0 100% 0); }
+.clip-shown { clip-path: inset(0 0 0 0); transition: clip-path 1200ms var(--ease-in-out); }
+
+/* Shapes: a gentle 3D tilt layer driven by a spring from the pointer (site.js) */
+.shapes { perspective: 900px; }
+.shape svg { transition: none; }
