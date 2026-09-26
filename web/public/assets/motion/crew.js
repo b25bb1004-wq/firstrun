@@ -180,7 +180,7 @@ export function init(container, { reduced = false } = {}) {
           <!-- 6-Agent Timeline Bar -->
           <div class="c-timeline" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; position: relative;">
             ${agents.map((a, i) => `
-              <div class="c-pill c-pill-${i}" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; font-family: var(--mono); color: var(--muted); transition: all 0.2s ease;">
+              <div class="c-pill c-pill-${i}" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; font-family: var(--mono); color: var(--muted); transition: all 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
                 <span class="c-pill-icon" style="display: flex; align-items: center; color: currentColor;">
                   <svg width="14" height="14" viewBox="0 0 20 20">${a.miniSvg}</svg>
                 </span>
@@ -191,7 +191,7 @@ export function init(container, { reduced = false } = {}) {
 
           <!-- Micro Progress Line -->
           <div style="height: 2px; width: 100%; background: var(--line); border-radius: 1px; overflow: hidden; margin-top: 2px;">
-            <div class="c-progress-line" style="height: 100%; width: 0%; background: var(--c-scout, #4f8cff); transition: width 0.1s linear, background-color 0.25s ease;"></div>
+            <div class="c-progress-line" style="height: 100%; width: 0%; background: var(--c-scout, #4f8cff); transition: width 0.1s linear, background-color 0.25s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));"></div>
           </div>
         </div>
 
@@ -201,8 +201,8 @@ export function init(container, { reduced = false } = {}) {
           <!-- Left: Hero Agent Info + Growing Shape -->
           <div class="c-agent-panel" style="display: flex; flex-direction: column; gap: 16px; max-width: 520px;">
             <div style="display: flex; align-items: center; gap: 16px;">
-              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-                <svg class="c-shape-svg" width="56" height="56" viewBox="0 0 64 64" style="transition: transform 0.3s ease, color 0.3s ease;">
+              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
+                <svg class="c-shape-svg" width="56" height="56" viewBox="0 0 64 64" style="transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), color 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
                   ${agents[0].shapeSvg}
                 </svg>
               </div>
@@ -215,7 +215,7 @@ export function init(container, { reduced = false } = {}) {
               </div>
             </div>
 
-            <div class="c-agent-tagline" style="font-size: 16px; font-weight: 500; color: var(--c-scout, #4f8cff); transition: color 0.25s ease;">
+            <div class="c-agent-tagline" style="font-size: 16px; font-weight: 500; color: var(--c-scout, #4f8cff); transition: color 0.25s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
               Audit facts against reality
             </div>
 
@@ -230,7 +230,7 @@ export function init(container, { reduced = false } = {}) {
           </div>
 
           <!-- Right: Code Inspector Artifact Card -->
-          <div class="c-artifact-card" style="display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; height: 100%; max-height: 380px; box-shadow: 0 2px 12px rgba(0,0,0,0.18); transition: transform 0.25s ease, opacity 0.25s ease;">
+          <div class="c-artifact-card" style="display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; height: 100%; max-height: 380px; box-shadow: 0 2px 12px rgba(0,0,0,0.18); transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), opacity 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
             
             <!-- Window / File Header -->
             <div style="padding: 10px 14px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px;">

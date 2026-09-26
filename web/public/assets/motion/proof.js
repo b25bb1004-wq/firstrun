@@ -13,7 +13,7 @@ export function init(figure, { reduced = false } = {}) {
     return;
   }
 
-  img.style.transition = 'filter 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease';
+  img.style.transition = 'filter 0.5s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), opacity 0.4s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1))';
   img.style.filter = 'contrast(0.96) brightness(0.95)';
   img.style.opacity = '0.9';
 

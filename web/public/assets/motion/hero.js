@@ -22,14 +22,14 @@ export function init(container, { reduced = false } = {}) {
 
       <div class="h-steps" style="display: flex; flex-direction: column; gap: 8px;">
         ${steps.map((s, i) => `
-          <div class="h-step h-step-${i}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); transition: border-color 0.2s ease;">
+          <div class="h-step h-step-${i}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); transition: border-color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
             <span class="h-step-badge" style="font-size: 11px; padding: 2px 6px; border-radius: 2px; border: 1px solid var(--line); color: ${s.color}; display: flex; align-items: center; gap: 4px;">
               <span>${s.shape}</span>
               <span>${s.num}</span>
             </span>
-            <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line); transition: background-color 0.2s ease;"></span>
+            <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line); transition: background-color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));"></span>
             <code class="h-step-cmd" style="flex: 1; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
-            <span class="h-step-msg" style="font-size: 12px; color: var(--muted); transition: color 0.2s ease;">queued</span>
+            <span class="h-step-msg" style="font-size: 12px; color: var(--muted); transition: color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">queued</span>
           </div>
         `).join('')}
       </div>
