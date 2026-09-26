@@ -320,3 +320,17 @@ test('node-builtin-missing: a missing Node built-in export rebases to CI/LTS Nod
   assert.equal(rule.test({ log, facts: {}, plan: { runtime: { name: 'node', version: '22' } } }), null);
   assert.equal(rule.test({ log: 'Error: Cannot find module x', facts: {}, plan: { runtime: { name: 'node', version: '19' } } }), null);
 });
+
+// Docker proof (27 Sep): commander's node:test summary and axios's missing Playwright browsers.
+test('failing-tests reads the node:test TAP summary (commander: 4 of 1373)', () => {
+  const rule = RULES.find((r) => r.id === 'failing-tests');
+  const log = 'not ok 26 - Command.configureOutput()\n# tests 1373\n# suites 90\n# pass 1368\n# fail 4\n# cancelled 0';
+  const d = rule.test({ log, step: { kind: 'test' } });
+  assert.match(d.cause, /4 of 1373 tests fail/);
+});
+test('browser-not-downloaded: Playwright browsers missing → install them', () => {
+  const rule = RULES.find((r) => r.id === 'browser-not-downloaded');
+  const d = rule.test({ log: "Error: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell", tried: new Set() });
+  assert.equal(d.fix.actions[0].command, 'npx playwright install --with-deps chromium');
+  assert.equal(rule.test({ log: 'npm ERR! missing script', tried: new Set() }), null);
+});

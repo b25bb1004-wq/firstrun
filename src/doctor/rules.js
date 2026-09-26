@@ -1115,8 +1115,14 @@ export const RULES = [
       const mocha = log.match(/(\d+) passing[\s\S]{0,400}?(\d+) failing/);
       const jest = log.match(/Tests:\s+(\d+) failed, (?:\d+ skipped, )?(?:(\d+) passed, )?(\d+) total/);
       const py = log.match(/=+ (?:(\d+) failed)?(?:, )?(?:(\d+) passed)?(?:, )?(?:\d+ skipped, )?(?:(\d+) errors?)?[^=\n]* in [\d.]+s/);
+      // node:test / TAP summary (commander): '# tests 1373' … '# fail 4'.
+      const tap = log.match(/^# tests (\d+)[\s\S]{0,200}?^# fail (\d+)/m);
+      // vitest: 'Tests  3 failed | 120 passed (123)'.
+      const vitest = log.match(/Tests\s+(\d+) failed\s*\|[^\n]*?\((\d+)\)/);
       let failed = 0, total = 0;
-      if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
+      if (tap) { failed = +tap[2]; total = +tap[1]; }
+      else if (vitest) { failed = +vitest[1]; total = +vitest[2]; }
+      else if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
       else if (jest) { failed = +jest[1]; total = +jest[3]; }
       else if (py && (py[1] || py[3])) { failed = (+py[1] || 0) + (+py[3] || 0); total = failed + (+py[2] || 0); }
       if (!failed) return null;
@@ -1182,6 +1188,21 @@ export const RULES = [
           patches: [],
           doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
         },
+      };
+    },
+  },
+  {
+    // axios (Docker proof, 27 Sep): vitest's browser tests need Playwright's browsers, which a fresh clone never
+    // downloads: "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/…".
+    id: 'browser-not-downloaded',
+    test({ log, tried }) {
+      if (!/Executable doesn't exist at [^\n]*ms-playwright|Please run the following command to download new browsers/.test(log)) return null;
+      const cmd = 'npx playwright install --with-deps chromium';
+      if ([...(tried || [])].some((t) => String(t).includes('playwright install'))) return null;
+      return {
+        ruleId: 'browser-not-downloaded', class: 'missing-tool', confidence: 0.88,
+        cause: 'The browser tests need Playwright\'s Chromium, which is downloaded separately from npm install; the docs never say to run `npx playwright install`.',
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'npx playwright install --with-deps chromium' } },
       };
     },
   },
