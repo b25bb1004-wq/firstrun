@@ -13,7 +13,7 @@ export function classLabel(c) { return CLASS_LABEL[c] || c; }
 /** FIRSTRUN.md: the human-readable Setup Passport with every evidence record. */
 export function renderReport({ passport: p, plan, evidence, firstFailure, conflicts }) {
   const L = [];
-  const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : '❌';
+  const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : p.verdict === 'INCONCLUSIVE' ? '🔵' : '❌';
   L.push(`# Setup Passport: ${p.repo}`, '');
   L.push(`${icon} **${p.verdict}**: HUMBLE followed this project's setup docs on a clean \`${p.image}\` machine, repaired what broke, then replayed the corrected guide from zero.`, '');
   L.push('| | |', '|---|---|');
