@@ -292,3 +292,9 @@ test('REGRESSION guard: libraries stay libraries (axios, koa)', async () => {
     assert.ok(!plan.steps.some((s) => !s.skip && /^(npm|yarn|pnpm|bun)\s+(i|install|add)\s+(axios|koa)\b/.test(s.command)), slug);
   }
 });
+
+// Edith's v2-31 rerun: koa ran on node:7 (from a README heading) and failed on `npm ci` (npm 4.2). Never below engines.
+test('REGRESSION koa: runtime is at least the engines floor (>= 18)', async () => {
+  const plan = await planFor('koajs__koa');
+  assert.ok(Number(plan.runtime.version) >= 18, `got node:${plan.runtime.version}`);
+});

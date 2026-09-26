@@ -866,6 +866,13 @@ export function buildPlan(facts, { repo, commit } = {}) {
     // Test at the version the docs give, minimum or not ("v7.6+" included): a newcomer who installs
     // exactly that is who a stale README breaks (koa says 7.6+ but its tests need 18). The Doctor rebases.
     runtime = { name: runtimeName, version: declared.version, source: `${facts.docs[0]}:${declared.line} ("${declared.match}")` };
+    // "X or higher" is a floor: a newcomer installs the current LTS, not X. Never go below the project's own engines
+    // floor either (koa: README floor 7.6, engines >= 18, CI 22–26 → node:7 had no `npm ci`).
+    // Only package.json `engines` is a hard floor (npm itself enforces it); .nvmrc etc. stay a docs-vs-code conflict
+    // for the Doctor to prove (acme-shop's seeded "Node 16+ vs .nvmrc 20" break).
+    if (declared.minimum && runtimeName === 'node' && /engines/.test(truth?.source || '') && Number(truth.version) > Number(declared.version)) {
+      runtime = { name: 'node', version: String(truth.version), source: `${truth.source}; the docs' "${declared.match}" is below the project's own engines floor` };
+    }
     if (truth && lowerMajor(declared.version, truth.version)) {
       conflicts.push({ what: `${runtimeName === 'node' ? 'Node.js' : 'Python'} version`, docs: declared.match, truth: `${truth.version} (${truth.source})`, source: `${facts.docs[0]}:${declared.line}` });
     }
