@@ -8,9 +8,9 @@ export function init(container, { reduced = false } = {}) {
   if (!container) return;
 
   const steps = [
-    { num: '01', agent: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
-    { num: '02', agent: 'Doctor', shape: '+', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
-    { num: '03', agent: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
+    { num: '01', agent: 'Harvey', role: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
+    { num: '02', agent: 'DR.BO', role: 'Doctor', shape: '+', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
+    { num: '03', agent: 'Larp', role: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
   ];
 
   container.innerHTML = `
@@ -100,7 +100,7 @@ export function init(container, { reduced = false } = {}) {
   // Reduced motion: directly show the final verified zero-break state statically
   if (reduced) {
     statusText.textContent = 'Proven from zero: all setup steps passed';
-    envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+    envBadge.textContent = 'Clean Sandbox #2 · Larp (Verifier ◯)';
     envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
     envBadge.style.color = 'var(--c-verifier, #2fbf85)';
     setStep(0, 'pass', 'done', steps[0].cmd);
@@ -140,13 +140,13 @@ export function init(container, { reduced = false } = {}) {
         activeTimer = setTimeout(() => {
           if (heroOrb) heroOrb.setState('solving');
           setStep(1, 'fail', 'exit 1 (ERESOLVE)');
-          diag.textContent = "Doctor +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
+          diag.textContent = "DR.BO +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
           verdict.textContent = 'FAILED';
           verdict.style.color = 'var(--c-doctor, #ff5c7a)';
 
           // Discard machine
           activeTimer = setTimeout(() => {
-            statusText.textContent = 'Doctor repair applied. Discarding machine...';
+            statusText.textContent = 'DR.BO repair applied. Discarding machine...';
             envBadge.textContent = 'Resetting environment';
             diag.textContent = 'Throwing sandbox away. Re-verifying from zero...';
 
@@ -154,7 +154,7 @@ export function init(container, { reduced = false } = {}) {
               // Replay from zero in Sandbox #2
               if (heroOrb) heroOrb.setState('listening');
               statusText.textContent = 'Replay: verifying full guide from zero';
-              envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+              envBadge.textContent = 'Clean Sandbox #2 · Larp (Verifier ◯)';
               envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
               envBadge.style.color = 'var(--c-verifier, #2fbf85)';
               verdict.textContent = 'RUNNING';

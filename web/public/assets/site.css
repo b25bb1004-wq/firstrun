@@ -639,9 +639,15 @@ section[id] {
 .agent-chip-role {
   font-size: 10px;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  text-align: center;
+}
+.crew-role {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 6px;
+  letter-spacing: 0.02em;
 }
 
 .crew-orb-wrap {

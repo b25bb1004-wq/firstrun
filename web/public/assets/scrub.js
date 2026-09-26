@@ -19,7 +19,7 @@
         var ok = d.exitCode === 0; if (!ok) found++; else passed++;
         beats.push({ kind: ok ? 'pass' : 'fail', label: d.command, sub: (ok ? 'passed' : 'exit ' + d.exitCode) + ' · ' + secs(d.durationMs || 0), found: found, fixed: fixed, passed: passed, phase: 'Following the README on a clean machine' });
       } else if (e.type === 'diagnosis') {
-        beats.push({ kind: 'doctor', label: 'Doctor', sub: d.diagnosis && d.diagnosis.cause, found: found, fixed: fixed, passed: passed, phase: 'A step broke. The Doctor finds out why' });
+        beats.push({ kind: 'doctor', label: 'DR.BO', sub: d.diagnosis && d.diagnosis.cause, found: found, fixed: fixed, passed: passed, phase: 'A step broke. DR.BO finds out why' });
       } else if (e.type === 'fix' && d.fix && d.fix.doc) {
         beats.push({ kind: 'fix', label: 'Fix', sub: d.fix.doc.text, found: found, fixed: fixed, passed: passed, phase: 'Repairing' });
       } else if (e.type === 'evidence' && d.status === 'verified') {

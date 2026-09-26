@@ -37,7 +37,7 @@
       set: { S1: { r: ['skip', 'skipped: HUMBLE starts from a fresh clone at 6b9bb70e23'] }, S2: { r: ['skip', 'skipped: already there'] } } },
     { phase: 'Running', cap: 'Step one breaks.', found: 1, fixed: 0, mark: 'S3',
       set: { S3: { st: 'fail', r: ['fail', 'exit 1 · 29.5 s', 'npm error ERESOLVE unable to resolve dependency tree'] } } },
-    { phase: 'Doctor', cap: 'The Doctor reads the log and finds out why.', found: 1, fixed: 0, mark: 'S3',
+    { phase: 'DR.BO', cap: 'DR.BO reads the log and finds out why.', found: 1, fixed: 0, mark: 'S3',
       doctor: "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps." },
     { phase: 'Fixed', cap: 'One flag. It installs.', found: 1, fixed: 1, mark: 'S3b', show: ['S3b'],
       set: { S3: { st: 'struck', r: null }, S3b: { r: ['pass', 'passed · 1 m 31 s'] } } },
