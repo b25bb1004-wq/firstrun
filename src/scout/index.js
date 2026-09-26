@@ -200,19 +200,32 @@ export async function scout(root) {
   // CI workflows: the closest thing to a verified setup most repos have
   for (const f of files.filter((x) => /^\.github\/workflows\/.+\.ya?ml$/.test(x))) {
     let doc;
-    try { doc = YAML.parse(read(f)); } catch { continue; }
-    for (const job of Object.values(doc?.jobs || {})) {
+    const text = read(f) || '';
+    try { doc = YAML.parse(text); } catch { continue; }
+    const lines = text.split('\n');
+    let cursor = 0; // steps appear in file order, so each `run:` is found after the previous one
+    const lineOf = (run) => {
+      const first = String(run).trim().split('\n')[0].trim();
+      for (let i = cursor; i < lines.length; i++) if (lines[i].includes(first)) { cursor = i + 1; return i + 1; }
+      return 0;
+    };
+    for (const [jobId, job] of Object.entries(doc?.jobs || {})) {
       for (const [name, svc] of Object.entries(job?.services || {})) facts.ci.services.push({ name, image: svc?.image, workflow: f });
       const matrix = job?.strategy?.matrix || {};
+      const resolve = (v) => {
+        const mm = String(v ?? '').match(/\$\{\{\s*matrix\.([\w-]+)\s*\}\}/);
+        return mm ? [].concat(matrix[mm[1]] || []) : v != null ? [v] : [];
+      };
+      // Which machines the job runs on: `runs-on: ubuntu-latest`, or a matrix of them. Unknown counts as Linux.
+      const os = [].concat(resolve(job?.['runs-on'])).flat().map(String);
+      const linux = !os.length || os.some((o) => /ubuntu|linux|\$\{\{/i.test(o));
       for (const step of job?.steps || []) {
         const w = step?.with || {};
-        const resolve = (v) => {
-          const mm = String(v ?? '').match(/\$\{\{\s*matrix\.([\w-]+)\s*\}\}/);
-          return mm ? [].concat(matrix[mm[1]] || []) : v != null ? [v] : [];
-        };
         if (/actions\/setup-node/.test(step?.uses || '')) resolve(w['node-version']).forEach((v) => facts.ci.nodeVersions.push({ version: majorOf(v), workflow: f }));
         if (/actions\/setup-python/.test(step?.uses || '')) resolve(w['python-version']).forEach((v) => facts.ci.pythonVersions.push({ version: majorOf(v), workflow: f }));
-        if (step?.run) facts.ci.commands.push({ run: String(step.run).trim(), workflow: f });
+        // A step guarded to one OS (`if: runner.os == 'Windows'`) is not on the Linux path.
+        const onlyOther = /runner\.os\s*==\s*['"](windows|macos)['"]|matrix\.os\s*==\s*['"](windows|macos)/i.test(String(step?.if || ''));
+        if (step?.run) facts.ci.commands.push({ run: String(step.run).trim(), workflow: f, line: lineOf(step.run), job: jobId, os, linux: linux && !onlyOther });
       }
     }
   }
