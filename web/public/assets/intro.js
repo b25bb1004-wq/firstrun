@@ -102,16 +102,31 @@
     });
   }
 
-  var raf = 0;
-  function update() {
-    raf = 0;
+  // The playhead glides toward the scroll position instead of jumping to it, so wheel steps and trackpad bursts
+  // read as one continuous motion (Arnav: "smooth in one go"). Frame-rate independent; stops when it settles.
+  var raf = 0, target = 0, head = 0, last = 0, TAU = 180;
+  function measure() {
     var r = sec.getBoundingClientRect(), span = sec.offsetHeight - innerHeight;
     var p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 1;
-    var at = Math.min(1, p / 0.9) * TOTAL; // the last 10% of the scroll holds the finished wordmark
-    for (var i = 0; i < anims.length; i++) anims[i].currentTime = at;
     if (hint) hint.style.opacity = String(Math.max(0, 1 - p * 12));
+    return Math.min(1, p / 0.9) * TOTAL; // the last 10% of the scroll holds the finished wordmark
   }
-  var onScroll = function () { if (!raf) raf = requestAnimationFrame(update); };
+  function apply(t) { for (var i = 0; i < anims.length; i++) anims[i].currentTime = t; }
+  function tick(now) {
+    var dt = last ? Math.min(64, now - last) : 16; last = now;
+    head += (target - head) * (1 - Math.exp(-dt / TAU));
+    if (Math.abs(target - head) < 0.5) head = target;
+    apply(head);
+    raf = head === target ? 0 : requestAnimationFrame(tick);
+    if (!raf) last = 0;
+  }
+  var onScroll = function () {
+    target = measure();
+    // Hidden tabs pause requestAnimationFrame: set the frame directly so the page is never stuck mid-sequence.
+    if (document.hidden) { head = target; apply(head); return; }
+    if (!raf) raf = requestAnimationFrame(tick);
+  };
+  function update() { target = head = measure(); apply(head); }
 
   function init() { window.scrollTo(window.scrollX, window.scrollY); build(); update(); }
   Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(function (r) { setTimeout(r, 700); })]).then(function () {

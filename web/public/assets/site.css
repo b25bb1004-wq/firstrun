@@ -929,3 +929,6 @@ html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
   text-align: center;
 }
 
+
+/* v20 (Edith): the intro moves slower: more scroll per agent (Arnav: "not this fast"). */
+html.js .intro { height: calc(100vh + 6 * 80vh + 35vh); }
