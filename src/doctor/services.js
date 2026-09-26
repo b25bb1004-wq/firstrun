@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 /** Backing services a README may forget, keyed by the port the app tries to reach. */
 export const SERVICE_CATALOG = {
   postgres: { image: 'postgres:16-alpine', port: 5432, env: { POSTGRES_USER: 'postgres', POSTGRES_PASSWORD: 'postgres', POSTGRES_DB: 'postgres' } },
@@ -47,33 +49,48 @@ export function credsFromUrl(url) {
  * (1) the repo's compose file, (2) connection URLs from .env / .env.example,
  * (3) catalog defaults.
  */
-export function serviceFor(kind, { facts, envValues = {} }) {
+export function serviceFor(kind, { facts, envValues = {} } = {}) {
   const base = SERVICE_CATALOG[kind];
   if (!base) return null;
-  const composeSvc = facts.compose?.services.find((s) => serviceKind(s.image, s.name) === kind && s.image);
-  const def = { name: composeSvc?.name || kind, image: composeSvc?.image || base.image, port: base.port, env: { ...base.env, ...(composeSvc?.environment || {}) }, fromCompose: !!composeSvc };
-  if (kind === 'postgres') {
-    const url = Object.entries(envValues).find(([k, v]) => /DATABASE_URL|POSTGRES_URL|PG_URL|DB_URL/i.test(k) && /^postgres/.test(v))?.[1];
-    const c = url && credsFromUrl(url);
-    if (c) {
-      if (c.user) def.env.POSTGRES_USER = c.user;
-      if (c.password) def.env.POSTGRES_PASSWORD = c.password;
-      if (c.db) def.env.POSTGRES_DB = c.db;
+  const composeSvc = facts?.compose?.services?.find((s) => serviceKind(s.image, s.name) === kind && s.image);
+  const composeDir = facts?.compose?.file ? path.dirname(facts.compose.file) : null;
+  const def = {
+    name: composeSvc?.name || kind,
+    image: composeSvc?.image || base.image,
+    port: base.port,
+    env: { ...base.env, ...(composeSvc?.environment || {}) },
+    volumes: composeSvc?.volumes || [],
+    composeDir: composeDir === '.' ? null : composeDir,
+    fromCompose: !!composeSvc,
+  };
+  if (!composeSvc) {
+    if (kind === 'postgres') {
+      const url = Object.entries(envValues).find(([k, v]) => /DATABASE_URL|POSTGRES_URL|PG_URL|DB_URL/i.test(k) && /^postgres/.test(v))?.[1];
+      const c = url && credsFromUrl(url);
+      if (c) {
+        if (c.user) def.env.POSTGRES_USER = c.user;
+        if (c.password) def.env.POSTGRES_PASSWORD = c.password;
+        if (c.db) def.env.POSTGRES_DB = c.db;
+      }
+      for (const [k, v] of Object.entries(envValues)) {
+        if (/^(POSTGRES_|PG)(USER|USERNAME)$/.test(k)) def.env.POSTGRES_USER = v;
+        if (/^(POSTGRES_|PG)PASSWORD$/.test(k)) def.env.POSTGRES_PASSWORD = v;
+        if (/^(POSTGRES_DB|PGDATABASE)$/.test(k)) def.env.POSTGRES_DB = v;
+      }
+      if (!def.env.POSTGRES_PASSWORD) def.env.POSTGRES_HOST_AUTH_METHOD = 'trust';
     }
-    for (const [k, v] of Object.entries(envValues)) {
-      if (/^(POSTGRES_|PG)(USER|USERNAME)$/.test(k)) def.env.POSTGRES_USER = v;
-      if (/^(POSTGRES_|PG)PASSWORD$/.test(k)) def.env.POSTGRES_PASSWORD = v;
-      if (/^(POSTGRES_DB|PGDATABASE)$/.test(k)) def.env.POSTGRES_DB = v;
+    if (kind === 'mysql') {
+      const url = Object.values(envValues).find((v) => /^mysql/.test(v));
+      const c = url && credsFromUrl(url);
+      if (c) {
+        if (c.user && c.user !== 'root') { def.env.MYSQL_USER = c.user; def.env.MYSQL_PASSWORD = c.password; }
+        else if (c.password) def.env.MYSQL_ROOT_PASSWORD = c.password;
+        if (c.db) def.env.MYSQL_DATABASE = c.db;
+      }
     }
-    if (!def.env.POSTGRES_PASSWORD) def.env.POSTGRES_HOST_AUTH_METHOD = 'trust';
-  }
-  if (kind === 'mysql') {
-    const url = Object.values(envValues).find((v) => /^mysql/.test(v));
-    const c = url && credsFromUrl(url);
-    if (c) {
-      if (c.user && c.user !== 'root') { def.env.MYSQL_USER = c.user; def.env.MYSQL_PASSWORD = c.password; }
-      else if (c.password) def.env.MYSQL_ROOT_PASSWORD = c.password;
-      if (c.db) def.env.MYSQL_DATABASE = c.db;
+  } else {
+    if (kind === 'postgres' && !def.env.POSTGRES_PASSWORD) {
+      def.env.POSTGRES_HOST_AUTH_METHOD = 'trust';
     }
   }
   return def;
@@ -82,5 +99,10 @@ export function serviceFor(kind, { facts, envValues = {} }) {
 /** The single README line that starts this service without Docker Compose. */
 export function dockerRunLine(def) {
   const envs = Object.entries(def.env || {}).map(([k, v]) => `-e ${k}=${v}`).join(' ');
-  return `docker run -d --name ${def.name} -p ${def.port}:${def.port}${envs ? ' ' + envs : ''} ${def.image}`;
+  const vols = (def.volumes || []).filter((v) => {
+    if (typeof v !== 'string' || !v.includes(':')) return false;
+    const src = v.split(':')[0];
+    return src.startsWith('.') || src.startsWith('/') || src.includes('/');
+  }).map((v) => `-v ${v}`).join(' ');
+  return `docker run -d --name ${def.name} -p ${def.port}:${def.port}${envs ? ' ' + envs : ''}${vols ? ' ' + vols : ''} ${def.image}`;
 }

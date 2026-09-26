@@ -129,7 +129,8 @@ export async function scout(root) {
   }
 
   // docker compose
-  const composeFile = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml', 'docker-compose.dev.yml'].find(has);
+  const composeFile = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml', 'docker-compose.dev.yml'].find(has)
+    || files.find((f) => /(^|\/)(docker-)?compose(\.[^/]*)?\.ya?ml$/i.test(f) && !/node_modules|test|fixture/i.test(f));
   if (composeFile) {
     try {
       const doc = YAML.parse(read(composeFile)) || {};
@@ -141,6 +142,7 @@ export async function scout(root) {
         environment: Array.isArray(s.environment)
           ? Object.fromEntries(s.environment.map((e) => String(e).split(/=(.*)/s).slice(0, 2)))
           : s.environment || {},
+        volumes: (s.volumes || []).map((v) => typeof v === 'object' ? `${v.source || ''}:${v.target || ''}` : String(v)),
       }));
       facts.compose = { file: composeFile, services };
     } catch (e) {

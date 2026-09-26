@@ -257,7 +257,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       for (const a of step.prereqs || []) {
         if (a.type === 'exec') await box.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
         else if (a.type === 'write') await box.writeFile(a.path, a.content);
-        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
       }
     };
     const addPrereq = (step, a) => {
@@ -370,7 +370,7 @@ export async function verifyRepo(repoDir, opts = {}) {
             restart = true;
             fixLog.push(`rebased onto ${a.image}`);
           } else if (a.type === 'service') {
-            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
             fixLog.push(`started ${a.image} as "${a.name}" on localhost:${a.port}${r.ready === false ? ' (not ready!)' : ''}`);
             addPrereq(step, a);
           } else if (a.type === 'exec') {

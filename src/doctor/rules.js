@@ -587,7 +587,7 @@ export const RULES = [
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
       // Env files win over defaults hard-coded in config source (listed last, so found last).
       const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv, ...sourceUrls(facts) } });
-      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port }];
+      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port, volumes: def.volumes || [], composeDir: def.composeDir || null }];
       if (socket) actions.push({ type: 'exec', command: `printf 'export PGHOST=127.0.0.1 PGUSER=%s PGPASSWORD=%s\\n' ${shq(def.env.POSTGRES_USER || 'postgres')} ${shq(def.env.POSTGRES_PASSWORD || 'postgres')} >> ~/.bashrc; export PGHOST=127.0.0.1 PGUSER=${def.env.POSTGRES_USER || 'postgres'} PGPASSWORD=${def.env.POSTGRES_PASSWORD || 'postgres'}` });
       const patches = [];
       let doc;
@@ -599,8 +599,11 @@ export const RULES = [
           : { kind: 'insert-step', text: 'docker compose up -d', service: kind };
         if (!composeStep) actions.push({ type: 'insert-before', command: 'docker compose up -d', kind: 'services', silent: true });
       } else if (def.fromCompose) {
-        doc = { kind: 'insert-step', text: `docker compose up -d ${def.name}`, service: kind };
-        actions.push({ type: 'insert-before', command: `docker compose up -d ${def.name}`, kind: 'services', silent: true });
+        const cmd = facts.compose?.file && facts.compose.file !== 'docker-compose.yml' && facts.compose.file !== 'compose.yml'
+          ? `docker compose -f ${facts.compose.file} up -d ${def.name}`
+          : `docker compose up -d ${def.name}`;
+        doc = { kind: 'insert-step', text: cmd, service: kind };
+        actions.push({ type: 'insert-before', command: cmd, kind: 'services', silent: true });
       } else {
         const line = dockerRunLine(def);
         doc = { kind: 'insert-step', text: line, service: kind };

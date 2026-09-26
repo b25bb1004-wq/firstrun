@@ -1,3 +1,4 @@
+import path from 'node:path';
 import YAML from 'yaml';
 import { serviceKind, SERVICE_CATALOG } from './doctor/services.js';
 
@@ -39,13 +40,25 @@ export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
   // docker compose [-f file] up [-d] [services...]
   const fileArg = c.match(/\s-f\s+(\S+)|\s--file[= ](\S+)/);
   let file = fileArg ? (fileArg[1] || fileArg[2]) : null;
-  // Called from inside a script: resolve the compose file from that script's directory, like docker would.
-  if (cwd && !file) file = ['compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml'].map((f) => `${cwd}/${f}`)[0];
-  if (cwd && !file.startsWith('/')) file = `${cwd}/${file}`;
-  if (!file) file = facts.compose?.file || 'docker-compose.yml';
-  let text = await sandbox.readFile(file);
-  if (text == null && cwd && !fileArg) {
-    for (const f of ['compose.yml', 'docker-compose.yml', 'docker-compose.yaml']) { text = await sandbox.readFile(`${cwd}/${f}`); if (text != null) { file = `${cwd}/${f}`; break; } }
+  let text = null;
+  if (file) {
+    const candidate = (cwd && !file.startsWith('/')) ? `${cwd}/${file}` : file;
+    text = await sandbox.readFile(candidate);
+    if (text == null && candidate !== file) text = await sandbox.readFile(file);
+    if (text != null) file = candidate;
+  }
+  if (text == null) {
+    const candidates = [];
+    if (cwd) candidates.push(...['compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml'].map((f) => `${cwd}/${f}`));
+    candidates.push('compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml');
+    if (facts?.compose?.file) {
+      if (cwd) candidates.push(`${cwd}/${facts.compose.file}`);
+      candidates.push(facts.compose.file);
+    }
+    for (const f of candidates) {
+      text = await sandbox.readFile(f);
+      if (text != null) { file = f; break; }
+    }
   }
   if (text == null) {
     return { exitCode: 1, out: 'no configuration file provided: not found\n' };
@@ -57,6 +70,7 @@ export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
   const services = Object.entries(doc.services || {}).filter(([n]) => !wanted.length || wanted.includes(n));
   if (wanted.length && !services.length) return { exitCode: 1, out: `no such service: ${wanted[0]}\n` };
   let ok = true;
+  const composeDir = file ? path.dirname(file.replace(/^\/workspace\/?/, '')) : null;
   for (const [svcName, svc] of services) {
     if (!svc.image) { say(`skipping "${svcName}": built from source (the app itself runs natively in this walkthrough)`); continue; }
     const kind = serviceKind(svc.image, svcName);
@@ -72,7 +86,8 @@ export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
       port = target || host;
       if (host && target && host !== target) say(`note: ${svcName} publishes ${host}->${target}; the app will reach it on localhost:${target} in the sandbox`);
     }
-    const res = await sandbox.addService({ name: svcName, image: svc.image, env, port });
+    const volumes = (svc.volumes || []).map((v) => typeof v === 'object' ? `${v.source || ''}:${v.target || ''}` : String(v));
+    const res = await sandbox.addService({ name: svcName, image: svc.image, env, port, volumes, composeDir: composeDir === '.' ? null : composeDir });
     say(`${res.already ? 'already running' : 'started'} ${svcName} (${svc.image})${port ? ` on localhost:${port}` : ''}`);
     if (res.ready === false) { ok = false; say(`${svcName} did not become ready`); }
   }
