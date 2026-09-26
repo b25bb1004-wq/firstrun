@@ -34,16 +34,34 @@
 
 <main id="main">
 
-  <section class="hero wrap" aria-labelledby="h1">
-    <p class="eyebrow mono">Setup docs, verified from zero</p>
-    <h1 id="h1">Your README,<br>proven.</h1>
-    <p class="lede">HUMBLE follows your setup docs on a brand-new machine, the way your next teammate will. It fixes the steps that break, proves every fix by doing the whole setup again from zero, and hands you a README that works.</p>
-    <div class="actions">
-      <a class="btn" href="#try">Check a README</a>
-      <a class="link" href="/proof">Watch a real run</a>
+  <section class="hero-full" aria-labelledby="h1">
+    <div class="shapes" aria-hidden="true">
+      <span class="shape" style="--s:120px;left:6%;top:18%;--d:16s;--dx:30px;--dy:-40px;--rot:30deg"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="var(--c-scout)"/></svg></span>
+      <span class="shape" style="--s:88px;left:82%;top:12%;--d:13s;--dx:-26px;--dy:34px;--rot:-24deg"><svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="14" fill="var(--c-planner)"/></svg></span>
+      <span class="shape" style="--s:110px;left:88%;top:58%;--d:17s;--dx:-36px;--dy:-22px;--rot:40deg"><svg viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="var(--c-runner)"/></svg></span>
+      <span class="shape" style="--s:84px;left:12%;top:66%;--d:12s;--dx:28px;--dy:26px;--rot:45deg"><svg viewBox="0 0 100 100"><path d="M36 4h28v32h32v28H64v32H36V64H4V36h32z" fill="var(--c-doctor)"/></svg></span>
+      <span class="shape" style="--s:100px;left:70%;top:80%;--d:15s;--dx:-20px;--dy:-30px;--rot:-20deg"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="var(--c-verifier)" stroke-width="16"/></svg></span>
+      <span class="shape" style="--s:70px;left:24%;top:6%;--d:14s;--dx:22px;--dy:30px;--rot:60deg"><svg viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="var(--c-scribe)"/></svg></span>
     </div>
+    <div class="wrap inner">
+      <p class="eyebrow mono">Setup docs, verified from zero</p>
+      <h1 id="h1">Your README,<br>proven.</h1>
+      <p class="lede">HUMBLE follows your setup docs on a brand-new machine, the way your next teammate will. It fixes the steps that break, proves every fix by doing the whole setup again from zero, and hands you a README that works.</p>
+      <div class="actions">
+        <a class="btn" href="#try">Check a README</a>
+        <a class="link" href="/proof">Watch a real run</a>
+      </div>
+      <div class="stats" data-reveal>
+        <div><b data-count="16">16</b><span>public repos audited on a clean machine</span></div>
+        <div><b data-count="9" data-suffix=" of 14">9 of 14</b><span>READMEs with setup docs broke</span></div>
+        <div><b data-count="11">11</b><span>breaks fixed and proven from zero</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-label="A run, illustrated">
     <div class="hero-stage" data-motion="hero" aria-hidden="true"></div>
-    <p class="fact" data-reveal>We ran it on <b>16 public repos</b>. <b>9 of the 14</b> with setup docs broke on a clean machine. HUMBLE fixed <b>11 breaks</b> and proved each one from zero. <a class="link" href="/audit">See the audit</a></p>
+    <p class="fact" data-reveal>Numbers from an audit of 16 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
   </section>
 
   <section class="band" id="problem" aria-labelledby="h-problem">
@@ -61,12 +79,12 @@
     <p class="sub" data-reveal>IBM Bob runs HUMBLE. He reads the repo, sends in a crew of six agents, and steps in when the rules can't explain a failure.</p>
     <div class="crew-stage" data-motion="crew" aria-hidden="true"></div>
     <ol class="crew">
-      <li data-reveal><span class="n mono">01</span><div><h3>Scout</h3><p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p></div></li>
-      <li data-reveal><span class="n mono">02</span><div><h3>Planner</h3><p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p></div></li>
-      <li data-reveal><span class="n mono">03</span><div><h3>Runner</h3><p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p></div></li>
-      <li data-reveal><span class="n mono">04</span><div><h3>Doctor</h3><p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p></div></li>
-      <li data-reveal><span class="n mono">05</span><div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div></li>
-      <li data-reveal><span class="n mono">06</span><div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="currentColor"/></svg>01</span><div><h3>Scout</h3><p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="14" fill="currentColor"/></svg>02</span><div><h3>Planner</h3><p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="currentColor"/></svg>03</span><div><h3>Runner</h3><p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><path d="M36 4h28v32h32v28H64v32H36V64H4V36h32z" fill="currentColor"/></svg>04</span><div><h3>Doctor</h3><p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="16"/></svg>05</span><div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div></li>
+      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="currentColor"/></svg>06</span><div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div></li>
     </ol>
   </section>
 
@@ -75,19 +93,13 @@
       <h2 id="h-proof" data-reveal>Real runs, not a mockup</h2>
       <p class="sub" data-reveal>Every number here comes from recorded runs you can open and replay.</p>
 
-      <figure class="shot" data-reveal data-motion="proof">
-        <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, with one card per repository and its verdict.">
-        <figcaption>The audit of 16 public repositories, pinned to exact commits. <a class="link" href="/audit">Open it</a></figcaption>
-      </figure>
-
-      <div class="split case" data-reveal>
-        <div>
-          <p class="eyebrow mono">GeekyAnts/express-typescript</p>
-          <h3>Four missing steps, one verified README</h3>
-          <p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that fails four times: a peer-dependency conflict, a global tool nobody mentioned, and two services nobody started. HUMBLE fixed all four and replayed the setup from zero in 53 seconds, ending on the app's home page.</p>
-          <a class="link" href="/proof">Watch a recorded run</a>
-        </div>
-        <pre class="diff mono" aria-label="The README change HUMBLE proposed"><span class="ctx">  # Install NPM dependencies.</span>
+      <div class="gallery" id="gallery" data-reveal>
+        <figure class="card-shot" data-motion="proof">
+          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
+          <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3>16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
+        </figure>
+        <article>
+          <pre class="diff mono" aria-label="The README change HUMBLE proposed for GeekyAnts/express-typescript"><span class="ctx">  # Install NPM dependencies.</span>
 <span class="del">- npm install;</span>
 <span class="add">+ npm install --legacy-peer-deps</span>
 <span class="ctx">  # Run the app</span>
@@ -95,7 +107,18 @@
 <span class="add">+ docker compose up -d mongo</span>
 <span class="add">+ docker compose up -d redis</span>
 <span class="ctx">  npm run dev;</span></pre>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scribe) 18%,transparent);color:var(--c-scribe)">README diff</span><h3>GeekyAnts/express-typescript</h3><p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that broke four times. This is the whole fix.</p></div>
+        </article>
+        <article>
+          <div class="big" style="color:var(--c-verifier)">53s</div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>Clone to running, replayed from scratch</h3><p>GeekyAnts: 4 breaks found, 4 fixed, then the whole guide replayed on a brand-new machine, ending on the app's home page.</p></div>
+        </article>
+        <article>
+          <div class="big" style="color:var(--c-doctor)">5/5</div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-doctor) 18%,transparent);color:var(--c-doctor)">Recorded replay</span><h3>acme-shop: five breaks, all fixed</h3><p>A demo repo whose README drifted in five realistic ways (we seeded them). Watch every command, every repair and the replay.</p><a class="link" href="/proof">Watch the recording</a></div>
+        </article>
       </div>
+      <div class="gallery-nav"><button type="button" data-dir="-1" aria-label="Previous">&lsaquo;</button><button type="button" data-dir="1" aria-label="Next">&rsaquo;</button></div>
     </div>
   </section>
 
@@ -140,6 +163,7 @@
 </footer>
 
 <script src="/assets/check.js" defer></script>
+<script src="/assets/site.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
 </body>
 </html>

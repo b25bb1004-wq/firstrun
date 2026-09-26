@@ -139,3 +139,57 @@ section { padding: clamp(72px, 11vw, 140px) 0; }
 .page h1 { font-size: clamp(40px, 6vw, 64px); margin-bottom: 32px; }
 .page h2 { font-size: 22px; margin: 40px 0 10px; letter-spacing: -.01em; }
 .page p, .page li { color: var(--muted); max-width: 64ch; }
+
+/* ===== v3: Apple/Meta-style motion, colour and shape (Karmanya, 26 Sep 16:40) ===== */
+:root {
+  --c-scout: #4f8cff; --c-planner: #9b7bff; --c-runner: #ff8a3d; --c-doctor: #ff5c7a; --c-verifier: #2fbf85; --c-scribe: #f5c542;
+  --r-card: 22px; --ease: cubic-bezier(.16,1,.3,1);
+}
+
+/* Full-bleed hero: big centred type over slowly drifting agent shapes */
+.hero-full { position: relative; overflow: hidden; padding: clamp(96px, 16vw, 200px) 0 clamp(64px, 9vw, 110px); text-align: center; border-bottom: 1px solid var(--line); }
+.hero-full .eyebrow, .hero-full .lede { margin-left: auto; margin-right: auto; }
+.hero-full h1 { font-size: clamp(56px, 11vw, 150px); }
+.hero-full .actions { justify-content: center; }
+.hero-full .inner { position: relative; z-index: 1; }
+.shapes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.shape { position: absolute; width: var(--s, 96px); height: var(--s, 96px); opacity: .9; will-change: transform; }
+.shape svg { width: 100%; height: 100%; display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .shape { animation: drift var(--d, 14s) ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translate3d(0,0,0) rotate(0deg); } to { transform: translate3d(var(--dx, 24px), var(--dy, -28px), 0) rotate(var(--rot, 18deg)); } }
+}
+.hero-full .btn { border-radius: 999px; padding: 14px 26px; }
+
+/* Stats that count up */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; margin: 56px auto 0; max-width: 900px; text-align: left; }
+.stats > div { background: var(--bg); padding: 26px 28px; }
+.stats b { display: block; font-size: clamp(40px, 5vw, 64px); line-height: 1; letter-spacing: -.03em; font-weight: 600; }
+.stats span { color: var(--muted); font-size: 15px; display: block; margin-top: 10px; }
+.stats > div:nth-child(1) b { color: var(--c-scout); } .stats > div:nth-child(2) b { color: var(--c-doctor); } .stats > div:nth-child(3) b { color: var(--c-verifier); }
+@media (max-width: 720px) { .stats { grid-template-columns: 1fr; } }
+
+/* Crew list: each agent wears its colour and shape */
+.crew li { grid-template-columns: 72px 1fr; }
+.crew .n { display: flex; align-items: center; gap: 10px; }
+.crew .glyph { width: 18px; height: 18px; flex: none; }
+.crew li:nth-child(1) .n { color: var(--c-scout); } .crew li:nth-child(2) .n { color: var(--c-planner); } .crew li:nth-child(3) .n { color: var(--c-runner); }
+.crew li:nth-child(4) .n { color: var(--c-doctor); } .crew li:nth-child(5) .n { color: var(--c-verifier); } .crew li:nth-child(6) .n { color: var(--c-scribe); }
+
+/* Horizontal proof gallery, Apple "Explore the lineup" style: large cards, the next one peeks in */
+.gallery { display: grid; grid-auto-flow: column; grid-auto-columns: min(78vw, 820px); gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px var(--gutter) 28px; margin: 0 calc(var(--gutter) * -1); scrollbar-width: thin; }
+.gallery > * { scroll-snap-align: start; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+.gallery .cap { padding: 22px 26px 26px; }
+.gallery .cap h3 { font-size: 22px; margin-bottom: 8px; } .gallery .cap p { color: var(--muted); margin: 0 0 14px; }
+.gallery .tag { display: inline-block; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; margin-bottom: 14px; }
+.gallery .diff { border: 0; border-radius: 0; flex: 1; font-size: 15px; padding: 32px; }
+.gallery .big { flex: 1; display: grid; place-items: center; padding: 48px 32px; font-size: clamp(72px, 10vw, 140px); font-weight: 600; letter-spacing: -.04em; line-height: 1; }
+.gallery-nav { display: flex; gap: 10px; justify-content: flex-end; margin-top: -8px; }
+.gallery-nav button { width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 500 18px var(--sans); cursor: pointer; }
+.gallery-nav button:hover { border-color: var(--ink); }
+.shot { border-radius: var(--r-card); }
+
+/* Stronger Apple-style reveal: longer rise, slight scale, slower settle */
+.will-reveal { opacity: 0; transform: translateY(44px) scale(.985); }
+.revealed { transition: opacity 1s var(--ease), transform 1.1s var(--ease); }
+h2.revealed { transition-duration: 1.2s; }
