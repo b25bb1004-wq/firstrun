@@ -1,0 +1,447 @@
+:root {
+  --bg: #0B1220;
+  --panel: #132035;
+  --panel-2: #192A43;
+  --panel-3: #223755;
+  --rule: #2F4667;
+  --rule-2: #1C314E;
+  --ink: #E6ECF5;
+  --ink-2: #A3B4CB;
+  --ink-3: #6D819D;
+  --pass: #3DD68C;
+  --pass-t: rgba(61,214,140,.12);
+  --pass-glow: rgba(61,214,140,.35);
+  --bob: #5E9EFF;
+  --bob-t: rgba(94,158,255,.14);
+  --bob-glow: rgba(94,158,255,.35);
+  --fail: #FF6167;
+  --fail-t: rgba(255,97,103,.12);
+  --repair: #F59E0B;
+  --repair-t: rgba(245,158,11,.14);
+  --agent-scout: #10B981;
+  --agent-planner: #06B6D4;
+  --agent-runner: #F59E0B;
+  --agent-doctor: #EF4444;
+  --agent-verifier: #3DD68C;
+  --agent-scribe: #8B5CF6;
+  --agent-guide: #5E9EFF;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  font: 13.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "IBM Plex Sans", sans-serif;
+  color: var(--ink);
+  overflow-x: hidden;
+  overflow-y: auto;
+  user-select: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+/* Main Dock Container */
+.dock-window {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 14px;
+  background: linear-gradient(180deg, #101B2E 0%, #0B1220 100%);
+}
+
+/* Header & Bob Brand */
+.dock-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule-2);
+}
+
+.bob-avatar-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #1A365D, #2B6CB0);
+  border: 1px solid var(--bob);
+  box-shadow: 0 0 12px var(--bob-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  flex: none;
+}
+.bob-avatar-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 16px var(--bob);
+}
+.bob-avatar-btn svg { width: 18px; height: 18px; fill: var(--bob); }
+
+.dock-title-wrap { flex: 1; min-width: 0; }
+.dock-title {
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: .02em;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dock-subtitle {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+.dock-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--ink-3);
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.icon-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--rule);
+  color: var(--ink);
+}
+
+/* Target Repo Input Box */
+.repo-box {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.repo-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.repo-input-wrap {
+  display: flex;
+  gap: 6px;
+}
+.repo-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0,0,0,.35);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: 12.5px Consolas, "IBM Plex Mono", monospace;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .15s;
+}
+.repo-input:focus { border-color: var(--bob); }
+.btn-browse {
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  border-radius: 7px;
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-browse:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* Action Buttons: Quick check vs Prove it */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid transparent;
+}
+.btn-quick {
+  background: var(--panel-2);
+  color: var(--ink);
+  border-color: var(--rule);
+}
+.btn-quick:hover {
+  background: var(--panel-3);
+  border-color: var(--bob);
+}
+.btn-prove {
+  background: var(--pass);
+  color: #04140D;
+}
+.btn-prove:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 12px var(--pass-glow);
+}
+
+/* Agent Characters Grid */
+.agents-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 4px 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.agents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Agent Card Row */
+.agent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--rule-2);
+  border-radius: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: all .18s ease;
+  position: relative;
+  overflow: hidden;
+}
+.agent-row:hover {
+  background: var(--panel-2);
+  border-color: var(--rule);
+  transform: translateX(2px);
+}
+.agent-row.selected {
+  border-color: var(--bob);
+  background: var(--panel-2);
+}
+
+/* Avatar Badge */
+.agent-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--rule);
+  transition: all .2s;
+}
+.agent-avatar svg {
+  width: 17px;
+  height: 17px;
+  transition: all .2s;
+}
+
+/* Agent Info */
+.agent-meta {
+  flex: 1;
+  min-width: 0;
+}
+.agent-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agent-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+}
+.agent-cmd {
+  font: 11px Consolas, "IBM Plex Mono", monospace;
+  color: var(--ink-3);
+  background: rgba(0,0,0,.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.agent-status-line {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* Agent State Indicators */
+.agent-state-badge {
+  font: 600 10.5px "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex: none;
+}
+
+/* States */
+/* 1. Idle */
+.state-idle .agent-avatar { opacity: .55; }
+.state-idle .agent-state-badge { color: var(--ink-3); background: rgba(255,255,255,.04); }
+
+/* 2. Working (Pulse & Glow) */
+.state-working {
+  border-color: var(--agent-color, var(--bob));
+  box-shadow: 0 0 10px rgba(94,158,255,.15);
+}
+.state-working .agent-avatar {
+  background: var(--agent-glow, rgba(94,158,255,.2));
+  border-color: var(--agent-color, var(--bob));
+  animation: agentPulse 1.8s infinite ease-in-out;
+}
+.state-working .agent-avatar svg {
+  color: var(--agent-color, var(--bob));
+}
+.state-working .agent-state-badge {
+  background: var(--agent-glow, rgba(94,158,255,.2));
+  color: var(--agent-color, var(--bob));
+  border: 1px solid var(--agent-color, var(--bob));
+}
+
+/* 3. Done (Pass Check) */
+.state-done .agent-avatar {
+  background: var(--pass-t);
+  border-color: var(--pass);
+}
+.state-done .agent-avatar svg { color: var(--pass); }
+.state-done .agent-state-badge {
+  background: var(--pass-t);
+  color: var(--pass);
+  border: 1px solid var(--pass);
+}
+
+/* 4. Needs You (Alert) */
+.state-needs-you {
+  border-color: var(--repair);
+}
+.state-needs-you .agent-avatar {
+  background: var(--repair-t);
+  border-color: var(--repair);
+  animation: agentShake 3s infinite ease-in-out;
+}
+.state-needs-you .agent-avatar svg { color: var(--repair); }
+.state-needs-you .agent-state-badge {
+  background: var(--repair-t);
+  color: var(--repair);
+  border: 1px solid var(--repair);
+}
+
+@keyframes agentPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 4px var(--agent-glow, rgba(94,158,255,.2)); }
+  50% { transform: scale(1.05); box-shadow: 0 0 14px var(--agent-glow, rgba(94,158,255,.4)); }
+}
+@keyframes agentShake {
+  0%, 85%, 100% { transform: rotate(0deg); }
+  88% { transform: rotate(-5deg); }
+  92% { transform: rotate(5deg); }
+  96% { transform: rotate(-3deg); }
+}
+
+/* Drawer / Solo Inspector Area */
+.drawer {
+  margin-top: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  display: none;
+}
+.drawer.open { display: block; }
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.drawer-title { font-weight: 600; color: var(--ink); }
+.drawer-close {
+  background: none;
+  border: 0;
+  color: var(--ink-3);
+  font-size: 16px;
+  cursor: pointer;
+}
+.drawer-body { color: var(--ink-2); line-height: 1.4; }
+.drawer-action-btn {
+  margin-top: 8px;
+  background: var(--panel-3);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.drawer-action-btn:hover { border-color: var(--bob); color: var(--bob); }
+
+/* Footer Flight Telemetry */
+.dock-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.telemetry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.verdict-pill {
+  font: 700 10.5px "IBM Plex Mono", monospace;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.verdict-pill.idle { background: rgba(255,255,255,.05); color: var(--ink-3); }
+.verdict-pill.passed { background: var(--pass-t); color: var(--pass); border: 1px solid var(--pass); }
+.verdict-pill.failed { background: var(--fail-t); color: var(--fail); border: 1px solid var(--fail); }
+.verdict-pill.running { background: var(--bob-t); color: var(--bob); border: 1px solid var(--bob); }

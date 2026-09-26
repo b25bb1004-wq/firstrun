@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src data:">
+  <title>FirstRun Dock</title>
+  <link rel="stylesheet" href="dock.css">
+</head>
+<body>
+  <div class="dock-window">
+    <!-- Header with IBM Bob mascot button -->
+    <header class="dock-header">
+      <div class="bob-avatar-btn" id="bob-btn" title="IBM Bob Assistant · Toggle Guide Mode">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2a4 4 0 0 1 4 4v1h1a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4h1V6a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v1h4V6a2 2 0 0 0-2-2zm-3 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm6 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-6 5h6v1.5H9V17z"/>
+        </svg>
+      </div>
+      <div class="dock-title-wrap">
+        <div class="dock-title">FirstRun Dock</div>
+        <div class="dock-subtitle" id="bob-prompt">Which repo should I get running?</div>
+      </div>
+      <div class="dock-controls">
+        <button class="icon-btn" id="audio-toggle" title="Toggle audio status announcements" aria-label="Speech audio toggle">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="minimize-btn" title="Minimize to Tray" aria-label="Minimize">─</button>
+      </div>
+    </header>
+
+    <!-- Target Repo Input Area -->
+    <section class="repo-box">
+      <div class="repo-label">
+        <span>Target Repository</span>
+        <span id="repo-status" style="color:var(--ink-3);font-weight:400;text-transform:none">Ready</span>
+      </div>
+      <div class="repo-input-wrap">
+        <input class="repo-input" id="repo-input" type="text" placeholder="github.com/org/repo or local folder" value="examples/acme-shop" autocomplete="off" spellcheck="false">
+        <button class="btn-browse" id="btn-browse" type="button">Browse…</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-grid">
+        <button class="btn-action btn-quick" id="btn-plan" type="button" title="Fast static README vs code analysis (~2s, no Docker)">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+            <path d="M8 1a7 7 0 1 0 7 7A7 7 0 0 0 8 1zm-.5 3.5h1v4h-1zm.5 7a.75.75 0 1 1 .75-.75.75.75 0 0 1-.75.75z"/>
+          </svg>
+          Quick check
+        </button>
+        <button class="btn-action btn-prove" id="btn-verify" type="button" title="Full container proof: cold start → repair → replay from zero">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+            <polygon points="4 2 14 8 4 14 4 2"/>
+          </svg>
+          Prove it
+        </button>
+      </div>
+    </section>
+
+    <!-- The 7 Real Agents Strip -->
+    <section class="agents-section">
+      <div class="section-title">
+        <span>Sub-Agents</span>
+        <span style="font-weight:400;color:var(--ink-3);letter-spacing:0">Click agent for solo mode</span>
+      </div>
+
+      <div class="agents-list" id="agents-list">
+        <!-- 1. Scout -->
+        <div class="agent-row state-idle" id="agent-scout" data-agent="scout" style="--agent-color:var(--agent-scout);--agent-glow:rgba(16,185,129,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="9" stroke-width="2"/>
+              <circle cx="12" cy="12" r="4" stroke-width="1.5"/>
+              <line x1="12" y1="3" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Scout</span>
+              <span class="agent-cmd">firstrun scout</span>
+            </div>
+            <div class="agent-status-line" id="status-scout">Gathers facts from docs, manifests, CI, env</div>
+          </div>
+          <span class="agent-state-badge" id="badge-scout">idle</span>
+        </div>
+
+        <!-- 2. Planner -->
+        <div class="agent-row state-idle" id="agent-planner" data-agent="planner" style="--agent-color:var(--agent-planner);--agent-glow:rgba(6,182,212,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="2"/>
+              <path d="M7 8h10M7 12h6M7 16h8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="17" cy="16" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Planner</span>
+              <span class="agent-cmd">firstrun plan</span>
+            </div>
+            <div class="agent-status-line" id="status-planner">Builds ordered execution plan &amp; flags conflicts</div>
+          </div>
+          <span class="agent-state-badge" id="badge-planner">idle</span>
+        </div>
+
+        <!-- 3. Runner -->
+        <div class="agent-row state-idle" id="agent-runner" data-agent="runner" style="--agent-color:var(--agent-runner);--agent-glow:rgba(245,158,11,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="2" y="4" width="20" height="16" rx="3" stroke-width="2"/>
+              <polyline points="6 9 10 12 6 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="13" y1="15" x2="18" y2="15" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Runner</span>
+              <span class="agent-cmd">run --as-written</span>
+            </div>
+            <div class="agent-status-line" id="status-runner">Runs steps in sandbox with sidecars</div>
+          </div>
+          <span class="agent-state-badge" id="badge-runner">idle</span>
+        </div>
+
+        <!-- 4. Doctor -->
+        <div class="agent-row state-idle" id="agent-doctor" data-agent="doctor" style="--agent-color:var(--agent-doctor);--agent-glow:rgba(239,68,68,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 3v18M3 12h18" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Doctor</span>
+              <span class="agent-cmd">doctor --log</span>
+            </div>
+            <div class="agent-status-line" id="status-doctor">Rules first, IBM Bob for the long tail</div>
+          </div>
+          <span class="agent-state-badge" id="badge-doctor">idle</span>
+        </div>
+
+        <!-- 5. Verifier -->
+        <div class="agent-row state-idle" id="agent-verifier" data-agent="verifier" style="--agent-color:var(--agent-verifier);--agent-glow:rgba(61,214,140,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l7 3.5v6c0 5-3.5 9.5-7 10.5-3.5-1-7-5.5-7-10.5v-6z" stroke-width="2" stroke-linejoin="round"/>
+              <polyline points="9 11.5 11 13.5 15 9.5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Verifier</span>
+              <span class="agent-cmd">replay &lt;dir&gt;</span>
+            </div>
+            <div class="agent-status-line" id="status-verifier">Throws machine away; replays repaired guide</div>
+          </div>
+          <span class="agent-state-badge" id="badge-verifier">idle</span>
+        </div>
+
+        <!-- 6. Scribe -->
+        <div class="agent-row state-idle" id="agent-scribe" data-agent="scribe" style="--agent-color:var(--agent-scribe);--agent-glow:rgba(139,92,246,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M4 4v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6a2 2 0 0 0-2 2z" stroke-width="2" stroke-linejoin="round"/>
+              <polyline points="14 2 14 8 20 8" stroke-width="1.5"/>
+              <line x1="8" y1="13" x2="16" y2="13" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="17" x2="13" y2="17" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Scribe</span>
+              <span class="agent-cmd">scribe &lt;dir&gt;</span>
+            </div>
+            <div class="agent-status-line" id="status-scribe">README diff, passport.svg, FIRSTRUN.md</div>
+          </div>
+          <span class="agent-state-badge" id="badge-scribe">idle</span>
+        </div>
+
+        <!-- 7. Guide -->
+        <div class="agent-row state-idle" id="agent-guide" data-agent="guide" style="--agent-color:var(--agent-guide);--agent-glow:rgba(94,158,255,.3)">
+          <div class="agent-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="9" stroke-width="2"/>
+              <polygon points="12 6 14.5 11 19.5 12 14.5 13 12 18 9.5 13 4.5 12 9.5 11" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-name-row">
+              <span class="agent-name">Guide</span>
+              <span class="agent-cmd">firstrun guide</span>
+            </div>
+            <div class="agent-status-line" id="status-guide">Walks newcomers through proven steps</div>
+          </div>
+          <span class="agent-state-badge" id="badge-guide">idle</span>
+        </div>
+      </div>
+
+      <!-- Solo Inspector Drawer -->
+      <div class="drawer" id="drawer">
+        <div class="drawer-head">
+          <span class="drawer-title" id="drawer-title">Solo Mode</span>
+          <button class="drawer-close" id="drawer-close" type="button" aria-label="Close drawer">×</button>
+        </div>
+        <div class="drawer-body" id="drawer-body">
+          Select an agent above to inspect its live facts or trigger its solo command.
+        </div>
+        <div id="drawer-action-container"></div>
+      </div>
+    </section>
+
+    <!-- Live Telemetry Footer -->
+    <footer class="dock-footer">
+      <div class="telemetry-row">
+        <span>Verdict:</span>
+        <span class="verdict-pill idle" id="verdict-pill">IDLE</span>
+      </div>
+      <div class="telemetry-row">
+        <span id="step-counter">0 steps</span>
+        <span>·</span>
+        <span id="bobcoin-meter" title="IBM Bob tokens consumed">0.00 Bobcoins</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="dock.js"></script>
+</body>
+</html>
