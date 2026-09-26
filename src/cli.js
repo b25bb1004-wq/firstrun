@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyRepo } from './pipeline.js';
 import { scout } from './scout/index.js';
 import { buildPlan } from './plan.js';
-import { audit, fetchRepo } from './audit.js';
+import { audit, fetchRepo, auditExitCode } from './audit.js';
 import { staticDrift, replayVerifiedPlan, guardComment } from './drift.js';
 import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.js';
 import { cleanupAll } from './sandbox.js';
@@ -172,7 +172,10 @@ export async function main(argv) {
       const s = state.summary;
       console.log(`\n${bold(`${s.brokeOnCleanMachine} of ${s.total} READMEs broke on a clean machine`)} · ${s.repairedAutomatically} repaired automatically · ${s.breaksFixed}/${s.breaksFound} breaks fixed with evidence`);
       console.log(dim(`results: ${dir}`));
-      return 0;
+      const exitCode = auditExitCode(state.repos.filter((r) => r.status === 'done'));
+      const failed = state.repos.filter((r) => r.status === 'done' && (r.verdict === 'FAILED' || r.verdict === 'ERROR')).length;
+      console.log(`audit: ${state.repos.length} repos, ${failed} failed`);
+      return exitCode;
     }
     case 'guard': {
       const root = path.resolve(args._[0] || '.');

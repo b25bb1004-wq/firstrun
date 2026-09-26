@@ -121,3 +121,13 @@ export function summarize(state) {
     repairedAutomatically: broke.filter((r) => r.passport?.breaksFixed > 0).length,
   };
 }
+
+/**
+ * Compute the exit code for an audit from a list of repo results.
+ * Exit 0 when no repo ended FAILED (VERIFIED, PARTIAL, INCONCLUSIVE, CI-ONLY, NO-SETUP-DOCS are non-failures).
+ * Exit 1 when at least one repo ended FAILED or ERROR.
+ */
+export function auditExitCode(results) {
+  const failed = results.some((r) => r.verdict === 'FAILED' || r.verdict === 'ERROR');
+  return failed ? 1 : 0;
+}
