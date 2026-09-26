@@ -201,3 +201,11 @@ test('redactDeep supports tokensOnly option for structured file data', () => {
   assert.equal(logData.steps[1].cmd, mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`));
 });
 
+
+test('SonarQube tokens are masked (legacy 40-hex after sonar.login=, and squ_/sqp_ tokens)', async () => {
+  const { redactTokens } = await import('../src/redact.js');
+  const legacy = 'sonar.login=' + 'a'.repeat(8) + '0123456789abcdef0123456789abcdef';
+  assert.doesNotMatch(redactTokens(legacy), /[0-9a-f]{40}/);
+  assert.doesNotMatch(redactTokens('token squ_' + 'A1b2C3d4'.repeat(4)), /squ_A1b2/);
+  assert.equal(redactTokens('sonar.projectKey=fastapi-alembic'), 'sonar.projectKey=fastapi-alembic');
+});
