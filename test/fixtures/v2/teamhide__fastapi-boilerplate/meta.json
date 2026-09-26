@@ -8,6 +8,7 @@
     "pyproject.toml",
     "poetry.lock.head",
     "Makefile",
-    "docker/docker-compose.yml"
+    "docker/docker-compose.yml",
+    "docker/init.sql"
   ]
 }
