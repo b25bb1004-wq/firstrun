@@ -1,4 +1,4 @@
-// FirstRun run model: folds the Event stream (docs/ARCHITECTURE.md) into a view model.
+// HUMBLE run model: folds the Event stream (docs/ARCHITECTURE.md) into a view model.
 // Isomorphic (browser + Node), no DOM access. Used by the dashboard and by fixtures/replay.js.
 
 export const AGENTS = ['scout', 'planner', 'runner', 'doctor', 'verifier', 'scribe'];

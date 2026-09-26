@@ -5,7 +5,7 @@ import { serviceKind, SERVICE_CATALOG } from './doctor/services.js';
  * The sandbox has no Docker daemon, so README lines such as
  * `docker compose up -d db` or `docker run -p 6379:6379 redis` are carried out
  * by starting the same images as sidecars on the sandbox's localhost. Services
- * that are built from source (the app itself) are not started: FirstRun runs
+ * that are built from source (the app itself) are not started: HUMBLE runs
  * the app natively, the way the rest of the README does.
  */
 export async function runServicesStep(command, { sandbox, facts, cwd = null }) {

@@ -7,7 +7,7 @@ import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './servi
 /**
  * Deterministic diagnosis rules. Each rule looks at a failed step's output and
  * returns { ruleId, class, cause, confidence, fix } or null. A fix has sandbox
- * `actions` (to repair this run), repo `patches` (files FirstRun will change in
+ * `actions` (to repair this run), repo `patches` (files HUMBLE will change in
  * the PR) and a `doc` change (what the README must say instead).
  *
  * Rules only claim failures they understand; everything else goes to IBM Bob.
@@ -49,7 +49,7 @@ function runtimeCause(plan, label, target, src) {
 }
 
 /** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
-/** Value for dev secrets FirstRun has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
+/** Value for dev secrets HUMBLE has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
 export const DEV_SECRET = 'change.me.local.dev.only.not.a.secret';
 
 const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-_ ]?me|xxx+|todo|replace[-_ ]?me|placeholder)$/i;
@@ -193,7 +193,7 @@ export const RULES = [
       if (bcryptMajor && bcryptMajor < 6) {
         return {
           ruleId: 'node-native-build', class: 'runtime-version', confidence: 0.8,
-          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which FirstRun leaves to a human.`,
+          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which HUMBLE leaves to a human.`,
           fix: null,
         };
       }
@@ -470,7 +470,7 @@ export const RULES = [
       const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
       return {
         ruleId: 'env-empty-value', class: 'missing-env', confidence: 0.85,
-        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. FirstRun fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
+        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. HUMBLE fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
         fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has working local values for the variables that were blank (${shown}).` } },
       };
     },
@@ -532,7 +532,7 @@ export const RULES = [
       const envNote = `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.`;
       return {
         ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
-        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
+        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; HUMBLE sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
         fix: { actions, patches, doc: mailDoc || { kind: 'note', text: envNote } },
       };
     },
@@ -939,7 +939,7 @@ export const RULES = [
       if (!m) return null;
       return {
         ruleId: 'secret-required', class: 'needs-secret', confidence: 0.7,
-        cause: 'This step needs a real third-party credential; FirstRun will not invent one.',
+        cause: 'This step needs a real third-party credential; HUMBLE will not invent one.',
         fix: null,
       };
     },

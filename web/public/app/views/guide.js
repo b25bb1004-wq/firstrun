@@ -116,7 +116,7 @@ export function mountGuide(root, runId) {
               : h`<div class="g-trouble"><span class="lbl">If you see</span><code class="g-sig-c">${t.sig}</code><span class="lbl">it means</span><p>${t.cause}</p>${t.todo.length ? h`<span class="lbl">do this</span><p>${t.todo.map(x => h`${x} `)}</p>` : ''}<a class="g-ev" href="#/run/${runId}/${t.id}">${t.id}</a></div>`)}
           </div>
         </li>`)}</ol>
-        ${n === g.steps.length && g.steps.length ? h`<p class="g-finish">${icon('check')} You are set up. That took FirstRun ${p?.replaySeconds ? secs(p.replaySeconds) : 'a few minutes'} from zero.</p>` : ''}
+        ${n === g.steps.length && g.steps.length ? h`<p class="g-finish">${icon('check')} You are set up. That took HUMBLE ${p?.replaySeconds ? secs(p.replaySeconds) : 'a few minutes'} from zero.</p>` : ''}
       </div>`);
     };
     draw();

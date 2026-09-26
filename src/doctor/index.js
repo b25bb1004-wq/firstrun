@@ -113,7 +113,7 @@ export function validateBobFix(j) {
 
 function doctorRequest(ctx) {
   const { step, attempt, facts, plan, history = [] } = ctx;
-  return `# FirstRun Doctor request
+  return `# HUMBLE Doctor request
 
 A newcomer is following this repository's setup documentation, command by command, on a
 clean Linux machine (Docker image \`${ctx.image}\`, working directory = repo root, running as root,
@@ -135,9 +135,9 @@ ${tail(attempt.out, 80)}
 \`\`\`
 
 ## Setup plan so far
-${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by FirstRun)' : ''}`).join('\n')}
+${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by HUMBLE)' : ''}`).join('\n')}
 
-## What FirstRun already knows
+## What HUMBLE already knows
 \`\`\`json
 ${JSON.stringify(summarizeFacts(facts), null, 2)}
 \`\`\`

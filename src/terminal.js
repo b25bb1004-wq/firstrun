@@ -4,7 +4,7 @@ const tty = process.stdout.isTTY && !process.env.NO_COLOR;
 const c = (code) => (s) => (tty ? `\x1b[${code}m${s}\x1b[0m` : String(s));
 export const dim = c('2'), bold = c('1'), red = c('31'), green = c('32'), yellow = c('33'), blue = c('34'), cyan = c('36'), magenta = c('35');
 
-const AGENT = { scout: 'Scout', planner: 'Planner', runner: 'Runner', doctor: 'Doctor', verifier: 'Verifier', scribe: 'Scribe', guard: 'Guard', swarm: 'FirstRun' };
+const AGENT = { scout: 'Scout', planner: 'Planner', runner: 'Runner', doctor: 'Doctor', verifier: 'Verifier', scribe: 'Scribe', guard: 'Guard', swarm: 'HUMBLE' };
 
 /** Print a run's events as a readable live log. */
 export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
@@ -46,7 +46,7 @@ export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
         p(`    ${yellow('⚒')} ${d.fix.doc?.text || d.fix.actions.map((a) => a.type).join(', ')}`);
         break;
       case 'step.inserted':
-        p(`    ${yellow('+')} FirstRun adds a missing step: ${d.step.command}`);
+        p(`    ${yellow('+')} HUMBLE adds a missing step: ${d.step.command}`);
         break;
       case 'evidence':
         p(`    ${d.status === 'verified' ? green('✔ evidence ' + d.id + ': fixed and verified') : d.status === 'needs-human' ? red('✋ ' + d.id + ': needs a maintainer') : d.status === 'progressed' ? green('↪ ' + d.id + ': worked, revealed the next error') : yellow('… ' + d.id + ': fix did not work')}`);

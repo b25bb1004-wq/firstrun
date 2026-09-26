@@ -6,21 +6,21 @@ import { readJson, tail } from './util.js';
 import { bold, dim, green, red, yellow, cyan } from './terminal.js';
 
 /**
- * The newcomer's side of FirstRun: walk through the verified setup on your own
+ * The newcomer's side of HUMBLE: walk through the verified setup on your own
  * machine, one step at a time. Each step says what it does, runs only when you
  * say so, and when something fails the output is matched against the failure
- * signatures FirstRun recorded while repairing the docs.
+ * signatures HUMBLE recorded while repairing the docs.
  */
 export async function guide(root, { yes = false } = {}) {
   const planFile = [path.join(root, '.github', 'firstrun', 'plan.json'), path.join(root, '.firstrun', 'out', 'pr', '.github', 'firstrun', 'plan.json')].find((f) => fs.existsSync(f));
   if (!planFile) {
-    console.log(`No verified setup found. Run ${bold('firstrun verify')} first (or ask the maintainers to merge the FirstRun PR).`);
+    console.log(`No verified setup found. Run ${bold('firstrun verify')} first (or ask the maintainers to merge the HUMBLE PR).`);
     return 1;
   }
   const plan = readJson(planFile);
   const signatures = (plan.knownFailures || []).map((k) => ({ re: signatureOf(k.signature), cause: k.cause, fix: k.fix })).filter((s) => s.re);
 
-  console.log(`\n${bold(cyan('FirstRun Guide'))} ${dim('·')} ${plan.steps.length} verified steps ${dim(`(verified ${plan.verifiedAt?.slice(0, 10)} on ${plan.image})`)}`);
+  console.log(`\n${bold(cyan('HUMBLE Guide'))} ${dim('·')} ${plan.steps.length} verified steps ${dim(`(verified ${plan.verifiedAt?.slice(0, 10)} on ${plan.image})`)}`);
   console.log(dim(`You need ${plan.runtime.name === 'node' ? 'Node.js' : 'Python'} ${plan.runtime.version}${plan.steps.some((s) => s.kind === 'services') ? ' and Docker' : ''}. Keys: Enter = run · s = skip · q = quit\n`));
   if (process.platform === 'win32') console.log(yellow('Windows: run this inside WSL or Git Bash; the steps were verified on Linux.\n'));
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -41,7 +41,7 @@ export async function guide(root, { yes = false } = {}) {
       console.log(`   ${red(`✗ exit ${r.code}`)}`);
       const hit = signatures.find((sig) => sig.re.test(r.out));
       if (hit) console.log(`   ${bold('Known issue:')} ${hit.cause}\n   ${bold('Fix:')} ${hit.fix}\n`);
-      else console.log(`   ${dim('Not a failure FirstRun has seen. Last lines:')}\n${tail(r.out, 6).split('\n').map((l) => `     ${l}`).join('\n')}\n   ${dim('Ask IBM Bob in the "FirstRun Guide" mode, or open an issue with this output.')}\n`);
+      else console.log(`   ${dim('Not a failure HUMBLE has seen. Last lines:')}\n${tail(r.out, 6).split('\n').map((l) => `     ${l}`).join('\n')}\n   ${dim('Ask IBM Bob in the "HUMBLE Guide" mode, or open an issue with this output.')}\n`);
       const again = yes ? 'q' : (await rl.question(dim('   retry (r), continue (c) or quit (q)? '))).trim().toLowerCase();
       if (again === 'q') return 1;
     }

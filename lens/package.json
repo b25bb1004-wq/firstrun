@@ -2,7 +2,7 @@
   "name": "firstrun-lens",
   "version": "0.1.0",
   "private": true,
-  "description": "Circle anything on screen and ask about it: known FirstRun fixes first, IBM Bob for the rest.",
+  "description": "Circle anything on screen and ask about it: known HUMBLE fixes first, IBM Bob for the rest.",
   "type": "module",
   "main": "main.js",
   "scripts": {

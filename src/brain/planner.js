@@ -5,7 +5,7 @@ import { summarizeFacts } from '../scout/index.js';
 /**
  * When the setup instructions aren't in shell code blocks (prose, PDFs, .rst,
  * wiki exports), ask IBM Bob to read the onboarding material and extract the
- * ordered commands a newcomer would run. FirstRun then executes and verifies
+ * ordered commands a newcomer would run. HUMBLE then executes and verifies
  * them exactly like README steps: Bob proposes, the sandbox proves.
  */
 export function needsBobPlanner(plan, facts) {
@@ -13,11 +13,11 @@ export function needsBobPlanner(plan, facts) {
 }
 
 export async function bobPlan({ facts, plan, budget }) {
-  const request = `# FirstRun Planner request
+  const request = `# HUMBLE Planner request
 
 A new contributor wants to get this repository running locally on a clean Linux machine
 (Docker image \`${plan.image}\`, working directory = repo root, running as root, no Docker daemon:
-databases/caches are started by FirstRun when a step says \`docker compose up -d\` or
+databases/caches are started by HUMBLE when a step says \`docker compose up -d\` or
 \`docker run ... <image>\`).
 
 Read the onboarding material: ${[...facts.docs, ...(facts.extraDocs || [])].map((d) => `\`${d}\``).join(', ')}.
@@ -30,10 +30,10 @@ say it when they give one; when the docs describe a step only in prose ("create 
 app", "set the API URL"), write the literal command a careful newcomer would type. Skip
 \`git clone\`, OS-specific installers for macOS/Windows and editor commands.
 
-FirstRun already extracted these from code blocks (may be incomplete or empty):
+HUMBLE already extracted these from code blocks (may be incomplete or empty):
 ${plan.steps.map((s) => `- \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}`).join('\n') || '- (nothing)'}
 
-What FirstRun knows about the repo:
+What HUMBLE knows about the repo:
 \`\`\`json
 ${JSON.stringify(summarizeFacts(facts), null, 2)}
 \`\`\`

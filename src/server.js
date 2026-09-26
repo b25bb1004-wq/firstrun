@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// FirstRun dashboard server. Zero dependencies. Implements the HTTP API in docs/ARCHITECTURE.md.
+// HUMBLE dashboard server. Zero dependencies. Implements the HTTP API in docs/ARCHITECTURE.md.
 //
 //   node src/server.js --root fixtures [--root other] [--run path/to/repo] [--port 4173]
 //
@@ -399,5 +399,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     process.exit(0);
   }
   const { url, registry } = await startServer(o);
-  console.log(`FirstRun dashboard on ${url}  (${registry.runs.size} runs, ${registry.audits.size} audits)`);
+  console.log(`HUMBLE dashboard on ${url}  (${registry.runs.size} runs, ${registry.audits.size} audits)`);
 }

@@ -32,7 +32,7 @@ const COLORS = { VERIFIED: '#1f9d55', PARTIAL: '#d97706', FAILED: '#dc2626' };
 
 /** A shields.io-style badge, self-contained so it renders on GitHub. */
 export function passportBadge(p) {
-  const left = 'FirstRun';
+  const left = 'HUMBLE';
   const right = p.verdict === 'VERIFIED' ? `verified · ${fmtDuration(p.replaySeconds * 1000)}` : p.verdict === 'PARTIAL' ? `partly verified · ${p.breaksFixed}/${p.breaksFound} fixed` : 'setup broken';
   const w = (s) => Math.round(s.length * 6.6 + 16);
   const lw = w(left) + 14, rw = w(right);
