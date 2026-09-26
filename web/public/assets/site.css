@@ -339,3 +339,42 @@ h3 { font-weight: 600; letter-spacing: -0.015em; }
 .hero-full h1 { letter-spacing: -0.028em; font-weight: 650; }
 h1 { letter-spacing: -0.025em; } h2 { letter-spacing: -0.022em; font-weight: 650; }
 .stats b, .gallery .big { letter-spacing: -0.03em; font-weight: 750; }
+
+/* ===== v11: scroll-scrubbed real run (assets/scrub.js), Apple's scroll-scrub applied to our recording ===== */
+.scrub { position: relative; height: 460vh; padding: 0; border-top: 1px solid var(--line); }
+.scrub-stick { position: sticky; top: 64px; height: calc(100vh - 64px); display: flex; align-items: center; overflow: hidden; }
+.scrub-grid { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(32px, 6vw, 88px); align-items: center; width: 100%; }
+.scrub-meta h2 { font-size: clamp(34px, 4.4vw, 60px); margin-bottom: 22px; }
+.scrub-phase { font-weight: 600; font-size: 19px; margin: 0 0 26px; min-height: 1.5em; transition: color 300ms var(--ease-out); }
+.scrub[data-state="fail"] .scrub-phase, .scrub[data-state="doctor"] .scrub-phase { color: var(--pink); }
+.scrub[data-state="fix"] .scrub-phase, .scrub[data-state="reset"] .scrub-phase, .scrub[data-state="replay"] .scrub-phase, .scrub[data-state="done"] .scrub-phase { color: var(--blue); }
+.scrub-count { display: flex; gap: 40px; margin: 0 0 26px; }
+.scrub-count dt { color: var(--muted); font-size: 14px; } .scrub-count dd { margin: 4px 0 0; font: 750 44px/1 var(--display); letter-spacing: -0.03em; }
+.scrub-count div:nth-child(1) dd { color: var(--pink); } .scrub-count div:nth-child(2) dd { color: var(--blue); }
+.scrub-src { font-size: 14px; }
+.scrub-window { height: min(68vh, 620px); overflow: hidden; border-left: 1px solid var(--line); padding-left: 28px; }
+.scrub-feed { list-style: none; margin: 0; padding: 0; transition: transform 500ms var(--ease-out); }
+.beat { display: grid; grid-template-columns: 14px 1fr; gap: 14px; padding: 12px 0; opacity: .14; transition: opacity 400ms var(--ease-out); }
+.beat.on { opacity: .55; } .beat.now { opacity: 1; }
+.beat .dot { width: 10px; height: 10px; margin-top: 6px; background: var(--muted); border-radius: 50%; }
+.beat b { display: block; font: 500 15px var(--mono); letter-spacing: 0; word-break: break-word; }
+.beat span { color: var(--muted); font-size: 14px; }
+.k-fail .dot, .k-doctor .dot { background: var(--pink); } .k-fail b { color: var(--pink); }
+.k-fix .dot, .k-pass .dot, .k-replay .dot { background: var(--blue); }
+.k-doctor b, .k-fix b, .k-reset b { font-family: var(--sans); font-weight: 600; }
+.k-reset { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 8px 0; padding: 16px 0; }
+.k-reset .dot { background: var(--ink); }
+.k-done b { font: 750 34px/1 var(--display); color: var(--blue); letter-spacing: -0.02em; }
+.k-done .dot { background: var(--blue); width: 14px; height: 14px; margin-top: 10px; }
+@media (max-width: 860px) { .scrub-grid { grid-template-columns: 1fr; gap: 20px; } .scrub-window { height: 44vh; border-left: 0; padding-left: 0; } .scrub-count dd { font-size: 32px; } }
+.scrub.static { height: auto; padding: 96px 0; } .scrub.static .scrub-stick { position: static; height: auto; } .scrub.static .scrub-window { height: auto; } .scrub.static .beat { opacity: 1; }
+
+/* ===== v12: Futura body (Karmanya): real Futura where the device has it (macOS/iOS ship it), otherwise Jost,
+   the open-source Futura revival. Bricolage Grotesque stays on display. Futura's geometric forms set a touch
+   larger and looser than SF: 18px body, +0.005em. ===== */
+:root { --sans: "Futura", "Futura PT", "Jost", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", system-ui, sans-serif; }
+body { font-size: 18px; line-height: 1.55; letter-spacing: 0.005em; }
+.lede { letter-spacing: 0.002em; line-height: 1.45; }
+.btn { letter-spacing: 0.01em; font-weight: 500; }
+.eyebrow { font-weight: 500; letter-spacing: 0.02em; }
+.top nav a, .foot nav a { letter-spacing: 0.01em; }

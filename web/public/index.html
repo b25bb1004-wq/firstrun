@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#efe7da">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/site.css">
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
@@ -78,6 +78,25 @@
       <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="16"/></svg>05</span><div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div></li>
       <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="currentColor"/></svg>06</span><div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div></li>
     </ol>
+  </section>
+
+  <section class="scrub" id="run" data-events="/data/runs/acme-shop-3c0bc2b2/f/events.ndjson" aria-labelledby="h-run">
+    <div class="scrub-stick">
+      <div class="wrap scrub-grid">
+        <div class="scrub-meta">
+          <p class="eyebrow mono">Scroll through a real run</p>
+          <h2 id="h-run">acme-shop, from broken README to verified.</h2>
+          <p class="scrub-phase" data-k="phase">Following the README on a clean machine</p>
+          <dl class="scrub-count">
+            <div><dt>Breaks found</dt><dd data-k="found">0</dd></div>
+            <div><dt>Fixed</dt><dd data-k="fixed">0</dd></div>
+            <div><dt>Event</dt><dd data-k="step">1 / 1</dd></div>
+          </dl>
+          <p class="muted scrub-src">Every line is an event from the recorded run. <a class="link" href="/proof">Watch it play</a></p>
+        </div>
+        <div class="scrub-window"><ol class="scrub-feed"></ol></div>
+      </div>
+    </div>
   </section>
 
   <section class="band" id="proof" aria-labelledby="h-proof">
@@ -160,6 +179,7 @@
 <script src="/assets/site.js" defer></script>
 <script src="/assets/hero-gl.js" defer></script>
 <script src="/assets/wall.js" defer></script>
+<script src="/assets/scrub.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
 </body>
 </html>
