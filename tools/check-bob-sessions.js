@@ -31,7 +31,10 @@ for (const p of people) {
     const md = files.find((f) => f === `${n}.md`);
     const img = files.find((f) => new RegExp(`^${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.(png|jpe?g)$`, 'i').test(f));
     const issues = [];
-    if (!img) issues.push('missing consumption-summary screenshot (PNG required by IBM)');
+    // IBM's PNG rule is for Bob IDE tasks; headless Bob Shell runs have no summary screen, so their
+    // .md record (task id + cost) is the evidence.
+    const shell = md && /IBM Bob Shell/.test(fs.readFileSync(path.join(DIR, p.name, md), 'utf8'));
+    if (!img && !shell) issues.push('missing consumption-summary screenshot (PNG required by IBM)');
     if (img && !/^[a-z0-9-]+_task\d{2,}_[a-z0-9_]+_summary\.png$/i.test(img)) issues.push(`name "${img}" doesn't follow IBM's teamname_task01_short_description_summary.png`);
     if (md) {
       const text = fs.readFileSync(path.join(DIR, p.name, md), 'utf8');

@@ -139,6 +139,7 @@ const ENV_PATTERNS = [
   /"path":\s*\[\s*"([A-Z][A-Z0-9_]{2,})"\s*\][\s\S]{0,80}"message":\s*"Required"/,
   /✖?\s*([A-Z][A-Z0-9_]{2,}):\s*(?:Required|Invalid input: expected string, received undefined)/,
   /([A-Z][A-Z0-9_]{2,})\s*\n\s*Field required \[type=missing/,
+  /Environment variable not found: ([A-Z][A-Z0-9_]{2,})\./,
 ];
 
 export const RULES = [
@@ -212,6 +213,28 @@ export const RULES = [
           actions: [{ type: 'rebase', image: imageFor('node', String(target)), runtime: { name: 'node', version: String(target), source: why } }],
           patches: [],
           doc: { kind: 'prerequisite', text: `Node.js ${target} (see the native-build errors: dependencies do not compile on newer versions)`, runtime: { name: 'node', version: String(target) } },
+        },
+      };
+    },
+  },
+  {
+    // "node: bad option: --test" (Node < 18) or unknown --experimental-* flags.
+    // The plan picked an old image because the docs only stated a minimum version.
+    id: 'node-test-flag',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'node' || !facts.node) return null;
+      if (!/node: bad option: --test|node: bad option: --experimental-/.test(log)) return null;
+      const target = '18';
+      const current = plan.runtime.version;
+      if (Number(current) >= Number(target)) return null;
+      const src = `the error ("${log.match(/node: bad option: --\S+/)?.[0]}"): \`--test\` requires Node.js 18+`;
+      return {
+        ruleId: 'node-test-flag', class: 'runtime-version', confidence: 0.95,
+        cause: runtimeCause(plan, 'Node.js', target, src),
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target} or newer (\`--test\` runner requires Node.js 18+)`, runtime: { name: 'node', version: target } },
         },
       };
     },
