@@ -204,7 +204,7 @@ export async function runVerifier(runDir, { out, repo } = {}) {
     for (const a of step.prereqs || []) {
       if (a.type === 'exec') await sandbox.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
       else if (a.type === 'write') await sandbox.writeFile(a.path, a.content);
-      else if (a.type === 'service') await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+      else if (a.type === 'service') await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
     }
     rec.emitEvent('verifier', 'step.start', { stepId: step.id, n: 1, command: step.command });
     let r;

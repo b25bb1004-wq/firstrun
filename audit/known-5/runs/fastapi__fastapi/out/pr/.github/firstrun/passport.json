@@ -1,0 +1,22 @@
+{
+  "repo": "fastapi/fastapi",
+  "commit": "192b12197e",
+  "verifiedAt": "2026-09-26T12:04:56.564Z",
+  "verdict": "FAILED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 2,
+  "stepsFromReadme": 2,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 1.14,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  }
+}

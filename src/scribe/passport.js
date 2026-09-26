@@ -1,13 +1,34 @@
 import { fmtDuration } from '../util.js';
+import { computeAttribution, attributeEvidence } from './attribution.js';
 
 export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packageCache = true }) {
   const fromReadme = plan.steps.filter((s) => s.origin === 'readme' && !s.skip).length;
-  const breaksFound = evidence.length;
-  const breaksFixed = evidence.filter((e) => e.status === 'verified').length;
+  
+  // Compute attribution
+  const { repoBreaks, suiteIssues, needsPerson, humbleUnknowns } = computeAttribution(evidence);
+  
+  // breaksFound = repoBreaks for compatibility (only repo breaks count as "breaks")
+  const breaksFound = repoBreaks;
+  
+  // breaksFixed counts only verified repo breaks
+  const breaksFixed = evidence.filter((e) => 
+    e.status === 'verified' && attributeEvidence(e) === 'repo'
+  ).length;
+  
   const needsHuman = plan.steps.filter((s) => s.status === 'needs-human').length;
+  
+  // Verdict (Friday's review): the v1 rules stay, so a repo whose breaks HUMBLE found AND fixed is still VERIFIED
+  // (koa 2/2, GeekyAnts 4/4). The one addition: when what is left unresolved is only HUMBLE's own limits
+  // (unknown failures), the repo is INCONCLUSIVE, never FAILED on our account.
+  const replayPassed = replay?.status === 'passed';
+  const unresolved = evidence.filter((e) => e.status !== 'verified' && e.status !== 'progressed');
   let verdict = 'FAILED';
-  if (replay?.status === 'passed' && needsHuman === 0) verdict = 'VERIFIED';
-  else if (replay?.status === 'passed' || (!stopped && breaksFixed > 0)) verdict = 'PARTIAL';
+  // VERIFIED: the replay passed and nothing is left unresolved (fixed breaks are fine).
+  if (replayPassed && needsHuman === 0 && unresolved.length === 0) verdict = 'VERIFIED';
+  // The setup did not replay, and everything still open is HUMBLE's own limit: we can't judge this repo.
+  else if (!replayPassed && unresolved.length && unresolved.every((e) => attributeEvidence(e) === 'humble')) verdict = 'INCONCLUSIVE';
+  else if (replayPassed || (!stopped && breaksFixed > 0)) verdict = 'PARTIAL';
+  
   return {
     repo: plan.repo,
     commit: plan.commit,
@@ -20,6 +41,11 @@ export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packa
     breaksFound,
     breaksFixed,
     needsHuman,
+    // New fields
+    repoBreaks,
+    suiteIssues,
+    needsPerson,
+    humbleUnknowns,
     replaySeconds: replay ? Math.round(replay.durationMs / 1000) : 0,
     packageCache: Boolean(replay && packageCache),
     bobcoins: Math.round((bobcoins || 0) * 100) / 100,
@@ -28,12 +54,34 @@ export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packa
   };
 }
 
-const COLORS = { VERIFIED: '#1f9d55', PARTIAL: '#d97706', FAILED: '#dc2626' };
+const COLORS = { 
+  VERIFIED: '#1f9d55', 
+  PARTIAL: '#d97706', 
+  FAILED: '#dc2626',
+  INCONCLUSIVE: '#6366f1',
+  'NO-SETUP-DOCS': '#9ca3af'
+};
 
 /** A shields.io-style badge, self-contained so it renders on GitHub. */
 export function passportBadge(p) {
   const left = 'HUMBLE';
-  const right = p.verdict === 'VERIFIED' ? `verified · ${fmtDuration(p.replaySeconds * 1000)}` : p.verdict === 'PARTIAL' ? `partly verified · ${p.breaksFixed}/${p.breaksFound} fixed` : 'setup broken';
+  let right;
+  switch (p.verdict) {
+    case 'VERIFIED':
+      right = `verified · ${fmtDuration(p.replaySeconds * 1000)}`;
+      break;
+    case 'PARTIAL':
+      right = `partly verified · ${p.breaksFixed}/${p.breaksFound} fixed`;
+      break;
+    case 'INCONCLUSIVE':
+      right = `inconclusive · ${p.humbleUnknowns} humble unknown${p.humbleUnknowns !== 1 ? 's' : ''}`;
+      break;
+    case 'NO-SETUP-DOCS':
+      right = 'no setup docs';
+      break;
+    default:
+      right = 'setup broken';
+  }
   const w = (s) => Math.round(s.length * 6.6 + 16);
   const lw = w(left) + 14, rw = w(right);
   const total = lw + rw;

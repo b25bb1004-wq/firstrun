@@ -10,6 +10,9 @@ export const TOKEN_PATTERNS = [
   /\bbob_prod_[A-Za-z0-9_-]{8,}\b/g,
   /\bnvapi-[A-Za-z0-9_-]{10,}\b/g,
   /\bwagtail_[A-Za-z0-9_-]{8,}\b/g,
+  // SonarQube tokens: squ_/sqp_/sqa_ prefixed, and the legacy 40-hex value after sonar.login= (vargasjona's README).
+  /\bsq[upa]_[A-Za-z0-9]{20,}\b/g,
+  /(?<=sonar\.(?:login|token)\s*[=:]\s*['"]?)[0-9a-f]{40}\b/g,
   /\b[MN][A-Za-z0-9_-]{23,25}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b/g,
   /-----BEGIN [A-Z ]*PRIVATE KEY[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
 ];

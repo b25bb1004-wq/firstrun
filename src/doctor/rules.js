@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
+import { TOOLBOX } from './toolbox.js';
 import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './services.js';
 
 /**
@@ -116,6 +117,12 @@ function joiDefaults(facts) {
 function prismaSchema(facts) {
   const f = (facts.files || []).find((x) => /(^|\/)schema\.prisma$/.test(x));
   try { return f ? fs.readFileSync(path.join(facts.root, f), 'utf8') : ''; } catch { return ''; }
+}
+
+/** The Node major the sandbox runs (plan.runtime or the image tag), or null. */
+function runtimeMajor(ctx) {
+  const v = ctx?.plan?.runtime?.name === 'node' ? ctx.plan.runtime.version : (String(ctx?.image || ctx?.plan?.image || '').match(/^node:(\d+)/) || [])[1];
+  return Number(String(v || '').match(/\d+/)?.[0]) || null;
 }
 
 function depRange(facts, name) {
@@ -587,7 +594,7 @@ export const RULES = [
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
       // Env files win over defaults hard-coded in config source (listed last, so found last).
       const def = serviceFor(kind, { facts, envValues: { ...(facts.envExample?.keys || {}), ...sandboxEnv, ...sourceUrls(facts) } });
-      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port }];
+      const actions = [{ type: 'service', name: def.name, image: def.image, env: def.env, port: def.port, volumes: def.volumes || [], composeDir: def.composeDir || null }];
       if (socket) actions.push({ type: 'exec', command: `printf 'export PGHOST=127.0.0.1 PGUSER=%s PGPASSWORD=%s\\n' ${shq(def.env.POSTGRES_USER || 'postgres')} ${shq(def.env.POSTGRES_PASSWORD || 'postgres')} >> ~/.bashrc; export PGHOST=127.0.0.1 PGUSER=${def.env.POSTGRES_USER || 'postgres'} PGPASSWORD=${def.env.POSTGRES_PASSWORD || 'postgres'}` });
       const patches = [];
       let doc;
@@ -599,8 +606,11 @@ export const RULES = [
           : { kind: 'insert-step', text: 'docker compose up -d', service: kind };
         if (!composeStep) actions.push({ type: 'insert-before', command: 'docker compose up -d', kind: 'services', silent: true });
       } else if (def.fromCompose) {
-        doc = { kind: 'insert-step', text: `docker compose up -d ${def.name}`, service: kind };
-        actions.push({ type: 'insert-before', command: `docker compose up -d ${def.name}`, kind: 'services', silent: true });
+        const cmd = facts.compose?.file && facts.compose.file !== 'docker-compose.yml' && facts.compose.file !== 'compose.yml'
+          ? `docker compose -f ${facts.compose.file} up -d ${def.name}`
+          : `docker compose up -d ${def.name}`;
+        doc = { kind: 'insert-step', text: cmd, service: kind };
+        actions.push({ type: 'insert-before', command: cmd, kind: 'services', silent: true });
       } else {
         const line = dockerRunLine(def);
         doc = { kind: 'insert-step', text: line, service: kind };
@@ -718,7 +728,8 @@ export const RULES = [
       const tool = m[1];
       const installs = {
         yarn: 'corepack enable', pnpm: 'corepack enable',
-        poetry: 'pip install poetry', pipenv: 'pip install pipenv', uv: 'pip install uv', tox: 'pip install tox', nox: 'pip install nox',
+        poetry: TOOLBOX.poetry, pipenv: 'pip install pipenv', uv: TOOLBOX.uv, tox: 'pip install tox', nox: 'pip install nox',
+        bun: TOOLBOX.bun, deno: TOOLBOX.deno, just: TOOLBOX.just,
         make: 'apt-get update && apt-get install -y make', psql: 'apt-get update && apt-get install -y postgresql-client',
         createdb: 'apt-get update && apt-get install -y postgresql-client', redis_cli: 'apt-get update && apt-get install -y redis-tools',
         'redis-cli': 'apt-get update && apt-get install -y redis-tools', jq: 'apt-get update && apt-get install -y jq',
@@ -1021,7 +1032,8 @@ export const RULES = [
   {
     // przemek: `npm test` runs jest, but jest is not in package.json at all.
     id: 'test-runner-undeclared',
-    test({ log, facts }) {
+    test(ctx) {
+      const { log, facts } = ctx;
       const m = log.match(/(?:sh|bash): (?:\d+: )?(jest|vitest|mocha|ava|tap|nyc|c8|karma|jasmine): (?:command )?not found/);
       if (!m || !facts.node) return null;
       const bin = m[1];
@@ -1035,7 +1047,21 @@ export const RULES = [
         if (/ts-jest/.test(text) && !deps.includes('ts-jest')) extra += ' ts-jest';
         if (!deps.includes('@types/jest') && (facts.files || []).includes('tsconfig.json')) extra += ' @types/jest';
       }
-      const cmd = `npm install --no-save ${bin}${extra}`;
+      // Pin the runner to the version the project's own companions expect. przemek declares ts-jest ^27 and
+      // @types/jest ^27 but not jest; unpinned `npm install jest` got jest 30, which needs Node 18+ and crashed on
+      // node:16 ("availableParallelism is not a function"). Companion major first, else a major that fits the runtime.
+      const major = (r) => (String(r || '').match(/(\d+)/) || [])[1];
+      let pin = '';
+      if (bin === 'jest') {
+        const m2 = major(depRange(facts, 'ts-jest')) || major(depRange(facts, '@types/jest')) || major(depRange(facts, 'babel-jest'));
+        const nodeMajor = Number(String(facts.node?.engines || '').match(/(\d+)/)?.[1] || 0) || null;
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        pin = m2 ? `@${m2}` : (runtime && runtime < 18) || (nodeMajor && nodeMajor < 18 && !runtime) ? '@29' : '';
+      } else if (bin === 'vitest') {
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        if (runtime && runtime < 18) pin = '@0';
+      }
+      const cmd = `npm install --no-save ${bin}${pin}${extra}`;
       return {
         ruleId: 'test-runner-undeclared', class: 'missing-dependency', confidence: 0.85,
         cause: `The test script runs \`${bin}\`, but ${bin} is not in package.json, so installing the project never installs it. It only works on machines that already have it.`,
@@ -1117,6 +1143,20 @@ export const RULES = [
         ruleId: 'browser-system-libs', class: 'missing-tool', confidence: 0.88,
         cause: 'Playwright\'s Chromium is downloaded, but this Linux machine lacks the system libraries it needs to start, so every browser test fails at launch. The docs skip `npx playwright install-deps`.',
         fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
+  {
+    // HUMBLE verifying its own README: `firstrun verify examples/acme-shop` starts containers, and the clean machine
+    // has no Docker daemon (only HUMBLE's docker shim, which exits 97). The docs list Docker as a requirement and a
+    // newcomer's laptop has it: this is a limit of HUMBLE's sandbox (no nested Docker), not a README problem.
+    id: 'needs-docker-daemon',
+    test({ log }) {
+      if (!/docker run [^\n]*failed \(97\)|is not available on the clean machine \(no Docker daemon\)|Cannot connect to the Docker daemon/.test(log)) return null;
+      return {
+        ruleId: 'needs-docker-daemon', class: 'sandbox-limit', confidence: 0.9,
+        cause: 'This step starts Docker containers itself, and HUMBLE\'s clean machine has no Docker engine inside it (no nested Docker). On a newcomer\'s laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.',
+        fix: null,
       };
     },
   },

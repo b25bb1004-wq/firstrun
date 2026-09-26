@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -29,6 +29,8 @@ Requests is one of the most downloaded Python packages today, pulling in around
+ 
+ ## Installing Requests and Supported Versions
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.10` machine at `611c6162cb`: clone to running in 5s.
++
+ Requests is available on PyPI:
+ 
+ ```console

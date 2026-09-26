@@ -5,7 +5,7 @@
   var wall = document.getElementById('wall');
   if (!wall) return;
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var COLOR = { VERIFIED: 'var(--c-verifier)', PARTIAL: 'var(--c-runner)', FAILED: 'var(--c-doctor)', 'NO-SETUP-DOCS': 'var(--muted)' };
+  var COLOR = { VERIFIED: 'var(--c-verifier)', PARTIAL: 'var(--c-runner)', FAILED: 'var(--c-doctor)', INCONCLUSIVE: 'var(--muted)', 'NO-SETUP-DOCS': 'var(--muted)' };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   fetch('/api/audits/' + wall.dataset.audit).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (a) {
     var repos = a.repos || [];

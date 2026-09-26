@@ -301,7 +301,7 @@ The above code starts SonarQube at [localhost:9000](http://localhost:9000/). You
 sonar.organization=my_organization
 sonar.projectKey=fastapi-alembic-sqlmodel-async
 sonar.host.url=http://host.docker.internal:9000
-sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7
+sonar.login=<redacted-by-humble>
 
 # --- optional properties ---
 

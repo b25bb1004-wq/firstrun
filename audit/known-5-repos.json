@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-09-26T17:30:00+05:30",
+  "note": "known-5: 5 well-known public repos (cut from known-10b to save Bobcoins), pinned",
+  "repos": [
+    {
+      "slug": "shadcn-ui__taxonomy",
+      "url": "https://github.com/shadcn-ui/taxonomy",
+      "ref": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "stack": "node",
+      "stars": 19292
+    },
+    {
+      "slug": "axios__axios",
+      "url": "https://github.com/axios/axios",
+      "ref": "961241f6c19798eff16b0869486c125430a17961",
+      "stack": "node",
+      "stars": 109219
+    },
+    {
+      "slug": "tj__commander.js",
+      "url": "https://github.com/tj/commander.js",
+      "ref": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+      "stack": "node",
+      "stars": 28410
+    },
+    {
+      "slug": "fastify__fastify",
+      "url": "https://github.com/fastify/fastify",
+      "ref": "f7f73aa7d0233f5f8455ac75a828ab3862419fc4",
+      "stack": "node",
+      "stars": 37198
+    },
+    {
+      "slug": "fastapi__fastapi",
+      "url": "https://github.com/fastapi/fastapi",
+      "ref": "192b12197eb04c2b4a691cce7d87261b21716714",
+      "stack": "python",
+      "stars": 102625
+    }
+  ]
+}

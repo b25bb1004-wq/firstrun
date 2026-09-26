@@ -1,0 +1,13 @@
+{
+  "name": "requests",
+  "image": "python:3.10",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "python -m pip install requests",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

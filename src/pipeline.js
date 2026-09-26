@@ -6,6 +6,7 @@ import { Recorder } from './recorder.js';
 import { diagnose, fixSignature } from './doctor/index.js';
 import { RULES } from './doctor/rules.js';
 import { needsBobPlanner, bobPlan } from './brain/planner.js';
+import { bobReviewPlan } from './brain/review.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
@@ -135,6 +136,16 @@ export async function verifyRepo(repoDir, opts = {}) {
         }
       }
     }
+    // Bob reviews the lines the rules can't vouch for, once, before anything runs (≤ 0.2 Bobcoins).
+    if (brain !== 'rules' && plan.plannedBy !== 'bob' && budget.remaining() > 0) {
+      const rv = await bobReviewPlan({ plan, facts, budget, maxCost: Math.min(0.2, budget.remaining()) });
+      if (rv.asked) {
+        rec.state.bobcoins = budget.spent();
+        rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', review: true, asked: rv.asked, skipped: rv.skipped.length, bobcoins: rv.bobcoins, ok: rv.ok, taskId: rv.taskId, error: rv.error });
+        for (const s of rv.skipped) say('planner', `IBM Bob: skip \`${s.command}\` (${s.reason})`);
+        plan.bobReview = { asked: rv.asked, skipped: rv.skipped, bobcoins: rv.bobcoins, ok: rv.ok };
+      }
+    }
     plan.originalImage = plan.image;
     plan.originalRuntime = { ...plan.runtime };
     for (const s of plan.steps) s.status = s.skip ? 'skipped' : 'pending';
@@ -257,7 +268,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       for (const a of step.prereqs || []) {
         if (a.type === 'exec') await box.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
         else if (a.type === 'write') await box.writeFile(a.path, a.content);
-        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+        else if (a.type === 'service') await box.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
       }
     };
     const addPrereq = (step, a) => {
@@ -320,6 +331,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       let repaired = false;
       let restart = false;
       let totalRepairs = 0;
+      let lastDiagnosis = null;
       const history = [];
       const stepEvidence = [];
       for (let k = 0; k < MAX_REPAIRS_PER_STEP && !repaired; k++) {
@@ -336,6 +348,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           },
         });
         rec.emitEvent('doctor', 'diagnosis', { stepId: step.id, diagnosis });
+        lastDiagnosis = diagnosis;
         const evId = `E${rec.state.evidence.length + 1}`;
         const { out: _o, ...before } = attempt;
         if (!fix) {
@@ -370,7 +383,7 @@ export async function verifyRepo(repoDir, opts = {}) {
             restart = true;
             fixLog.push(`rebased onto ${a.image}`);
           } else if (a.type === 'service') {
-            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+            const r = await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port, volumes: a.volumes || [], composeDir: a.composeDir || null });
             fixLog.push(`started ${a.image} as "${a.name}" on localhost:${a.port}${r.ready === false ? ' (not ready!)' : ''}`);
             addPrereq(step, a);
           } else if (a.type === 'exec') {
@@ -491,6 +504,9 @@ export async function verifyRepo(repoDir, opts = {}) {
       step.status = 'needs-human';
       rec.stepStatus(step.id, 'needs-human');
       if (step.kind === 'test' || step.probe) { i++; continue; }
+      // A step HUMBLE's sandbox can't run (it needs a Docker engine inside the container) says nothing about the
+      // steps after it: don't block them (HUMBLE's own README: `ui` doesn't depend on `verify`).
+      if (lastDiagnosis?.class === 'sandbox-limit') { i++; continue; }
       const hard = HARD_BLOCK_KINDS.has(step.kind);
       blockers.push({ id: step.id, hard, file: step.source?.file, section: step.source?.section });
       if (hard) { stopped = step.id; break; }

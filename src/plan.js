@@ -217,7 +217,7 @@ export function imageFor(runtime, version) {
 }
 
 const SERVE_RE = /^(?:(?:npm|pnpm|bun)\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|yarn\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|npx\s+(?:next|vite|nodemon|ts-node|tsx)\b(?!.*\bbuild\b)|node\s+\S+\.(?:m?js|cjs)(?!\S)|nodemon\b|next\s+dev|vite(?:\s|$)(?!.*build)|python3?\s+(?:-m\s+)?(?:\S+\.py|flask|uvicorn|http\.server|manage\.py\s+runserver)|flask\s+(?:--app\s+\S+\s+)?run|uvicorn\s|gunicorn\s|hypercorn\s|streamlit\s+run|fastapi\s+(?:dev|run)|poetry\s+run\s+(?:python\s+\S+\.py|uvicorn|flask|gunicorn|python\s+manage\.py\s+runserver)|uv\s+run\s+(?:uvicorn|flask|python\s+\S+\.py|fastapi)|pipenv\s+run\s+(?:python|flask|uvicorn)|rails\s+s|make\s+(?:run|dev|serve|start))/i;
-const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
+const TEST_RE = /^(?:node\s+--test\b|(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
 
 export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
@@ -294,7 +294,8 @@ export function classify(cmd, facts) {
   if (/^(apt(-get)?|yum|dnf|apk|pacman)\s/.test(c)) return { kind: 'prereq' };
   if (/^(code|cursor|idea|subl|vim|nano)\s/.test(c)) return { kind: 'other', skip: 'opens an editor' };
   if (/^(curl|wget)\s+(-\w+\s+)*https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)/.test(c)) return { kind: 'test', probe: true };
-  if (/^docker(-compose|\s+compose)\s+(up|start)\b/.test(c)) return { kind: 'services' };
+  // `docker compose -f docker/docker-compose.yml up -d db` is services; `docker compose run app npm start` is not.
+  if (/^docker(-compose|\s+compose)(\s+(-f|--file|-p|--project-name|--env-file|--profile)\s+\S+)*\s+(up|start)\b/.test(c)) return { kind: 'services' };
   if (/^docker\s+run\b/.test(c) && /\b(postgres|redis|mysql|mariadb|mongo|rabbitmq|elasticsearch|memcached|minio|mailhog|localstack)/i.test(c)) return { kind: 'services' };
   if (/^docker(-compose|\s+compose)?\s+(build|run|exec|push|pull|login)\b|^docker(-compose)?\s+/.test(c)) return { kind: 'other', skip: 'container-based alternative workflow' };
   if (/^(cp|mv|copy)\s+\S*\.env|^(cp|mv)\s+\S*env\S*\s|^export\s+[A-Z_]+=|^echo\s+.+>>?\s*\.env|^touch\s+\.env|^source\s+\.env|^set\s+-a/.test(c)) return { kind: 'env' };
@@ -304,6 +305,9 @@ export function classify(cmd, facts) {
   if (/(db:seed|\bseed\b|loaddata|fixtures?\b)/i.test(c)) return { kind: 'migrate' };
   // `uv run ./manage.py test`, `poetry run pytest`: the runner prefix doesn't change what the command is.
   if (TEST_RE.test(c) || TEST_RE.test(c.replace(/^(?:uv|poetry|pipenv|pdm|hatch)\s+run\s+/, ''))) return { kind: 'test' };
+  // `node bin/firstrun.js plan …` runs this repo's own CLI (a package.json bin): a one-shot command, not a server.
+  const nodeFile = c.match(/^node\s+(?:\.\/)?(\S+\.(?:m?js|cjs))(?:\s|$)/);
+  if (nodeFile && facts?.binPaths?.includes(nodeFile[1])) return { kind: 'other', ...ctx };
   if (SERVE_RE.test(c)) return { kind: 'serve' };
   if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|^make(\s+(build|all))?$|^tsc\b|^npx\s+tsc\b|^python3?\s+setup\.py\s+(build|develop)/.test(c)) return { kind: 'build' };
   return { kind: 'other', ...ctx };
@@ -625,6 +629,12 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (!repoName) return false;
     // A Django app with a package.json for its frontend (wagtail/bakerydemo) is an app, not a library.
     if (readText(path.join(facts.root, 'manage.py')) != null || steps.some((s) => /(^|\s|\/)manage\.py\s/.test(s.command))) return false;
+    // A Node repo that starts (scripts.start) and exports nothing (no main/exports) is an app, even when its package
+    // name equals the repo name (madhums/node-express-mongoose regressed VERIFIED → PARTIAL on a CI test otherwise).
+    try {
+      const pkg = JSON.parse(readText(path.join(facts.root, facts.projectDir || '', 'package.json')) || 'null');
+      if (pkg && pkg.scripts?.start && !pkg.main && !pkg.exports) return false;
+    } catch {}
     // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
     // BUT NOT if it's a CLI tool (has CLI bin and no serve/start/test scripts in package.json).
     const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
