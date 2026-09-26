@@ -14,6 +14,10 @@ Read the whole skill first. It is contextual; pull only what fits this brief.
    it, then review it against the craft bar. `animation-vocabulary` names effects precisely; `improve-animations`
    audits what already exists.
 5. **`mobile-native`**: make it feel right on a phone (many judges open the link on mobile).
+6. **`impeccable`** (pbakaus/impeccable): after the first pass, use its `reference/critique.md`, `audit.md`,
+   `polish.md` and `typeset.md` / `colorize.md` guidance to review and tighten the page. **Guidance only:** its
+   launcher script, native binary and live-browser tool are deliberately *not* included (the launcher downloads
+   a binary). Ignore any step that says to run `impeccable …`, `scripts/…` or the live browser.
 
 Left out on purpose (from emilkowalski/skills): `animate-expo`, `ask-sonner`, `pick-ui-library`, `prototype`
 (React or React Native) and `write-swift`. The landing page is one static HTML file, and adding React or a build step
