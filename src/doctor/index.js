@@ -1,4 +1,5 @@
 import { RULES } from './rules.js';
+import { pinInstaller } from './toolbox.js';
 import { askBob } from '../brain/bob.js';
 import { summarizeFacts } from '../scout/index.js';
 import { tail } from '../util.js';
@@ -97,6 +98,8 @@ export function validateBobFix(j) {
     if (a.type === 'write' && /(^|\/)\.\.(\/|$)/.test(a.path)) continue;
     if (/\brm\s+-rf\s+\/(\s|$)|mkfs|:\(\)\s*\{/.test(a.command || '')) continue; // refuse destructive commands
     if (a.type === 'write' && !isSetupFile(a.path)) { suggestions.push({ path: a.path, why: diagnosis.cause }); continue; }
+    // Known tools install from the toolbox, never from a URL Bob made up (axios: two invented Deno URLs).
+    if (typeof a.command === 'string') a.command = pinInstaller(a.command);
     actions.push({ ...a, name: a.name || a.image?.split(/[/:]/).slice(-2, -1)[0], kind: a.kind || 'other' });
   }
   const doc = j.fix.doc && DOC_KINDS.includes(j.fix.doc.kind) && j.fix.doc.text ? { kind: j.fix.doc.kind, text: String(j.fix.doc.text) } : { kind: 'note', text: diagnosis.cause };
