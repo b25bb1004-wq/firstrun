@@ -75,3 +75,11 @@ test('runner alone --as-written: writes events.ndjson to its own run folder, nev
   assert.ok(fs.existsSync(path.join(r.runDir, 'events.ndjson')));
   assert.ok(fs.existsSync(path.join(r.runDir, 'plan.json'))); // planner saves plan
 });
+test('runner --as-written: a README with nothing to follow is NO-SETUP-DOCS, never a pass', async () => {
+  const { runRunner } = await import('../src/solo.js');
+  const fs = await import('node:fs'); const os = await import('node:os'); const path = await import('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-nsd-'));
+  fs.writeFileSync(path.join(root, 'README.md'), '# A library\n\nIt does useful things. See the docs site.\n');
+  const r = await runRunner(root, { out: fs.mkdtempSync(path.join(os.tmpdir(), 'fr-nsd-out-')), asWritten: true });
+  assert.equal(r.verdict, 'NO-SETUP-DOCS');
+});

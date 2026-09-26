@@ -114,18 +114,19 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
   rec.savePlan(plan);
   rec.emitEvent('planner', 'plan', plan);
   if (!plan.steps.some((s) => !s.skip)) {
-    rec.emitEvent('planner', 'done', { verdict: 'NO-SETUP-DOCS' });
+    // Nothing to follow is a finding, never a pass.
     rec.phase('done', 'runner');
-    rec.emitEvent('runner', 'done', { verdict: 'WORKS-AS-WRITTEN', firstFailure: null });
-    return { agent: 'runner', verdict: 'WORKS-AS-WRITTEN', firstFailure: null, runDir: dir };
+    rec.emitEvent('runner', 'done', { verdict: 'NO-SETUP-DOCS', firstFailure: null });
+    return { agent: 'runner', verdict: 'NO-SETUP-DOCS', firstFailure: null, runDir: dir };
   }
   rec.phase('coldstart', 'runner');
   const cacheVolume = `firstrun-cache-${path.basename(dir)}`;
   await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
   await run('docker', ['volume', 'create', '--label', `firstrun=${path.basename(dir)}`, cacheVolume]);
   const sandbox = new Sandbox({ image: plan.image, repoDir: root, label: path.basename(dir), cacheVolume, log: () => {} });
-  await sandbox.start();
   let firstFailure = null;
+  try {
+  await sandbox.start();
   for (let i = 0; i < plan.steps.length; i++) {
     const step = plan.steps[i];
     if (step.skip) continue;
@@ -141,7 +142,7 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
         if (!p.ok) r.exitCode = 1;
       }
     } else {
-      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? (Number(process.env.FIRSTRUN_TEST_MINUTES) || 5) * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
     }
     const attempt = {
       stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs,
@@ -154,7 +155,11 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
       break;
     }
   }
-  await sandbox.stop();
+  } finally {
+    // Always clean up: the box and this run's package cache.
+    await sandbox.stop().catch(() => {});
+    await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  }
   const verdict = firstFailure ? 'BROKEN-AS-WRITTEN' : 'WORKS-AS-WRITTEN';
   rec.phase('done', 'runner');
   rec.emitEvent('runner', 'done', { verdict, firstFailure });
