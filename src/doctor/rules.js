@@ -139,6 +139,7 @@ const ENV_PATTERNS = [
   /"path":\s*\[\s*"([A-Z][A-Z0-9_]{2,})"\s*\][\s\S]{0,80}"message":\s*"Required"/,
   /✖?\s*([A-Z][A-Z0-9_]{2,}):\s*(?:Required|Invalid input: expected string, received undefined)/,
   /([A-Z][A-Z0-9_]{2,})\s*\n\s*Field required \[type=missing/,
+  /Environment variable not found: ([A-Z][A-Z0-9_]{2,})\./,
 ];
 
 export const RULES = [
