@@ -20,7 +20,8 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
   L.push(`| Commit | \`${p.commit}\` |`);
   L.push(`| Verified | ${p.verifiedAt.replace('T', ' ').slice(0, 16)} UTC |`);
   L.push(`| Runtime | ${p.runtime} (\`${p.image}\`) |`);
-  L.push(`| Clone to running, from zero | **${p.replaySeconds ? fmtDuration(p.replaySeconds * 1000) : 'n/a'}** |`);
+  const replayLabel = p.packageCache ? 'Clone to running (cached packages)' : 'Clone to running, from zero';
+  L.push(`| ${replayLabel} | **${p.replaySeconds ? fmtDuration(p.replaySeconds * 1000) : 'n/a'}** |`);
   L.push(`| Steps followed | ${p.stepsFromReadme} from the docs, ${p.stepsTotal - p.stepsFromReadme} added by FirstRun |`);
   L.push(`| Breaks found / fixed | ${p.breaksFound} / ${p.breaksFixed} |`);
   L.push(`| Needs a human | ${p.needsHuman} |`);
@@ -28,6 +29,9 @@ export function renderReport({ passport: p, plan, evidence, firstFailure, confli
   if (p.bobcoins || p.diagnosedByBob) L.push(`| IBM Bob | ${p.diagnosedByBob} diagnosis${p.diagnosedByBob === 1 ? '' : 'es'}, ${p.bobcoins} Bobcoins |`);
   if (p.timeLost) L.push(`| Time lost (estimate) | ~${p.timeLost.beforeMinutes} min before → ~${p.timeLost.afterMinutes} min after |`);
   L.push('');
+  if (p.packageCache) {
+    L.push('_Replay reused this run\'s package downloads from cold start (npm, yarn, pip, uv cache)._', '');
+  }
   if (firstFailure) {
     L.push(`**Before FirstRun**, a newcomer following the docs got stuck at \`${firstFailure.command}\` (${firstFailure.source.file}:${firstFailure.source.line}).`, '');
   }

@@ -31,11 +31,11 @@ export async function unifiedDiff(a, b, label) {
  * Setup Passport, the evidence report, a devcontainer, the drift guard and the
  * Bob guide mode. `out/pr/` mirrors the repo, ready to commit as one PR.
  */
-export async function publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins, stopped, timeLost = null }) {
+export async function publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins, stopped, packageCache = true, timeLost = null }) {
   const out = ensureDir(path.join(outDir, 'out'));
   const prDir = path.join(out, 'pr');
   fs.rmSync(prDir, { recursive: true, force: true });
-  const passport = buildPassport({ plan, evidence, replay, bobcoins, stopped });
+  const passport = buildPassport({ plan, evidence, replay, bobcoins, stopped, packageCache });
   if (timeLost) {
     const tl = estimateTimeLost({ evidence, replay, passport, runMs: timeLost.runMs });
     passport.timeLost = { beforeMinutes: tl.beforeMinutes, afterMinutes: tl.afterMinutes, estimate: true, real: tl.real };

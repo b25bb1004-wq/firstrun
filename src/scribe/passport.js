@@ -1,6 +1,6 @@
 import { fmtDuration } from '../util.js';
 
-export function buildPassport({ plan, evidence, replay, bobcoins, stopped }) {
+export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packageCache = true }) {
   const fromReadme = plan.steps.filter((s) => s.origin === 'readme' && !s.skip).length;
   const breaksFound = evidence.length;
   const breaksFixed = evidence.filter((e) => e.status === 'verified').length;
@@ -21,6 +21,7 @@ export function buildPassport({ plan, evidence, replay, bobcoins, stopped }) {
     breaksFixed,
     needsHuman,
     replaySeconds: replay ? Math.round(replay.durationMs / 1000) : 0,
+    packageCache: Boolean(replay && packageCache),
     bobcoins: Math.round((bobcoins || 0) * 100) / 100,
     diagnosedByBob: evidence.filter((e) => e.diagnosis?.by === 'bob').length,
     verify: plan.verify,

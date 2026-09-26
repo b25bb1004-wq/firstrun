@@ -34,11 +34,12 @@ export function announcedPort(out, exclude = []) {
 }
 
 export class Sandbox {
-  constructor({ image, repoDir, label = 'firstrun', patches = [], log = () => {} }) {
+  constructor({ image, repoDir, label = 'firstrun', patches = [], cacheVolume = null, log = () => {} }) {
     this.image = image;
     this.repoDir = repoDir;
     this.label = label;
     this.patches = patches; // [{ path, content }] applied over the clone (used by replay)
+    this.cacheVolume = cacheVolume;
     this.log = log;
     this.name = `firstrun-${shortId()}`;
     this.services = [];
@@ -54,15 +55,35 @@ export class Sandbox {
     if (r.code !== 0) throw new Error(`cannot pull ${image}: ${tail(r.out, 5)}`);
   }
 
+  async ensureCacheVolume() {
+    if (!this.cacheVolume) return;
+    await run('docker', ['volume', 'create', '--label', `firstrun=${this.label}`, this.cacheVolume]);
+  }
+
   async start() {
     await this.ensureImage();
-    await must('docker', ['run', '-d', '--name', this.name, '--label', `firstrun=${this.label}`, '--entrypoint', 'sleep',
+    await this.ensureCacheVolume();
+    const args = ['run', '-d', '--name', this.name, '--label', `firstrun=${this.label}`, '--entrypoint', 'sleep',
       '-e', 'CI=true', '-e', 'DEBIAN_FRONTEND=noninteractive', '-e', 'NO_COLOR=1', '-e', 'FORCE_COLOR=0',
       '-e', 'npm_config_fund=false', '-e', 'npm_config_audit=false', '-e', 'npm_config_update_notifier=false',
       '-e', 'PIP_DISABLE_PIP_VERSION_CHECK=1', '-e', 'PIP_ROOT_USER_ACTION=ignore', '-e', 'PYTHONUNBUFFERED=1',
-      '-w', '/workspace', this.image, 'infinity']);
+      '-w', '/workspace'];
+    if (this.cacheVolume) {
+      args.push(
+        '-v', `${this.cacheVolume}:/firstrun-cache`,
+        '-e', 'npm_config_cache=/firstrun-cache/npm',
+        '-e', 'YARN_CACHE_FOLDER=/firstrun-cache/yarn',
+        '-e', 'PIP_CACHE_DIR=/firstrun-cache/pip',
+        '-e', 'UV_CACHE_DIR=/firstrun-cache/uv',
+      );
+    }
+    args.push(this.image, 'infinity');
+    await must('docker', args);
     this.started = true;
     await this.sh('mkdir -p /workspace /firstrun && echo /workspace > /firstrun/cwd && : > /firstrun/state.env');
+    if (this.cacheVolume) {
+      await this.sh('mkdir -p /firstrun-cache/npm /firstrun-cache/yarn /firstrun-cache/pip /firstrun-cache/uv /root/.cache && { [ -e /root/.npm ] || ln -sf /firstrun-cache/npm /root/.npm; }');
+    }
     await this.installShims();
     // Official Node images bundle Yarn 1; a newcomer who installs Node from nodejs.org
     // does not have it. Remove it so the sandbox matches a fresh machine.
@@ -360,10 +381,19 @@ export class Sandbox {
   }
 }
 
+/** Remove a named cache volume. */
+export async function removeCacheVolume(name) {
+  if (!name) return;
+  await run('docker', ['volume', 'rm', '-f', name]);
+}
+
 /** Remove leftovers from crashed runs. */
 export async function cleanupAll(label = null) {
   const r = await run('docker', ['ps', '-aq', '--filter', label ? `label=firstrun=${label}` : 'label=firstrun']);
   const ids = r.out.split(/\s+/).filter(Boolean);
   if (ids.length) await run('docker', ['rm', '-f', '-v', ...ids]);
-  return ids.length;
+  const vr = await run('docker', ['volume', 'ls', '-q', '--filter', label ? `label=firstrun=${label}` : 'label=firstrun']);
+  const vids = vr.out.split(/\s+/).filter(Boolean);
+  if (vids.length) await run('docker', ['volume', 'rm', '-f', ...vids]);
+  return ids.length + vids.length;
 }
