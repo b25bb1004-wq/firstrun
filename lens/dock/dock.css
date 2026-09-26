@@ -67,6 +67,17 @@ html, body {
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--rule-2);
+  -webkit-app-region: drag;
+}
+
+.bob-avatar-btn,
+.dock-controls,
+.icon-btn,
+.repo-box,
+.character-list,
+.drawer,
+.dock-footer {
+  -webkit-app-region: no-drag;
 }
 
 .bob-avatar-btn {
@@ -162,6 +173,8 @@ html, body {
   color: var(--ink);
   outline: none;
   transition: border-color .15s;
+  user-select: text;
+  -webkit-app-region: no-drag;
 }
 .repo-input:focus { border-color: var(--bob); }
 .btn-browse {

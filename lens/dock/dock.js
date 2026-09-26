@@ -58,8 +58,10 @@
       name: 'Doctor',
       cmd: 'firstrun doctor --log <file>',
       desc: 'Diagnoses setup failures. Rules first for speed & zero cost; IBM Bob Shell headless for unseen breaks. Also powers Lens on-screen circling.',
-      actionText: 'Circle on Screen (Lens)',
-      action: () => triggerLens()
+      actionText: 'Run Solo Doctor',
+      action: (repo) => triggerSoloRun('doctor', repo),
+      secondaryActionText: 'Circle on Screen (Lens)',
+      secondaryAction: () => triggerLens()
     },
     verifier: {
       name: 'Verifier',
@@ -169,6 +171,15 @@
     actBtn.onclick = () => info.action(repoInput.value.trim());
     drawerActions.appendChild(actBtn);
 
+    // Secondary action button if defined
+    if (info.secondaryAction) {
+      const secBtn = document.createElement('button');
+      secBtn.className = 'drawer-action-btn secondary';
+      secBtn.textContent = `${info.secondaryActionText} →`;
+      secBtn.onclick = () => info.secondaryAction(repoInput.value.trim());
+      drawerActions.appendChild(secBtn);
+    }
+
     // Extra Scribe buttons
     if (agentKey === 'scribe' && currentRunDir) {
       const diffBtn = document.createElement('button');
@@ -206,23 +217,49 @@
     }
   });
 
+  // Browse Button
+  if (btnBrowse) {
+    btnBrowse.addEventListener('click', () => {
+      const p = prompt('Enter repository path or GitHub URL:', repoInput.value.trim() || 'examples/acme-shop');
+      if (p !== null && p.trim()) {
+        repoInput.value = p.trim();
+      }
+    });
+  }
+
+  // IPC Bridge helpers per docs/DOCK_CONTRACT.md & lens/dock-preload.cjs
+  function callDockRun(agent, target) {
+    if (!window.dock?.run) return false;
+    cancelBtn.style.display = 'block';
+    try {
+      window.dock.run(agent, target);
+    } catch {
+      window.dock.run({ agent, target });
+    }
+    return true;
+  }
+
+  function callDockOpen(what, runDir) {
+    if (!window.dock?.open) return false;
+    try {
+      window.dock.open(what, runDir);
+    } catch {
+      window.dock.open({ what, runDir });
+    }
+    return true;
+  }
+
   // Action Buttons
   btnPlan.addEventListener('click', () => {
     const target = repoInput.value.trim() || 'examples/acme-shop';
-    if (window.dock?.run) {
-      cancelBtn.style.display = 'block';
-      window.dock.run({ agent: 'planner', target });
-    } else {
+    if (!callDockRun('planner', target)) {
       simulatePlan(target);
     }
   });
 
   btnVerify.addEventListener('click', () => {
     const target = repoInput.value.trim() || 'examples/acme-shop';
-    if (window.dock?.run) {
-      cancelBtn.style.display = 'block';
-      window.dock.run({ agent: 'all', target });
-    } else {
+    if (!callDockRun('all', target)) {
       simulateVerify(target);
     }
   });
@@ -232,10 +269,7 @@
   });
 
   function triggerSoloRun(agent, target) {
-    if (window.dock?.run) {
-      cancelBtn.style.display = 'block';
-      window.dock.run({ agent, target });
-    } else {
+    if (!callDockRun(agent, target)) {
       alert(`Running solo agent: ${agent} on ${target}`);
     }
   }
@@ -249,9 +283,7 @@
   }
 
   function openArtifact(what) {
-    if (window.dock?.open) {
-      window.dock.open({ what, runDir: currentRunDir });
-    } else {
+    if (!callDockOpen(what, currentRunDir)) {
       alert(`Opening artifact: ${what}`);
     }
   }
