@@ -1,0 +1,62 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:16:23.548Z",
+  "commit": "8e82353ff3",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "curl --proto =https --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin",
+      "kind": "prereq",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "apt-get update >/dev/null && (command -v curl >/dev/null || apt-get install -y curl >/dev/null)"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "command": "pip install poetry",
+      "kind": "install"
+    },
+    {
+      "id": "S4",
+      "command": "just up",
+      "kind": "other"
+    },
+    {
+      "id": "R1",
+      "command": "poetry install",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "S6",
+      "command": "just run --log-config logging.ini",
+      "kind": "other"
+    },
+    {
+      "id": "S9",
+      "command": "just migrate",
+      "kind": "migrate"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "Error: Unable to locate package just",
+      "cause": "Debian/Ubuntu's apt has no \"just\" package on a current stable release; the docs' Linux instructions don't work as written.",
+      "fix": "curl --proto =https --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin",
+      "evidence": "E1"
+    }
+  ]
+}

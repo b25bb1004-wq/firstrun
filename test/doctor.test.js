@@ -61,6 +61,44 @@ test('Bob replies are parsed and validated defensively', () => {
   assert.equal(validateBobFix({ class: 'x', fix: { actions: [{ type: 'teleport' }] } }).ok, false);
 });
 
+test('validateBobFix: write to app source is dropped into suggestions, exec is kept', () => {
+  // exec action + write to application source → exec kept, write dropped to suggestions
+  const j = { class: 'missing-env', cause: 'Locals.ts requires a default', confidence: 0.7,
+    fix: { actions: [
+      { type: 'exec', command: 'cp .env.example .env' },
+      { type: 'write', path: 'src/providers/Locals.ts', content: 'export default {}' },
+    ], doc: { kind: 'note', text: 'copy env' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.equal(v.fix.actions.length, 1, 'only exec survives');
+  assert.equal(v.fix.actions[0].command, 'cp .env.example .env');
+  assert.equal(v.fix.suggestions[0].path, 'src/providers/Locals.ts');
+});
+
+test('validateBobFix: only write to app source → fix null with suggestion', () => {
+  const j = { class: 'missing-env', cause: 'app.ts needs a default export', confidence: 0.6,
+    fix: { actions: [{ type: 'write', path: 'src/app.ts', content: 'export default {}' }],
+           doc: { kind: 'note', text: 'patch app' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.equal(v.fix, null);
+  assert.equal(v.suggestions.length, 1);
+  assert.equal(v.suggestions[0].path, 'src/app.ts');
+});
+
+test('validateBobFix: write to .env.example and patch to docker-compose.yml are both kept', () => {
+  const j = { class: 'missing-env', cause: 'env template missing', confidence: 0.9,
+    fix: { actions: [{ type: 'write', path: '.env.example', content: 'FOO=bar' }],
+           patches: [{ path: 'docker-compose.yml', content: 'services: {}' }],
+           doc: { kind: 'note', text: 'add env' } } };
+  const v = validateBobFix(j);
+  assert.equal(v.ok, true);
+  assert.ok(v.fix, 'fix must be present');
+  assert.equal(v.fix.actions.length, 1, '.env.example write kept');
+  assert.equal(v.fix.patches.length, 1, 'docker-compose.yml patch kept');
+  assert.equal(v.fix.suggestions, undefined, 'no suggestions');
+});
+
 test('patch ops: env append is idempotent, compose add keeps existing services', () => {
   const env = applyPatchOps('A=1\n', [{ op: 'append-env', key: 'B', value: '2' }, { op: 'append-env', key: 'B', value: '3' }]);
   assert.equal(env.match(/^B=/gm).length, 1);
@@ -180,6 +218,46 @@ test('placeholder values in .env.example: use the commented local example, patch
   assert.match(patched, /^JWT_SECRET=YourSecret$/m, 'placeholders the app did not fail on are left alone');
 });
 
+test('mail placeholder: fills all mail vars and adds Mailpit service action', async () => {
+  const example = [
+    'EMAIL_SMTP_HOST=YourSMTPHost', 'EMAIL_SMTP_PORT=YourSMTPPort',
+    'EMAIL_SMTP_USERNAME=YourSMTPUsername', 'EMAIL_SMTP_PASSWORD=YourSMTPPassword',
+    'APP_NAME=MyApp',
+  ].join('\n');
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { nodemailer: '^6' } }, '.env.example': example });
+  const ctx = await ctxIn(root, 'npm start', 'Error: getaddrinfo ENOTFOUND YourSMTPHost', { kind: 'serve' });
+  ctx.sandboxEnv = { EMAIL_SMTP_HOST: 'YourSMTPHost', EMAIL_SMTP_PORT: 'YourSMTPPort', EMAIL_SMTP_USERNAME: 'YourSMTPUsername', EMAIL_SMTP_PASSWORD: 'YourSMTPPassword', APP_NAME: 'MyApp' };
+  const { diagnosis, fix } = await diagnose(ctx, { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'env-placeholder-value', diagnosis.cause);
+  // all four mail vars patched
+  const patchKeys = fix.patches.map((p) => p.key);
+  assert.ok(patchKeys.includes('EMAIL_SMTP_HOST'), 'HOST patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_PORT'), 'PORT patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_USERNAME'), 'USERNAME patched');
+  assert.ok(patchKeys.includes('EMAIL_SMTP_PASSWORD'), 'PASSWORD patched');
+  const patchVals = Object.fromEntries(fix.patches.map((p) => [p.key, p.value]));
+  assert.equal(patchVals.EMAIL_SMTP_HOST, 'localhost');
+  assert.equal(patchVals.EMAIL_SMTP_PORT, '1025');
+  assert.equal(patchVals.EMAIL_SMTP_USERNAME, 'dev');
+  assert.ok(patchVals.EMAIL_SMTP_PASSWORD && patchVals.EMAIL_SMTP_PASSWORD !== 'YourSMTPPassword', 'password filled with a dev value');
+  // non-mail placeholder left alone
+  assert.ok(!patchKeys.includes('APP_NAME'), 'non-mail placeholder not touched');
+  // Mailpit service action present
+  const svc = fix.actions.find((a) => a.type === 'service');
+  assert.ok(svc, 'service action present');
+  assert.equal(svc.image, 'axllent/mailpit');
+  // cause mentions local mail catcher
+  assert.match(diagnosis.cause, /mail catcher/i);
+  // the README tells a human to start it too, not only the sandbox
+  assert.equal(fix.doc.kind, 'insert-step');
+  assert.match(fix.doc.text, /mailpit/);
+  assert.ok(fix.actions.some((a) => a.type === 'insert-before' && /mailpit/.test(a.command)), 'README step inserted');
+  // an earlier fix already started Mailpit: no second one
+  ctx.sandbox = { services: [{ name: 'mailpit', image: 'axllent/mailpit' }] };
+  const again = await diagnose(ctx, { brain: 'rules' });
+  assert.ok(!again.fix.actions.some((a) => a.type === 'service'), 'no duplicate Mailpit');
+});
+
 test('an exact Python pin (3.11.7) gets the exact image; python:3.11 ships 3.11.16 and Poetry rejects it (teamhide)', async () => {
   const root = tmpRepo({ 'pyproject.toml': '[tool.poetry]\nname = "x"\n\n[tool.poetry.dependencies]\npython = "3.11.7"\n' });
   const log = 'The currently activated Python version 3.11.16 is not supported by the project (3.11.7).';
@@ -229,4 +307,140 @@ test('blank env template + Joi "not allowed to be empty": local values, the app\
   assert.equal(v.SMTP_HOST, 'localhost');
   assert.equal(v.SMTP_PORT, '1025', 'mail goes to Mailpit, not the app default 587');
   assert.equal(v.DATABASE_URL, `mysql://root:${v.MYSQL_ROOT_PASSWORD}@localhost:3306/app`);
+});
+
+test('writeJson survives a Windows-style EPERM on rename (maitraysuthar audit crash)', async () => {
+  const { writeJson, readJson } = await import('../src/util.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-eperm-'));
+  const file = path.join(dir, 'run.json');
+  const real = fs.renameSync;
+  let calls = 0;
+  fs.renameSync = (a, b) => { calls++; if (calls < 3) { const e = new Error('EPERM: operation not permitted, rename'); e.code = 'EPERM'; throw e; } return real(a, b); };
+  try { writeJson(file, { ok: 1 }); } finally { fs.renameSync = real; }
+  assert.deepEqual(readJson(file), { ok: 1 });
+  assert.equal(calls, 3);
+  fs.renameSync = () => { const e = new Error('EPERM'); e.code = 'EPERM'; throw e; };
+  try { writeJson(file, { ok: 2 }); } finally { fs.renameSync = real; }
+  assert.deepEqual(readJson(file), { ok: 2 }, 'falls back to writing in place');
+  assert.deepEqual(fs.readdirSync(dir), ['run.json'], 'no temp file left behind');
+});
+
+test('a Bob fix that turns "already exists" into a different error counts as progress, not a failed repair (rest-hapi)', async () => {
+  const { stillFailing } = await import('../src/pipeline.js');
+  const bob = { by: 'bob', class: 'wrong-order', cause: 'clone into a subdirectory' }; // no ruleId, like every Bob diagnosis
+  const before = { out: "Cloning into 'rest-hapi-demo'...\nfatal: destination path 'rest-hapi-demo' already exists and is not an empty directory." };
+  const mongo = { out: 'MongooseError [MongooseServerSelectionError]: connect ECONNREFUSED 127.0.0.1:27017' };
+  assert.equal(await stillFailing(bob, before, mongo, {}), false, 'new error = progress');
+  assert.equal(await stillFailing(bob, before, before, {}), true, 'same error = still failing');
+  const quiet = { out: 'step one\nstep two done' };
+  assert.equal(await stillFailing(bob, quiet, { out: 'something else entirely' }, {}), false, 'no error keyword: a different last line is progress');
+  assert.equal(await stillFailing(bob, quiet, quiet, {}), true);
+});
+
+test('invented dev secrets are one obvious non-secret value, never a random credential-looking string', async () => {
+  const { DEV_SECRET } = await import('../src/doctor/rules.js');
+  const scanner = /(API_?KEY|SECRET|TOKEN|PASSWORD)=[A-Za-z0-9/+_-]{20,}/; // same pattern as tools/check-secrets.sh
+  assert.ok(DEV_SECRET.length >= 32, 'long enough for min-length secret checks');
+  assert.doesNotMatch(`ACCESS_TOKEN_SECRET=${DEV_SECRET}`, scanner);
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { joi: '^17' } }, '.env.example': 'ACCESS_TOKEN_SECRET=\nMYSQL_ROOT_PASSWORD=\nMYSQL_DATABASE=\nDATABASE_URL=\n' });
+  const names = ['ACCESS_TOKEN_SECRET', 'MYSQL_ROOT_PASSWORD', 'MYSQL_DATABASE', 'DATABASE_URL'];
+  const log = names.map((n) => `"${n}" is not allowed to be empty`).join('\n');
+  const { fix } = await diagnose(await ctxIn(root, 'yarn start', log, { kind: 'serve' }), { brain: 'rules' });
+  const v = Object.fromEntries(fix.patches.map((p) => [p.key, p.value]));
+  assert.equal(v.ACCESS_TOKEN_SECRET, DEV_SECRET);
+  assert.equal(v.DATABASE_URL, `mysql://root:${DEV_SECRET}@localhost:3306/app`, 'URL and password still agree');
+  for (const p of fix.patches) assert.doesNotMatch(`${p.key}=${p.value}`, scanner, `${p.key} looks like a credential`);
+});
+
+test('audit --only keeps every other repo already in the audit (real-16-v2 was narrowed to 1 repo)', async () => {
+  const { audit } = await import('../src/audit.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-audit-'));
+  const repo = (slug) => ({ slug, url: `https://github.com/x/${slug}`, ref: 'abc', stack: 'node' });
+  fs.writeFileSync(path.join(root, 'repos.json'), JSON.stringify({ repos: [repo('a'), repo('b'), repo('c')] }));
+  fs.mkdirSync(path.join(root, 'audit', 't'), { recursive: true });
+  const done = (slug, verdict) => ({ ...repo(slug), status: 'done', verdict, passport: { verdict, breaksFound: 1, breaksFixed: 1 }, runDir: `runs/${slug}` });
+  fs.writeFileSync(path.join(root, 'audit', 't', 'audit.json'), JSON.stringify({ id: 't', repos: [done('a', 'VERIFIED'), done('b', 'PARTIAL'), done('c', 'FAILED')] }));
+  await audit(path.join(root, 'repos.json'), { only: 'b', id: 't', root, printer: () => {} });
+  const after = JSON.parse(fs.readFileSync(path.join(root, 'audit', 't', 'audit.json'), 'utf8'));
+  assert.deepEqual(after.repos.map((r) => `${r.slug}:${r.verdict}`), ['a:VERIFIED', 'b:PARTIAL', 'c:FAILED']);
+  assert.equal(after.summary.total, 3);
+});
+
+// ── ts-skip-lib-check (GeekyAnts/express-typescript, Node 22) ──────────────
+
+const mongodbDts = 'node_modules/mongoose/node_modules/mongodb/mongodb.d.ts';
+const TS_LOG_ALL_DEPS = [
+  `${mongodbDts}(74,178): error TS2304: Cannot find name 'AsyncDisposable'.`,
+  `${mongodbDts}(122,5): error TS1165: A computed property name in an ambient context must refer to an expression whose type is a literal type or a 'unique symbol' type.`,
+  `${mongodbDts}(122,13): error TS2339: Property 'asyncDispose' does not exist on type 'SymbolConstructor'.`,
+].join('\n');
+
+test('ts-skip-lib-check fires when all TS errors are inside node_modules .d.ts files (GeekyAnts)', async () => {
+  const root = tmpRepo({
+    'package.json': { name: 'x', scripts: { build: 'tsc' }, devDependencies: { typescript: '5', mongoose: '^8' } },
+    'tsconfig.json': '{\n  "compilerOptions": {\n    "outDir": "dist"\n  }\n}\n',
+  });
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npm run build', TS_LOG_ALL_DEPS, { kind: 'build' }), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'ts-skip-lib-check', diagnosis.cause);
+  assert.equal(diagnosis.class, 'missing-dependency');
+  assert.equal(diagnosis.confidence, 0.85);
+  assert.match(diagnosis.cause, /node_modules/);
+  assert.deepEqual(fix.patches, [{ path: 'tsconfig.json', op: 'tsconfig-skip-lib-check' }]);
+  assert.deepEqual(fix.actions, []);
+});
+
+test('ts-skip-lib-check does NOT fire when any TS error is in project source', async () => {
+  const root = tmpRepo({
+    'package.json': { name: 'x', scripts: { build: 'tsc' }, devDependencies: { typescript: '5', mongoose: '^8' } },
+    'tsconfig.json': '{\n  "compilerOptions": {\n    "outDir": "dist"\n  }\n}\n',
+  });
+  const mixed = [
+    `${mongodbDts}(74,178): error TS2304: Cannot find name 'AsyncDisposable'.`,
+    `src/app.ts(3,5): error TS2322: Type 'string' is not assignable to type 'number'.`,
+  ].join('\n');
+  const { diagnosis } = await diagnose(await ctxIn(root, 'npm run build', mixed, { kind: 'build' }), { brain: 'rules' });
+  assert.notEqual(diagnosis.ruleId, 'ts-skip-lib-check', 'must not fire when project files have errors');
+});
+
+test('patch op tsconfig-skip-lib-check: inserts, is idempotent, and flips false to true', () => {
+  // basic insert after compilerOptions with // comment and trailing comma
+  const tsconfig = '{\n  // project config\n  "compilerOptions": {\n    "outDir": "dist", // trailing comma\n  }\n}\n';
+  const patched = applyPatchOps(tsconfig, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.match(patched, /"skipLibCheck": true/);
+  assert.match(patched, /\/\/ project config/, 'comment preserved');
+  // idempotent: applying again must not change the text
+  const again = applyPatchOps(patched, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.equal(again, patched, 'applying twice is a no-op');
+  // existing skipLibCheck: false becomes true
+  const withFalse = '{\n  "compilerOptions": {\n    "skipLibCheck": false\n  }\n}\n';
+  const flipped = applyPatchOps(withFalse, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.match(flipped, /"skipLibCheck": true/);
+  assert.doesNotMatch(flipped, /"skipLibCheck": false/);
+});
+
+test('tsconfig-skip-lib-check edits the existing compilerOptions (quoted key), never adds a second one (GeekyAnts)', async () => {
+  const real = '{\n  "compilerOptions": {\n    "target": "es6",\n    "module": "commonjs",\n    "outDir": "dist/"\n  }\n}\n';
+  const out = applyPatchOps(real, [{ op: 'tsconfig-skip-lib-check' }]);
+  assert.equal((out.match(/compilerOptions/g) || []).length, 1, 'duplicate keys: JSON keeps the last one, which would drop skipLibCheck');
+  assert.equal(JSON.parse(out).compilerOptions.skipLibCheck, true);
+  assert.equal(JSON.parse(out).compilerOptions.target, 'es6');
+});
+
+test('a Bob source-only fix is not applied and shows in the report as a maintainer suggestion', async () => {
+  const v = validateBobFix({ class: 'missing-env', cause: 'MONGOOSE_URL has no default in src/providers/Locals.ts:22', fix: { actions: [{ type: 'write', path: 'src/providers/Locals.ts', content: 'x' }] } });
+  assert.equal(v.fix, null, 'source edit not applied');
+  assert.equal(v.suggestions[0].path, 'src/providers/Locals.ts');
+  const { renderReport } = await import('../src/scribe/report.js');
+  const md = renderReport({ passport: { repo: 'x', commit: 'c', verifiedAt: new Date().toISOString(), verdict: 'FAILED', image: 'node:22', runtime: 'Node.js 22', stepsTotal: 1, stepsFromReadme: 1, breaksFound: 1, breaksFixed: 0, needsHuman: 1, replaySeconds: 0, bobcoins: 0.1, diagnosedByBob: 1, verify: { kind: 'none' } }, plan: { steps: [] }, evidence: [{ id: 'E1', stepId: 'S1', status: 'needs-human', before: { command: 'npm run dev', logTail: '' }, diagnosis: { ...v.diagnosis, by: 'bob', bobcoins: 0.1, suggestions: v.suggestions }, fix: null }], firstFailure: null, conflicts: [] });
+  assert.ok(md.includes('Suggested code change for the maintainer (not applied):** `src/providers/Locals.ts`'), 'suggestion shown in FIRSTRUN.md');
+});
+
+test('Prisma "Environment variable not found" is caught by missing-env-var (gothinkster/node-express-realworld)', async () => {
+  const root = tmpRepo({ 'package.json': { name: 'x', dependencies: { prisma: '^5' } } });
+  fs.mkdirSync(path.join(root, 'prisma'));
+  fs.writeFileSync(path.join(root, 'prisma', 'schema.prisma'), 'datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}\n');
+  const log = 'Error code: P1012\nerror: Environment variable not found: DATABASE_URL.\n  -->  schema.prisma:3\nValidation Error Count: 1';
+  const { diagnosis, fix } = await diagnose(await ctxIn(root, 'npx prisma migrate deploy', log), { brain: 'rules' });
+  assert.equal(diagnosis.ruleId, 'missing-env-var', diagnosis.cause);
+  assert.match(JSON.stringify(fix), /DATABASE_URL/);
 });

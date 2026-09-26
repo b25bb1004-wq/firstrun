@@ -1,0 +1,84 @@
+/* HUMBLE theme: the one place for colour, type and state tokens.
+ * Linked by the dashboard (ui/index.html) and, via /app/theme.css on the hosted site, by the
+ * landing page, so both stay in step. Change the look here, not in app.css or the landing page.
+ * State colours (pass / fail / repair / bob / human) must stay distinguishable in both themes. */
+
+:root, :root[data-theme="dark"] {
+  --ground: #0E1726;
+  --ground-2: #0A111D;
+  --panel: #132035;
+  --panel-2: #192a43;
+  --raise: #213551;
+  --rule: #22354f;
+  --rule-2: #2f4667;
+  --ink: #E6ECF5;
+  --ink-2: #A3B4CB;
+  --ink-3: #6D819D;
+
+  --pass: #3DD68C;
+  --fail: #FF6167;
+  --repair: #FFB224;
+  --bob: #5E9EFF;
+  --human: #D6A2FF;
+  --live: #8CD4FF;
+
+  --pass-t: rgba(61, 214, 140, .11);
+  --fail-t: rgba(255, 97, 103, .11);
+  --repair-t: rgba(255, 178, 36, .10);
+  --bob-t: rgba(94, 158, 255, .13);
+  --human-t: rgba(214, 162, 255, .12);
+  --live-t: rgba(140, 212, 255, .10);
+  --pass-m: rgba(61, 214, 140, .28);
+  --fail-m: rgba(255, 97, 103, .30);
+
+  --paper: #E8EFEA;
+  --paper-2: #F4F7F2;
+  --paper-ink: #16263A;
+  --paper-mute: #5B6F7E;
+  --guil-a: #6F9E97;
+  --guil-b: #B98FA6;
+  --stamp-pass: #17865A;
+  --stamp-partial: #B06F0C;
+  --stamp-failed: #BF2F32;
+  --stamp-nodocs: #6D819D;
+  --nodocs: #6D819D;
+
+  --shadow: 0 24px 48px -24px rgba(0, 0, 0, .75);
+  --scrim: rgba(4, 9, 17, .62);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --ground: #E8EDF3;
+  --ground-2: #DDE4EC;
+  --panel: #FFFFFF;
+  --panel-2: #F2F5F9;
+  --raise: #E6ECF3;
+  --rule: #CBD4DF;
+  --rule-2: #B3C0CF;
+  --ink: #0F1B2D;
+  --ink-2: #44556C;
+  --ink-3: #74849A;
+
+  --pass: #0B8F52;
+  --fail: #D3313A;
+  --repair: #A96400;
+  --bob: #0F62FE;
+  --human: #8A3FD1;
+  --live: #0A6FB8;
+
+  --pass-t: rgba(11, 143, 82, .09);
+  --fail-t: rgba(211, 49, 58, .08);
+  --repair-t: rgba(214, 138, 0, .11);
+  --bob-t: rgba(15, 98, 254, .08);
+  --human-t: rgba(138, 63, 209, .08);
+  --live-t: rgba(10, 111, 184, .08);
+  --pass-m: rgba(11, 143, 82, .2);
+  --fail-m: rgba(211, 49, 58, .2);
+
+  --shadow: 0 20px 40px -24px rgba(15, 27, 45, .45);
+  --scrim: rgba(15, 27, 45, .38);
+  --stamp-nodocs: #74849A;
+  --nodocs: #74849A;
+  color-scheme: light;
+}

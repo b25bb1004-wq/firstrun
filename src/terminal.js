@@ -4,7 +4,7 @@ const tty = process.stdout.isTTY && !process.env.NO_COLOR;
 const c = (code) => (s) => (tty ? `\x1b[${code}m${s}\x1b[0m` : String(s));
 export const dim = c('2'), bold = c('1'), red = c('31'), green = c('32'), yellow = c('33'), blue = c('34'), cyan = c('36'), magenta = c('35');
 
-const AGENT = { scout: 'Scout', planner: 'Planner', runner: 'Runner', doctor: 'Doctor', verifier: 'Verifier', scribe: 'Scribe', guard: 'Guard', swarm: 'FirstRun' };
+const AGENT = { scout: 'Scout', planner: 'Planner', runner: 'Runner', doctor: 'Doctor', verifier: 'Verifier', scribe: 'Scribe', guard: 'Guard', swarm: 'HUMBLE' };
 
 /** Print a run's events as a readable live log. */
 export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
@@ -46,10 +46,10 @@ export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
         p(`    ${yellow('⚒')} ${d.fix.doc?.text || d.fix.actions.map((a) => a.type).join(', ')}`);
         break;
       case 'step.inserted':
-        p(`    ${yellow('+')} FirstRun adds a missing step: ${d.step.command}`);
+        p(`    ${yellow('+')} HUMBLE adds a missing step: ${d.step.command}`);
         break;
       case 'evidence':
-        p(`    ${d.status === 'verified' ? green('✔ evidence ' + d.id + ': fixed and verified') : d.status === 'needs-human' ? red('✋ ' + d.id + ': needs a maintainer') : yellow('… ' + d.id + ': fix did not work')}`);
+        p(`    ${d.status === 'verified' ? green('✔ evidence ' + d.id + ': fixed and verified') : d.status === 'needs-human' ? red('✋ ' + d.id + ': needs a maintainer') : d.status === 'progressed' ? green('↪ ' + d.id + ': worked, revealed the next error') : yellow('… ' + d.id + ': fix did not work')}`);
         break;
       case 'bob':
         if (!d.ok) p(dim(`    IBM Bob unavailable: ${d.error}`));
@@ -81,7 +81,10 @@ export function printPassport(d, p = console.log) {
   p(`  │ ${bold(d.repo)} @ ${d.commit}`);
   p(`  │ ${color(bold(d.verdict))}  ·  ${d.runtime} (${d.image})`);
   p(`  │ breaks found ${bold(d.breaksFound)} · fixed ${bold(d.breaksFixed)} · needs a human ${bold(d.needsHuman)}`);
-  if (d.replaySeconds) p(`  │ clone → running, from zero: ${bold(fmtDuration(d.replaySeconds * 1000))}`);
+  if (d.replaySeconds) {
+    const label = d.packageCache ? 'clone → running (cached packages)' : 'clone → running, from zero';
+    p(`  │ ${label}: ${bold(fmtDuration(d.replaySeconds * 1000))}`);
+  }
   if (d.diagnosedByBob || d.bobcoins) p(`  │ IBM Bob: ${d.diagnosedByBob} diagnoses · ${d.bobcoins} Bobcoins`);
   p(color(bold(`  └${'─'.repeat(57)}`)));
 }

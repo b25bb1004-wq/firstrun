@@ -1,0 +1,11 @@
+.env
+node_modules/
+dist/
+yarn.lock
+yarn-error.log
+logs/
+coverage/
+data
+
+# FirstRun local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

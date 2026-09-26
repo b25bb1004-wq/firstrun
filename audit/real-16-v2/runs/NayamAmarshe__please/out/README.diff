@@ -1,0 +1,24 @@
+diff --git a/README.MD b/README.MD
+--- a/README.MD
++++ b/README.MD
+@@ -29,6 +29,12 @@
+ 
+ # 🚀 Installation
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `python:3.12` machine at `10e94b3e7e`.
++
++Prerequisites verified by FirstRun:
++
++- poetry
++
+ ### Method 1:
+ 
+ 1. Make sure you have Python 3 installed on your computer.
+@@ -203,6 +209,7 @@ poetry install
+ 
+ ```bash
+ python please/please.py
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ 6. To build a WHL package:

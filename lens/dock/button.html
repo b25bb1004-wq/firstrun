@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 56px; height: 56px; overflow: hidden; background: transparent;
+               -webkit-app-region: drag; user-select: none; }
+  button { -webkit-app-region: no-drag; position: absolute; inset: 4px; border: none; cursor: pointer;
+           border-radius: 50%; background: #0E1726; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  button:hover { background: #1a2540; }
+  svg { display: block; margin: auto; width: 32px; height: 32px; }
+</style>
+</head>
+<body>
+<!-- draggable frame; button opens the panel -->
+<button id="btn" title="Open HUMBLE Dock">
+  <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="28" height="28" rx="6" fill="#0E1726"/>
+    <circle cx="16" cy="16" r="8" stroke="#3DD68C" stroke-width="3" fill="none"/>
+    <circle cx="16" cy="16" r="3" fill="#3DD68C"/>
+  </svg>
+</button>
+<script>
+  document.getElementById('btn').addEventListener('click', () => window.dock?.toggle?.());
+</script>
+</body>
+</html>

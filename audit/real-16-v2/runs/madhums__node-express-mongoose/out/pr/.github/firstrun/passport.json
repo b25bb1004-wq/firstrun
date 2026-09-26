@@ -1,0 +1,20 @@
+{
+  "repo": "madhums/node-express-mongoose",
+  "commit": "86e569617f",
+  "verifiedAt": "2026-09-25T19:16:59.101Z",
+  "verdict": "VERIFIED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 16,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  }
+}

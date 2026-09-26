@@ -1,0 +1,12 @@
+{
+  "name": "node-express-template.ts",
+  "image": "node:16",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

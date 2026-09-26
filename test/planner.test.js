@@ -156,3 +156,13 @@ test('two candidate project folders: no projectDir is guessed', async () => {
   const facts = await scout(root);
   assert.equal(facts.projectDir, undefined);
 });
+
+test('headTail keeps the start of a long log, where npm/node-gyp print the failing command', async () => {
+  const { headTail } = await import('../src/util.js');
+  const log = ['npm error command sh -c node-pre-gyp install --fallback-to-build', ...Array.from({ length: 500 }, (_, i) => `note: candidate ${i}`)].join('\n');
+  const out = headTail(log);
+  assert.match(out, /node-pre-gyp install --fallback-to-build/);
+  assert.match(out, /lines omitted/);
+  assert.match(out, /candidate 499$/);
+  assert.equal(headTail('a\nb'), 'a\nb');
+});

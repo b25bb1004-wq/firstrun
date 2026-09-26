@@ -63,6 +63,11 @@ export async function scout(root) {
     else if (/^docs?\/(.*\/)?(setup|development|developing|getting[-_]started|install(ation)?|local[-_]dev(elopment)?|contributing|quick[-_]?start)\.md$/i.test(f)) facts.docs.push(f);
   }
 
+  // reStructuredText setup docs (flask, httpie): listed apart until the planner parses .rst (src/markdown.js).
+  const SETUP_NAME = /(contributing|development|developing|setup|install(ation)?|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
+  facts.docsRst = files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
+    && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5);
+
   // Onboarding material that isn't Markdown (PDF handbooks, reStructuredText, wiki exports):
   // the rule-based planner can't read these; IBM Bob's document understanding can.
   facts.extraDocs = files.filter((f) => /\.(pdf|rst|adoc|docx|txt)$/i.test(f) && /(onboard|setup|install|getting[-_]?started|develop|contribut|readme|handbook|guide|wiki)/i.test(f) && !/node_modules|test|fixture/i.test(f)).slice(0, 10);
@@ -218,6 +223,8 @@ export async function scout(root) {
   }
 
   if (has('Makefile')) facts.makeTargets = [...(read('Makefile') || '').matchAll(/^([A-Za-z][\w.-]*):(?!=)/gm)].map((m) => m[1]);
+  // Install/setup targets with their recipe lines (httpie: `make install`), for docs that only say "run make install".
+  facts.makeInstall = has('Makefile') ? makeInstallTargets(read('Makefile') || '') : [];
 
   if (facts.node && Object.values(facts.node.scripts).some((v) => /--env-file|dotenv/.test(v))) facts.loadsDotenv = true;
   if (facts.node?.deps.some((d) => /^(next|vite|nuxt|@nestjs\/config|dotenv|dotenv-flow|dotenv-cli|env-cmd)$/.test(d))) facts.loadsDotenv = true;
@@ -276,6 +283,23 @@ function cliNames(facts, read, has) {
   const cs = setup.match(/console_scripts[\s\S]{0,400}/);
   if (cs) for (const k of cs[0].matchAll(/([\w.-]+)\s*=\s*[\w.]+:\w+/g)) names.add(k[1]);
   return [...names].filter((n) => n.length > 1);
+}
+
+/** Makefile targets a newcomer runs to set up (install, setup, dev, bootstrap, deps, venv …), with their recipe commands. */
+export function makeInstallTargets(text) {
+  const out = [];
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^([A-Za-z][\w.-]*)\s*:(?!=)/);
+    if (!m || !/^(install|setup|dev|develop|bootstrap|init|deps|dependencies|venv|env)([-_.][\w.-]*)?$/i.test(m[1])) continue;
+    const commands = [];
+    for (let j = i + 1; j < lines.length && /^\t/.test(lines[j]); j++) {
+      const c = lines[j].replace(/^\t[@-]*/, '').trim();
+      if (c && !c.startsWith('#')) commands.push(c);
+    }
+    out.push({ target: m[1], commands });
+  }
+  return out;
 }
 
 export function summarizeFacts(f) {

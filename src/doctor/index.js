@@ -33,13 +33,19 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   if (brain === 'rules') {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure (run with --brain auto to ask IBM Bob).', by: 'rules', confidence: 0 }, fix: null };
   }
-  if (bobBudget && bobBudget.remaining() <= 0) {
+  if (bobBudget && (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) < 0.05) {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure and the Bobcoin budget for this run is spent.', by: 'rules', confidence: 0 }, fix: null };
   }
   const request = doctorRequest(ctx);
-  const res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
+  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
   bobBudget?.spend(res.bobcoins || 0);
   onBob?.(res);
+  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) >= 0.05)) {
+    const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
+    bobBudget?.spend(retry.bobcoins || 0);
+    onBob?.(retry);
+    res = { ...retry, bobcoins: (res.bobcoins || 0) + (retry.bobcoins || 0) };
+  }
   if (!res.ok) {
     return { diagnosis: { class: 'unknown', cause: `No rule recognises this failure; IBM Bob could not help: ${res.error}`, by: 'rules', confidence: 0, bobcoins: res.bobcoins }, fix: null };
   }
@@ -47,10 +53,32 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   if (!v.ok) {
     return { diagnosis: { class: 'unknown', cause: `IBM Bob's answer was unusable (${v.error}).`, by: 'bob', confidence: 0, bobcoins: res.bobcoins, taskId: res.taskId }, fix: null };
   }
-  if (v.fix && tried.has(fixSignature(ctx.step.id, v.fix))) {
-    return { diagnosis: { ...v.diagnosis, by: 'bob', bobcoins: res.bobcoins, taskId: res.taskId }, fix: null };
+  // Source edits Bob proposed are not applied; keep them on the diagnosis so the evidence shows them to the maintainer.
+  const suggestions = v.suggestions || v.fix?.suggestions;
+  const diagnosis = { ...v.diagnosis, by: 'bob', bobcoins: res.bobcoins, taskId: res.taskId, ...(suggestions?.length ? { suggestions } : {}) };
+  // Check Bob against the log: "unreachable" while the log shows HTTP responses is wrong (huggingface_hub: hub-ci
+  // answered 200 OK). Keep his diagnosis, but lower its confidence and say what the log shows.
+  if (/unreachable|offline|cannot (?:be )?reach|no network|not reachable/i.test(diagnosis.cause || '') && /HTTP\/[\d.]+ [23]\d\d/.test(ctx.log || '')) {
+    diagnosis.confidence = Math.min(diagnosis.confidence ?? 0.5, 0.4);
+    diagnosis.checked = 'The log shows successful HTTP responses from the network, so "unreachable" is not supported; the calls are more likely slow.';
   }
-  return { diagnosis: { ...v.diagnosis, by: 'bob', bobcoins: res.bobcoins, taskId: res.taskId }, fix: v.fix };
+  if (v.fix && tried.has(fixSignature(ctx.step.id, v.fix))) return { diagnosis, fix: null };
+  return { diagnosis, fix: v.fix };
+}
+
+/** True when the path belongs to setup scaffolding, not application source. */
+function isSetupFile(p) {
+  if (!p) return false;
+  const name = p.split('/').pop();
+  if (/^(README|CONTRIBUTING|CHANGELOG|INSTALL)(\..*)?$/i.test(name)) return true;
+  if (/\.(md|rst)$/.test(name)) return true;
+  if (/^\.env\.(example|sample)$/.test(name) || /\.env\.example$/.test(name)) return true;
+  if (/^docker-compose(\.[^/]*)?\.ya?ml$/.test(name)) return true;
+  if (/^compose\.ya?ml$/.test(name)) return true;
+  if (/^\.nvmrc$/.test(name) || /^\.node-version$/.test(name) || /^\.python-version$/.test(name) || /^\.tool-versions$/.test(name)) return true;
+  if (/^tsconfig(\..*)?\.json$/.test(name)) return true;
+  if (name === 'package.json') return true;
+  return false;
 }
 
 export function validateBobFix(j) {
@@ -59,6 +87,7 @@ export function validateBobFix(j) {
   const diagnosis = { class: cls, cause: String(j.cause || '').slice(0, 400) || 'IBM Bob did not explain the cause.', confidence: Math.max(0, Math.min(1, Number(j.confidence) || 0.5)) };
   if (!j.fix || !Array.isArray(j.fix.actions) || !j.fix.actions.length) return { ok: true, diagnosis, fix: null };
   const actions = [];
+  const suggestions = [];
   for (const a of j.fix.actions) {
     if (!a || !ACTIONS.includes(a.type)) continue;
     if (['exec', 'replace-step', 'insert-before'].includes(a.type) && typeof a.command !== 'string') continue;
@@ -67,17 +96,24 @@ export function validateBobFix(j) {
     if (a.type === 'write' && !(a.path && typeof a.content === 'string') ) continue;
     if (a.type === 'write' && /(^|\/)\.\.(\/|$)/.test(a.path)) continue;
     if (/\brm\s+-rf\s+\/(\s|$)|mkfs|:\(\)\s*\{/.test(a.command || '')) continue; // refuse destructive commands
+    if (a.type === 'write' && !isSetupFile(a.path)) { suggestions.push({ path: a.path, why: diagnosis.cause }); continue; }
     actions.push({ ...a, name: a.name || a.image?.split(/[/:]/).slice(-2, -1)[0], kind: a.kind || 'other' });
   }
-  if (!actions.length) return { ok: false, error: 'no valid actions' };
   const doc = j.fix.doc && DOC_KINDS.includes(j.fix.doc.kind) && j.fix.doc.text ? { kind: j.fix.doc.kind, text: String(j.fix.doc.text) } : { kind: 'note', text: diagnosis.cause };
-  const patches = Array.isArray(j.fix.patches) ? j.fix.patches.filter((p) => p && p.path && typeof p.content === 'string' && !/(^|\/)\.\.(\/|$)/.test(p.path)).map((p) => ({ path: p.path, op: 'write', content: p.content })) : [];
-  return { ok: true, diagnosis, fix: { actions, patches, doc } };
+  const rawPatches = Array.isArray(j.fix.patches) ? j.fix.patches.filter((p) => p && p.path && typeof p.content === 'string' && !/(^|\/)\.\.(\/|$)/.test(p.path)) : [];
+  const patches = [];
+  for (const p of rawPatches) {
+    if (!isSetupFile(p.path)) { suggestions.push({ path: p.path, why: diagnosis.cause }); continue; }
+    patches.push({ path: p.path, op: 'write', content: p.content });
+  }
+  if (!actions.length && !patches.length && !suggestions.length) return { ok: false, error: 'no valid actions' };
+  if (!actions.length && !patches.length) return { ok: true, diagnosis, fix: null, suggestions };
+  return { ok: true, diagnosis, fix: { actions, patches, doc, ...(suggestions.length ? { suggestions } : {}) } };
 }
 
 function doctorRequest(ctx) {
   const { step, attempt, facts, plan, history = [] } = ctx;
-  return `# FirstRun Doctor request
+  return `# HUMBLE Doctor request
 
 A newcomer is following this repository's setup documentation, command by command, on a
 clean Linux machine (Docker image \`${ctx.image}\`, working directory = repo root, running as root,
@@ -99,13 +135,13 @@ ${tail(attempt.out, 80)}
 \`\`\`
 
 ## Setup plan so far
-${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by FirstRun)' : ''}`).join('\n')}
+${plan.steps.map((s) => `- ${s.id} [${s.status || 'pending'}] \`${s.command}\`${s.skip ? ` (skipped: ${s.skip})` : ''}${s.origin === 'repair' ? ' (added by HUMBLE)' : ''}`).join('\n')}
 
-## What FirstRun already knows
+## What HUMBLE already knows
 \`\`\`json
 ${JSON.stringify(summarizeFacts(facts), null, 2)}
 \`\`\`
-${history.length ? `\n## Earlier repair attempts on this step (they did not work)\n${history.map((h) => `- ${h.cause} → ${JSON.stringify(h.actions)}`).join('\n')}\n` : ''}
+${history.length ? `\n## Earlier repair attempts on this step\n${history.map((h) => `- ${h.cause} → ${JSON.stringify(h.actions)} (${h.worked ? 'worked: cleared that error, keep it; the step now fails on something else' : 'did not work'})`).join('\n')}\n` : ''}
 ## Reply format
 Reply with ONLY one JSON object (no prose), in a \`\`\`json block:
 

@@ -1,0 +1,47 @@
+{
+  "id": "E1",
+  "stepId": "S13",
+  "before": {
+    "stepId": "S13",
+    "n": 1,
+    "command": "yarn start",
+    "exitCode": 1,
+    "durationMs": 2859,
+    "logTail": "yarn run v1.22.22\n$ yarn run build && cross-env NODE_ENV=production node --trace-warnings ./dist/index.js\n$ tsc --project './tsconfig.build.json'\n/workspace/dist/config/config.js:58\n    throw new Error(`Environment variable validation error: \\n${error.details\n    ^\n\nError: Environment variable validation error: \n\"PORT\" is required\n\"SERVER_URL\" is required\n\"CORS_ORIGIN\" is required\n\"ACCESS_TOKEN_SECRET\" is required\n\"ACCESS_TOKEN_EXPIRE\" is required\n\"REFRESH_TOKEN_SECRET\" is required\n\"REFRESH_TOKEN_EXPIRE\" is required\n\"REFRESH_TOKEN_COOKIE_NAME\" is required\n\"MYSQL_DATABASE\" is required\n\"MYSQL_ROOT_PASSWORD\" is required\n\"DATABASE_URL\" is required\n\"SMTP_HOST\" is required\n\"SMTP_USERNAME\" is required\n\"SMTP_PASSWORD\" is required\n\"EMAIL_FROM\" is required\n    at Object.<anonymous> (/workspace/dist/config/config.js:58:11)\n    at Module._compile (node:internal/modules/cjs/loader:1781:14)\n    at Object..js (node:internal/modules/cjs/loader:1913:10)\n    at Module.load (node:internal/modules/cjs/loader:1505:32)\n    at Function._load (node:internal/modules/cjs/loader:1309:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)\n    at Module.require (node:internal/modules/cjs/loader:1527:12)\n    at require (node:internal/modules/helpers:147:16)\n    at Object.<anonymous> (/workspace/dist/config/prisma.js:7:34)\n    at Module._compile (node:internal/modules/cjs/loader:1781:14)\n\nNode.js v22.23.3\nerror Command failed with exit code 1.\ninfo Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.\n\n[firstrun] server process exited before becoming ready on port 3000",
+    "logFile": "logs/S13-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more from .env.example, but the docs never say to create .env from it.",
+    "by": "rules",
+    "ruleId": "missing-env-var",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "cp .env.example .env",
+        "kind": "env"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "cp .env.example .env"
+    },
+    "log": "$ cp .env.example .env → exit 0"
+  },
+  "after": {
+    "stepId": "S13",
+    "n": 3,
+    "command": "yarn start",
+    "exitCode": 0,
+    "durationMs": 2911,
+    "logTail": "yarn run v1.22.22\n$ yarn run build && cross-env NODE_ENV=production node --trace-warnings ./dist/index.js\n$ tsc --project './tsconfig.build.json'\n2026-09-25 19:32:29 [INFO] Server is running on Port: 4000 \n\n[firstrun] the app is listening on port 4000 (it says so in its output), not 3000\n\n[firstrun] GET http://127.0.0.1:4000/ → 404\n404\n[firstrun] the docs name no URL to check; the server answered 404 on / so it is up",
+    "logFile": "logs/S13-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T19:32:22.415Z",
+  "revealed": "E2"
+}

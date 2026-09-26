@@ -1,29 +1,28 @@
 # IBM Bob task sessions (required for judging)
 
-IBM's rule: **every team member** exports **every** Bob IDE task related to the project, as **two
-files per task**: the exported task history (`.md`) and a screenshot of that task's
-**consumption summary**. They go in this folder, in the public repo. Without them the judges can't
+IBM's rule (Bob 2.0 hackathon guide): **every team member** uploads a screenshot of the **task
+session consumption summary** (PNG) for **every** Bob IDE task related to the project, into this
+folder, in the public repo. Exporting the task history as `.md` next to it is optional but welcome. Without them the judges can't
 see that Bob is a core component, and Bob being core is the eligibility condition.
 
 ## Layout
 
 ```
 bob_sessions/
-  arnav/     01-first-bob-diagnosis.md      01-first-bob-diagnosis.png
-  karmanya/  01-guide-mode-walkthrough.md   01-guide-mode-walkthrough.png
+  arnav/     <team>_task01_first_bob_diagnosis_summary.png   (+ optional .md with the same name)
+  karmanya/  <team>_task01_guide_mode_walkthrough_summary.png
 ```
 
-One folder per person. Number the tasks in order and give the `.md` and `.png` of one task the same
-name. `node tools/check-bob-sessions.js` checks the pairs and scans for credentials before you commit.
+One folder per person. IBM's naming: `teamname_task01_short_description_summary.png` (use our
+lablab team name for `<team>`). If you also export the `.md`, give it the same name. `node tools/check-bob-sessions.js` checks the pairs and scans for credentials before you commit.
 
-## Export steps (Bob IDE, from the IBM participant guide)
+## Steps (Bob IDE, from the Bob 2.0 hackathon guide)
 
-1. Bob IDE chat panel → **Views and More Actions** → **History**. Check you're in the right
-   workspace (or pick **All**).
-2. Click the task. It opens in the chat panel.
+1. Bob IDE chat → **Tasks**, to show the task list. Check you're in the right workspace (or pick **All**).
+2. Select the task. It opens in the chat panel.
 3. Click the **task header**. The **task session consumption summary** appears.
-4. **Screenshot** that summary, and save it as `NN-slug.png`.
-5. In the same view, click **Export task history**. Save the `.md` as `NN-slug.md`.
+4. **Screenshot** it as **PNG**, named `<team>_taskNN_short_description_summary.png`.
+5. Optional: export the task history as `.md` with the same name.
 6. Repeat for every task. Then run the checker, commit, and push.
 
 **Credentials:** IBM deactivates accounts if Bob or Cloud credentials appear in the repo. Check both

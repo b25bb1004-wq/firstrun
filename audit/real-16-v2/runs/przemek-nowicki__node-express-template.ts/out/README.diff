@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -25,6 +25,8 @@ The `master` branch contains the core version of NET.ts. However, if you need ad
+ 
+ ## Getting started
+ 
++🟡 **Partly verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:16` machine at `d731e5cef4`: clone to running in 1s.
++
+ Install `Docker` and `Docker Compose` which are used to maximise the convenience of development on local machine.
+ 
+ When both are installed, build the NET.ts image as follow:
+@@ -88,6 +90,7 @@ The Jest test suites are run by executing
+ 
+ ```sh
+ npm test
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ To run tests directly insiide of the NET.ts container:

@@ -1,0 +1,45 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "npm install",
+    "exitCode": 1,
+    "durationMs": 24610,
+    "logTail": "npm error code ERESOLVE\nnpm error ERESOLVE unable to resolve dependency tree\nnpm error\nnpm error While resolving: node-server-with-typescript@1.0.0\nnpm error Found: typescript@5.0.3\nnpm error node_modules/typescript\nnpm error   dev typescript@\"5.0.3\" from the root project\nnpm error\nnpm error Could not resolve dependency:\nnpm error peer typescript@\"^2.7 || ^3\" from awesome-typescript-loader@5.2.1\nnpm error node_modules/awesome-typescript-loader\nnpm error   dev awesome-typescript-loader@\"^5.2.0\" from the root project\nnpm error\nnpm error Fix the upstream dependency conflict, or retry\nnpm error this command with --force or --legacy-peer-deps\nnpm error to accept an incorrect (and potentially broken) dependency resolution.\nnpm error\nnpm error\nnpm error For a full report see:\nnpm error /root/.npm/_logs/2026-09-25T18_50_56_156Z-eresolve-report.txt\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-25T18_50_56_156Z-debug-0.log",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-dependency",
+    "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+    "by": "rules",
+    "ruleId": "npm-peer-conflict",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "npm install --legacy-peer-deps"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "npm install --legacy-peer-deps"
+    },
+    "log": "step command → npm install --legacy-peer-deps"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "npm install --legacy-peer-deps",
+    "exitCode": 0,
+    "durationMs": 45788,
+    "logTail": "npm warn deprecated xmldom@0.1.31: Deprecated due to CVE-2021-21366 resolved in 0.5.0\nnpm warn deprecated source-map-url@0.4.1: See https://github.com/lydell/source-map-url#deprecated\nnpm warn deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated\nnpm warn deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated\nnpm warn deprecated source-map-resolve@0.5.3: See https://github.com/lydell/source-map-resolve#deprecated\nnpm warn deprecated har-validator@5.1.5: this library is no longer supported\nnpm warn deprecated uuid@2.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).\nnpm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.\nnpm warn deprecated glob@7.1.2: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\nnpm warn deprecated request@2.88.2: request has been deprecated, see https://github.com/request/request/issues/3142\nnpm warn deprecated crypto@1.0.1: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.\nnpm warn deprecated bcrypt-nodejs@0.0.3: bcrypt-nodejs is no longer actively maintained. Please use bcrypt or bcryptjs. See https://github.com/kelektiv/node.bcrypt.js/wiki/bcrypt-vs-brypt.js to learn more about these two options\nnpm warn deprecated @types/mongodb@4.0.7: mongodb provides its own types. @types/mongodb is no longer needed.\nnpm warn deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)\nnpm warn deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)\nnpm warn deprecated bson@1.0.9: Fixed a critical issue with BSON serialization documented in CVE-2019-2391, see https://bit.ly/2KcpXdo for more details\nnpm warn deprecated glob@7.0.6: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\nnpm warn deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)\nnpm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).\nnpm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\nnpm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).\nnpm warn deprecated mkdirp@0.5.1: Legacy versions of mkdirp are no longer supported. Please update to mkdirp 1.x. (Note that the API surface has changed to use Promises in 1.x.)\nnpm warn deprecated bootstrap@4.6.2: This version of Bootstrap is no longer supported. Please upgrade to the latest version.\nnpm warn deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)\nnpm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.\n\nadded 631 packages in 46s",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T18:52:06.514Z"
+}

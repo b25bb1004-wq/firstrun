@@ -3,7 +3,7 @@ import YAML from 'yaml';
 import { readText } from './util.js';
 
 /**
- * Repo patches are the file changes FirstRun proposes in its PR (for example a
+ * Repo patches are the file changes HUMBLE proposes in its PR (for example a
  * missing variable in .env.example, or a missing Redis service in
  * docker-compose.yml). They are kept as operations and folded into final file
  * contents on demand, so the replay runs against exactly what the PR contains.
@@ -30,6 +30,22 @@ export function applyPatchOps(original, ops) {
         doc.setIn(['services', op.name], doc.createNode(svc));
       }
       text = String(doc);
+    } else if (op.op === 'tsconfig-skip-lib-check') {
+      // tsconfig files can have // comments and trailing commas, so avoid JSON.parse.
+      if (/\bskipLibCheck\b/.test(text)) {
+        // key present: normalise its value to true regardless of what it was.
+        text = text.replace(/("skipLibCheck"\s*:\s*)(?:false|true)/, '$1true');
+      } else if (/"?compilerOptions"?\s*:\s*\{/.test(text)) {
+        // the key is quoted in real tsconfigs ("compilerOptions": {); detect indentation from the next line
+        const m = text.match(/"?compilerOptions"?\s*:\s*\{[^\n]*\n(\s+)/);
+        const indent = m ? m[1] : '    ';
+        text = text.replace(/("?compilerOptions"?\s*:\s*\{)/, `$1\n${indent}"skipLibCheck": true,`);
+      } else {
+        // no compilerOptions at all: insert after the file's first `{`
+        const m2 = text.match(/\{[^\n]*\n(\s+)/);
+        const indent = m2 ? m2[1] : '  ';
+        text = text.replace(/(\{)/, `$1\n${indent}"compilerOptions": {\n${indent}${indent}"skipLibCheck": true\n${indent}},`);
+      }
     }
   }
   return text;

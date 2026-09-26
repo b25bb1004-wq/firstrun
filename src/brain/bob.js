@@ -4,7 +4,7 @@ import os from 'node:os';
 import { run, ensureDir, tail } from '../util.js';
 
 /**
- * IBM Bob as FirstRun's reasoning engine, driven headlessly through Bob Shell:
+ * IBM Bob as HUMBLE's reasoning engine, driven headlessly through Bob Shell:
  *   bob run --format json --mode <firstrun-mode> --max-cost <n> -w <repo> "<prompt>"
  * The prompt points Bob at a request file inside the workspace, so Bob reads the
  * repo's own docs and manifests (document understanding) before answering.
@@ -24,7 +24,7 @@ function bobCommand() {
 
 function runBob(args, opts = {}) {
   const [cmd, pre] = bobCommand();
-  // Inside Electron (FirstRun Lens), execPath is Electron itself: make it run bob.js as plain Node.
+  // Inside Electron (HUMBLE Lens), execPath is Electron itself: make it run bob.js as plain Node.
   const env = process.versions.electron && cmd === process.execPath ? { ...opts.env, ELECTRON_RUN_AS_NODE: '1' } : opts.env;
   return run(cmd, [...pre, ...args], { ...opts, env });
 }
@@ -37,8 +37,10 @@ export async function bobStatus({ force = false } = {}) {
   return availability;
 }
 
+/** Is the mode where Bob Shell 2.x reads global modes (~/.bob/settings/custom_modes.yaml)?
+ * The 1.x location (~/.bob/custom_modes.yaml) is no longer read, so it doesn't count. */
 export function modeInstalled(slug) {
-  const file = path.join(os.homedir(), '.bob', 'custom_modes.yaml');
+  const file = path.join(os.homedir(), '.bob', 'settings', 'custom_modes.yaml');
   try { return fs.readFileSync(file, 'utf8').includes(`slug: ${slug}`); } catch { return false; }
 }
 
@@ -75,7 +77,7 @@ export async function askBob({ mode, request, workspace, maxCost = 1.5, maxTurns
   fs.writeFileSync(reqFile, request);
   const rel = path.relative(workspace, reqFile).replace(/\\/g, '/');
   const useMode = modeInstalled(mode) ? mode : 'ask';
-  const prompt = `You are running as FirstRun's ${mode.replace('firstrun-', '')} agent. Read the file ${rel} and do exactly what it asks. Reply with only the JSON object it specifies.`;
+  const prompt = `You are running as HUMBLE's ${mode.replace('firstrun-', '')} agent. Read the file ${rel} and do exactly what it asks. Reply with only the JSON object it specifies.`;
   const args = ['run', '--format', 'json', '--mode', useMode, '--max-cost', String(maxCost), '--max-turns', String(maxTurns), '--accept-license', '--trust', '--disable-subagents', '-w', workspace, prompt];
   onEvent?.({ type: 'bob.start', mode: useMode });
   const r = await runBob(args, { cwd: workspace, timeoutMs: 6 * 60_000 });

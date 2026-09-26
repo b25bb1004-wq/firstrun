@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
@@ -8,7 +7,7 @@ import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './servi
 /**
  * Deterministic diagnosis rules. Each rule looks at a failed step's output and
  * returns { ruleId, class, cause, confidence, fix } or null. A fix has sandbox
- * `actions` (to repair this run), repo `patches` (files FirstRun will change in
+ * `actions` (to repair this run), repo `patches` (files HUMBLE will change in
  * the PR) and a `doc` change (what the README must say instead).
  *
  * Rules only claim failures they understand; everything else goes to IBM Bob.
@@ -50,6 +49,9 @@ function runtimeCause(plan, label, target, src) {
 }
 
 /** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
+/** Value for dev secrets HUMBLE has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
+export const DEV_SECRET = 'change.me.local.dev.only.not.a.secret';
+
 const PLACEHOLDER = /^(?:your[\w.-]*|<[^>]*>|\[[^\]]*\]|\{\{?[^}]*\}?\}|change[-_ ]?me|xxx+|todo|replace[-_ ]?me|placeholder)$/i;
 
 /** The package that provides a CLI a script calls, when it isn't the CLI's own name. */
@@ -113,6 +115,7 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(HOST|SERVER)$/.test(n)) return { value: 'localhost', kind: 'local' };
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_PORT$/.test(n)) return { value: '1025', kind: 'local' };
   if (/^(\w+_)?(SMTP|MAIL|EMAIL)_(USER|USERNAME|LOGIN)$/.test(n)) return { value: 'dev', kind: 'local' };
+  if (/^(\w+_)?(SMTP|MAIL|EMAIL)_SECURE$/.test(n)) return { value: 'false', kind: 'local' };
   if (/^(EMAIL|MAIL|SMTP)_(FROM|SENDER)$|^(FROM|SENDER)_(EMAIL|ADDRESS)$/.test(n)) return { value: 'dev@example.com', kind: 'local' };
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
@@ -120,7 +123,9 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY)/.test(n)) {
     return { value: 'changeme', kind: 'secret' };
   }
-  if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: `dev-${crypto.randomBytes(12).toString('hex')}`, kind: 'generated' };
+  // One obvious, non-secret value, the same in the sandbox and in the PR's .env.example: a random-looking
+  // string there would read as a leaked credential (and trip secret scanners). Long enough for min-length checks.
+  if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: DEV_SECRET, kind: 'generated' };
   if (/(ENABLED|DEBUG|VERBOSE)$/.test(n)) return { value: 'false', kind: 'local' };
   return { value: 'changeme', kind: 'unknown' };
 }
@@ -134,6 +139,7 @@ const ENV_PATTERNS = [
   /"path":\s*\[\s*"([A-Z][A-Z0-9_]{2,})"\s*\][\s\S]{0,80}"message":\s*"Required"/,
   /✖?\s*([A-Z][A-Z0-9_]{2,}):\s*(?:Required|Invalid input: expected string, received undefined)/,
   /([A-Z][A-Z0-9_]{2,})\s*\n\s*Field required \[type=missing/,
+  /Environment variable not found: ([A-Z][A-Z0-9_]{2,})\./,
 ];
 
 export const RULES = [
@@ -187,7 +193,7 @@ export const RULES = [
       if (bcryptMajor && bcryptMajor < 6) {
         return {
           ruleId: 'node-native-build', class: 'runtime-version', confidence: 0.8,
-          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which FirstRun leaves to a human.`,
+          cause: `bcrypt ${bcrypt} does not build on Node.js ${current} either. It needs a code change (bcrypt >= 6, or bcryptjs), which HUMBLE leaves to a human.`,
           fix: null,
         };
       }
@@ -207,6 +213,28 @@ export const RULES = [
           actions: [{ type: 'rebase', image: imageFor('node', String(target)), runtime: { name: 'node', version: String(target), source: why } }],
           patches: [],
           doc: { kind: 'prerequisite', text: `Node.js ${target} (see the native-build errors: dependencies do not compile on newer versions)`, runtime: { name: 'node', version: String(target) } },
+        },
+      };
+    },
+  },
+  {
+    // "node: bad option: --test" (Node < 18) or unknown --experimental-* flags.
+    // The plan picked an old image because the docs only stated a minimum version.
+    id: 'node-test-flag',
+    test({ log, facts, plan }) {
+      if (plan.runtime.name !== 'node' || !facts.node) return null;
+      if (!/node: bad option: --test|node: bad option: --experimental-/.test(log)) return null;
+      const target = '18';
+      const current = plan.runtime.version;
+      if (Number(current) >= Number(target)) return null;
+      const src = `the error ("${log.match(/node: bad option: --\S+/)?.[0]}"): \`--test\` requires Node.js 18+`;
+      return {
+        ruleId: 'node-test-flag', class: 'runtime-version', confidence: 0.95,
+        cause: runtimeCause(plan, 'Node.js', target, src),
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target} or newer (\`--test\` runner requires Node.js 18+)`, runtime: { name: 'node', version: target } },
         },
       };
     },
@@ -442,7 +470,7 @@ export const RULES = [
       const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
       return {
         ruleId: 'env-empty-value', class: 'missing-env', confidence: 0.85,
-        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. FirstRun fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
+        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. HUMBLE fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
         fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has working local values for the variables that were blank (${shown}).` } },
       };
     },
@@ -470,14 +498,42 @@ export const RULES = [
         const d = devValue(k, ctx);
         return ['local', 'generated'].includes(d.kind) ? { value: d.value, from: 'a local default' } : null;
       };
-      const sets = hit.map(([k, v]) => ({ k, v, ...pick(k) })).filter((s) => s.value);
+      let sets = hit.map(([k, v]) => ({ k, v, ...pick(k) })).filter((s) => s.value);
       if (!sets.length) return null;
-      const actions = sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }));
-      const patches = envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : [];
+      // When a mail variable is among the hits, fill every other mail placeholder too and add Mailpit.
+      const mailRe = /^(\w+_)?(SMTP|MAIL|EMAIL)_/;
+      const mailHit = sets.some((s) => mailRe.test(s.k));
+      const mailActions = [];
+      const mailPatches = [];
+      let mailDoc = null;
+      if (mailHit) {
+        const extra = placeholders.filter(([k]) => mailRe.test(k) && !sets.some((s) => s.k === k));
+        for (const [k] of extra) {
+          const d = devValue(k, ctx);
+          if (['local', 'generated'].includes(d.kind)) sets.push({ k, v: current[k], value: d.value, from: 'a local default' });
+        }
+        // The README must start the catcher too (same docs as missing-service), or the passport proves a setup the docs don't describe.
+        // An earlier fix may have started it already: never start two.
+        if (!ctx.sandbox?.services?.some((s) => serviceKind(s.image, s.name) === 'mailpit')) {
+          const mp = serviceFor('mailpit', { facts, envValues: {} });
+          mailActions.push({ type: 'service', name: mp.name, image: mp.image, env: mp.env, port: mp.port });
+          if (facts.compose && !mp.fromCompose) {
+            mailPatches.push({ path: facts.compose.file, op: 'compose-add-service', name: mp.name, image: mp.image, port: mp.port, env: mp.env });
+            mailDoc = { kind: 'insert-step', text: `docker compose up -d ${mp.name}`, service: 'mailpit' };
+          } else {
+            mailDoc = { kind: 'insert-step', text: mp.fromCompose ? `docker compose up -d ${mp.name}` : dockerRunLine(mp), service: 'mailpit' };
+          }
+          mailActions.push({ type: 'insert-before', command: mailDoc.text, kind: 'services', silent: true });
+        }
+      }
+      const actions = [...sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` })), ...mailActions];
+      const patches = [...(envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : []), ...mailPatches];
+      const hitSets = sets.filter((s) => hit.some(([k]) => k === s.k));
+      const envNote = `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.`;
       return {
         ruleId: 'env-placeholder-value', class: 'missing-env', confidence: 0.85,
-        cause: `${sets.map((s) => `${s.k}=${s.v}`).join(', ')} ${sets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; FirstRun sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}.`,
-        fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.` } },
+        cause: `${hitSets.map((s) => `${s.k}=${s.v}`).join(', ')} ${hitSets.length > 1 ? 'are placeholders' : 'is a placeholder'}${envFile ? ` in ${envFile}` : ''}, and the app fails on it; HUMBLE sets ${sets.map((s) => `${s.k}=${s.value} (${s.from})`).join(', ')}${mailDoc ? ' and starts a local mail catcher (Mailpit)' : ''}.`,
+        fix: { actions, patches, doc: mailDoc || { kind: 'note', text: envNote } },
       };
     },
   },
@@ -551,6 +607,29 @@ export const RULES = [
         ruleId: 'prisma-generate', class: 'wrong-order', confidence: 0.95,
         cause: 'The Prisma client was never generated; the docs skip `prisma generate`.',
         fix: { actions: [{ type: 'insert-before', command: 'npx prisma generate', kind: 'build' }], patches: [], doc: { kind: 'insert-step', text: 'npx prisma generate' } },
+      };
+    },
+  },
+  {
+    // TypeScript errors only inside node_modules/**/*.d.ts: the project's own code is fine.
+    // The standard fix is `skipLibCheck: true`; without it tsc fails on types it doesn't own.
+    id: 'ts-skip-lib-check',
+    test({ log, facts }) {
+      const TS_ERR = /^(.+)\(\d+,\d+\): error TS\d+:/gm;
+      const lines = [...log.matchAll(TS_ERR)];
+      if (!lines.length) return null;
+      // All error paths must be inside node_modules/ and end in .d.ts.
+      if (!lines.every((m) => m[1].startsWith('node_modules/') && m[1].endsWith('.d.ts'))) return null;
+      if (!facts.files.includes('tsconfig.json')) return null;
+      const example = lines[0][1]; // e.g. node_modules/mongoose/node_modules/mongodb/mongodb.d.ts
+      return {
+        ruleId: 'ts-skip-lib-check', class: 'missing-dependency', confidence: 0.85,
+        cause: `TypeScript type-checks ${example}; the errors are all inside dependencies, not this project's code, and tsconfig.json has no skipLibCheck.`,
+        fix: {
+          actions: [],
+          patches: [{ path: 'tsconfig.json', op: 'tsconfig-skip-lib-check' }],
+          doc: { kind: 'note', text: '`tsconfig.json` now sets `skipLibCheck: true`: the build failed on type errors inside dependencies, not in this project.' },
+        },
       };
     },
   },
@@ -660,6 +739,152 @@ export const RULES = [
     },
   },
   {
+    // No lockfile + an unbounded range (>=X, >X) lets `npm install` jump to a new major on a fresh clone.
+    // Fires on a build/type/import failure when exactly one unbounded dep is tied to it by the log
+    // (node_modules path, quoted module name) or by the blamed files' imports (one relative hop).
+    id: 'unbounded-range-no-lockfile',
+    test({ log, facts, plan }) {
+      if (!facts.node) return null;
+      // Condition 1: the log shows a build / type / import failure.
+      if (!/error TS\d+|SyntaxError|is not a function|Cannot find module|ERR_REQUIRE_ESM/.test(log)) return null;
+      // Condition 2: no lockfile in the project dir.
+      const lockfiles = ['package-lock.json', 'npm-shrinkwrap.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock'];
+      const dir = path.join(facts.root, facts.projectDir || '');
+      const hasLock = lockfiles.some((f) => { try { fs.statSync(path.join(dir, f)); return true; } catch { return false; } });
+      if (hasLock) return null;
+      // Condition 3 & 4: collect unbounded deps and pick the one named in the log.
+      let pkg = null;
+      let range = null;
+      try {
+        const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
+        const parsed = JSON.parse(raw);
+        const allDeps = { ...parsed.dependencies, ...parsed.devDependencies };
+        // A range is unbounded only when it is JUST `>=X` or `>X` (with optional whitespace and
+        // optional prerelease/build suffix) — anything with `<`, `||`, ` - `, or a second comparator
+        // after whitespace is bounded and must not fire.
+        const unbounded = Object.entries(allDeps).filter(([, r]) => {
+          const s = (r || '').trim();
+          return /^>=?\s*\d[\d.]*(?:-[^\s|<]*)?(?:\s*\+[^\s|<]*)?$/.test(s);
+        });
+        if (!unbounded.length) return null;
+
+        // ── package detection (evidence-based, not bare-word) ──────────────
+        // (a) node_modules/<pkg>/ path in the log (handles scoped packages too).
+        // (b) quoted module specifier in the log: '<pkg>' or "<pkg>".
+        // (c) import tracing: for each source file blamed in the log, read it and
+        //     collect package imports; also follow one hop of relative imports.
+        const escName = (n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        const hasEvidenceAB = (name) => {
+          const e = escName(name);
+          // (a) path evidence
+          if (new RegExp(`node_modules/${e}/`).test(log)) return true;
+          // (b) quoted specifier evidence
+          if (new RegExp(`['"]${e}['"/]`).test(log)) return true;
+          return false;
+        };
+
+        // Collect package names imported by a file (not relative imports).
+        const pkgImportsOf = (filePath) => {
+          let src = '';
+          try { src = fs.readFileSync(filePath, 'utf8'); } catch { return new Set(); }
+          const names = new Set();
+          const importRe = /(?:import\s+.*?\s+from\s+|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g;
+          for (const m of src.matchAll(importRe)) {
+            const spec = m[1];
+            if (spec.startsWith('.')) continue; // relative — skip for direct package collection
+            // Normalise @scope/pkg/sub → @scope/pkg, pkg/sub → pkg
+            const parts = spec.split('/');
+            const name = spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+            names.add(name);
+          }
+          return names;
+        };
+
+        // Collect relative imports of a file and return their resolved paths (try several extensions).
+        const resolveRelative = (fromFile, spec) => {
+          const base = path.resolve(path.dirname(fromFile), spec);
+          const tries = [base, `${base}.ts`, `${base}.tsx`, `${base}.js`, `${base}.mjs`, `${base}.cjs`,
+            path.join(base, 'index.ts'), path.join(base, 'index.js')];
+          for (const p of tries) { try { fs.statSync(p); return p; } catch {} }
+          return null;
+        };
+
+        const relImportsOf = (filePath) => {
+          let src = '';
+          try { src = fs.readFileSync(filePath, 'utf8'); } catch { return []; }
+          const paths = [];
+          const importRe = /(?:import\s+.*?\s+from\s+|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g;
+          for (const m of src.matchAll(importRe)) {
+            const spec = m[1];
+            if (!spec.startsWith('.')) continue;
+            const resolved = resolveRelative(filePath, spec);
+            if (resolved) paths.push(resolved);
+          }
+          return paths;
+        };
+
+        // Extract blamed source file paths from the log.
+        // Patterns: `src/models/User.ts(64,11):`, `at file:///app/src/x.js:3:1`, `/workspace/src/x.js:3`
+        const blamedFiles = new Set();
+        // Absolute paths are the sandbox's: the repo is mounted at /workspace, so map them to the host copy.
+        for (const m of log.matchAll(/(?:^|\s|\(|file:\/\/)(\/workspace\/[^\s():]+\.[cm]?[jt]sx?)(?::\d+|\(\d+,\d+\))/gm)) {
+          blamedFiles.add(path.join(facts.root, m[1].slice('/workspace/'.length)));
+        }
+        // Also relative paths like `src/models/User.ts(64,11):`
+        for (const m of log.matchAll(/\b((?:src|lib|app|dist)\/[^\s(]+\.[cm]?[jt]sx?)(?::\d+|:\d+:\d+|\(\d+,\d+\))/gm)) {
+          blamedFiles.add(path.join(dir, m[1]));
+        }
+
+        // Build the import-trace candidate set (c): direct imports + one-hop relative imports.
+        const importTracePkgs = new Set();
+        for (const f of blamedFiles) {
+          const direct = pkgImportsOf(f);
+          for (const n of direct) importTracePkgs.add(n);
+          for (const rel of relImportsOf(f)) {
+            for (const n of pkgImportsOf(rel)) importTracePkgs.add(n);
+          }
+        }
+
+        const hasEvidenceC = (name) => importTracePkgs.has(name);
+
+        // Classify each unbounded dep by evidence tier.
+        const abEvidence = unbounded.filter(([name]) => hasEvidenceAB(name));
+        if (abEvidence.length === 1) { [pkg, range] = abEvidence[0]; }
+        else if (abEvidence.length > 1) return null; // ambiguous even with strong evidence
+        else {
+          // Fall back to (c) import tracing.
+          const cEvidence = unbounded.filter(([name]) => hasEvidenceC(name));
+          if (cEvidence.length === 1) { [pkg, range] = cEvidence[0]; }
+          else return null; // 0 or ambiguous
+        }
+      } catch { return null; }
+      // Extract the floor version from >=X.Y.Z or >X.Y.Z; * / latest / x / empty have no floor.
+      const floor = range.match(/^>=?\s*(\d[\d.]*)/);
+      if (!floor || !floor[1]) return null;
+      const ver = floor[1];
+      // Determine the install tool from the plan's install step.
+      const installStep = plan.steps.find((s) => /^(npm\s+(i|install|ci)|yarn\s+(install)?$|pnpm\s+install|bun\s+install)/.test(s.command));
+      let installPrefix = 'npm install --no-save';
+      if (installStep) {
+        if (/^yarn\b/.test(installStep.command)) installPrefix = 'yarn add';
+        else if (/^pnpm\b/.test(installStep.command)) installPrefix = 'pnpm add';
+        else if (/^bun\b/.test(installStep.command)) installPrefix = 'bun add';
+        else if (/--legacy-peer-deps/.test(installStep.command)) installPrefix = 'npm install --no-save --legacy-peer-deps';
+      }
+      const cmd = `${installPrefix} ${pkg}@^${ver}`;
+      return {
+        ruleId: 'unbounded-range-no-lockfile', class: 'missing-dependency', confidence: 0.7,
+        cause: `${pkg} is declared as ${range} with no lockfile, so a fresh install gets a newer major of ${pkg} than the code was written for; pinning to ^${ver} restores the version the setup docs assumed.`,
+        fix: {
+          actions: [{ type: 'insert-before', command: cmd }],
+          patches: [],
+          doc: { kind: 'insert-step', text: cmd },
+        },
+      };
+    },
+  },
+  {
     id: 'apt-package-missing',
     test({ log, step }) {
       const m = log.match(/Unable to locate package ([\w.+-]+)|E: Package '([\w.+-]+)' has no installation candidate/);
@@ -714,7 +939,7 @@ export const RULES = [
       if (!m) return null;
       return {
         ruleId: 'secret-required', class: 'needs-secret', confidence: 0.7,
-        cause: 'This step needs a real third-party credential; FirstRun will not invent one.',
+        cause: 'This step needs a real third-party credential; HUMBLE will not invent one.',
         fix: null,
       };
     },

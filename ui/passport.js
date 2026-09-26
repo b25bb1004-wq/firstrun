@@ -53,7 +53,7 @@ export function stampSVG(p, { size = 150 } = {}) {
       <circle cx="80" cy="80" r="47" stroke-width="1.6"/>
       <text font-size="10.2" letter-spacing="1.6" fill="currentColor" stroke="none" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="600"><textPath href="#${id}c">${ring}${ring.slice(0, 18)}</textPath></text>
       <rect x="14" y="66" width="132" height="30" fill="var(--stamp-bg, transparent)" stroke-width="2.4" rx="2"/>
-      <text x="80" y="88" text-anchor="middle" font-size="${p.verdict === 'VERIFIED' ? 22 : 24}" font-weight="700" letter-spacing="2" fill="currentColor" stroke="none" font-family="IBM Plex Sans Condensed, sans-serif">${esc(p.verdict)}</text>
+      <text x="80" y="88" text-anchor="middle" font-size="${p.verdict === 'NO-SETUP-DOCS' ? 14 : p.verdict === 'VERIFIED' ? 22 : 24}" font-weight="700" letter-spacing="${p.verdict === 'NO-SETUP-DOCS' ? 0.5 : 2}" fill="currentColor" stroke="none" font-family="IBM Plex Sans Condensed, sans-serif">${esc(p.verdict)}</text>
       <text x="80" y="112" text-anchor="middle" font-size="9.5" letter-spacing="1" fill="currentColor" stroke="none" font-family="IBM Plex Mono, monospace">${esc(dstr)}</text>
       <text x="80" y="59" text-anchor="middle" font-size="9.5" letter-spacing="1" fill="currentColor" stroke="none" font-family="IBM Plex Mono, monospace">${esc(short(p.commit).toUpperCase())}</text>
     </g>
@@ -70,7 +70,7 @@ export function passportHTML(p, { fresh = false, guideHref = '' } = {}) {
     ${guilloche()}
     <header class="pp-head">
       <span class="pp-title">Setup Passport</span>
-      <span class="pp-issuer">Issued by FirstRun after a replay from zero</span>
+      <span class="pp-issuer">Issued by HUMBLE after a replay from zero</span>
     </header>
     <div class="pp-body">
       <div class="pp-portrait">${identicon(p.commit)}<span>${short(p.commit)}</span></div>
@@ -81,6 +81,8 @@ export function passportHTML(p, { fresh = false, guideHref = '' } = {}) {
         <div class="f f-wide"><dt>Runtime image</dt><dd class="mono">${p.image}</dd></div>
         ${p.verdict === 'VERIFIED'
           ? h`<div class="f f-hero f-wide"><dt>Clone to running</dt><dd><span class="pp-time">${secs(p.replaySeconds)}</span> <small>from zero</small></dd></div>`
+          : p.verdict === 'NO-SETUP-DOCS'
+          ? h`<div class="f f-hero f-wide"><dt>Setup commands</dt><dd><span class="pp-time pp-short">None found</span> <small>docs have no runnable setup steps</small></dd></div>`
           : h`<div class="f f-hero f-wide"><dt>Clone to running</dt><dd><span class="pp-time pp-short">Not reached</span> <small>${p.replaySeconds ? `replay stopped after ${secs(p.replaySeconds)}` : 'no clean replay'}</small></dd></div>`}
         <div class="f f-tally f-wide"><dt>Breaks on a clean machine</dt><dd><span><b>${p.breaksFound}</b><small>found</small></span><span><b class="c-pass">${p.breaksFixed}</b><small>fixed</small></span><span><b class="${p.needsHuman ? 'c-human' : ''}">${p.needsHuman}</b><small>for a human</small></span></dd></div>
         <div class="f"><dt>Bobcoins spent</dt><dd class="c-bob">${p.bobcoins}</dd></div>

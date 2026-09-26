@@ -1,5 +1,7 @@
 # Judge protocol (Hermes / Nemotron Ultra)
 
+The full official requirements are in `docs/HACKATHON_BRIEF.md`. Read it first; it overrides anything below.
+
 Hermes plays the lablab judge. It scores the project the way the real judges will, backs every
 score with evidence, and turns the gaps into ranked GitHub issues that the builders (Friday,
 Edith, Antigravity) fix. Then it judges again. The goal is the highest real score, not a
@@ -8,8 +10,9 @@ flattering one: **a judge that is too kind is useless to us.**
 ## What the real judges see
 
 Submission on lablab.ai (deadline **Sun 27 Sep 2026, 8:30 PM IST**):
-- **Video presentation** (3–5 min) and **slide deck (PDF)**
-- **Public GitHub repo** with **`bob_sessions/`** (a consumption-summary screenshot + the exported `.md` for every Bob IDE task, from every team member)
+- **Video (MP4, 3:00 maximum**: "judges will not watch more than 3 minutes"; ≥ 90 s of the solution in action, narrated, showing how Bob is used) and **slide deck (PDF)**
+- **Two statements, ≤ 500 words each:** Problem & Solution (long description) and the **IBM Bob Usage Statement**
+- **Public GitHub repo** with **`bob_sessions/`** (task session consumption-summary **PNG screenshots** for every Bob IDE task, from every team member)
 - **Application URL:** https://firstrun-sigma.vercel.app
 - Title, short and long description, tags, cover image
 
@@ -24,7 +27,7 @@ measurable impact (time saved, fewer errors, less manual effort).
    - 3: clearly communicates the problem, solution and value in under 5 min.
    - 4: adds market analysis, a revenue model, and future goals and plans.
    - 5: flawless, and shows the project's strengths and uniqueness through competitive analysis.
-   - A video under 3 min scores 2 at most.
+   - For THIS event the video is capped at 3 minutes (event page overrides the generic rubric's length guidance); judge on clarity within 3:00.
 2. **Business value.**
    - 3: addresses a real market need, with revenue potential.
    - 4: clear market, large customer base, feasible and scalable.
@@ -43,7 +46,7 @@ measurable impact (time saved, fewer errors, less manual effort).
 ## How to judge (every round)
 
 1. **Look like a judge, first.** Open the live URL cold and try the instant check on 2–3 repos you pick yourself. Open the audit and the replay. Read `README.md` top to bottom. Skim `bob_sessions/`. Time how long until you understand what this is.
-2. **Verify every claim.** Check each number on the landing page, in the README and in the pitch against its source (`audit/real-16/audit.json`, run artifacts, `docs/CONTEXT.md`). A claim that doesn't match its evidence is a **critical** finding. So is anything synthetic presented as real, and any credential in the repo.
+2. **Verify every claim.** Check each number on the landing page, in the README and in the pitch against its source (`audit/real-16-v2/audit.json`, run artifacts, `docs/CONTEXT.md`). A claim that doesn't match its evidence is a **critical** finding. So is anything synthetic presented as real, and any credential in the repo.
 3. **Run it.** `node --test test/*.test.js`; `node bin/firstrun.js plan examples/acme-shop`. If you have Docker, run `verify` on one example and on one audit repo.
 4. **Score** each criterion 1–5, with 2–4 sentences of evidence (file paths, URLs, what you tried). Then answer: *would this be in the top 10%? Why not?*
 5. **Rank the improvements** by expected score gain per hour of work. For each: the criterion it moves, the concrete change, who should do it (lane), and how to verify it.

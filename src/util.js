@@ -48,6 +48,14 @@ export function tail(text, lines = 60) {
   return all.slice(-lines).join('\n');
 }
 
+/** The start and the end of a long log: npm and node-gyp print the failing command first, then
+ * pages of compiler notes, so the tail alone can miss the cause. Short logs come back whole. */
+export function headTail(text, head = 60, tailLines = 200) {
+  const all = tail(text, Infinity).split('\n');
+  if (all.length <= head + tailLines) return all.join('\n');
+  return [...all.slice(0, head), `[… ${all.length - head - tailLines} lines omitted …]`, ...all.slice(-tailLines)].join('\n');
+}
+
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const nowIso = () => new Date().toISOString();
 export const shortId = () => crypto.randomBytes(4).toString('hex');
@@ -66,7 +74,23 @@ export function writeJson(file, data) {
   ensureDir(path.dirname(file));
   const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, file);
+  renameRetrying(tmp, file);
+}
+
+/** On Windows a rename onto a file someone has open (Defender scanning it, the dashboard reading it)
+ * fails with EPERM/EBUSY/EACCES for a moment. Retry briefly; as a last resort, write in place. */
+export function renameRetrying(tmp, file, tries = 8) {
+  for (let i = 0; ; i++) {
+    try { fs.renameSync(tmp, file); return; } catch (e) {
+      if (!['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
+      if (i >= tries) {
+        fs.copyFileSync(tmp, file);
+        try { fs.unlinkSync(tmp); } catch {}
+        return;
+      }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25 * (i + 1)); // brief synchronous back-off
+    }
+  }
 }
 
 export function readText(file) {
@@ -138,3 +162,5 @@ export function fmtDuration(ms) {
 export function shq(s) {
   return `'${String(s).replace(/'/g, `'\\''`)}'`;
 }
+
+export { redactTokens, redactSecrets, redactDeep, isPlainPlaceholder, REDACTED, TOKEN_PATTERNS } from './redact.js';

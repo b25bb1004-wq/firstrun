@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T19:17:04.533Z",
+  "commit": "d731e5cef4",
+  "image": "node:16",
+  "runtime": {
+    "name": "node",
+    "version": "16",
+    "source": "README.md:60 (\"node version 16\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "docker-compose up",
+      "kind": "services"
+    }
+  ],
+  "knownFailures": []
+}

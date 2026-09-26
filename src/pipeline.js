@@ -9,29 +9,45 @@ import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
-import { run, tail, nowIso, shortId, readText, shq } from './util.js';
+import { flagOn } from './flags.js';
+import { run, tail, headTail, nowIso, shortId, readText, shq } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
 const MAX_REBASES = 3;
 
 /** Does the error a fix targeted still occur after the fix? */
-async function stillFailing(diagnosis, before, after, ctx) {
+export async function stillFailing(diagnosis, before, after, ctx) {
   if (diagnosis.ruleId) {
     const rule = RULES.find((r) => r.id === diagnosis.ruleId);
     if (rule) {
       try {
-        const again = await rule.test({ ...ctx, attempt: after, log: tail(after.out, 200) });
+        const again = await rule.test({ ...ctx, attempt: after, log: headTail(after.out) });
         return !!again && again.ruleId === diagnosis.ruleId && again.cause === diagnosis.cause;
       } catch { return true; }
     }
   }
-  const sig = tail(before.out, 40).split('\n').reverse().find((l) => /error|ERR!|refused|not found|missing|cannot|No such|Traceback|exception/i.test(l));
-  return sig ? after.out.includes(sig.trim()) : true;
+  const sig = tail(before.out, 40).split('\n').reverse().find((l) => /error|ERR!|refused|not found|missing|cannot|No such|Traceback|exception|fatal:|failed|already exists|denied/i.test(l));
+  if (sig) return after.out.includes(sig.trim());
+  // No recognisable error line: judge by the last line of output. A different ending means the
+  // fix changed the failure (progress), so it shouldn't use up the step's repair budget.
+  const last = (out) => (out || '').split('\n').map((l) => l.trim()).filter(Boolean).pop() || '';
+  return last(before.out) === last(after.out);
 }
+
+/** Write `cwd` back to /firstrun/cwd so the next exec starts in the right dir.
+ *  No-op when cwd is null/empty. Never touches /firstrun/state.env. */
+export async function restoreCwd(sandbox, cwd) {
+  if (!cwd) return;
+  await sandbox.writeFile('/firstrun/cwd', cwd);
+}
+
+/** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
+const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
 
 export function makeBudget(total = 4, perCall = 1.5) {
   let spent = 0;
-  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent };
+  // cap(): what one Bob call may spend now, never more than the run has left (a 1-Bobcoin run spent 1.45 on huggingface_hub).
+  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent, cap: () => Math.max(0, Math.min(perCall, total - spent)) };
 }
 
 async function gitInfo(dir) {
@@ -56,6 +72,7 @@ export async function verifyRepo(repoDir, opts = {}) {
   const repo = opts.repoLabel || git.remote?.replace(/^https:\/\/github\.com\//, '') || path.basename(root);
   const outDir = path.resolve(opts.out || path.join(root, '.firstrun'));
   const id = opts.id || `${path.basename(root)}-${shortId()}`;
+  const cacheVolume = opts.cacheVolume ?? (opts.cache === false ? null : `firstrun-cache-${id}`);
   const rec = new Recorder(outDir, { id, repo, commit: git.commit });
   opts.onRecorder?.(rec);
   const brain = opts.brain || 'auto';
@@ -104,7 +121,11 @@ export async function verifyRepo(repoDir, opts = {}) {
     rec.state.conflicts = plan.conflicts;
     rec.savePlan(plan);
     rec.emitEvent('planner', 'plan', plan);
-    if (!plan.steps.some((s) => !s.skip)) throw new Error('The docs contain no setup commands FirstRun can follow.');
+    if (!plan.steps.some((s) => !s.skip)) {
+      // A finding, not a crash: a newcomer has nothing to follow. Say which docs were read and why nothing counted.
+      const skipped = plan.steps.filter((s) => s.skip).slice(0, 3).map((s) => `"${s.command}" (${s.skip})`).join('; ');
+      throw Object.assign(new Error(`No setup docs: ${facts.docs.length ? `read ${facts.docs.join(', ')}` : 'no README found'}, found no setup commands a newcomer could follow${skipped ? `; skipped ${skipped}` : ''}.`), { code: 'NO_SETUP_DOCS' });
+    }
 
     // ── Cold start ────────────────────────────────────────────────────
     rec.phase('coldstart', 'runner');
@@ -113,7 +134,11 @@ export async function verifyRepo(repoDir, opts = {}) {
     let firstFailure = null;
     let rebases = 0;
     let stepSeq = plan.steps.length;
-    sandbox = new Sandbox({ image: plan.image, repoDir: root, label: id, log: (m) => say('runner', m) });
+    if (cacheVolume) {
+      await run('docker', ['volume', 'rm', '-f', cacheVolume]);
+      await run('docker', ['volume', 'create', '--label', `firstrun=${id}`, cacheVolume]);
+    }
+    sandbox = new Sandbox({ image: plan.image, repoDir: root, label: id, cacheVolume, log: (m) => say('runner', m) });
     await sandbox.start();
     say('runner', `clean machine ready: ${plan.image}`);
 
@@ -153,7 +178,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
-        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
+        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? TEST_MINUTES * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
         r = await box.exec(step.command, opts);
         // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
         const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
@@ -218,6 +243,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         stopped = step.id;
         break;
       }
+      let goodCwd = await sandbox.readFile('/firstrun/cwd');
       let attempt = await execStep(step);
       if (attempt.exitCode === 0) {
         step.status = step.status === 'repairing' ? 'repaired' : 'passed';
@@ -227,6 +253,17 @@ export async function verifyRepo(repoDir, opts = {}) {
       }
       if (!firstFailure) firstFailure = { stepId: step.id, command: step.command, source: step.source };
       rec.stepStatus(step.id, 'failed');
+      // A test suite that doesn't finish in time is a finding, not something to retry: another attempt costs the
+      // same minutes on a guess (huggingface_hub: 2 x 12 min). Record it, keep going, spend no Bobcoins.
+      if (step.kind === 'test' && attempt.exitCode === 124) {
+        const { out: _o, ...before } = attempt;
+        rec.evidence({ id: `E${rec.state.evidence.length + 1}`, stepId: step.id, before, fix: null, after: null, status: 'needs-human', at: nowIso(),
+          diagnosis: { class: 'slow-tests', by: 'rules', ruleId: 'test-timeout', confidence: 0.9, cause: `\`${step.command}\` did not finish within ${TEST_MINUTES} min on a clean machine. The setup before it is proven; the docs should name a quick subset for newcomers and say the full suite is for CI.` } });
+        step.status = 'needs-human';
+        rec.stepStatus(step.id, 'needs-human');
+        i++;
+        continue;
+      }
       // ── Repair loop ────────────────────────────────────────────────
       let repaired = false;
       let restart = false;
@@ -236,7 +273,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       for (let k = 0; k < MAX_REPAIRS_PER_STEP && !repaired; k++) {
         rec.phase('repair', 'doctor');
         const ctx = {
-          step, attempt, log: tail(attempt.out, 200), facts, plan, sandbox, tried, history,
+          step, attempt, log: headTail(attempt.out), facts, plan, sandbox, tried, history,
           image: sandbox.image, sandboxEnv: await readSandboxEnv(),
         };
         const { diagnosis, fix } = await diagnose(ctx, {
@@ -257,6 +294,10 @@ export async function verifyRepo(repoDir, opts = {}) {
         rec.emitEvent('doctor', 'fix', { stepId: step.id, fix });
         const fixLog = [];
         let fixFailed = null; // a fix whose own command fails was not applied (F3)
+        // Stop any background servers before applying fixes: watchers left running (nodemon,
+        // tsc --watch) can race with npm/pip install and crash on a half-replaced tree.
+        // Servers are restarted automatically when the step is retried below.
+        await sandbox.stopServers();
         // Repo patches (PR content) land in the sandbox first so the fix's commands see them.
         for (const p of fix.patches || []) {
           patchOps.push(p);
@@ -316,6 +357,8 @@ export async function verifyRepo(repoDir, opts = {}) {
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
               if (ia.exitCode !== 0) { fixFailed = { command: ns.command, exitCode: ia.exitCode, out: ia.out, durationMs: ia.durationMs }; break; }
+              // An inserted step that succeeds may cd intentionally; keep that as the new baseline.
+              const newCwd = await sandbox.readFile('/firstrun/cwd'); if (newCwd) goodCwd = newCwd;
             }
           }
         }
@@ -339,6 +382,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         if (fixFailed) fixLog.push(`fix not applied: \`${fixFailed.command}\` exited ${fixFailed.exitCode}`);
         rec.phase('coldstart', 'runner');
         // A fix whose own command failed was not applied: don't retry the step as if it had been.
+        if (!fixFailed) await restoreCwd(sandbox, goodCwd);
         const after = fixFailed
           ? { stepId: step.id, n: attempts[step.id], command: fixFailed.command, exitCode: fixFailed.exitCode, durationMs: fixFailed.durationMs || 0, logTail: tail(fixFailed.out || '', 60), out: fixFailed.out || '' }
           : await execStep(step);
@@ -354,7 +398,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         };
         rec.evidence(record);
         stepEvidence.push(record);
-        history.push({ cause: diagnosis.cause, actions: fix.actions });
+        history.push({ cause: diagnosis.cause, actions: fix.actions, worked: progressed });
         if (verified) {
           repaired = true;
           for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
@@ -367,7 +411,11 @@ export async function verifyRepo(repoDir, opts = {}) {
         }
       }
       if (!repaired) {
-        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) rec.evidence({ ...r, status: 'failed' });
+        // A fix that cleared its own error still worked, even if the step later failed on
+        // something else: keep it as "progressed" (not counted as fixed) and link what it revealed.
+        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
+          rec.evidence({ ...r, revealed: stepEvidence[stepEvidence.indexOf(r) + 1]?.id });
+        }
       }
       if (repaired) {
         step.status = 'repaired';
@@ -396,7 +444,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       rec.phase('replay', 'verifier');
       rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
       const t0 = Date.now();
-      replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
+      replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, cacheVolume, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
       let failed = null;
       for (const step of plan.steps) {
@@ -416,7 +464,9 @@ export async function verifyRepo(repoDir, opts = {}) {
     // ── Publish ──────────────────────────────────────────────────────
     rec.phase('publish', 'scribe');
     const evidence = rec.state.evidence.map((eid) => JSON.parse(readText(path.join(outDir, 'evidence', `${eid}.json`))));
-    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped });
+    // timeLost (flag): computed inside publish, so FIRSTRUN.md and passport.json include it.
+    const timeLost = flagOn('timeLost', opts) ? { runMs: Date.now() - startedAt } : null;
+    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped, packageCache: Boolean(cacheVolume), timeLost });
     rec.state.passport = result.passport;
     rec.state.bobcoins = budget.spent();
     rec.state.finishedAt = nowIso();
@@ -432,5 +482,6 @@ export async function verifyRepo(repoDir, opts = {}) {
   } finally {
     if (sandbox && !opts.keep) await sandbox.stop().catch(() => {});
     if (replayBox && !opts.keep) await replayBox.stop().catch(() => {});
+    if (cacheVolume && !opts.keep) await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
   }
 }

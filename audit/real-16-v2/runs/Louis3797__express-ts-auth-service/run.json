@@ -1,0 +1,349 @@
+{
+  "id": "real-16-v2-Louis3797__express-ts-auth-service",
+  "repo": "Louis3797/express-ts-auth-service",
+  "commit": "fc6722badf",
+  "startedAt": "2026-09-25T19:31:39.174Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S5": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S11": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S12": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S13": {
+      "status": "repaired",
+      "attempts": 3
+    },
+    "S14": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "Louis3797/express-ts-auth-service",
+    "commit": "fc6722badf",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install --global yarn",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 361,
+          "endLine": 361,
+          "section": "Table of Contents › Getting Started › Prerequisites"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S2",
+        "command": "git clone https://github.com/Louis3797/express-ts-auth-service.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 369,
+          "endLine": 369,
+          "section": "Table of Contents › Getting Started › Installation"
+        },
+        "origin": "readme",
+        "skip": "git clone: FirstRun starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "cd express-ts-auth-service",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 375,
+          "endLine": 375,
+          "section": "Table of Contents › Getting Started › Installation"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "yarn install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 379,
+          "endLine": 379,
+          "section": "Table of Contents › Getting Started › Installation"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S5",
+        "command": "yarn lint",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 386,
+          "endLine": 386,
+          "section": "Table of Contents › Getting Started › Linting"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S6",
+        "command": "yarn lint:fix",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 389,
+          "endLine": 389,
+          "section": "Table of Contents › Getting Started › Linting"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S7",
+        "command": "yarn prettier:check",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 392,
+          "endLine": 392,
+          "section": "Table of Contents › Getting Started › Linting"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S8",
+        "command": "yarn prettier:format",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 395,
+          "endLine": 395,
+          "section": "Table of Contents › Getting Started › Linting"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S9",
+        "command": "yarn prettier:format:file <file-name>",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 398,
+          "endLine": 398,
+          "section": "Table of Contents › Getting Started › Linting"
+        },
+        "origin": "readme",
+        "skip": "needs a value only you have (placeholder)",
+        "status": "skipped"
+      },
+      {
+        "id": "S10",
+        "command": "yarn test:watch",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 414,
+          "endLine": 414,
+          "section": "Table of Contents › Getting Started › Running Tests"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S11",
+        "command": "yarn coverage",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 420,
+          "endLine": 420,
+          "section": "Table of Contents › Getting Started › Running Tests"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S12",
+        "command": "yarn dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 432,
+          "endLine": 432,
+          "section": "Table of Contents › Getting Started › Run Locally"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"yarn start\")",
+        "status": "skipped"
+      },
+      {
+        "id": "R1",
+        "command": "cp .env.example .env",
+        "kind": "env",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 438,
+          "endLine": 438,
+          "section": "Table of Contents › Getting Started › Run Locally",
+          "insertedBefore": "S13"
+        }
+      },
+      {
+        "id": "S13",
+        "command": "yarn start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 438,
+          "endLine": 438,
+          "section": "Table of Contents › Getting Started › Run Locally"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 4000
+        },
+        "status": "repaired",
+        "evidence": [
+          "E1",
+          "E2"
+        ],
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "touch .env && { grep -v -E '^(PORT|SERVER_URL|CORS_ORIGIN|ACCESS_TOKEN_SECRET|ACCESS_TOKEN_EXPIRE|REFRESH_TOKEN_SECRET|REFRESH_TOKEN_EXPIRE|REFRESH_TOKEN_COOKIE_NAME|MYSQL_DATABASE|MYSQL_ROOT_PASSWORD|DATABASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USERNAME|SMTP_PASSWORD|EMAIL_FROM)=' .env; printf '%s=%s\\n' 'PORT' '4000'; printf '%s=%s\\n' 'SERVER_URL' 'http://localhost:4000'; printf '%s=%s\\n' 'CORS_ORIGIN' '*'; printf '%s=%s\\n' 'ACCESS_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'ACCESS_TOKEN_EXPIRE' '20m'; printf '%s=%s\\n' 'REFRESH_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'REFRESH_TOKEN_EXPIRE' '1d'; printf '%s=%s\\n' 'REFRESH_TOKEN_COOKIE_NAME' 'jid'; printf '%s=%s\\n' 'MYSQL_DATABASE' 'app'; printf '%s=%s\\n' 'MYSQL_ROOT_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'DATABASE_URL' 'mysql://root:change.me.local.dev.only.not.a.secret@localhost:3306/app'; printf '%s=%s\\n' 'SMTP_HOST' 'localhost'; printf '%s=%s\\n' 'SMTP_PORT' '1025'; printf '%s=%s\\n' 'SMTP_USERNAME' 'dev'; printf '%s=%s\\n' 'SMTP_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'EMAIL_FROM' 'dev@example.com'; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env"
+          }
+        ],
+        "probe": {
+          "status": 404,
+          "body": "404"
+        }
+      },
+      {
+        "id": "S14",
+        "command": "yarn test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 408,
+          "endLine": 408,
+          "section": "Table of Contents › Getting Started › Running Tests"
+        },
+        "origin": "readme",
+        "status": "passed"
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:4000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 89823
+  },
+  "passport": {
+    "repo": "Louis3797/express-ts-auth-service",
+    "commit": "fc6722badf",
+    "verifiedAt": "2026-09-25T19:34:57.687Z",
+    "verdict": "VERIFIED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 2,
+    "breaksFixed": 2,
+    "needsHuman": 0,
+    "replaySeconds": 90,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:4000/"
+    }
+  },
+  "finishedAt": "2026-09-25T19:34:58.104Z"
+}

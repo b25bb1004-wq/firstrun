@@ -3,8 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FirstRun: your README, proven</title>
-<meta name="description" content="FirstRun follows your setup docs on a clean machine like a new hire, fixes what breaks, proves every fix, and hands you a README that works.">
+<title>HUMBLE: your README, proven</title>
+<meta name="description" content="HUMBLE follows your setup docs on a clean machine like a new hire, fixes what breaks, proves every fix, and hands you a README that works.">
+<meta property="og:title" content="HUMBLE: your README, proven">
+<meta property="og:description" content="Your README, proven · Powered by IBM Bob 2.0. Follows your setup docs on a clean machine, fixes what breaks, and replays from zero.">
+<meta property="og:image" content="/cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/cover.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%230E1726'/%3E%3Cpath d='M9 11l6 5-6 5' stroke='%233DD68C' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M17 22h7' stroke='%23E4EAF3' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -101,6 +106,7 @@ a.card:hover { border-color: var(--rule-2); }
 .tag { display: inline-block; font: 600 11px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
 .tag.real { background: var(--pass-t); color: var(--pass); }
 .tag.demo { background: var(--bob-t); color: var(--bob); }
+.tag.partial { background: var(--repair-t); color: var(--repair); }
 
 .pipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; counter-reset: s; }
 .pipe div { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; counter-increment: s; }
@@ -120,6 +126,41 @@ a.card:hover { border-color: var(--rule-2); }
 .bob { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .bob .card { border-left: 3px solid var(--bob); }
 
+/* Lens Section & HUD Mockup */
+.lens-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; margin-top: 16px; }
+@media (max-width: 860px) { .lens-grid { grid-template-columns: 1fr; } }
+.lens-info h3 { font: 700 clamp(24px, 3.2vw, 34px)/1.12 "IBM Plex Sans Condensed", sans-serif; margin: 0 0 16px; }
+.lens-info p { color: var(--ink-2); font-size: 15px; margin: 0 0 14px; }
+.kbd-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--panel-2); border: 1px solid var(--rule-2); border-radius: 8px; padding: 3px 8px; font: 600 13px "IBM Plex Mono", monospace; color: var(--ink); }
+kbd { background: var(--ground-2); border: 1px solid var(--rule-2); border-radius: 4px; padding: 2px 6px; font-size: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.lens-cli { background: var(--ground-2); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; font: 13.5px "IBM Plex Mono", monospace; color: var(--ink); margin: 16px 0; overflow-x: auto; }
+.lens-cli span.prompt { color: var(--pass); margin-right: 6px; user-select: none; }
+.lens-cli span.comment { color: var(--ink-3); }
+.lens-note { font-size: 13.5px; color: var(--ink-2); border-left: 3px solid var(--pass); padding-left: 12px; margin-top: 16px; line-height: 1.6; }
+.lens-note strong { color: var(--ink); }
+
+.lens-mock { position: relative; background: #080D16; border: 1px solid var(--rule); border-radius: 14px; padding: 18px; overflow: hidden; box-shadow: 0 16px 40px -16px rgba(0,0,0,.7); }
+.lens-caption { font: 600 11px "IBM Plex Mono", monospace; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.lens-caption span.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pass); display: inline-block; }
+.mock-terminal { background: #050911; border: 1px solid #1C2B40; border-radius: 10px; padding: 12px 14px; font: 12.5px/1.6 "IBM Plex Mono", monospace; color: #8F9CAE; position: relative; }
+.mock-terminal .term-head { display: flex; gap: 6px; margin-bottom: 10px; }
+.mock-terminal .circle { width: 9px; height: 9px; border-radius: 50%; background: #26364D; }
+.mock-terminal .t-cmd { color: #D1DBE8; font-weight: 500; }
+.mock-terminal .t-err { color: #FF7B80; position: relative; display: inline-block; }
+.mock-circling { position: absolute; inset: -4px -8px; border: 2px dashed var(--pass); border-radius: 12px; animation: pulseGlow 2.5s infinite ease-in-out; pointer-events: none; }
+@keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 8px rgba(61,214,140,.3); border-color: var(--pass); } 50% { box-shadow: 0 0 16px rgba(61,214,140,.6); border-color: #64E7A6; } }
+@media (prefers-reduced-motion: reduce) { .mock-circling { animation: none; } }
+
+.mock-overlay-card { margin-top: 14px; background: var(--panel); border: 1px solid var(--pass); border-radius: 12px; padding: 14px 16px; box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+.mock-overlay-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px; }
+.mock-overlay-head b { color: var(--ink); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.mock-overlay-head span.badge { background: var(--pass-t); color: var(--pass); border: 1px solid var(--pass); border-radius: 4px; padding: 2px 6px; font: 600 10.5px "IBM Plex Mono", monospace; }
+.mock-fix-box { background: var(--pass-t); border-left: 3px solid var(--pass); border-radius: 6px; padding: 8px 10px; margin: 8px 0; font-size: 13px; }
+.mock-fix-box code { font: 600 12.5px "IBM Plex Mono", monospace; color: var(--pass); }
+.mock-ask-row { display: flex; gap: 8px; margin-top: 10px; }
+.mock-ask-row input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid var(--rule-2); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--ink); outline: none; }
+.mock-ask-row button { background: var(--bob); color: #061836; border: 0; border-radius: 6px; padding: 7px 12px; font: 600 12px "IBM Plex Sans", sans-serif; cursor: pointer; white-space: nowrap; }
+
 footer { border-top: 1px solid var(--rule); padding: 32px 0 48px; color: var(--ink-3); font-size: 14px; }
 footer p { margin: 0 0 8px; max-width: 80ch; }
 </style>
@@ -127,13 +168,14 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
 <body>
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="FirstRun home">
+    <a class="brand" href="/" aria-label="HUMBLE home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="6" class="b-bg"/><path d="M9 11l6 5-6 5" class="b-chev"/><path d="M17 22h7" class="b-cur"/></svg>
-      <span>FirstRun</span>
+      <span>HUMBLE</span>
     </a>
     <nav>
       <a href="#try">Try it</a>
       <a href="#proof">Proof</a>
+      <a class="opt" href="#lens">Lens</a>
       <a class="opt" href="#how">How it works</a>
       <a class="opt" href="#bob">IBM Bob</a>
     </nav>
@@ -145,17 +187,17 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
   <div class="wrap hero" id="try">
     <p class="eyebrow">Setup docs, verified from zero</p>
     <h1>Your README, proven.</h1>
-    <p class="lede">FirstRun follows your setup docs on a clean machine exactly like a new hire would. It fixes every step that breaks, proves each fix by replaying from zero, and hands you a README that works.</p>
+    <p class="lede">HUMBLE follows your setup docs on a clean machine exactly like a new hire would. It fixes every step that breaks, proves each fix by replaying from zero, and hands you a README that works.</p>
 
     <div class="stat">
-      <div><b>12 of 14</b><span>popular READMEs broke when followed on a clean machine</span></div>
+      <div><b>9 of 14</b><span>followable public READMEs broke when followed on a clean machine</span></div>
       <div><b>72%</b><span>of eng leaders: new hires take 1+ month to ship 3 PRs (Cortex 2024)</span></div>
       <div class="ok"><b>~45 s</b><span>to take a broken demo README to verified, with evidence</span></div>
     </div>
 
     <form class="check" id="form" autocomplete="off">
       <h2>Check a README now</h2>
-      <p class="hint">Paste any public GitHub repo. FirstRun reads its docs next to its manifests, CI and code, and shows where they disagree. Takes about two seconds and runs nothing from the repo.</p>
+      <p class="hint">Paste any public GitHub repo. HUMBLE reads its docs next to its manifests, CI and code, and shows where they disagree. Takes about two seconds and runs nothing from the repo.</p>
       <div class="row">
         <input id="repo" name="repo" placeholder="owner/repo or https://github.com/owner/repo" aria-label="GitHub repository" spellcheck="false">
         <button class="btn" id="go" type="submit">Check README</button>
@@ -172,18 +214,18 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
   <section class="band" id="proof">
     <div class="wrap">
       <h2>Don't take our word for it. Open the runs.</h2>
-      <p class="sub">Every run below is a real recording: each command FirstRun ran, its output, each repair, and the replay from zero. Click through to the evidence.</p>
+      <p class="sub">Every run below is a real recording: each command HUMBLE ran, its output, each repair, and the replay from zero. Click through to the evidence.</p>
       <div class="cards">
-        <a class="card" href="/app/#/audit/real-16">
+        <a class="card" href="/app/#/audit/real-16-v2">
           <span class="tag real">Real repos</span>
-          <h3>16 popular repos, one afternoon</h3>
-          <p>Public Node and Python projects pinned to exact commits, audited in parallel. 2 worked as written, 12 broke, 2 couldn't be followed to the end.</p>
+          <h3>16 public repos, one afternoon</h3>
+          <p>Public Node and Python projects pinned to exact commits, audited in parallel. 5 worked as written and 9 broke: 22 breaks, 11 fixed and re-verified from zero. 2 had no setup steps to follow.</p>
           <span class="go">Open the audit →</span>
         </a>
         <a class="card" href="/app/?replay=4#/run/acme-shop-3c0bc2b2">
           <span class="tag demo">Demo repo</span>
           <h3>acme-shop: 5 breaks → VERIFIED</h3>
-          <p>A Node + Postgres + Redis app whose README drifted in 5 realistic ways (we seeded them). Watch FirstRun find, fix and replay all five.</p>
+          <p>A Node + Postgres + Redis app whose README drifted in 5 realistic ways (we seeded them). Watch HUMBLE find, fix and replay all five.</p>
           <span class="go">Watch the replay →</span>
         </a>
         <a class="card" href="/app/#/">
@@ -192,6 +234,66 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
           <p>The full dashboard: plans, failing output, evidence records, README diffs and Setup Passports.</p>
           <span class="go">Open the dashboard →</span>
         </a>
+        <div class="card">
+          <span class="tag partial">Real before / after</span>
+          <h3>maitraysuthar: FAILED → PARTIAL</h3>
+          <p><code>maitraysuthar/rest-api-nodejs-mongodb</code> went from FAILED (0 fixed) to PARTIAL with the app running: bcrypt rebuilt on Node 16, the placeholder MONGODB_URL replaced with the local URL from the file's own comment, replay from zero 23 s.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="lens">
+    <div class="wrap">
+      <div class="lens-grid">
+        <div class="lens-info">
+          <p class="eyebrow">Desktop Companion · HUMBLE Lens</p>
+          <h3>Circle anything on screen. Get a proven fix instantly.</h3>
+          <p>Press <span class="kbd-pill"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></span> and circle anything on screen — an error in a terminal, a config line, or a stack trace. Lens reads it instantly via local OCR.</p>
+          <p>If it is a failure HUMBLE has already fixed and proven for this project, you get the <strong>verified fix instantly, for free (0 Bobcoins)</strong>. For anything else, ask IBM Bob in the <strong>🧭 HUMBLE Guide</strong> mode, which reads the project before answering.</p>
+          <div class="lens-cli">
+            <span class="prompt">$</span>cd lens &amp;&amp; npm install &amp;&amp; cd ..<br>
+            <span class="prompt">$</span>node bin/firstrun.js lens examples/acme-shop <span class="comment"># tray app; Ctrl+Shift+Space to circle</span>
+          </div>
+          <div class="lens-note">
+            <strong>Privacy &amp; Speed:</strong> Text is read locally on your machine (<code class="mono">tesseract.js</code>). Only questions you choose to submit go to Bob.<br>
+            <strong>Tip:</strong> Most mouse software can map a side button to <code class="mono">Ctrl+Shift+Space</code> for one-click circling.
+          </div>
+        </div>
+
+        <div class="lens-mock" aria-label="HUMBLE Lens illustrated HUD overlay">
+          <div class="lens-caption">
+            <span class="dot"></span> Illustration · acme-shop (demo repo, seeded breaks)
+          </div>
+          <div class="mock-terminal">
+            <div class="term-head">
+              <span class="circle"></span><span class="circle"></span><span class="circle"></span>
+            </div>
+            <div><span class="prompt" style="color:var(--pass)">dev@laptop</span>:<span style="color:#78A9FF">~/acme-shop</span>$ <span class="t-cmd">npm run dev</span></div>
+            <div style="margin-top:6px;color:#A3B4CB">&gt; acme-shop@1.0.0 dev</div>
+            <div>&gt; node --watch src/server.js</div>
+            <div style="margin-top:6px;position:relative;display:inline-block">
+              <span class="t-err">Failed to start acme-shop: ReconnectStrategyError: connect ECONNREFUSED 127.0.0.1:6379</span>
+              <div class="mock-circling" title="Circled with Ctrl+Shift+Space"></div>
+            </div>
+          </div>
+
+          <div class="mock-overlay-card">
+            <div class="mock-overlay-head">
+              <b><span>◎</span> HUMBLE Lens · acme-shop</b>
+              <span class="badge">VERIFIED FIX · 0 Bobcoins</span>
+            </div>
+            <div class="mock-fix-box">
+              <div style="color:var(--ink-3);font-size:11px;margin-bottom:2px">PROVEN REPAIR FOR THIS ERROR</div>
+              <div>Start Redis container on port 6379 (missing-service rule):</div>
+              <div style="margin-top:4px"><code>docker compose up -d redis</code></div>
+            </div>
+            <div class="mock-ask-row">
+              <input type="text" value="Why did this break?" readonly aria-label="Question for Bob">
+              <button type="button">Ask Bob</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -219,10 +321,10 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
   <section class="band" id="bob">
     <div class="wrap">
       <h2>Built on IBM Bob</h2>
-      <p class="sub">Bob is FirstRun's reasoning engine, its home inside the IDE, and the guide a newcomer talks to.</p>
+      <p class="sub">Bob is HUMBLE's reasoning engine, its home inside the IDE, and the guide a newcomer talks to.</p>
       <div class="bob">
-        <div class="card"><h3>🩺 Doctor, headless</h3><p>Bob Shell reads the repo and returns a structured fix. FirstRun refuses anything destructive, then proves the fix in the sandbox.</p></div>
-        <div class="card"><h3>🚀 FirstRun mode + MCP</h3><p>Plan, verify and inspect evidence from inside Bob IDE through FirstRun's MCP tools.</p></div>
+        <div class="card"><h3>🩺 Doctor, headless</h3><p>Bob Shell reads the repo and returns a structured fix. HUMBLE refuses anything destructive, then proves the fix in the sandbox.</p></div>
+        <div class="card"><h3>🚀 HUMBLE mode + MCP</h3><p>Plan, verify and inspect evidence from inside Bob IDE through HUMBLE's MCP tools.</p></div>
         <div class="card"><h3>🧭 Guide mode</h3><p>Ships into every verified repo and walks newcomers through steps that are known to work, with the fixes for errors already seen.</p></div>
       </div>
     </div>
@@ -274,7 +376,7 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
     }
     if (p.verify) html += '<p class="meta" style="color:var(--ink-3);font-size:13px;margin:8px 0 0">Done when: ' + esc(p.verify.kind === 'http' ? 'GET ' + p.verify.target : p.verify.target) + '</p>';
 
-    html += '<div class="next">This was the two-second static read. To <b>prove</b> it, FirstRun runs every step in a clean container, repairs what breaks with evidence, and replays from zero: <code>firstrun verify ' + esc(r.url) + '</code>. <a href="/app/?replay=4#/run/acme-shop-3c0bc2b2">See what a full run looks like →</a></div>';
+    html += '<div class="next">This was the two-second static read. To <b>prove</b> it, HUMBLE runs every step in a clean container, repairs what breaks with evidence, and replays from zero: <code>firstrun verify ' + esc(r.url) + '</code>. <a href="/app/?replay=4#/run/acme-shop-3c0bc2b2">See what a full run looks like →</a></div>';
     // Hosted verify button
     html += '<div class="next" style="margin-top: 16px;"><button class="btn" id="verify-real" style="background: var(--bob); color: #fff;" data-repo="' + esc(r.repo) + '" data-url="' + esc(r.url) + '">Verify it for real (~3–10 min)</button><p style="margin: 8px 0 0; font-size: 13px; color: var(--ink-3);">Runs on GitHub Actions with Docker. You\'ll get a live passport with evidence.</p><div id="verify-progress" style="display: none; margin-top: 12px;"></div></div>';
     out.innerHTML = html;

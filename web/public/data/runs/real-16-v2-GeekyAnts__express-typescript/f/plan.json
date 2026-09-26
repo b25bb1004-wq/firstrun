@@ -1,0 +1,216 @@
+{
+  "repo": "GeekyAnts/express-typescript",
+  "commit": "6b9bb70e23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "git clone https://github.com/GeekyAnts/express-typescript.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 126,
+        "endLine": 126,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "skip": "git clone: FirstRun starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "cd nodets",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 129,
+        "endLine": 129,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 140,
+        "endLine": 140,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "readmeCommand": "npm install",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S4",
+      "command": "vim .env",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 145,
+        "endLine": 145,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "skip": "opens an editor",
+      "status": "skipped"
+    },
+    {
+      "id": "R1",
+      "command": "npm install --global nodemon",
+      "kind": "install",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": "README.md",
+        "line": 148,
+        "endLine": 148,
+        "section": "Install, Configure & Run",
+        "insertedBefore": "S5"
+      }
+    },
+    {
+      "id": "R2",
+      "command": "docker compose up -d mongo",
+      "kind": "services",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": "README.md",
+        "line": 148,
+        "endLine": 148,
+        "section": "Install, Configure & Run",
+        "insertedBefore": "S5"
+      },
+      "silent": true
+    },
+    {
+      "id": "S5",
+      "command": "npm run dev",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 148,
+        "endLine": 148,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 4040
+      },
+      "status": "needs-human",
+      "evidence": [
+        "E2",
+        "E3"
+      ],
+      "probe": {
+        "status": 0,
+        "body": "curl: (7) Failed to connect to 127.0.0.1 port 4040 after 0 ms: Couldn't connect to 000server"
+      },
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo",
+          "env": {},
+          "port": 27017
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "command": "docker-compose up",
+      "kind": "services",
+      "source": {
+        "file": "README.md",
+        "line": 157,
+        "endLine": 157,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S7",
+      "command": "docker-compose up -d",
+      "kind": "services",
+      "source": {
+        "file": "README.md",
+        "line": 160,
+        "endLine": 160,
+        "section": "Install, Configure & Run"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Docker Compose v1",
+      "docs": "docker-compose up",
+      "truth": "retired in 2023; current Docker ships it as `docker compose`",
+      "source": "README.md:157"
+    },
+    {
+      "what": "env var MONGOOSE_URL",
+      "docs": "not documented",
+      "truth": "read in src/middlewares/Http.ts:60",
+      "source": "README"
+    },
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in src/providers/Locals.ts:19",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_ID",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Google.ts:14",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Google.ts:15",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_KEY",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Twitter.ts:14",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Twitter.ts:15",
+      "source": "README"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:4040/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

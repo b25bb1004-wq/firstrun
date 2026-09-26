@@ -70,7 +70,7 @@ export function passportHTML(p, { fresh = false, guideHref = '' } = {}) {
     ${guilloche()}
     <header class="pp-head">
       <span class="pp-title">Setup Passport</span>
-      <span class="pp-issuer">Issued by FirstRun after a replay from zero</span>
+      <span class="pp-issuer">Issued by HUMBLE after a replay from zero</span>
     </header>
     <div class="pp-body">
       <div class="pp-portrait">${identicon(p.commit)}<span>${short(p.commit)}</span></div>

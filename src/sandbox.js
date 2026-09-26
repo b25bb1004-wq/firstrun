@@ -34,11 +34,12 @@ export function announcedPort(out, exclude = []) {
 }
 
 export class Sandbox {
-  constructor({ image, repoDir, label = 'firstrun', patches = [], log = () => {} }) {
+  constructor({ image, repoDir, label = 'firstrun', patches = [], cacheVolume = null, log = () => {} }) {
     this.image = image;
     this.repoDir = repoDir;
     this.label = label;
     this.patches = patches; // [{ path, content }] applied over the clone (used by replay)
+    this.cacheVolume = cacheVolume;
     this.log = log;
     this.name = `firstrun-${shortId()}`;
     this.services = [];
@@ -54,15 +55,35 @@ export class Sandbox {
     if (r.code !== 0) throw new Error(`cannot pull ${image}: ${tail(r.out, 5)}`);
   }
 
+  async ensureCacheVolume() {
+    if (!this.cacheVolume) return;
+    await run('docker', ['volume', 'create', '--label', `firstrun=${this.label}`, this.cacheVolume]);
+  }
+
   async start() {
     await this.ensureImage();
-    await must('docker', ['run', '-d', '--name', this.name, '--label', `firstrun=${this.label}`, '--entrypoint', 'sleep',
+    await this.ensureCacheVolume();
+    const args = ['run', '-d', '--name', this.name, '--label', `firstrun=${this.label}`, '--entrypoint', 'sleep',
       '-e', 'CI=true', '-e', 'DEBIAN_FRONTEND=noninteractive', '-e', 'NO_COLOR=1', '-e', 'FORCE_COLOR=0',
       '-e', 'npm_config_fund=false', '-e', 'npm_config_audit=false', '-e', 'npm_config_update_notifier=false',
       '-e', 'PIP_DISABLE_PIP_VERSION_CHECK=1', '-e', 'PIP_ROOT_USER_ACTION=ignore', '-e', 'PYTHONUNBUFFERED=1',
-      '-w', '/workspace', this.image, 'infinity']);
+      '-w', '/workspace'];
+    if (this.cacheVolume) {
+      args.push(
+        '-v', `${this.cacheVolume}:/firstrun-cache`,
+        '-e', 'npm_config_cache=/firstrun-cache/npm',
+        '-e', 'YARN_CACHE_FOLDER=/firstrun-cache/yarn',
+        '-e', 'PIP_CACHE_DIR=/firstrun-cache/pip',
+        '-e', 'UV_CACHE_DIR=/firstrun-cache/uv',
+      );
+    }
+    args.push(this.image, 'infinity');
+    await must('docker', args);
     this.started = true;
     await this.sh('mkdir -p /workspace /firstrun && echo /workspace > /firstrun/cwd && : > /firstrun/state.env');
+    if (this.cacheVolume) {
+      await this.sh('mkdir -p /firstrun-cache/npm /firstrun-cache/yarn /firstrun-cache/pip /firstrun-cache/uv /root/.cache && { [ -e /root/.npm ] || ln -sf /firstrun-cache/npm /root/.npm; }');
+    }
     await this.installShims();
     // Official Node images bundle Yarn 1; a newcomer who installs Node from nodejs.org
     // does not have it. Remove it so the sandbox matches a fresh machine.
@@ -75,19 +96,19 @@ export class Sandbox {
    * Commands a newcomer's laptop has that the clean machine doesn't, translated without touching the docs:
    * - sudo: the container already runs as root, so it just runs the command.
    * - docker / docker-compose called from scripts (a justfile, a Makefile): there is no daemon here.
-   *   "up" asks FirstRun (exit 97 + /firstrun/services.request) to start the services as sidecars,
+   *   "up" asks HUMBLE (exit 97 + /firstrun/services.request) to start the services as sidecars,
    *   then the step is retried and the shim sees they are running.
    */
   async installShims() {
     const sudo = [
       '#!/bin/sh',
-      '# FirstRun: the clean machine runs as root, so sudo just runs the command.',
+      '# HUMBLE: the clean machine runs as root, so sudo just runs the command.',
       'while [ $# -gt 0 ]; do case "$1" in -u|-g|-C|-D|-h|-p|-r|-t|-U) shift 2;; --) shift; break;; -*) shift;; *) break;; esac; done',
       'exec "$@"',
     ].join('\n');
     const docker = [
       '#!/bin/sh',
-      '# FirstRun: no Docker daemon on the clean machine; FirstRun starts services as sidecars.',
+      '# HUMBLE: no Docker daemon on the clean machine; HUMBLE starts services as sidecars.',
       'me=$(basename "$0"); cmd="$me $*"',
       'case " $* " in',
       '  *" up "*|*" start "*|"run "*|" run "*)',
@@ -101,7 +122,7 @@ export class Sandbox {
     // a fresh laptop has lists and a human at the keyboard.
     const apt = [
       '#!/bin/sh',
-      '# FirstRun: behave like apt on a fresh machine with someone answering its prompt.',
+      '# HUMBLE: behave like apt on a fresh machine with someone answering its prompt.',
       'real=/usr/bin/$(basename "$0")',
       'if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null | grep -v -e lock -e partial)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
       'case "$1" in install|upgrade|dist-upgrade|remove) exec "$real" -y "$@";; *) exec "$real" "$@";; esac',
@@ -194,7 +215,9 @@ export class Sandbox {
    */
   async exec(command, { onData, timeoutMs = 20 * 60_000, detectServer = true } = {}) {
     const id = ++this.seq;
-    await this.writeFile(`/firstrun/step-${id}.sh`, this.wrap(command));
+    // `timeout` runs the step in its own process group; record it so stopServers() can end a
+    // step that was left running as a detected server.
+    await this.writeFile(`/firstrun/step-${id}.sh`, `cut -d' ' -f5 /proc/$$/stat > /firstrun/step-${id}.pid\n${this.wrap(command)}`);
     const secs = Math.ceil(timeoutMs / 1000);
     const started = Date.now();
     let soFar = '';
@@ -220,6 +243,7 @@ export class Sandbox {
       return { exitCode: 0, out: `${soFar}\n[firstrun] still running and listening on port ${first.server}: treating this step as the app server\n`, durationMs: Date.now() - started, detectedServer: first.server };
     }
     const r = first.r;
+    await run('docker', ['exec', this.name, 'rm', '-f', `/firstrun/step-${id}.pid`]); // finished: nothing to stop
     let out = r.out;
     if (r.code === 124) out += `\n[firstrun] step timed out after ${secs}s\n`;
     return { exitCode: r.code, out, durationMs: r.durationMs };
@@ -239,9 +263,13 @@ export class Sandbox {
   /**
    * Start a long-running command (a dev server) in the background and wait
    * until it is reachable on `port`, it prints `readyPattern`, or it dies.
+   * On SUCCESS the process group is left running (the verify probe needs it).
+   * On FAILURE (crash, exit, or not-ready timeout) the process group is killed
+   * so that watchers (nodemon, tsc --watch) cannot interfere with later repairs.
    */
   async serve(command, { port, readyPattern, timeoutMs = 120_000, onData } = {}) {
     const id = ++this.seq;
+    const pidFile = `/firstrun/serve-${id}.pid`;
     const logFile = `/firstrun/serve-${id}.log`;
     // Persist state before backgrounding so the server sees exported vars / venv.
     await this.writeFile(`/firstrun/step-${id}.sh`, [
@@ -252,7 +280,7 @@ export class Sandbox {
       '',
     ].join('\n'));
     const started = Date.now();
-    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > /firstrun/serve-${id}.pid; wait`]);
+    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
     let seen = 0;
     let lastOut = '';
     let crashSeenAt = 0;
@@ -263,30 +291,87 @@ export class Sandbox {
       const logR = await run('docker', ['exec', this.name, 'cat', logFile]);
       lastOut = logR.out;
       if (lastOut.length > seen) { onData?.(lastOut.slice(seen)); seen = lastOut.length; }
-      const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat /firstrun/serve-${id}.pid 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
+      const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
       const portOpen = port ? (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${port}) >/dev/null 2>&1`])).code === 0 : false;
       if (portOpen || (ready && ready.test(lastOut))) {
-        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid` };
+        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile };
       }
       // The app may announce a different port than the one we guessed ("Uvicorn running on
       // http://0.0.0.0:8000"). If that port is really listening, the app is up.
       const announced = announcedPort(lastOut, this.services.map((s) => s.port).filter(Boolean));
       if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
-        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile: `/firstrun/serve-${id}.pid`, port: announced };
+        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
       if (FATAL.test(lastOut)) {
         crashSeenAt = crashSeenAt || Date.now();
         if (lastOut.length !== crashLen) { crashLen = lastOut.length; crashSeenAt = Date.now(); }
         if (Date.now() - crashSeenAt > 6000) {
+          await this._killServeGroup(id);
           return { exitCode: 1, out: `${lastOut}\n[firstrun] the server crashed during startup and is not listening${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
         }
       }
       if (!alive && Date.now() - started > 2000) {
+        await this._killServeGroup(id);
         return { exitCode: 1, out: `${lastOut}\n[firstrun] server process exited before becoming ready${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
       }
     }
+    await this._killServeGroup(id);
     return { exitCode: 124, out: `${lastOut}\n[firstrun] server did not become ready${port ? ` on port ${port}` : ''} within ${Math.round(timeoutMs / 1000)}s\n`, durationMs: Date.now() - started };
+  }
+
+  /**
+   * Kill the process group for a serve step by its sequence id.
+   * Reads /firstrun/serve-<id>.pid (the setsid session leader), sends SIGTERM
+   * to the whole group, waits ~2 s, then SIGKILL. Errors are ignored because
+   * the process may already be gone.
+   */
+  async _killServeGroup(id) {
+    const pidFile = `/firstrun/serve-${id}.pid`;
+    // TERM the group, wait 2 s for a clean exit, then KILL any survivors.
+    await run('docker', ['exec', this.name, 'bash', '-c',
+      `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && { kill -TERM -- -$pid 2>/dev/null; sleep 2; kill -KILL -- -$pid 2>/dev/null; } ; true`]);
+  }
+
+  /**
+   * Kill every background server that is still running:
+   *   - serve() servers: /firstrun/serve-*.pid (each is a setsid session leader).
+   *   - exec() auto-detected servers: /firstrun/step-*.pid.
+   * Servers are restarted by the next attempt, so killing them here is safe.
+   * Sidecar services (compose containers with mongo/redis/etc.) are left alone.
+   */
+  async stopServers() {
+    // Kill all serve-*.pid process groups (TERM then KILL after 2 s).
+    await run('docker', ['exec', this.name, 'bash', '-c', [
+      'for f in /firstrun/serve-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -TERM -- -$pid 2>/dev/null;',
+      'done;',
+      'sleep 2;',
+      'for f in /firstrun/serve-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -KILL -- -$pid 2>/dev/null;',
+      'done;',
+      // Also kill any exec() auto-detected server steps tracked by step-*.pid files.
+      'for f in /firstrun/step-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -TERM -- -$pid 2>/dev/null;',
+      'done;',
+      'sleep 2;',
+      'for f in /firstrun/step-*.pid; do',
+      '  [ -e "$f" ] || continue;',
+      '  pid=$(cat "$f" 2>/dev/null);',
+      '  [ -n "$pid" ] || continue;',
+      '  kill -KILL -- -$pid 2>/dev/null;',
+      'done;',
+      'true',
+    ].join(' ')]);
   }
 
   /** HTTP probe from inside the container (the app listens on its own localhost). */
@@ -360,10 +445,19 @@ export class Sandbox {
   }
 }
 
+/** Remove a named cache volume. */
+export async function removeCacheVolume(name) {
+  if (!name) return;
+  await run('docker', ['volume', 'rm', '-f', name]);
+}
+
 /** Remove leftovers from crashed runs. */
 export async function cleanupAll(label = null) {
   const r = await run('docker', ['ps', '-aq', '--filter', label ? `label=firstrun=${label}` : 'label=firstrun']);
   const ids = r.out.split(/\s+/).filter(Boolean);
   if (ids.length) await run('docker', ['rm', '-f', '-v', ...ids]);
-  return ids.length;
+  const vr = await run('docker', ['volume', 'ls', '-q', '--filter', label ? `label=firstrun=${label}` : 'label=firstrun']);
+  const vids = vr.out.split(/\s+/).filter(Boolean);
+  if (vids.length) await run('docker', ['volume', 'rm', '-f', ...vids]);
+  return ids.length + vids.length;
 }

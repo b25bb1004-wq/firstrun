@@ -1,0 +1,23 @@
+{
+  "id": "E3",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 2,
+    "durationMs": 21361,
+    "logTail": "\n> rest-api-nodejs-mongodb@1.0.0 test\n> nyc _mocha --timeout 10000 --exit --report lcovonly -- -R spec\n\n\n\n(node:626) Warning: Accessing non-existent property 'count' of module exports inside circular dependency\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:626) Warning: Accessing non-existent property 'findOne' of module exports inside circular dependency\n(node:626) Warning: Accessing non-existent property 'remove' of module exports inside circular dependency\n(node:626) Warning: Accessing non-existent property 'updateOne' of module exports inside circular dependency\n  Auth\n    1) \"before all\" hook in \"Auth\"\n\n  Book\n    2) \"before all\" hook in \"Book\"\n\n\n  0 passing (20s)\n  2 failing\n\n  1) Auth\n       \"before all\" hook in \"Auth\":\n     Error: Timeout of 10000ms exceeded. For async tests and hooks, ensure \"done()\" is called; if returning a Promise, ensure it resolves. (/workspace/test/auth.js)\n      at listOnTimeout (node:internal/timers:559:17)\n      at processTimers (node:internal/timers:502:7)\n\n  2) Book\n       \"before all\" hook in \"Book\":\n     Error: Timeout of 10000ms exceeded. For async tests and hooks, ensure \"done()\" is called; if returning a Promise, ensure it resolves. (/workspace/test/book.js)\n      at listOnTimeout (node:internal/timers:559:17)\n      at processTimers (node:internal/timers:502:7)\n\n\n\n-----------------------|----------|----------|----------|----------|-------------------|\nFile                   |  % Stmts | % Branch |  % Funcs |  % Lines | Uncovered Line #s |\n-----------------------|----------|----------|----------|----------|-------------------|\nAll files              |    36.33 |     1.35 |        0 |    36.86 |                   |\n workspace             |    71.43 |    16.67 |        0 |    71.43 |                   |\n  app.js               |    71.43 |    16.67 |        0 |    71.43 |... 24,32,48,52,53 |\n workspace/controllers |    14.71 |        0 |        0 |    14.97 |                   |\n  AuthController.js    |    14.44 |        0 |        0 |    14.77 |... 50,254,257,262 |\n  BookController.js    |       15 |        0 |        0 |    15.19 |... 10,211,213,221 |\n workspace/helpers     |    35.48 |        0 |        0 |    36.67 |                   |\n  apiResponse.js       |    33.33 |      100 |        0 |    33.33 |... 31,35,40,44,48 |\n  constants.js         |      100 |      100 |      100 |      100 |                   |\n  mailer.js            |       75 |      100 |        0 |       75 |                18 |\n  utility.js           |     12.5 |        0 |        0 |    14.29 |       2,3,4,5,6,8 |\n workspace/middlewares |      100 |      100 |      100 |      100 |                   |\n  jwt.js               |      100 |      100 |      100 |      100 |                   |\n workspace/models      |    88.89 |      100 |        0 |    88.89 |                   |\n  BookModel.js         |      100 |      100 |      100 |      100 |                   |\n  UserModel.js         |       80 |      100 |        0 |       80 |                18 |\n workspace/routes      |    96.55 |      100 |        0 |    96.55 |                   |\n  api.js               |      100 |      100 |      100 |      100 |                   |\n  auth.js              |      100 |      100 |      100 |      100 |                   |\n  book.js              |      100 |      100 |      100 |      100 |                   |\n  index.js             |       80 |      100 |        0 |       80 |                 6 |\n-----------------------|----------|----------|----------|----------|-------------------|",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T19:25:22.282Z"
+}

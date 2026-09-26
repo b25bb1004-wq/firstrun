@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — Page Not Found | HUMBLE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%230E1726'/%3E%3Cpath d='M9 11l6 5-6 5' stroke='%233DD68C' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M17 22h7' stroke='%23E4EAF3' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground:#0E1726; --panel:#132035; --rule:#22354f; --rule-2:#2f4667;
+  --ink:#E6ECF5; --ink-2:#A3B4CB; --ink-3:#6D819D;
+  --pass:#3DD68C; --fail:#FF6167; --bob:#5E9EFF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.6 "IBM Plex Sans", system-ui, sans-serif; display: grid; min-height: 100vh; place-items: center; padding: 24px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.tag { font: 600 13px "IBM Plex Mono", monospace; color: var(--fail); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; display: block; }
+h1 { font: 700 36px/1.1 "IBM Plex Sans Condensed", sans-serif; margin: 0 0 12px; }
+p { color: var(--ink-2); margin: 0 0 28px; font-size: 15px; }
+.btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+a.btn { text-decoration: none; padding: 10px 18px; border-radius: 10px; font: 600 14px "IBM Plex Sans", sans-serif; transition: all .15s; }
+a.btn-primary { background: var(--pass); color: #06210F; }
+a.btn-secondary { background: var(--rule); color: var(--ink); border: 1px solid var(--rule-2); }
+a.btn-secondary:hover { border-color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="tag">404 · Missing Route</span>
+  <h1>Page Not Found</h1>
+  <p>The page you requested doesn't exist or was moved. Check out the landing page or jump straight into the live dashboard.</p>
+  <div class="btns">
+    <a href="/" class="btn btn-primary">Go to Landing Page</a>
+    <a href="/app/#/audit/real-16" class="btn btn-secondary">View 16-Repo Audit</a>
+    <a href="/app/#/" class="btn btn-secondary">Open Dashboard</a>
+  </div>
+</div>
+</body>
+</html>
