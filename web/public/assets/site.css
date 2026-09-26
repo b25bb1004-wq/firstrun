@@ -278,3 +278,33 @@ h3 { letter-spacing: -0.012em; }
   .wall:not(.in) .tile { opacity: 0; transform: rotateX(-68deg) translateY(24px); }
   .wall.in .tile { transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: calc(var(--i) * 45ms); transform-origin: 50% 0; }
 }
+
+/* ===== v8: Oat · Blue · Hot pink (Karmanya) =====
+   Oat is the default look (never #fff); blue means proven/fixed and is the primary action; hot pink means broken.
+   The theme toggle switches to a deep-navy night version. Agent colours are remapped into the same family. */
+:root, :root:not([data-theme="dark"]) {
+  --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1;
+  --ink: #15163a; --muted: #5f5b6b;
+  --blue: #2440ff; --pink: #ff2d87;
+  --accent: var(--blue); --accent-ink: #efe7da; --del: var(--pink);
+  --c-scout: #2440ff; --c-planner: #6a5cff; --c-runner: #ff5fa8; --c-doctor: #ff2d87; --c-verifier: #2440ff; --c-scribe: #15163a;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0d0f2e; --surface: #141742; --line: #262a5c;
+  --ink: #efe7da; --muted: #a7a3b8;
+  --blue: #5b73ff; --pink: #ff4d9b;
+  --accent: var(--blue); --accent-ink: #0d0f2e; --del: var(--pink);
+  --c-scout: #5b73ff; --c-planner: #8f84ff; --c-runner: #ff7ab8; --c-doctor: #ff4d9b; --c-verifier: #5b73ff; --c-scribe: #efe7da;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1; --ink: #15163a; --muted: #5f5b6b; --accent: var(--blue); --accent-ink: #efe7da; } }
+.eyebrow { color: var(--pink); }
+.btn { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.link { text-decoration-color: var(--pink); }
+.stats > div:nth-child(1) b { color: var(--blue); } .stats > div:nth-child(2) b { color: var(--pink); } .stats > div:nth-child(3) b { color: var(--blue); }
+.dots i { background: var(--pink); } .dots i.ok { background: var(--blue); }
+.diff .add { color: var(--blue); } .diff .del { color: var(--pink); }
+.hero-full h1, .hero-full .lede, .hero-full .eyebrow { text-shadow: 0 0 28px var(--bg), 0 0 56px var(--bg); }
+::selection { background: color-mix(in srgb, var(--pink) 30%, transparent); }

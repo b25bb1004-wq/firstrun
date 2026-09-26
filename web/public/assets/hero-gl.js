@@ -17,11 +17,11 @@
   var VS = [
     'precision highp float;',
     'attribute vec2 aTarget; attribute vec4 aSeed; attribute float aColor; attribute float aFix;',
-    'uniform float uTime, uOrder, uAlarm, uFixed, uScroll, uDpr, uMobile; uniform vec2 uRes, uMouse;',
+    'uniform float uTime, uOrder, uAlarm, uFixed, uScroll, uDpr, uMobile, uLight; uniform vec2 uRes, uMouse;',
     'varying vec3 vCol; varying float vAlpha;',
     'vec3 agent(float i){',
-    '  if(i<0.5) return vec3(0.31,0.55,1.0); if(i<1.5) return vec3(0.61,0.48,1.0); if(i<2.5) return vec3(1.0,0.54,0.24);',
-    '  if(i<3.5) return vec3(1.0,0.36,0.48); if(i<4.5) return vec3(0.18,0.75,0.52); return vec3(0.96,0.77,0.26); }',
+    '  if(i<0.5) return vec3(0.14,0.25,1.0); if(i<1.5) return vec3(0.42,0.36,1.0); if(i<2.5) return vec3(1.0,0.37,0.66);',
+    '  if(i<3.5) return vec3(1.0,0.18,0.53); if(i<4.5) return vec3(0.24,0.45,1.0); return vec3(1.0,0.55,0.78); }',
     'void main(){',
     '  float t = uTime;',
     // Chaos: each particle rides layered swirls around its own home point (stateless flow).
@@ -46,19 +46,19 @@
     '  float fixLine = aFix * step(0.55, k);',
     '  gl_PointSize = (1.7 + fixLine*0.8 + (1.0-k)*0.5) * uDpr * persp;',
     // Colour: agent colours in the chaos → calm ink on the page; the broken line red → green.
-    '  vec3 ink = vec3(0.86,0.85,0.82);',
+    '  vec3 ink = uLight > 0.5 ? vec3(0.08,0.09,0.23) : vec3(0.94,0.91,0.85);',
     '  vec3 col = mix(agent(aColor), ink * 0.62, k*0.92);',
-    '  col = mix(col, vec3(1.0,0.36,0.48), fixLine*uAlarm);',
-    '  col = mix(col, vec3(0.18,0.75,0.52), fixLine*uFixed);',
+    '  col = mix(col, vec3(1.0,0.18,0.53), fixLine*uAlarm);',
+    '  col = mix(col, vec3(0.14,0.25,1.0), fixLine*uFixed);',
     '  vCol = col;',
     '  vAlpha = mix(0.55, 0.62, k) + fixLine*max(uAlarm,uFixed)*0.4;',
-    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0);',
+    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.34 + fixLine*0.66 : 1.0);',
     '}'
   ].join('\n');
   var FS = [
-    'precision mediump float; varying vec3 vCol; varying float vAlpha; uniform float uLight;',
+    'precision mediump float; varying vec3 vCol; varying float vAlpha;',
     'void main(){ vec2 c = gl_PointCoord - 0.5; float r = dot(c,c); if(r > 0.25) discard;',
-    '  vec3 col = uLight > 0.5 ? vCol * 0.55 : vCol;',
+    '  vec3 col = vCol;',
     '  gl_FragColor = vec4(col, vAlpha * (1.0 - smoothstep(0.12, 0.25, r))); }'
   ].join('\n');
 
@@ -130,7 +130,7 @@
     var order = reduced ? 1 : clamp((t - 0.6) / 2.8);
     var alarm = reduced ? 0 : clamp((t - 3.4) / 0.4) * (1 - clamp((t - 4.8) / 0.8));
     var fixed = reduced ? 1 : clamp((t - 4.8) / 0.8);
-    var light = document.documentElement.dataset.theme === 'light' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: light)').matches);
+    var light = document.documentElement.dataset.theme !== 'dark';
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);
     if (light) gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); else gl.blendFunc(gl.SRC_ALPHA, gl.ONE);   // additive glow on dark
