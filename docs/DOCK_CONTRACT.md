@@ -37,11 +37,12 @@ One JSON object per line: `{ t, run, agent, type, data }`, with `agent` one of `
 | `step.start` / `step.end` | runner, verifier | `{ stepId, command, exitCode, durationMs, status }` |
 | `diagnosis` / `fix` | doctor | `{ stepId, diagnosis:{ cause, class, ruleId|by } }` / `{ fix }` |
 | `evidence` | doctor | `{ id, stepId, status: verified|progressed|needs-human|failed }` |
-| `bob` | doctor | `{ bobcoins, ok, taskId }` |
+| `bob` | doctor, planner | `{ bobcoins, ok, taskId }` |
 | `replay.start` / `replay.end` | verifier | `{ status }` |
 | `artifact` / `passport` | scribe | `{ path }` / passport |
-| `done` | any | `{ verdict }` |
-| `error` | any | `{ message }` |
+| `done` | swarm (full run) or the solo agent | `{ verdict }` |
+| `error` | swarm or the solo agent | `{ message }` |
+| `step.inserted` / `step.log` | runner | an inserted fix step / batched step output (the Dock ignores `step.log`) |
 
 ## 3. Character states (derived in `src/dock-state.js`, pure and tested, owned by Friday)
 
@@ -72,6 +73,6 @@ One JSON object per line: `{ t, run, agent, type, data }`, with `agent` one of `
 
 - `lens/main.js`, `lens/dock-bridge.js` (tray, floating button, hotkey, spawning agents, tailing events): **Friday**
 - `src/dock-state.js` + `test/dock-state.test.js`: **Friday**
-- `lens/dock/` (`index.html`, `dock.js`, `dock.css`, `characters/*.svg`): **Zeus**. Uses `ui/theme.css` tokens and talks only through `window.dock` (preload): `run`, `open`, `cancel`, `lens`, `onState`.
-- `src/cli.js` cases `scout`, `doctor`, `scribe`: **Edith**; `run --as-written`, `replay`: **Hermes**. Each in its own PR with its own test file.
+- `lens/dock/` (`index.html`, `dock.js`, `dock.css`, `characters/*.svg`): **Zeus**. Uses `ui/theme.css` tokens and talks only through `window.dock` (preload): `run({ agent, target })`, `open`, `cancel`, `lens`, `toggle`, `onState`.
+- `src/cli.js` cases `scout`, `doctor`, `scribe`, and `plan --out`: **Friday** (#93, taken over from Edith); `run --as-written`, `replay`: **Hermes**. Each in its own PR with its own test file.
 - Hotkey: `Alt+Command+Space` (Mac), `Control+Alt+Space` (Windows/Linux). The floating button starts top-left and is draggable.
