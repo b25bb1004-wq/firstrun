@@ -3,7 +3,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('dock', {
-  run:     (agent, target) => ipcRenderer.send('dock:run',    { agent, target }),
+  // Accepts run({ agent, target }) (the panel) or run(agent, target).
+  run:     (agent, target) => ipcRenderer.send('dock:run', agent && typeof agent === 'object' ? agent : { agent, target }),
   open:    (what, runDir)  => ipcRenderer.send('dock:open',   { what, runDir }),
   cancel:  ()              => ipcRenderer.send('dock:cancel',  {}),
   lens:    ()              => ipcRenderer.send('dock:lens',    {}),
