@@ -10,7 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runPlanner, runDoctor, runScribe } from './solo.js';
+import { runScout, runPlanner, runDoctor, runScribe, runRunner } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('HUMBLE')}: your README, proven.
@@ -22,9 +22,10 @@ corrected README plus a Setup Passport.
 ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
+  firstrun run    [path|github-url] [--ref <sha>] [--as-written] [--out <dir>] [--json]
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
-  firstrun doctor --log <file|-> [--repo <dir>] [--bob-budget 1]   Doctor alone: diagnose one failure
+  firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]   Doctor alone: diagnose one failure
   firstrun scribe <run-dir>              Scribe alone: rewrite the report and passport from a finished run
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
@@ -81,6 +82,20 @@ export async function main(argv) {
         console.log(`  ${dim('watch')}    firstrun ui --root ${path.dirname(res.dir)}`);
       }
       return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : 0) : 1;
+    }
+    case 'run': {
+      const root = await resolveTarget(args._[0], args);
+      if (!args['as-written']) {
+        console.error('Usage: firstrun run <repo> --as-written [--out <dir>] [--json]');
+        return 2;
+      }
+      console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root} ${dim('· --as-written')}`);
+      const r = await runRunner(root, { out: args.out, asWritten: true });
+      if (args.json) { console.log(JSON.stringify(r)); return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1; }
+      const col = r.verdict === 'WORKS-AS-WRITTEN' ? green : red;
+      console.log(`  ${col(bold(r.verdict))}${r.firstFailure ? ` ${dim(`(failed at ${r.firstFailure.stepId}: ${r.firstFailure.command}, exit ${r.firstFailure.exitCode})`)}` : ''}`);
+      console.log(`  ${dim('events:')} ${r.runDir}`);
+      return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1;
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);

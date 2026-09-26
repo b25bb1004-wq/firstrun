@@ -6,7 +6,12 @@ import { Recorder } from './recorder.js';
 import { diagnose } from './doctor/index.js';
 import { makeBudget } from './pipeline.js';
 import { renderReport } from './scribe/report.js';
-import { readJson, shortId, headTail } from './util.js';
+import { readJson, shortId, headTail, run } from './util.js';
+import { Sandbox } from './sandbox.js';
+import { runServicesStep } from './services-shim.js';
+
+// Verifier is in its own branch (hermes/99-replay) to avoid conflicts
+// export async function runVerifier(runDir, { out } = {}) { ... }
 
 /**
  * Solo agents (#90, docs/DOCK_CONTRACT.md): each character of the team, run on its own. A newcomer who only
@@ -88,4 +93,79 @@ export async function runScribe(runDir) {
   // Events go to the run's own log so the Scribe character lights up on the same run.
   fs.appendFileSync(path.join(dir, 'events.ndjson'), `${JSON.stringify({ t: new Date().toISOString(), run: run.id, agent: 'scribe', type: 'artifact', data: { path: 'out/FIRSTRUN.md' } })}\n`);
   return { agent: 'scribe', files: { report, readmeDiff, passport: passportFile }, runDir: dir };
+}
+
+/**
+ * Runner (--as-written): follows the README exactly on a clean machine (shims on),
+ * no Doctor, no repairs, no replay. Stops at the first failing step.
+ * Verdict: WORKS-AS-WRITTEN | BROKEN-AS-WRITTEN with firstFailure.
+ * Writes events.ndjson (phase coldstart, step.start/step.end, done) for the Dock's Runner character.
+ */
+export async function runRunner(repoDir, { out, asWritten = false } = {}) {
+  if (!asWritten) throw new Error('runRunner requires asWritten: true');
+  const root = path.resolve(repoDir);
+  const dir = runDirFor(root, 'runner', out);
+  const rec = new Recorder(dir, { id: path.basename(dir), repo: path.basename(root) });
+  rec.phase('scout', 'scout');
+  const facts = await scout(root);
+  rec.emitEvent('scout', 'facts', summarizeFacts(facts));
+  rec.phase('plan', 'planner');
+  const plan = buildPlan(facts);
+  rec.savePlan(plan);
+  rec.emitEvent('planner', 'plan', plan);
+  if (!plan.steps.some((s) => !s.skip)) {
+    // Nothing to follow is a finding, never a pass.
+    rec.phase('done', 'runner');
+    rec.emitEvent('runner', 'done', { verdict: 'NO-SETUP-DOCS', firstFailure: null });
+    return { agent: 'runner', verdict: 'NO-SETUP-DOCS', firstFailure: null, runDir: dir };
+  }
+  rec.phase('coldstart', 'runner');
+  const cacheVolume = `firstrun-cache-${path.basename(dir)}`;
+  await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  await run('docker', ['volume', 'create', '--label', `firstrun=${path.basename(dir)}`, cacheVolume]);
+  const sandbox = new Sandbox({ image: plan.image, repoDir: root, label: path.basename(dir), cacheVolume, log: () => {} });
+  let firstFailure = null;
+  try {
+  await sandbox.start();
+  for (let i = 0; i < plan.steps.length; i++) {
+    const step = plan.steps[i];
+    if (step.skip) continue;
+    rec.emitEvent('runner', 'step.start', { stepId: step.id, n: 1, command: step.command });
+    let r;
+    if (step.kind === 'services') {
+      const { runServicesStep } = await import('./services-shim.js');
+      r = await runServicesStep(step.command, { sandbox, facts });
+    } else if (step.kind === 'serve') {
+      r = await sandbox.serve(step.command, { port: step.serve?.port, timeoutMs: 150_000 });
+      if (r.exitCode === 0 && plan.verify.kind === 'http') {
+        const p = await sandbox.probe(plan.verify.target, { timeoutMs: 45_000 });
+        if (!p.ok) r.exitCode = 1;
+      }
+    } else {
+      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? (Number(process.env.FIRSTRUN_TEST_MINUTES) || 5) * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+    }
+    const attempt = {
+      stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs,
+      logTail: r.out.split('\n').slice(-60).join('\n'), logFile: rec.writeLog(`${step.id}-1`, r.out), out: r.out,
+    };
+    rec.flushLog(step.id, 1);
+    rec.emitEvent('runner', 'step.end', { stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs, status: r.exitCode === 0 ? 'passed' : 'failed' });
+    if (r.exitCode !== 0 && !firstFailure) {
+      firstFailure = { stepId: step.id, command: step.command, exitCode: r.exitCode, logTail: tail(r.out, 40) };
+      break;
+    }
+  }
+  } finally {
+    // Always clean up: the box and this run's package cache.
+    await sandbox.stop().catch(() => {});
+    await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  }
+  const verdict = firstFailure ? 'BROKEN-AS-WRITTEN' : 'WORKS-AS-WRITTEN';
+  rec.phase('done', 'runner');
+  rec.emitEvent('runner', 'done', { verdict, firstFailure });
+  return { agent: 'runner', verdict, firstFailure, runDir: dir };
+}
+
+function tail(str, n) {
+  return (str || '').split('\n').slice(-n).join('\n');
 }
