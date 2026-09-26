@@ -4,29 +4,29 @@
  * State colours (pass / fail / repair / bob / human) must stay distinguishable in both themes. */
 
 :root, :root[data-theme="dark"] {
-  --ground: #0E1726;
-  --ground-2: #0A111D;
-  --panel: #132035;
-  --panel-2: #192a43;
-  --raise: #213551;
-  --rule: #22354f;
-  --rule-2: #2f4667;
-  --ink: #E6ECF5;
-  --ink-2: #A3B4CB;
-  --ink-3: #6D819D;
+  --ground: #16120e;
+  --ground-2: #110e0b;
+  --panel: #1f1a15;
+  --panel-2: #261f19;
+  --raise: #2e261f;
+  --rule: #342c24;
+  --rule-2: #45392e;
+  --ink: #efe7da;
+  --ink-2: #b7a992;
+  --ink-3: #857865;
 
   --pass: #3DD68C;
   --fail: #FF6167;
   --repair: #FFB224;
   --bob: #5E9EFF;
-  --human: #D6A2FF;
+  --human: #ff7ab8;
   --live: #8CD4FF;
 
   --pass-t: rgba(61, 214, 140, .11);
   --fail-t: rgba(255, 97, 103, .11);
   --repair-t: rgba(255, 178, 36, .10);
   --bob-t: rgba(94, 158, 255, .13);
-  --human-t: rgba(214, 162, 255, .12);
+  --human-t: rgba(255, 122, 184, .12);
   --live-t: rgba(140, 212, 255, .10);
   --pass-m: rgba(61, 214, 140, .28);
   --fail-m: rgba(255, 97, 103, .30);
