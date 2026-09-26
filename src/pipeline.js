@@ -42,6 +42,25 @@ export async function restoreCwd(sandbox, cwd) {
 }
 
 /** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
+/**
+ * A step the Doctor inserted (a fix) failed. Run the rules (never Bob) on it once; if one returns a
+ * command-only fix (replace-step), rewrite the inserted step and report what changed. null otherwise.
+ */
+export async function repairInsertedStep(ns, attempt, { facts, plan, sandbox, tried }) {
+  const log = attempt.out || '';
+  for (const rule of RULES) {
+    let d = null;
+    try { d = await rule.test({ step: ns, attempt, log, facts, plan, sandbox, tried: tried || new Set(), history: [], sandboxEnv: {} }); } catch { d = null; }
+    if (!d?.fix) continue;
+    const acts = d.fix.actions || [];
+    if (acts.length !== 1 || acts[0].type !== 'replace-step' || acts[0].command === ns.command) continue;
+    const from = ns.command;
+    ns.command = acts[0].command;
+    return { from, ruleId: d.ruleId || rule.id, cause: d.cause };
+  }
+  return null;
+}
+
 // A failure in one of these kinds blocks every later step; any other failure only blocks its own doc section.
 export const HARD_BLOCK_KINDS = new Set(['install', 'prereq', 'env', 'services', 'migrate', 'build']);
 const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
@@ -385,7 +404,17 @@ export async function verifyRepo(repoDir, opts = {}) {
             rec.emitEvent('planner', 'step.inserted', { step: ns, before: step.id });
             rec.emitEvent('planner', 'plan', plan);
             if (!restart) {
-              const ia = await execStep(ns);
+              let ia = await execStep(ns);
+              // The fix's own step can fail for a reason a rule already knows (zhanymkanov: the inserted
+              // `poetry install` hit "No file/folder found for package", which poetry-no-root fixes).
+              // Rules only, no Bob, one retry: diagnose the inserted step like any other step.
+              if (ia.exitCode !== 0) {
+                const again = await repairInsertedStep(ns, ia, { facts, plan, sandbox, tried });
+                if (again) {
+                  fixLog.push(`$ ${again.from} → exit ${ia.exitCode}; ${again.ruleId}: ${again.cause}; retrying as \`${ns.command}\``);
+                  ia = await execStep(ns);
+                }
+              }
               ns.status = ia.exitCode === 0 ? 'passed' : 'failed';
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
