@@ -5,6 +5,20 @@ Karmanya's call (26 Sep): the current landing page "won't do". Redesign `web/pub
 github.com/Leonxlnx/taste-skill; reviewed by Edith: a design guide only, no commands, nothing secret).
 Read the whole skill first. It is contextual; pull only what fits this brief.
 
+## Skills to use, in this order
+
+1. **`design-taste-frontend`**: the direction, layout and anti-defaults (the main skill).
+2. **`emil-design-eng`**: polish and the invisible details (Emil Kowalski's design-engineering philosophy).
+3. **`apple-design`**: fluid, physical motion translated for the web. Use it for the one cinematic moment.
+4. **`find-animation-opportunities` → `animate` → `review-animations`**: find where motion earns its place, build
+   it, then review it against the craft bar. `animation-vocabulary` names effects precisely; `improve-animations`
+   audits what already exists.
+5. **`mobile-native`**: make it feel right on a phone (many judges open the link on mobile).
+
+Left out on purpose (from emilkowalski/skills): `animate-expo`, `ask-sonner`, `pick-ui-library`, `prototype`
+(React or React Native) and `write-swift`. The landing page is one static HTML file, and adding React or a build step
+the day before submission isn't worth the risk.
+
 ## Design Read (skill §0.B)
 
 > Reading this as: **a dev-tools product landing page for hackathon judges and working developers**, with a
