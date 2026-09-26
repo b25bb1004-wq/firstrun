@@ -25,7 +25,7 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
       if (!res) continue;
       if (res.fix && tried.has(fixSignature(ctx.step.id, res.fix))) continue;
       return {
-        diagnosis: { class: res.class, cause: res.cause, by: 'rules', ruleId: res.ruleId, confidence: res.confidence },
+        diagnosis: { class: res.class, cause: res.cause, by: 'rules', ruleId: res.ruleId, confidence: res.confidence, ...(res.ask ? { ask: res.ask } : {}), ...(res.choice ? { choice: res.choice } : {}) },
         fix: res.fix,
       };
     }
