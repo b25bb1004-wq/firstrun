@@ -74,15 +74,39 @@ async function run() {
     // Wait for load and fonts
     await sleep(2000);
 
-    // 1. Capture Hero
+    // 1. Capture Hero Top
     const heroShot = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync('web/public/assets/img/snap_01_hero.png', Buffer.from(heroShot.data, 'base64'));
     console.log('Captured: snap_01_hero.png');
 
+    // 1b. Scroll to Hero Agents Console
+    await send('Runtime.evaluate', {
+      expression: `
+        var el = document.querySelector('.hero-agents');
+        if (el) el.scrollIntoView({ block: 'center' });
+      `
+    });
+    await sleep(600);
+    const agentsShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_01b_hero_agents.png', Buffer.from(agentsShot.data, 'base64'));
+    console.log('Captured: snap_01b_hero_agents.png');
+
+    // 1c. Scroll to Hero Terminal Stage
+    await send('Runtime.evaluate', {
+      expression: `
+        var el = document.querySelector('.hero-stage');
+        if (el) el.scrollIntoView({ block: 'center' });
+      `
+    });
+    await sleep(600);
+    const terminalShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_01c_hero_terminal.png', Buffer.from(terminalShot.data, 'base64'));
+    console.log('Captured: snap_01c_hero_terminal.png');
+
     // 2. Scroll to Crew
     await send('Runtime.evaluate', {
       expression: `
-        var el = document.querySelector('#crew');
+        var el = document.querySelector('#how');
         if (el) el.scrollIntoView({ block: 'start' });
       `
     });

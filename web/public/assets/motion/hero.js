@@ -16,7 +16,10 @@ export function init(container, { reduced = false } = {}) {
   container.innerHTML = `
     <div class="h-seq" style="padding: 18px 0 10px; display: flex; flex-direction: column; gap: 12px; font-family: var(--mono); font-size: 14px;">
       <div class="h-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 10px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">
-        <span class="h-status-text">First run: following README as written</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <canvas class="h-live-orb" width="20" height="20" style="width: 20px; height: 20px; border-radius: 50%; display: block;"></canvas>
+          <span class="h-status-text">First run: following README as written</span>
+        </div>
         <span class="h-env-badge" style="padding: 2px 8px; border: 1px solid var(--line); border-radius: var(--r); font-size: 12px;">Clean Sandbox #1</span>
       </div>
 
@@ -50,6 +53,11 @@ export function init(container, { reduced = false } = {}) {
   const envBadge = container.querySelector('.h-env-badge');
   const diag = container.querySelector('.h-diag');
   const verdict = container.querySelector('.h-verdict');
+  const liveCanvas = container.querySelector('.h-live-orb');
+  let heroOrb = null;
+  if (typeof window !== 'undefined' && window.ThinkingOrb && liveCanvas) {
+    heroOrb = window.ThinkingOrb.create(liveCanvas, { state: 'searching', size: 20 });
+  }
   const stepEls = [
     container.querySelector('.h-step-0'),
     container.querySelector('.h-step-1'),
@@ -108,6 +116,7 @@ export function init(container, { reduced = false } = {}) {
   let activeTimer = null;
   function runCycle() {
     // 0. Reset to Run 1
+    if (heroOrb) heroOrb.setState('searching');
     statusText.textContent = 'First run: following README as written';
     envBadge.textContent = 'Clean Sandbox #1';
     envBadge.style.borderColor = 'var(--line)';
@@ -129,6 +138,7 @@ export function init(container, { reduced = false } = {}) {
 
         // Step 2 fails
         activeTimer = setTimeout(() => {
+          if (heroOrb) heroOrb.setState('solving');
           setStep(1, 'fail', 'exit 1 (ERESOLVE)');
           diag.textContent = "Doctor +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
           verdict.textContent = 'FAILED';
@@ -142,6 +152,7 @@ export function init(container, { reduced = false } = {}) {
 
             activeTimer = setTimeout(() => {
               // Replay from zero in Sandbox #2
+              if (heroOrb) heroOrb.setState('listening');
               statusText.textContent = 'Replay: verifying full guide from zero';
               envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
               envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
@@ -159,6 +170,7 @@ export function init(container, { reduced = false } = {}) {
                 activeTimer = setTimeout(() => {
                   setStep(1, 'pass', 'passed');
                   activeTimer = setTimeout(() => {
+                    if (heroOrb) heroOrb.setState('composing');
                     setStep(2, 'pass', 'GET / 200');
                     diag.textContent = 'All steps passed on clean machine. README proven from zero.';
                     // Replay completes: VERIFIED in calm Verifier accent green

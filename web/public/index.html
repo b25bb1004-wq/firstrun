@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <script>if (location.hash) { document.addEventListener('DOMContentLoaded', function () { var el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }); }</script>
 </head>
@@ -44,6 +45,79 @@
         <a class="btn" href="#try">Check a README</a>
         <a class="link" href="/proof">Watch a real run</a>
       </div>
+      <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
+        <div class="hero-agents-label">
+          <span class="mono">Six specialized agents · orchestrated by IBM Bob</span>
+          <span class="agent-live-tag mono"><span class="agent-live-dot"></span> LIVE 3D ORBS</span>
+        </div>
+        <div class="hero-agents-grid">
+          <button type="button" class="agent-chip" data-agent="scout" aria-label="Agent 01 Scout: Audits facts against reality">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-scout)">01</span>
+              <span class="agent-chip-name">Scout</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="searching" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Audits Facts</span>
+          </button>
+
+          <button type="button" class="agent-chip" data-agent="planner" aria-label="Agent 02 Planner: Turns prose into commands">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-planner)">02</span>
+              <span class="agent-chip-name">Planner</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="shaping" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Builds Plan</span>
+          </button>
+
+          <button type="button" class="agent-chip" data-agent="runner" aria-label="Agent 03 Runner: Runs steps on clean machine">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-runner)">03</span>
+              <span class="agent-chip-name">Runner</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="working" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Zero Clean</span>
+          </button>
+
+          <button type="button" class="agent-chip" data-agent="doctor" aria-label="Agent 04 Doctor: Diagnoses failures with IBM Bob">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-doctor)">04</span>
+              <span class="agent-chip-name">Doctor</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="solving" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Diagnoses</span>
+          </button>
+
+          <button type="button" class="agent-chip" data-agent="verifier" aria-label="Agent 05 Verifier: Discards machine and replays from zero">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-verifier)">05</span>
+              <span class="agent-chip-name">Verifier</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="listening" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Replays Zero</span>
+          </button>
+
+          <button type="button" class="agent-chip" data-agent="scribe" aria-label="Agent 06 Scribe: Writes minimal README diff with proof">
+            <span class="agent-chip-header">
+              <span class="agent-chip-id mono" style="color:var(--c-scribe)">06</span>
+              <span class="agent-chip-name">Scribe</span>
+            </span>
+            <span class="agent-chip-orb">
+              <canvas class="agent-orb" data-orb="composing" width="44" height="44" aria-hidden="true"></canvas>
+            </span>
+            <span class="agent-chip-role mono">Proves Diff</span>
+          </button>
+        </div>
+      </div>
       <div class="stats figures">
         <div><b data-count="16">16</b><span>public repos audited on a clean machine</span></div>
         <div><b data-count="9" data-suffix=" of 14">9 of 14</b><span>READMEs with setup docs broke</span></div>
@@ -72,12 +146,36 @@
     <p class="sub" data-reveal>IBM Bob runs HUMBLE. He reads the repo, sends in a crew of six agents, and steps in when the rules can't explain a failure.</p>
     <div class="crew-stage" data-motion="crew" aria-hidden="true"></div>
     <ol class="crew">
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="currentColor"/></svg>01</span><div><h3>Scout</h3><p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p></div></li>
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="14" fill="currentColor"/></svg>02</span><div><h3>Planner</h3><p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p></div></li>
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="currentColor"/></svg>03</span><div><h3>Runner</h3><p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p></div></li>
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><path d="M36 4h28v32h32v28H64v32H36V64H4V36h32z" fill="currentColor"/></svg>04</span><div><h3>Doctor</h3><p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p></div></li>
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="16"/></svg>05</span><div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div></li>
-      <li data-reveal><span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="currentColor"/></svg>06</span><div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div></li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="searching" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="currentColor"/></svg>01</span>
+        <div><h3>Scout</h3><p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p></div>
+      </li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="shaping" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="14" fill="currentColor"/></svg>02</span>
+        <div><h3>Planner</h3><p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p></div>
+      </li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="working" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="currentColor"/></svg>03</span>
+        <div><h3>Runner</h3><p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p></div>
+      </li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="solving" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><path d="M36 4h28v32h32v28H64v32H36V64H4V36h32z" fill="currentColor"/></svg>04</span>
+        <div><h3>Doctor</h3><p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p></div>
+      </li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="listening" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="16"/></svg>05</span>
+        <div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div>
+      </li>
+      <li data-reveal>
+        <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="composing" width="48" height="48" aria-hidden="true"></canvas></div>
+        <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="currentColor"/></svg>06</span>
+        <div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div>
+      </li>
     </ol>
   </section>
 

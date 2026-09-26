@@ -182,7 +182,7 @@ export function init(container, { reduced = false } = {}) {
             ${agents.map((a, i) => `
               <div class="c-pill c-pill-${i}" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; font-family: var(--mono); color: var(--muted); transition: all 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
                 <span class="c-pill-icon" style="display: flex; align-items: center; color: currentColor;">
-                  <svg width="14" height="14" viewBox="0 0 20 20">${a.miniSvg}</svg>
+                  <canvas class="c-pill-orb" data-orb="${['searching','shaping','working','solving','listening','composing'][i]}" width="16" height="16" style="width:16px;height:16px;display:block;border-radius:50%;"></canvas>
                 </span>
                 <span class="c-pill-name" style="font-weight: 500;">${a.name}</span>
               </div>
@@ -201,10 +201,8 @@ export function init(container, { reduced = false } = {}) {
           <!-- Left: Hero Agent Info + Growing Shape -->
           <div class="c-agent-panel" style="display: flex; flex-direction: column; gap: 16px; max-width: 520px;">
             <div style="display: flex; align-items: center; gap: 16px;">
-              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 2px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
-                <svg class="c-shape-svg" width="56" height="56" viewBox="0 0 64 64" style="transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), color 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
-                  ${agents[0].shapeSvg}
-                </svg>
+              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 4px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: border-color 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), transform 0.2s ease-out;">
+                <canvas class="c-stage-orb" width="68" height="68" style="width: 68px; height: 68px; display: block; border-radius: 50%;"></canvas>
               </div>
               <div style="display: flex; flex-direction: column; gap: 4px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -266,7 +264,7 @@ export function init(container, { reduced = false } = {}) {
   const navIndicator = container.querySelector('.c-nav-indicator');
 
   const shapeHero = container.querySelector('.c-shape-hero');
-  const shapeSvg = container.querySelector('.c-shape-svg');
+  const stageCanvas = container.querySelector('.c-stage-orb');
   const agentIdx = container.querySelector('.c-agent-idx');
   const agentShapeLabel = container.querySelector('.c-agent-shape-label');
   const agentName = container.querySelector('.c-agent-name');
@@ -279,13 +277,26 @@ export function init(container, { reduced = false } = {}) {
   const artLoc = container.querySelector('.c-art-loc');
   const artifactCard = container.querySelector('.c-artifact-card');
 
+  const orbStates = ['searching', 'shaping', 'working', 'solving', 'listening', 'composing'];
+  let stageOrb = null;
+  if (typeof window !== 'undefined' && window.ThinkingOrb && stageCanvas) {
+    stageOrb = window.ThinkingOrb.create(stageCanvas, { state: orbStates[0], size: 68 });
+  }
+
+  // Also initialize pill orbs
+  container.querySelectorAll('.c-pill-orb').forEach((pillCanvas) => {
+    if (typeof window !== 'undefined' && window.ThinkingOrb) {
+      window.ThinkingOrb.create(pillCanvas, { size: 16 });
+    }
+  });
+
   let currentAgent = -1;
 
   function setAgent(idx, stepProgress) {
     if (idx === currentAgent) {
       // Micro shape growth within the active step
       const scale = 0.95 + stepProgress * 0.15; // 0.95 -> 1.10
-      shapeSvg.style.transform = `scale(${scale.toFixed(3)})`;
+      if (shapeHero) shapeHero.style.transform = `scale(${scale.toFixed(3)})`;
       return;
     }
 
@@ -316,10 +327,13 @@ export function init(container, { reduced = false } = {}) {
     progressLine.style.backgroundColor = a.color;
 
     // Update Left Spotlight
-    shapeHero.style.borderColor = a.color;
-    shapeSvg.innerHTML = a.shapeSvg;
-    shapeSvg.style.color = a.color;
-    shapeSvg.style.transform = 'scale(1.05)';
+    if (shapeHero) {
+      shapeHero.style.borderColor = a.color;
+      shapeHero.style.transform = 'scale(1.05)';
+    }
+    if (stageOrb) {
+      stageOrb.setState(orbStates[idx]);
+    }
 
     agentIdx.textContent = `AGENT ${a.id}`;
     agentIdx.style.color = a.color;

@@ -46,6 +46,16 @@
       });
     }, { passive: true });
   }
+
+  // Agent chip interactions: click scrolls down to #how section smoothly
+  document.querySelectorAll('.agent-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var howSection = document.getElementById('how');
+      if (howSection) {
+        howSection.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+      }
+    });
+  });
 })();
 
 // Premium layer (emil-design-eng): spring-smoothed pointer tilt on the hero shapes, and clip-path image reveals.
