@@ -187,9 +187,23 @@
 
   // Drawer Interactions
   function openDrawer(agentKey) {
+    if (activeAgent === agentKey && drawer.classList.contains('open')) {
+      closeDrawer();
+      return;
+    }
     activeAgent = agentKey;
     const info = agentDetails[agentKey];
     if (!info) return;
+
+    const row = document.getElementById(`agent-${agentKey}`);
+    if (row && row.parentNode) {
+      // Place the drawer immediately after the selected agent row (accordion style)
+      row.parentNode.insertBefore(drawer, row.nextSibling);
+    }
+
+    // Set drawer accent color matching agent
+    const agentColor = row ? getComputedStyle(row).getPropertyValue('--agent-color').trim() : 'var(--bob)';
+    drawer.style.setProperty('--agent-color', agentColor || 'var(--bob)');
 
     // Highlight row
     agents.forEach(a => {
@@ -199,7 +213,7 @@
 
     drawerTitle.textContent = `${info.name} · Solo Mode`;
     drawerBody.innerHTML = `
-      <p style="margin:0 0 6px"><strong>Command:</strong> <code style="font-family:monospace;color:var(--bob)">${info.cmd}</code></p>
+      <p style="margin:0 0 6px"><strong>Command:</strong> <code style="font-family:monospace;color:var(--bob);background:rgba(0,0,0,0.25);padding:2px 5px;border-radius:3px">${info.cmd}</code></p>
       <p style="margin:0">${info.desc}</p>
     `;
 
@@ -237,6 +251,9 @@
     }
 
     drawer.classList.add('open');
+    try {
+      drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch {}
   }
 
   function closeDrawer() {
@@ -315,7 +332,7 @@
     const t = target || getTarget();
     bobPrompt.textContent = `I'm dispatching the ${agent} on ${t}…`;
     if (!callDockRun(agent, t)) {
-      alert(`Running solo agent: ${agent} on ${t}`);
+      bobPrompt.textContent = `Solo ${agent}: run "firstrun ${agent} ${t}" in terminal or click Plan / Verify.`;
     }
   }
 
@@ -323,13 +340,13 @@
     if (window.dock?.lens) {
       window.dock.lens();
     } else {
-      alert('HUMBLE Lens: Press Ctrl+Shift+Space on screen to circle any error.');
+      bobPrompt.textContent = 'HUMBLE Lens: Press Alt+Cmd+Space (or Ctrl+Shift+Space) on screen to circle any error.';
     }
   }
 
   function openArtifact(what) {
     if (!callDockOpen(what, currentRunDir)) {
-      alert(`Opening artifact: ${what}`);
+      bobPrompt.textContent = `Artifact: ${what} (run completed artifacts view)`;
     }
   }
 

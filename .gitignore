@@ -10,3 +10,4 @@ audit/runs/
 .vercel
 .env.local
 .env*.local
+.agents/
