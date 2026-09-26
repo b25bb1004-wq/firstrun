@@ -1,0 +1,18 @@
+{
+  "repo": "vargasjona/fastapi-alembic-sqlmodel-async",
+  "commit": "96f10870e7a9cd0fb7fcc678674d7b409545b942",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "backend/app/alembic/README",
+    "backend/app/pyproject.toml",
+    "Makefile",
+    "docker-compose.yml",
+    "docker-compose-test.yml",
+    "docker-compose-sonarqube.yml",
+    "docker-compose-dev.yml",
+    "backend/Dockerfile",
+    ".github/workflows/deploy_docs.yml",
+    ".github/workflows/main.yml"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "repo": "zhanymkanov/fastapi_production_template",
+  "commit": "8e82353ff3430c77fb77ead7de0d680f0229a667",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "alembic/README",
+    "pyproject.toml",
+    "poetry.lock.head",
+    "justfile",
+    "docker-compose.yml",
+    "docker-compose.prod.yml",
+    ".github/workflows/linters.yml"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "repo": "gothinkster/node-express-realworld-example-app",
+  "commit": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+  "source": "known-10-v3",
+  "files": [
+    "README.md",
+    "package.json",
+    "Dockerfile"
+  ]
+}

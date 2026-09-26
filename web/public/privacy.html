@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · HUMBLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top"><div class="wrap top-in"><a class="mark" href="/">HUMBLE</a><nav aria-label="Primary"><a href="/">Home</a></nav></div></header>
+<main class="wrap page">
+  <h1>Privacy</h1>
+  <p>Last updated 26 September 2026. HUMBLE is a hackathon project run by team HUMBLE. This page says plainly what the website does with data.</p>
+
+  <h2>No accounts, no tracking</h2>
+  <p>The site has no sign-up, no analytics, no advertising and no tracking cookies. The only thing stored in your browser is your light or dark theme choice, in local storage.</p>
+
+  <h2>The "Check a README" form</h2>
+  <p>When you check a repository, the name you typed is sent to our server function. It downloads that public repository from GitHub into a temporary folder, reads its docs and manifests, returns the result to you, and deletes the folder. It never runs code from the repository.</p>
+  <p>To stop abuse, the function keeps your IP address in memory for up to ten minutes to count requests (20 checks per ten minutes). It is not written anywhere. Results for a public repository may be cached by our host for up to fifteen minutes, so the next person checking the same repository gets them faster.</p>
+
+  <h2>Services we rely on</h2>
+  <p>The site is hosted on Vercel, which keeps standard request logs. The headline and body fonts load from Google Fonts. Repositories are downloaded from GitHub. Each of these services has its own privacy policy.</p>
+
+  <h2>The HUMBLE command-line tool</h2>
+  <p>When you run HUMBLE on your own machine, it works on your own files and sends nothing to us. If you enable IBM Bob, the parts of a failure log that Bob needs are sent to IBM Bob under your own IBM account and its terms.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or removal requests: open an issue on the <a class="link" href="https://github.com/b25bb1004-wq/firstrun">project repository</a>.</p>
+</main>
+<footer class="foot"><div class="wrap foot-in"><p class="mark">HUMBLE</p><p class="muted">Open source on GitHub.</p><nav aria-label="Footer"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a></nav></div></footer>
+</body>
+</html>

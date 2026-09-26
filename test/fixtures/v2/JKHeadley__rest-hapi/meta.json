@@ -1,0 +1,14 @@
+{
+  "repo": "JKHeadley/rest-hapi",
+  "commit": "708ecbcd4f5d3ec1d11c987a4741d505358e7de9",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "package.json",
+    "website/package.json",
+    "website/yarn.lock.head",
+    ".github/workflows/test-on-pull.yml",
+    ".github/workflows/manual.yml"
+  ]
+}
