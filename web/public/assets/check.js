@@ -35,7 +35,54 @@
     if (p.verify) html += '<p class="none">Done when: ' + esc(p.verify.kind === 'http' ? 'GET ' + p.verify.target : p.verify.target) + '</p>';
 
     html += '<p class="next">This was the quick read. To prove it, HUMBLE runs every step on a clean machine, repairs what breaks with evidence, and replays from zero: <code>firstrun verify ' + esc(r.url) + '</code>. <a class="link" href="/proof">See a full run</a></p>';
+    html += '<div class="next" style="margin-top: 16px;"><button class="btn btn-bob" id="verify-real" data-repo="' + esc(r.repo) + '" data-url="' + esc(r.url) + '">Verify it for real (~3–10 min)</button><p style="margin: 8px 0 0; font-size: 13px; color: var(--ink-muted);">Runs on GitHub Actions with Docker. You will get a live passport with evidence.</p><div id="verify-progress" style="display: none; margin-top: 12px;"></div></div>';
     out.innerHTML = html;
+
+    document.getElementById('verify-real')?.addEventListener('click', async function (e) {
+      const btn = e.currentTarget;
+      const repo = btn.dataset.repo;
+      btn.disabled = true;
+      btn.textContent = 'Starting verification…';
+      const progress = document.getElementById('verify-progress');
+      progress.style.display = 'block';
+      progress.innerHTML = '<p style="color:var(--ink-muted);margin:0">Triggering GitHub Actions workflow…</p>';
+      try {
+        var trigger = await fetch('/api/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo: repo })
+        });
+        var tdata = await trigger.json();
+        if (!trigger.ok) throw new Error(tdata.error || 'Failed to start verification');
+        var runId = tdata.run_id;
+        progress.innerHTML = '<p style="color:var(--ink-muted);margin:0">Verification queued. Polling for status…</p>';
+        async function poll() {
+          var status = await fetch('/api/verify-status?repo=' + encodeURIComponent(repo) + (runId ? '&run_id=' + runId : ''));
+          var sdata = await status.json();
+          if (!status.ok) throw new Error(sdata.error || 'Status check failed');
+          if (sdata.status === 'completed') {
+            if (sdata.conclusion === 'success') {
+              progress.innerHTML = '<p style="color:var(--pass);margin:0">+ Verification complete! <a href="/app/#/run/' + (sdata.artifact?.name || '').replace('firstrun-verify-', '') + '" target="_blank" rel="noopener" style="color: var(--blue);">Open the full run →</a></p>';
+              if (sdata.artifact) {
+                progress.innerHTML += '<p style="color:var(--ink-muted);font-size:13px;margin:4px 0 0">Artifact: ' + sdata.artifact.name + ' (' + Math.round(sdata.artifact.size / 1024) + ' KB)</p>';
+              }
+            } else {
+              progress.innerHTML = '<p style="color:var(--fail);margin:0">Verification failed. <a href="https://github.com/b25bb1004-wq/firstrun/actions/runs/' + sdata.run_id + '" target="_blank" rel="noopener" style="color: var(--blue);">View logs →</a></p>';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Verify it for real (~3–10 min)';
+            return;
+          }
+          progress.innerHTML = '<p style="color:var(--ink-muted);margin:0">Status: ' + sdata.status + (sdata.conclusion ? ' (' + sdata.conclusion + ')' : '') + '…</p>';
+          setTimeout(poll, 10000);
+        }
+        setTimeout(poll, 5000);
+      } catch (e) {
+        progress.innerHTML = '<p style="color:var(--fail);margin:0">Error: ' + esc(e.message) + '</p>';
+        btn.disabled = false;
+        btn.textContent = 'Verify it for real (~3–10 min)';
+      }
+    });
   }
 
   var SKELETON = '<div class="skel" aria-label="Reading the repository"><i></i><i></i><i></i><i></i><i></i></div>';
