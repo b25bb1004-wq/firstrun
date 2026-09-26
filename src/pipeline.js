@@ -449,10 +449,13 @@ export async function verifyRepo(repoDir, opts = {}) {
           say('runner', 'replaying earlier steps on the new machine');
           for (let j = 0; j < i; j++) {
             const prev = plan.steps[j];
-            if (prev.skip || prev.status === 'failed') continue;
+            // A fix step that failed on the OLD machine gets another try: the rebase may be exactly what it needed
+            // (vargasjona: `poetry install` failed on python:3.10 because the lockfile's wheels are 3.11-only).
+            if (prev.skip || (prev.status === 'failed' && prev.origin !== 'repair')) continue;
             await applyPrereqs(sandbox, prev);
-            const pa = await execStep(prev, { quiet: true });
+            const pa = await execStep(prev, { quiet: prev.status !== 'failed' });
             if (pa.exitCode !== 0) fixLog.push(`warning: ${prev.id} failed on the new machine (exit ${pa.exitCode})`);
+            else if (prev.status === 'failed') { prev.status = 'passed'; rec.stepStatus(prev.id, 'passed'); fixLog.push(`${prev.id} \`${prev.command}\` passes on the new machine`); }
           }
           await applyPrereqs(sandbox, step);
           restart = false;
