@@ -1,7 +1,8 @@
 /**
  * FirstRun Dock UI Logic
- * Connects the 7 agent character avatars to live events.ndjson via IPC
- * or runs interactive simulation in browser preview mode.
+ * Connects the 7 agent character avatars to live events via the IPC contract:
+ * window.dock = { run, open, cancel, lens, onState }
+ * (see docs/DOCK_CONTRACT.md)
  */
 
 (function () {
@@ -12,98 +13,101 @@
   const btnBrowse = document.getElementById('btn-browse');
   const btnPlan = document.getElementById('btn-plan');
   const btnVerify = document.getElementById('btn-verify');
+  const cancelBtn = document.getElementById('cancel-btn');
   const bobBtn = document.getElementById('bob-btn');
   const bobPrompt = document.getElementById('bob-prompt');
   const verdictPill = document.getElementById('verdict-pill');
   const stepCounter = document.getElementById('step-counter');
   const bobcoinMeter = document.getElementById('bobcoin-meter');
   const audioToggle = document.getElementById('audio-toggle');
-  const minimizeBtn = document.getElementById('minimize-btn');
   const drawer = document.getElementById('drawer');
   const drawerTitle = document.getElementById('drawer-title');
   const drawerBody = document.getElementById('drawer-body');
   const drawerClose = document.getElementById('drawer-close');
-  const drawerAction = document.getElementById('drawer-action-container');
+  const drawerActions = document.getElementById('drawer-action-container');
 
   const agents = ['scout', 'planner', 'runner', 'doctor', 'verifier', 'scribe', 'guide'];
   let audioEnabled = false;
   let activeAgent = null;
+  let currentRunDir = null;
 
-  // Agent descriptions and solo modes
+  // Agent descriptions and solo modes per docs/DOCK_CONTRACT.md
   const agentDetails = {
     scout: {
       name: 'Scout',
-      cmd: 'firstrun scout',
-      desc: 'Inspects project manifests (package.json, pyproject.toml, Cargo.toml), lockfiles, compose, CI workflows, and source files reading environment variables.',
+      cmd: 'firstrun scout <repo>',
+      desc: 'Inspects project manifests (package.json, pyproject.toml), lockfiles, compose, CI, and source files reading environment variables.',
       actionText: 'Run Solo Scout',
-      action: (repo) => runSoloCommand('scout', repo)
+      action: (repo) => triggerSoloRun('scout', repo)
     },
     planner: {
       name: 'Planner',
-      cmd: 'firstrun plan',
-      desc: 'Parses human README prose into ordered executable steps. Statically checks for docs-vs-code discrepancies (Node/Python versions, missing env vars, stale commands).',
-      actionText: 'Inspect Plan & Conflicts',
-      action: (repo) => runSoloCommand('plan', repo)
+      cmd: 'firstrun plan <repo>',
+      desc: 'Parses human README prose into ordered executable steps and flags docs-vs-code discrepancies statically (~2s, no Docker).',
+      actionText: 'Run Solo Plan',
+      action: (repo) => triggerSoloRun('planner', repo)
     },
     runner: {
       name: 'Runner',
-      cmd: 'run --as-written',
-      desc: 'Executes setup steps inside an isolated, clean-room Debian container with sidecar services (Postgres, Redis, MySQL). Captures stdout/stderr flight logs.',
+      cmd: 'firstrun run <repo> --as-written',
+      desc: 'Executes README commands as written in a clean container without repairs to record baseline breakage.',
       actionText: 'Run As-Written',
-      action: (repo) => runSoloCommand('run', repo)
+      action: (repo) => triggerSoloRun('runner', repo)
     },
     doctor: {
       name: 'Doctor',
-      cmd: 'doctor --log / Lens',
-      desc: 'Diagnoses setup failures. Runs deterministic rules first for speed & zero cost. Escalates unseen breaks to IBM Bob (Bob Shell headless) within budget caps.',
+      cmd: 'firstrun doctor --log <file>',
+      desc: 'Diagnoses setup failures. Rules first for speed & zero cost; IBM Bob Shell headless for unseen breaks. Also powers Lens on-screen circling.',
       actionText: 'Circle on Screen (Lens)',
-      action: () => triggerLensOverlay()
+      action: () => triggerLens()
     },
     verifier: {
       name: 'Verifier',
-      cmd: 'replay <dir>',
-      desc: 'Throws the machine away completely. Runs the repaired setup guide from zero in a brand-new container to prove every step reproduces cleanly.',
+      cmd: 'firstrun replay <run-dir>',
+      desc: 'Throws the machine away. Runs the repaired guide from zero in a brand-new container to verify every step reproduces cleanly.',
       actionText: 'Replay from Zero',
-      action: (repo) => runSoloCommand('verify', repo)
+      action: (repo) => triggerSoloRun('verifier', repo)
     },
     scribe: {
       name: 'Scribe',
-      cmd: 'scribe <dir>',
-      desc: 'Publishes verified artifacts: smallest README diff, cryptographic Setup Passport (passport.svg), FIRSTRUN.md report, devcontainer.json, and CI drift guard.',
-      actionText: 'View Setup Passport',
-      action: () => viewPassportArtifact()
+      cmd: 'firstrun scribe <run-dir>',
+      desc: 'Generates smallest README diff, cryptographic Setup Passport (passport.svg), and FIRSTRUN.md report.',
+      actionText: 'Open Passport',
+      action: () => openArtifact('passport')
     },
     guide: {
       name: 'Guide',
-      cmd: 'firstrun guide',
-      desc: 'Ships into verified repositories as an interactive newcomer onboarding assistant. Walks you step-by-step with proven commands and context.',
-      actionText: 'Start Interactive Guide',
-      action: (repo) => runSoloCommand('guide', repo)
+      cmd: 'firstrun guide <repo>',
+      desc: 'Interactive newcomer onboarding guide that walks you through verified steps with copyable commands.',
+      actionText: 'Start Guide Mode',
+      action: (repo) => triggerSoloRun('guide', repo)
     }
   };
 
-  // State Management
+  // State Management per docs/DOCK_CONTRACT.md §3: idle · working · done · needs_you
   function setAgentState(name, state, line) {
     const row = document.getElementById(`agent-${name}`);
     const badge = document.getElementById(`badge-${name}`);
     const statusLine = document.getElementById(`status-${name}`);
     if (!row || !badge) return;
 
-    row.classList.remove('state-idle', 'state-working', 'state-done', 'state-needs-you');
+    row.classList.remove('state-idle', 'state-working', 'state-done', 'state-needs_you');
     row.classList.add(`state-${state}`);
 
-    badge.textContent = state === 'needs-you' ? 'alert' : state;
+    badge.textContent = state === 'needs_you' ? 'alert' : state;
     if (line) {
       statusLine.textContent = line;
     }
 
     if (state === 'working' && audioEnabled) {
-      speak(`${name} is now working: ${line || ''}`);
+      speak(`${name}: ${line || 'working'}`);
     }
   }
 
   function setVerdict(verdict) {
-    verdictPill.className = `verdict-pill ${verdict.toLowerCase()}`;
+    if (!verdict) return;
+    const v = verdict.toLowerCase();
+    verdictPill.className = `verdict-pill ${v}`;
     verdictPill.textContent = verdict.toUpperCase();
   }
 
@@ -128,6 +132,16 @@
     if (audioEnabled) speak('FirstRun audio announcements enabled');
   });
 
+  // Cancel Button
+  cancelBtn.addEventListener('click', () => {
+    if (window.dock?.cancel) {
+      window.dock.cancel();
+    }
+    cancelBtn.style.display = 'none';
+    bobPrompt.textContent = 'Job cancelled.';
+    setVerdict('idle');
+  });
+
   // Drawer Interactions
   function openDrawer(agentKey) {
     activeAgent = agentKey;
@@ -146,12 +160,29 @@
       <p style="margin:0">${info.desc}</p>
     `;
 
-    drawerAction.innerHTML = '';
+    drawerActions.innerHTML = '';
+
+    // Primary action button
     const actBtn = document.createElement('button');
     actBtn.className = 'drawer-action-btn';
     actBtn.textContent = `${info.actionText} →`;
     actBtn.onclick = () => info.action(repoInput.value.trim());
-    drawerAction.appendChild(actBtn);
+    drawerActions.appendChild(actBtn);
+
+    // Extra Scribe buttons
+    if (agentKey === 'scribe' && currentRunDir) {
+      const diffBtn = document.createElement('button');
+      diffBtn.className = 'drawer-action-btn';
+      diffBtn.textContent = 'Open README diff';
+      diffBtn.onclick = () => openArtifact('readme-diff');
+      drawerActions.appendChild(diffBtn);
+
+      const reportBtn = document.createElement('button');
+      reportBtn.className = 'drawer-action-btn';
+      reportBtn.textContent = 'Open FIRSTRUN.md';
+      reportBtn.onclick = () => openArtifact('report');
+      drawerActions.appendChild(reportBtn);
+    }
 
     drawer.classList.add('open');
   }
@@ -175,130 +206,141 @@
     }
   });
 
-  // Actions
+  // Action Buttons
   btnPlan.addEventListener('click', () => {
     const target = repoInput.value.trim() || 'examples/acme-shop';
-    runPlanFlow(target);
+    if (window.dock?.run) {
+      cancelBtn.style.display = 'block';
+      window.dock.run({ agent: 'planner', target });
+    } else {
+      simulatePlan(target);
+    }
   });
 
   btnVerify.addEventListener('click', () => {
     const target = repoInput.value.trim() || 'examples/acme-shop';
-    runVerifyFlow(target);
+    if (window.dock?.run) {
+      cancelBtn.style.display = 'block';
+      window.dock.run({ agent: 'all', target });
+    } else {
+      simulateVerify(target);
+    }
   });
 
   bobBtn.addEventListener('click', () => {
     openDrawer('guide');
   });
 
-  minimizeBtn.addEventListener('click', () => {
-    if (window.dockBridge?.minimize) {
-      window.dockBridge.minimize();
+  function triggerSoloRun(agent, target) {
+    if (window.dock?.run) {
+      cancelBtn.style.display = 'block';
+      window.dock.run({ agent, target });
+    } else {
+      alert(`Running solo agent: ${agent} on ${target}`);
     }
-  });
+  }
 
-  btnBrowse.addEventListener('click', async () => {
-    if (window.dockBridge?.selectDirectory) {
-      const dir = await window.dockBridge.selectDirectory();
-      if (dir) repoInput.value = dir;
-    }
-  });
-
-  function triggerLensOverlay() {
-    if (window.dockBridge?.openLens) {
-      window.dockBridge.openLens(repoInput.value.trim());
+  function triggerLens() {
+    if (window.dock?.lens) {
+      window.dock.lens();
     } else {
       alert('FirstRun Lens: Press Ctrl+Shift+Space on screen to circle any error.');
     }
   }
 
-  function viewPassportArtifact() {
-    const url = 'http://localhost:3000/#/passport';
-    if (window.dockBridge?.openExternal) {
-      window.dockBridge.openExternal(url);
+  function openArtifact(what) {
+    if (window.dock?.open) {
+      window.dock.open({ what, runDir: currentRunDir });
     } else {
-      window.open('/passport.svg', '_blank');
+      alert(`Opening artifact: ${what}`);
     }
   }
 
-  function runSoloCommand(cmd, repo) {
-    if (window.dockBridge?.runSolo) {
-      window.dockBridge.runSolo(cmd, repo);
-    } else {
-      alert(`Running solo agent: firstrun ${cmd} ${repo}`);
-    }
+  // Live IPC state listener per docs/DOCK_CONTRACT.md §4:
+  // { target, agent, phase, verdict, characters: { scout:{state,line}, … }, evidence:[…], bobcoins, runDir }
+  if (window.dock?.onState) {
+    window.dock.onState((state) => {
+      if (!state) return;
+      if (state.target) repoInput.value = state.target;
+      if (state.verdict) setVerdict(state.verdict);
+      if (state.runDir) currentRunDir = state.runDir;
+      if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;
+      if (state.phase) bobPrompt.textContent = `Phase: ${state.phase}`;
+
+      if (state.characters) {
+        Object.keys(state.characters).forEach(agentName => {
+          const info = state.characters[agentName];
+          if (info) {
+            setAgentState(agentName, info.state || 'idle', info.line || '');
+          }
+        });
+      }
+
+      if (state.verdict === 'VERIFIED' || state.verdict === 'FAILED') {
+        cancelBtn.style.display = 'none';
+      }
+    });
   }
 
-  // Simulation / IPC binding
-  function runPlanFlow(target) {
-    bobPrompt.textContent = `Planning ${target}…`;
+  // Simulation mode for browser preview
+  function simulatePlan(target) {
+    bobPrompt.textContent = `Quick check: ${target}…`;
     setVerdict('running');
-    stepCounter.textContent = 'Analyzing…';
+    stepCounter.textContent = 'Planning…';
 
     setAgentState('scout', 'working', 'Reading manifests, package.json, compose');
-    setAgentState('planner', 'idle', 'Waiting for scout facts');
+    setAgentState('planner', 'idle', 'Waiting for facts');
 
     setTimeout(() => {
-      setAgentState('scout', 'done', 'Found Node.js v16, Postgres, Redis dependencies');
+      setAgentState('scout', 'done', 'Node 16 LTS, Postgres, Redis dependencies');
       setAgentState('planner', 'working', 'Parsing README prose into 5 steps');
 
       setTimeout(() => {
-        setAgentState('planner', 'done', '5 steps found; flagged Node version conflict');
+        setAgentState('planner', 'done', '5 steps found · 1 version drift flagged');
         bobPrompt.textContent = `Plan ready for ${target}`;
         stepCounter.textContent = '5 steps mapped';
         setVerdict('passed');
-        speak('Plan complete. 5 steps identified with 1 version drift flagged.');
-      }, 900);
-    }, 900);
+        speak('Quick check complete. 5 steps identified with 1 version drift.');
+      }, 800);
+    }, 800);
   }
 
-  function runVerifyFlow(target) {
+  function simulateVerify(target) {
     bobPrompt.textContent = `Proving ${target} in container…`;
     setVerdict('running');
     stepCounter.textContent = 'Step 1/5';
     bobcoinMeter.textContent = '0.00 Bobcoins';
 
-    // 1. Scout
-    setAgentState('scout', 'working', 'Scanning repository structure');
+    setAgentState('scout', 'working', 'Scanning repo structure');
     setTimeout(() => {
       setAgentState('scout', 'done', 'Manifests analyzed');
-
-      // 2. Planner
       setAgentState('planner', 'working', 'Ordering steps');
+
       setTimeout(() => {
         setAgentState('planner', 'done', '5 steps scheduled');
-
-        // 3. Runner
         setAgentState('runner', 'working', 'Step 1: npm install (exit 0)');
-        stepCounter.textContent = 'Step 1/5';
 
         setTimeout(() => {
-          setAgentState('runner', 'needs-you', 'Step 2: Failed connect ECONNREFUSED 6379');
+          setAgentState('runner', 'needs_you', 'Step 2: connect ECONNREFUSED 6379');
           stepCounter.textContent = 'Step 2/5 (Break)';
+          setAgentState('doctor', 'working', 'Diagnosing missing-service rule (Redis)');
 
-          // 4. Doctor
-          setAgentState('doctor', 'working', 'Diagnosing: missing-service (Redis)');
           setTimeout(() => {
             setAgentState('doctor', 'done', 'Fix: docker compose up -d redis (0 Bobcoins)');
-            bobcoinMeter.textContent = '0.00 Bobcoins';
-
-            // 5. Runner replay repair
             setAgentState('runner', 'working', 'Applying Redis sidecar & restarting');
+
             setTimeout(() => {
               setAgentState('runner', 'done', 'App started & listening on port 3000');
-              stepCounter.textContent = 'Step 5/5';
-
-              // 6. Verifier
               setAgentState('verifier', 'working', 'Discarding machine; replay from zero');
+
               setTimeout(() => {
                 setAgentState('verifier', 'done', 'Replay passed in 23s');
-
-                // 7. Scribe
                 setAgentState('scribe', 'working', 'Writing README diff & passport.svg');
+
                 setTimeout(() => {
                   setAgentState('scribe', 'done', 'Passport generated: VERIFIED');
-                  setAgentState('guide', 'done', 'Guide mode active for newcomers');
-
-                  bobPrompt.textContent = `${target} verified! Ready for onboarding.`;
+                  setAgentState('guide', 'done', 'Guide mode ready for newcomers');
+                  bobPrompt.textContent = `${target} verified!`;
                   setVerdict('passed');
                   stepCounter.textContent = '5/5 steps proven';
                   speak('Verification complete. acme-shop is verified from zero.');
@@ -307,27 +349,7 @@
             }, 800);
           }, 900);
         }, 800);
-      }, 800);
+      }, 700);
     }, 700);
-  }
-
-  // Live IPC state listener (bound to Friday's Electron IPC bridge)
-  if (window.dockBridge?.onStateUpdate) {
-    window.dockBridge.onStateUpdate((state) => {
-      if (state.target) repoInput.value = state.target;
-      if (state.verdict) setVerdict(state.verdict);
-      if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;
-      if (state.stepText) stepCounter.textContent = state.stepText;
-      if (state.prompt) bobPrompt.textContent = state.prompt;
-
-      if (state.agents) {
-        Object.keys(state.agents).forEach(agentName => {
-          const info = state.agents[agentName];
-          if (info) {
-            setAgentState(agentName, info.state || 'idle', info.line || '');
-          }
-        });
-      }
-    });
   }
 })();

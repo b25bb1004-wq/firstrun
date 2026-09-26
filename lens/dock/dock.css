@@ -1,23 +1,26 @@
+@import url('../../ui/theme.css');
+
 :root {
-  --bg: #0B1220;
-  --panel: #132035;
-  --panel-2: #192A43;
-  --panel-3: #223755;
-  --rule: #2F4667;
-  --rule-2: #1C314E;
-  --ink: #E6ECF5;
-  --ink-2: #A3B4CB;
-  --ink-3: #6D819D;
-  --pass: #3DD68C;
-  --pass-t: rgba(61,214,140,.12);
+  --bg: var(--ground, #0E1726);
+  --panel: var(--panel, #132035);
+  --panel-2: var(--panel-2, #192A43);
+  --panel-3: var(--raise, #213551);
+  --rule: var(--rule, #22354F);
+  --rule-2: var(--rule-2, #2F4667);
+  --ink: var(--ink, #E6ECF5);
+  --ink-2: var(--ink-2, #A3B4CB);
+  --ink-3: var(--ink-3, #6D819D);
+  --pass: var(--pass, #3DD68C);
+  --pass-t: var(--pass-t, rgba(61,214,140,.11));
   --pass-glow: rgba(61,214,140,.35);
-  --bob: #5E9EFF;
-  --bob-t: rgba(94,158,255,.14);
+  --bob: var(--bob, #5E9EFF);
+  --bob-t: var(--bob-t, rgba(94,158,255,.13));
   --bob-glow: rgba(94,158,255,.35);
-  --fail: #FF6167;
-  --fail-t: rgba(255,97,103,.12);
-  --repair: #F59E0B;
-  --repair-t: rgba(245,158,11,.14);
+  --fail: var(--fail, #FF6167);
+  --fail-t: var(--fail-t, rgba(255,97,103,.11));
+  --repair: var(--repair, #FFB224);
+  --repair-t: var(--repair-t, rgba(255,178,36,.10));
+
   --agent-scout: #10B981;
   --agent-planner: #06B6D4;
   --agent-runner: #F59E0B;
@@ -318,7 +321,7 @@ html, body {
   flex: none;
 }
 
-/* States */
+/* States per DOCK_CONTRACT.md: idle · working · done · needs_you */
 /* 1. Idle */
 .state-idle .agent-avatar { opacity: .55; }
 .state-idle .agent-state-badge { color: var(--ink-3); background: rgba(255,255,255,.04); }
@@ -355,16 +358,16 @@ html, body {
 }
 
 /* 4. Needs You (Alert) */
-.state-needs-you {
+.state-needs_you {
   border-color: var(--repair);
 }
-.state-needs-you .agent-avatar {
+.state-needs_you .agent-avatar {
   background: var(--repair-t);
   border-color: var(--repair);
   animation: agentShake 3s infinite ease-in-out;
 }
-.state-needs-you .agent-avatar svg { color: var(--repair); }
-.state-needs-you .agent-state-badge {
+.state-needs_you .agent-avatar svg { color: var(--repair); }
+.state-needs_you .agent-state-badge {
   background: var(--repair-t);
   color: var(--repair);
   border: 1px solid var(--repair);
@@ -407,8 +410,8 @@ html, body {
   cursor: pointer;
 }
 .drawer-body { color: var(--ink-2); line-height: 1.4; }
+.drawer-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .drawer-action-btn {
-  margin-top: 8px;
   background: var(--panel-3);
   border: 1px solid var(--rule);
   color: var(--ink);
