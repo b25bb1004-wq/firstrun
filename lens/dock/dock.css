@@ -270,8 +270,23 @@ html, body {
   transform: translateX(2px);
 }
 .agent-row.selected {
-  border-color: var(--bob);
-  background: var(--panel-2);
+  border-color: var(--agent-color, var(--bob)) !important;
+  background: var(--panel-3) !important;
+  border-left: 4px solid var(--agent-color, var(--bob)) !important;
+  transform: translateX(3px);
+}
+.agent-row.selected .agent-name {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+.agent-row.selected .agent-avatar {
+  border-color: var(--agent-color, var(--bob));
+  background: var(--agent-glow, rgba(94,158,255,.2));
+  opacity: 1;
+}
+.agent-row.selected .agent-state-badge {
+  border-color: var(--agent-color, var(--bob));
+  color: var(--agent-color, var(--bob));
 }
 
 /* Avatar Badge */
@@ -399,15 +414,23 @@ html, body {
 
 /* Drawer / Solo Inspector Area */
 .drawer {
-  margin-top: 10px;
+  margin: 4px 0 6px;
   background: var(--panel-2);
   border: 1px solid var(--rule);
-  border-radius: 10px;
+  border-left: 3px solid var(--agent-color, var(--bob));
+  border-radius: 8px;
   padding: 10px 12px;
-  font-size: 12.5px;
+  font-size: 12px;
   display: none;
 }
-.drawer.open { display: block; }
+.drawer.open {
+  display: block;
+  animation: drawerFadeIn 0.15s ease-out;
+}
+@keyframes drawerFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .drawer-head {
   display: flex;
   align-items: center;
