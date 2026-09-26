@@ -158,7 +158,7 @@
       window.dock.cancel();
     }
     cancelBtn.style.display = 'none';
-    bobPrompt.textContent = 'Job cancelled.';
+    bobPrompt.textContent = "I've stopped the run.";
     setVerdict('idle');
   });
 
@@ -270,6 +270,7 @@
   // Action Buttons
   btnPlan?.addEventListener('click', () => {
     const target = getTarget();
+    bobPrompt.textContent = `I'll send the Scout and Planner to check ${target} statically…`;
     if (!callDockRun('planner', target)) {
       simulatePlan(target);
     }
@@ -277,6 +278,7 @@
 
   btnVerify?.addEventListener('click', () => {
     const target = getTarget();
+    bobPrompt.textContent = `I'm running the full proof on ${target}: dispatching all agents in clean containers…`;
     if (!callDockRun('all', target)) {
       simulateVerify(target);
     }
@@ -288,6 +290,7 @@
 
   function triggerSoloRun(agent, target) {
     const t = target || getTarget();
+    bobPrompt.textContent = `I'm dispatching the ${agent} on ${t}…`;
     if (!callDockRun(agent, t)) {
       alert(`Running solo agent: ${agent} on ${t}`);
     }
@@ -307,6 +310,16 @@
     }
   }
 
+  const bobPhaseMessages = {
+    scout: "I've sent the Scout in to inspect manifests and docs.",
+    plan: "I'm having the Planner build the execution DAG and flag drifts.",
+    run: "I've started the Runner in a clean container to test steps as written.",
+    repair: "The Doctor is diagnosing the break. I'll step in if reasoning is needed.",
+    replay: "All repairs applied. Verifier is testing the guide from zero in a clean machine.",
+    publish: "Verified! Scribe is minting your Setup Passport and FIRSTRUN.md report.",
+    done: "Your README is proven from zero. 0 human steps needed."
+  };
+
   // Live IPC state listener per docs/DOCK_CONTRACT.md §4:
   // { target, agent, phase, verdict, characters: { scout:{state,line}, … }, evidence:[…], bobcoins, runDir }
   if (window.dock?.onState) {
@@ -316,7 +329,12 @@
       if (state.verdict) setVerdict(state.verdict);
       if (state.runDir) currentRunDir = state.runDir;
       if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;
-      if (state.phase) bobPrompt.textContent = `Phase: ${state.phase}`;
+
+      if (state.phase) {
+        const msg = bobPhaseMessages[state.phase] || `I'm coordinating the ${state.phase} phase…`;
+        bobPrompt.textContent = msg;
+        if (audioEnabled) speak(msg);
+      }
 
       if (state.characters) {
         Object.keys(state.characters).forEach(agentName => {
@@ -327,7 +345,11 @@
         });
       }
 
-      if (state.verdict === 'VERIFIED' || state.verdict === 'FAILED') {
+      if (state.verdict === 'VERIFIED') {
+        bobPrompt.textContent = "Your README is proven from zero! All steps verified.";
+        cancelBtn.style.display = 'none';
+      } else if (state.verdict === 'FAILED') {
+        bobPrompt.textContent = "Run finished with unresolved breaks. Check the flight log.";
         cancelBtn.style.display = 'none';
       }
     });
@@ -339,7 +361,7 @@
   }
 
   function showDesktopRequired(target) {
-    bobPrompt.textContent = 'Live proof requires FirstRun desktop app';
+    bobPrompt.textContent = `I need the FirstRun desktop app to spin up Docker containers for ${target}.`;
     setVerdict('needs_app');
     stepCounter.textContent = 'Desktop required';
     
@@ -365,7 +387,7 @@
       return;
     }
 
-    bobPrompt.textContent = 'Recorded plan: examples/acme-shop';
+    bobPrompt.textContent = "I'll send the Scout and Planner to check examples/acme-shop statically…";
     setVerdict('running');
     stepCounter.textContent = 'Planning (replay)…';
 
@@ -378,11 +400,11 @@
 
       setTimeout(() => {
         setAgentState('planner', 'done', '5 steps found · 1 version drift flagged');
-        bobPrompt.textContent = 'Recorded plan: examples/acme-shop (demo)';
+        bobPrompt.textContent = "I've analyzed examples/acme-shop: 5 steps mapped, 1 version drift flagged.";
         stepCounter.textContent = '5 steps mapped';
         setVerdict('passed');
         verdictPill.textContent = 'REPLAY · PLAN';
-        speak('Recorded plan complete. 5 steps identified with 1 version drift.');
+        speak("I've finished the static check: 5 steps identified with 1 version drift.");
       }, 700);
     }, 700);
   }
@@ -393,7 +415,7 @@
       return;
     }
 
-    bobPrompt.textContent = 'Replaying recorded run: examples/acme-shop (seeded breaks)…';
+    bobPrompt.textContent = "I'm running the recorded proof for examples/acme-shop: sending in the agents…";
     setVerdict('running');
     verdictPill.textContent = 'REPLAYING';
     stepCounter.textContent = 'Step 1/5 (replay)';
@@ -412,27 +434,31 @@
           setAgentState('runner', 'needs_you', 'Step 2: connect ECONNREFUSED 6379');
           stepCounter.textContent = 'Step 2/5 (Break)';
           setAgentState('doctor', 'working', 'Diagnosing missing-service rule (Redis)');
+          bobPrompt.textContent = "Step 2 failed with ECONNREFUSED. Doctor is checking the rules first…";
 
           setTimeout(() => {
             setAgentState('doctor', 'done', 'Fix: docker compose up -d redis (0 Bobcoins)');
             setAgentState('runner', 'working', 'Applying Redis sidecar & restarting');
+            bobPrompt.textContent = "Doctor applied the Redis service fix (0 Bobcoins). Runner restarted.";
 
             setTimeout(() => {
               setAgentState('runner', 'done', 'App started & listening on port 3000');
               setAgentState('verifier', 'working', 'Discarding machine; replay from zero');
+              bobPrompt.textContent = "Throwing away container. Verifier is testing the repaired guide from zero…";
 
               setTimeout(() => {
                 setAgentState('verifier', 'done', 'Replay passed in 23s');
                 setAgentState('scribe', 'working', 'Writing README diff & passport.svg');
+                bobPrompt.textContent = "Replay passed! Scribe is minting your Setup Passport.";
 
                 setTimeout(() => {
                   setAgentState('scribe', 'done', 'Passport generated: VERIFIED');
                   setAgentState('guide', 'done', 'Guide mode ready for newcomers');
-                  bobPrompt.textContent = 'examples/acme-shop: recorded run replay VERIFIED';
+                  bobPrompt.textContent = "I've proven examples/acme-shop from zero. 0 human steps needed.";
                   setVerdict('passed');
                   verdictPill.textContent = 'REPLAY · VERIFIED';
                   stepCounter.textContent = '5/5 steps (recorded)';
-                  speak('Recorded replay complete: acme-shop verified from zero.');
+                  speak('acme-shop is proven from zero. I am ready to guide your next run.');
                 }, 600);
               }, 700);
             }, 600);
