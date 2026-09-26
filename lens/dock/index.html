@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font: 13px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
+         background: #0E1726; color: #e1e4e8; height: 600px; overflow: hidden;
+         display: flex; flex-direction: column; }
+  header { padding: 10px 12px 6px; -webkit-app-region: drag; flex-shrink: 0;
+           border-bottom: 1px solid #1e2d45; display: flex; align-items: center; gap: 8px; }
+  header span { font-weight: 600; font-size: 14px; color: #3DD68C; }
+  header small { color: #57606a; font-size: 11px; flex: 1; overflow: hidden;
+                 text-overflow: ellipsis; white-space: nowrap; }
+  .row { display: flex; gap: 8px; padding: 10px 12px; flex-shrink: 0; -webkit-app-region: no-drag; }
+  input { flex: 1; background: #1a2540; border: 1px solid #2a3f60; border-radius: 4px;
+          color: #e1e4e8; padding: 5px 8px; font-size: 12px; outline: none; }
+  input:focus { border-color: #3DD68C; }
+  select { background: #1a2540; border: 1px solid #2a3f60; border-radius: 4px;
+           color: #e1e4e8; padding: 5px 6px; font-size: 12px; }
+  button { background: #3DD68C; color: #0E1726; border: none; border-radius: 4px;
+           padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  button:hover { background: #50e8a0; }
+  button.cancel { background: #e05353; color: #fff; }
+  button.cancel:hover { background: #f06060; }
+  pre { flex: 1; margin: 0; padding: 10px 12px; overflow: auto; font-size: 11px;
+        font-family: "Cascadia Code","Fira Mono",monospace; white-space: pre-wrap;
+        word-break: break-all; color: #adbac7; border-top: 1px solid #1e2d45; }
+</style>
+</head>
+<body>
+<!-- Placeholder: Zeus replaces this with the real Dock UI (lens/dock/dock.js + dock.css) -->
+<header>
+  <span>FirstRun Dock</span>
+  <small id="hdr">idle</small>
+</header>
+<div class="row">
+  <input id="target" placeholder="repo path or GitHub URL" value="">
+  <select id="agent">
+    <option value="all">all</option>
+    <option value="scout">scout</option>
+    <option value="planner">planner</option>
+    <option value="runner">runner</option>
+    <option value="doctor">doctor</option>
+    <option value="verifier">verifier</option>
+    <option value="scribe">scribe</option>
+  </select>
+  <button id="run">Run</button>
+  <button id="stop" class="cancel" style="display:none">Stop</button>
+</div>
+<pre id="out">waiting…</pre>
+<script>
+  const out = document.getElementById('out');
+  const hdr = document.getElementById('hdr');
+  let running = false;
+
+  document.getElementById('run').addEventListener('click', () => {
+    const t = document.getElementById('target').value.trim();
+    const a = document.getElementById('agent').value;
+    if (!t) { out.textContent = 'Enter a repo path or URL.'; return; }
+    window.dock?.run(a, t);
+    running = true;
+    document.getElementById('run').style.display  = 'none';
+    document.getElementById('stop').style.display = '';
+  });
+
+  document.getElementById('stop').addEventListener('click', () => {
+    window.dock?.cancel();
+    document.getElementById('run').style.display  = '';
+    document.getElementById('stop').style.display = 'none';
+  });
+
+  window.dock?.onState((s) => {
+    hdr.textContent = s.phase ?? 'idle';
+    out.textContent = JSON.stringify(s, null, 2);
+    if (s.verdict) {
+      document.getElementById('run').style.display  = '';
+      document.getElementById('stop').style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>

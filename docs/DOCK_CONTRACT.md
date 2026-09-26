@@ -67,11 +67,12 @@ One JSON object per line: `{ t, run, agent, type, data }`, with `agent` one of `
 | `dock:open` | UI → main | `{ what: 'report'|'readme-diff'|'passport'|'folder', runDir }` |
 | `dock:cancel` | UI → main | `{}` |
 | `dock:lens` | UI → main | `{}` (opens Lens, the Doctor's circle-an-error mode) |
+| `dock:toggle` | button → main | `{}` (opens or closes the panel) |
 
 ## 5. Files and owners
 
 - `lens/main.js`, `lens/dock-bridge.js` (tray, floating button, hotkey, spawning agents, tailing events): **Friday**
 - `src/dock-state.js` + `test/dock-state.test.js`: **Friday**
-- `lens/dock/` (`index.html`, `dock.js`, `dock.css`, `characters/*.svg`): **Zeus**. Uses `ui/theme.css` tokens and talks only through `window.dock` (preload): `run`, `open`, `cancel`, `lens`, `onState`.
+- `lens/dock/` (`index.html`, `dock.js`, `dock.css`, `characters/*.svg`): **Zeus**. Uses `ui/theme.css` tokens and talks only through `window.dock` (preload): `run({ agent, target })`, `open`, `cancel`, `lens`, `toggle`, `onState`.
 - `src/cli.js` cases `scout`, `doctor`, `scribe`, and `plan --out`: **Friday** (#93, taken over from Edith); `run --as-written`, `replay`: **Hermes**. Each in its own PR with its own test file.
 - Hotkey: `Alt+Command+Space` (Mac), `Control+Alt+Space` (Windows/Linux). The floating button starts top-left and is draggable.
