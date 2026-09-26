@@ -79,11 +79,11 @@ async function run() {
     fs.writeFileSync('web/public/assets/img/snap_01_hero.png', Buffer.from(heroShot.data, 'base64'));
     console.log('Captured: snap_01_hero.png');
 
-    // 1a. Scroll to Hero Figures
+    // 1a. Scroll to Hero Figures & 3-Step Flow
     await send('Runtime.evaluate', {
       expression: `
-        var skip = document.querySelector('.skipintro');
-        if (skip) skip.click();
+        var target = document.querySelector('.hero-flow') || document.querySelector('.stats.figures');
+        if (target) target.scrollIntoView({ block: 'center' });
       `
     });
     await sleep(700);

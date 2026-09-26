@@ -328,15 +328,13 @@ h1, h2, h3, .stats b, .gallery .big, .mark {
   font-family: var(--display);
   font-optical-sizing: auto;               /* Bricolage's opsz axis: tighter, more characterful at display sizes */
 }
-h1 { font-weight: 700; letter-spacing: -0.035em; line-height: 0.98; }
-.hero-full h1 { font-size: clamp(60px, 11vw, 156px); letter-spacing: -0.045em; font-variation-settings: "opsz" 96; }
-h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+h1 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+.hero-full h1 { font-size: clamp(48px, 6.8vw, 84px); letter-spacing: -0.032em; font-weight: 700; line-height: 1.04; font-variation-settings: "opsz" 96; }
+h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
 h3 { font-weight: 600; letter-spacing: -0.015em; }
 .stats b, .gallery .big { font-weight: 800; letter-spacing: -0.04em; }
 .mark { font-weight: 800; letter-spacing: 0.02em; font-size: 17px; }
 /* body, eyebrows, buttons, nav and code stay on the system stack (SF Pro / Segoe UI Variable) */
-/* v10 tune: Bricolage at hero size needs a little air */
-.hero-full h1 { letter-spacing: -0.028em; font-weight: 650; }
 h1 { letter-spacing: -0.025em; } h2 { letter-spacing: -0.022em; font-weight: 650; }
 .stats b, .gallery .big { letter-spacing: -0.03em; font-weight: 750; }
 
@@ -858,3 +856,76 @@ html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
 .heal-raw .ln.add:not(.hid) .t { animation: heal-reset 520ms cubic-bezier(.23, 1, .32, 1) both; }
 @keyframes heal-reset { from { opacity: 0; filter: blur(4px); transform: scaleX(1.12); } to { opacity: 1; filter: blur(0); transform: none; } }
 @media (prefers-reduced-motion: reduce) { .heal-raw .ln.fail .t, .heal-raw .ln.add .t { animation: none; } .heal-raw.scan::after { display: none; } }
+
+/* ===== v17 (Zeus): 3-step visual & alche.studio typography & clean crew cards ===== */
+.hero-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  gap: 16px;
+  margin: 52px auto 0;
+  max-width: 960px;
+  width: 100%;
+}
+.flow-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 2px);
+  padding: 22px 20px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+.flow-card:hover {
+  border-color: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.flow-num {
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.flow-body h3 {
+  font-size: 17px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.flow-body p {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--line);
+  font-size: 22px;
+  user-select: none;
+  font-family: var(--mono);
+}
+@media (max-width: 820px) {
+  .hero-flow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 36px;
+  }
+  .flow-arrow {
+    display: none;
+  }
+}
+.agent-chip-desc {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  margin: 4px 0 0;
+  text-align: center;
+}
+
