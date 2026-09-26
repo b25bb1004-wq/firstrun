@@ -22,3 +22,18 @@ test('Scribe skips steps IBM Bob planned from prose (line 0) instead of crashing
   const plan = { steps: [{ id: 'S1', command: 'uv pip install -e ".[dev]"', origin: 'readme', status: 'passed', source: src }], runtime: { name: 'python', version: '3.10' } };
   assert.doesNotThrow(() => rewriteDoc({ root, docFile: 'CONTRIBUTING.md', plan, evidence: [], passport: {} }));
 });
+
+test('env vars read only by maintainer tooling are not flagged as undocumented (huggingface_hub GITHUB_TOKEN)', async () => {
+  const { scout } = await import('../src/scout/index.js');
+  const { buildPlan } = await import('../src/plan.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-maint-'));
+  fs.writeFileSync(path.join(root, 'README.md'), '# x\n\n## Install\n\n```bash\npip install -e .\n```\n');
+  fs.writeFileSync(path.join(root, 'pyproject.toml'), '[project]\nname = "x"\n');
+  fs.mkdirSync(path.join(root, 'utils', 'release_notes'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'utils', 'release_notes', 'fetch_prs.py'), 'import os\nTOKEN = os.environ["GITHUB_TOKEN"]\n');
+  fs.mkdirSync(path.join(root, 'src'));
+  fs.writeFileSync(path.join(root, 'src', 'app.py'), 'import os\nKEY = os.environ["APP_SECRET"]\n');
+  const what = buildPlan(await scout(root)).conflicts.map((c) => c.what);
+  assert.ok(!what.includes('env var GITHUB_TOKEN'), 'release tooling ignored');
+  assert.ok(what.includes('env var APP_SECRET'), 'the app itself still flagged');
+});

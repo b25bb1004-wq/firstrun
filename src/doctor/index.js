@@ -56,6 +56,12 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   // Source edits Bob proposed are not applied; keep them on the diagnosis so the evidence shows them to the maintainer.
   const suggestions = v.suggestions || v.fix?.suggestions;
   const diagnosis = { ...v.diagnosis, by: 'bob', bobcoins: res.bobcoins, taskId: res.taskId, ...(suggestions?.length ? { suggestions } : {}) };
+  // Check Bob against the log: "unreachable" while the log shows HTTP responses is wrong (huggingface_hub: hub-ci
+  // answered 200 OK). Keep his diagnosis, but lower its confidence and say what the log shows.
+  if (/unreachable|offline|cannot (?:be )?reach|no network|not reachable/i.test(diagnosis.cause || '') && /HTTP\/[\d.]+ [23]\d\d/.test(ctx.log || '')) {
+    diagnosis.confidence = Math.min(diagnosis.confidence ?? 0.5, 0.4);
+    diagnosis.checked = 'The log shows successful HTTP responses from the network, so "unreachable" is not supported; the calls are more likely slow.';
+  }
   if (v.fix && tried.has(fixSignature(ctx.step.id, v.fix))) return { diagnosis, fix: null };
   return { diagnosis, fix: v.fix };
 }
