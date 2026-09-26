@@ -149,7 +149,7 @@ export function evidenceDrawerHTML(runId, e) {
   return h`<div class="drawer-backdrop" data-close></div>
   <aside class="drawer" role="dialog" aria-modal="true" aria-label="Evidence ${e.id}">
     <header class="dr-head">
-      <div class="dr-title"><span class="dr-id">${e.id}</span><span>Step ${e.stepId}</span><span class="chip c-${e.status === 'verified' ? 'passed' : e.status === 'needs-human' ? 'needs-human' : 'failed'}">${e.status === 'verified' ? 'Verified' : e.status === 'needs-human' ? 'Needs a human' : 'Failed'}</span></div>
+      <div class="dr-title"><span class="dr-id">${e.id}</span><span>Step ${e.stepId}</span><span class="chip c-${e.status === 'verified' ? 'passed' : e.status === 'needs-human' ? 'needs-human' : e.status === 'progressed' ? 'repaired' : 'failed'}">${e.status === 'verified' ? 'Verified' : e.status === 'needs-human' ? 'Needs a human' : e.status === 'progressed' ? 'Worked, next error' : 'Failed'}</span></div>
       <button class="icon-btn" data-close aria-label="Close evidence">${icon('close')}</button>
     </header>
     <div class="dr-diag ${bob ? 'by-bob' : ''}">
@@ -203,11 +203,60 @@ export function mountRun(root, runId, sub) {
   const render = rafBatch(() => { if (!closed) draw(); });
 
   function draw() {
+    drawReplayBar();
     drawHead();
     drawAgents();
     drawSteps();
     drawSide();
     if (!diffLoaded && m.artifacts['README.diff']) loadDiff();
+  }
+
+  /** The hosted demo's replay controller (web/static-shim.js), or a fallback that only
+   * changes speed / restarts via the URL; that one cannot pause, so no Pause button. */
+  function replayCtrl() {
+    if (window.__firstrunReplay) return window.__firstrunReplay;
+    const params = new URLSearchParams(location.search);
+    return {
+      speed: Number(params.get('replay')) || 1,
+      paused: false,
+      setSpeed(sp) { const u = new URL(location.href); u.searchParams.set('replay', sp); location.href = u.href; },
+      restart() { location.reload(); },
+    };
+  }
+
+  function drawReplayBar() {
+    const bar = $('#replay-bar');
+    if (!bar) return;
+    const params = new URLSearchParams(location.search);
+    const isReplay = window.__firstrunReplay?.active || params.has('replay');
+    if (!isReplay) { bar.innerHTML = ''; bar.hidden = true; return; }
+
+    const ctrl = replayCtrl();
+    const spd = ctrl.speed || 1;
+    const paused = !!ctrl.paused;
+
+    bar.hidden = false;
+    bar.innerHTML = String(h`
+      <div class="rp-control-bar">
+        <div class="rp-badge">
+          <span class="rp-dot ${paused ? 'paused' : 'playing'}"></span>
+          <span class="rp-title">REPLAY MODE</span>
+        </div>
+        <div class="rp-actions">
+          ${ctrl.togglePause ? h`<button class="btn btn-rp-toggle ${paused ? 'is-paused' : ''}" data-rp-action="toggle">
+            ${paused ? '▶ Play' : '⏸ Pause'}
+          </button>` : ''}
+          <div class="rp-speeds">
+            ${[1, 4, 8].map(s => h`
+              <button class="btn btn-rp-speed ${spd === s ? 'active' : ''}" data-rp-speed="${s}">${s}x</button>
+            `)}
+          </div>
+          <button class="btn btn-rp-restart" data-rp-action="restart" title="Restart replay">
+            ↺ Restart
+          </button>
+        </div>
+      </div>
+    `);
   }
 
   function drawHead() {
@@ -376,6 +425,15 @@ export function mountRun(root, runId, sub) {
     host.querySelector('.drawer .icon-btn')?.focus();
   }
   const onClick = ev => {
+    const btn = ev.target.closest('[data-rp-action], [data-rp-speed]');
+    if (btn) {
+      const ctrl = replayCtrl();
+      if (btn.dataset.rpAction === 'toggle') ctrl.togglePause?.();
+      else if (btn.dataset.rpAction === 'restart') ctrl.restart();
+      else if (btn.dataset.rpSpeed) ctrl.setSpeed(Number(btn.dataset.rpSpeed));
+      drawReplayBar();
+      return;
+    }
     if (ev.target.closest('[data-close]')) { location.hash = `#/run/${runId}`; }
   };
   const onKey = ev => { if (ev.key === 'Escape' && $('#drawer').innerHTML) location.hash = `#/run/${runId}`; };
@@ -385,6 +443,8 @@ export function mountRun(root, runId, sub) {
   };
   const onScroll = () => { followUntil = Date.now() + 5000; };
   root.addEventListener('click', onClick);
+  const onReplayChange = () => drawReplayBar();
+  window.addEventListener('replaychange', onReplayChange);
   root.addEventListener('toggle', onToggle, true);
   document.addEventListener('keydown', onKey);
   window.addEventListener('wheel', onScroll, { passive: true });
@@ -435,6 +495,7 @@ export function mountRun(root, runId, sub) {
     destroy() {
       closed = true; es?.close(); clearInterval(tick);
       root.removeEventListener('click', onClick);
+      window.removeEventListener('replaychange', onReplayChange);
       root.removeEventListener('toggle', onToggle, true);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('wheel', onScroll);

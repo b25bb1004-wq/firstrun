@@ -30,8 +30,9 @@ story: `docs/WHY_FIRSTRUN.md`.
 
 ## Numbers we can quote (and their limits)
 
-- **16 real repos audited** (pinned commits, rules only, 24 Sep): 2 VERIFIED, 1 PARTIAL, 11 FAILED,
-  2 ERROR. So **12 of the 14 we could follow broke**. Evidence: `audit/real-16/`.
+- **16 real repos audited** (pinned commits, 25 Sep rerun `audit/real-16-v2/`, the one to quote): 6 VERIFIED,
+  4 PARTIAL, 4 FAILED, 2 NO-SETUP-DOCS. **9 of the 14 followable READMEs broke; 22 breaks, 11 fixed and
+  re-verified from zero.** The 24 Sep run (`audit/real-16/`, "12 of 14") overcounted: several were FirstRun's own mistakes.
 - In that audit **several failures were FirstRun's own planner mistakes** (see #7, section A). PR #8
   fixed them, so the numbers change on the next audit rerun. Don't quote a "fixed" count until
   then.

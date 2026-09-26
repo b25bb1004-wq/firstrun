@@ -9,6 +9,7 @@ import { needsBobPlanner, bobPlan } from './brain/planner.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
+import { flagOn } from './flags.js';
 import { run, tail, headTail, nowIso, shortId, readText, shq } from './util.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
@@ -31,6 +32,13 @@ export async function stillFailing(diagnosis, before, after, ctx) {
   // fix changed the failure (progress), so it shouldn't use up the step's repair budget.
   const last = (out) => (out || '').split('\n').map((l) => l.trim()).filter(Boolean).pop() || '';
   return last(before.out) === last(after.out);
+}
+
+/** Write `cwd` back to /firstrun/cwd so the next exec starts in the right dir.
+ *  No-op when cwd is null/empty. Never touches /firstrun/state.env. */
+export async function restoreCwd(sandbox, cwd) {
+  if (!cwd) return;
+  await sandbox.writeFile('/firstrun/cwd', cwd);
 }
 
 export function makeBudget(total = 4, perCall = 1.5) {
@@ -231,6 +239,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         stopped = step.id;
         break;
       }
+      let goodCwd = await sandbox.readFile('/firstrun/cwd');
       let attempt = await execStep(step);
       if (attempt.exitCode === 0) {
         step.status = step.status === 'repairing' ? 'repaired' : 'passed';
@@ -329,6 +338,8 @@ export async function verifyRepo(repoDir, opts = {}) {
               rec.stepStatus(ns.id, ns.status);
               fixLog.push(`$ ${ns.command} → exit ${ia.exitCode}`);
               if (ia.exitCode !== 0) { fixFailed = { command: ns.command, exitCode: ia.exitCode, out: ia.out, durationMs: ia.durationMs }; break; }
+              // An inserted step that succeeds may cd intentionally; keep that as the new baseline.
+              const newCwd = await sandbox.readFile('/firstrun/cwd'); if (newCwd) goodCwd = newCwd;
             }
           }
         }
@@ -352,6 +363,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         if (fixFailed) fixLog.push(`fix not applied: \`${fixFailed.command}\` exited ${fixFailed.exitCode}`);
         rec.phase('coldstart', 'runner');
         // A fix whose own command failed was not applied: don't retry the step as if it had been.
+        if (!fixFailed) await restoreCwd(sandbox, goodCwd);
         const after = fixFailed
           ? { stepId: step.id, n: attempts[step.id], command: fixFailed.command, exitCode: fixFailed.exitCode, durationMs: fixFailed.durationMs || 0, logTail: tail(fixFailed.out || '', 60), out: fixFailed.out || '' }
           : await execStep(step);
@@ -367,7 +379,7 @@ export async function verifyRepo(repoDir, opts = {}) {
         };
         rec.evidence(record);
         stepEvidence.push(record);
-        history.push({ cause: diagnosis.cause, actions: fix.actions });
+        history.push({ cause: diagnosis.cause, actions: fix.actions, worked: progressed });
         if (verified) {
           repaired = true;
           for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
@@ -380,7 +392,11 @@ export async function verifyRepo(repoDir, opts = {}) {
         }
       }
       if (!repaired) {
-        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) rec.evidence({ ...r, status: 'failed' });
+        // A fix that cleared its own error still worked, even if the step later failed on
+        // something else: keep it as "progressed" (not counted as fixed) and link what it revealed.
+        for (const r of stepEvidence.filter((x) => x.status === 'progressed')) {
+          rec.evidence({ ...r, revealed: stepEvidence[stepEvidence.indexOf(r) + 1]?.id });
+        }
       }
       if (repaired) {
         step.status = 'repaired';
@@ -429,7 +445,9 @@ export async function verifyRepo(repoDir, opts = {}) {
     // ── Publish ──────────────────────────────────────────────────────
     rec.phase('publish', 'scribe');
     const evidence = rec.state.evidence.map((eid) => JSON.parse(readText(path.join(outDir, 'evidence', `${eid}.json`))));
-    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped, packageCache: Boolean(cacheVolume) });
+    // timeLost (flag): computed inside publish, so FIRSTRUN.md and passport.json include it.
+    const timeLost = flagOn('timeLost', opts) ? { runMs: Date.now() - startedAt } : null;
+    const result = await publish({ root, outDir, facts, plan, evidence, patched, replay, firstFailure, rec, bobcoins: budget.spent(), stopped, packageCache: Boolean(cacheVolume), timeLost });
     rec.state.passport = result.passport;
     rec.state.bobcoins = budget.spent();
     rec.state.finishedAt = nowIso();

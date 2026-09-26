@@ -1,0 +1,55 @@
+{
+  "id": "E3",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 1984,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\n[nodemon] 3.1.14\n[nodemon] to restart at any time, enter `rs`\n[nodemon] watching path(s): *.*\n[nodemon] watching extensions: js,mjs,cjs,json\n[nodemon] starting `node dist`\n\u001bc6:52:12 PM - Starting compilation in watch mode...\n\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\nQueue Monitor :: Running @ 'http://localhost:5550'\n(node:396) Warning: Accessing non-existent property 'lineno' of module exports inside circular dependency\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:396) Warning: Accessing non-existent property 'column' of module exports inside circular dependency\n(node:396) Warning: Accessing non-existent property 'filename' of module exports inside circular dependency\n(node:396) Warning: Accessing non-existent property 'lineno' of module exports inside circular dependency\n(node:396) Warning: Accessing non-existent property 'column' of module exports inside circular dependency\n(node:396) Warning: Accessing non-existent property 'filename' of module exports inside circular dependency\n[ERROR] :: MongoError: failed to connect to server [127.0.0.1:27017] on first connect [Error: connect ECONNREFUSED 127.0.0.1:27017\n[ERROR] :: Error: connect ECONNREFUSED 127.0.0.1:6379\n[ERROR] :: Error: connect ECONNREFUSED 127.0.0.1:6379\n[ERROR] :: Error: connect ECONNREFUSED 127.0.0.1:6379\n[ERROR] :: Error: connect ECONNREFUSED 127.0.0.1:6379\n\n[firstrun] GET http://127.0.0.1:4040/ → no response\ncurl: (28) Operation timed out after 10001 milliseconds with 0 bytes received\n000",
+    "logFile": "logs/S5-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+    "by": "rules",
+    "ruleId": "missing-service",
+    "confidence": 0.92
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "mongo",
+        "image": "mongo",
+        "env": {},
+        "port": 27017
+      },
+      {
+        "type": "insert-before",
+        "command": "docker compose up -d mongo",
+        "kind": "services",
+        "silent": true
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "docker compose up -d mongo",
+      "service": "mongo"
+    },
+    "log": "started mongo as \"mongo\" on localhost:27017\n$ docker compose up -d mongo → exit 0"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 3,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 2459,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\n[nodemon] 3.1.14\n[nodemon] to restart at any time, enter `rs`\n[nodemon] watching path(s): *.*\n[nodemon] watching extensions: js,mjs,cjs,json\n[nodemon] starting `node dist`\n\u001bc6:53:09 PM - Starting compilation in watch mode...\n\n\n[firstrun] GET http://127.0.0.1:4040/ → no response\ncurl: (7) Failed to connect to 127.0.0.1 port 4040 after 0 ms: Couldn't connect to 000server",
+    "logFile": "logs/S5-3.log"
+  },
+  "status": "failed",
+  "at": "2026-09-25T18:53:57.791Z"
+}

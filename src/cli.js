@@ -20,7 +20,7 @@ corrected README plus a Setup Passport.
 
 ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
-                  [--out <dir>] [--keep] [--no-replay] [--verbose]
+                  [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
@@ -66,7 +66,7 @@ export async function main(argv) {
       console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root}`);
       const res = await verifyRepo(root, {
         brain: args.brain || 'auto', bobBudget: Number(args['bob-budget'] ?? 4), out: args.out, keep: !!args.keep,
-        replay: args.replay !== false, cache: args.cache !== false,
+        replay: args.replay !== false, cache: args.cache !== false, flags: args.flags || '',
         onRecorder: (rec) => attachPrinter(rec, { verbose: !!args.verbose }),
       });
       if (res.ok) {

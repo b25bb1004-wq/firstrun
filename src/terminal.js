@@ -49,7 +49,7 @@ export function attachPrinter(rec, { prefix = '', verbose = false } = {}) {
         p(`    ${yellow('+')} FirstRun adds a missing step: ${d.step.command}`);
         break;
       case 'evidence':
-        p(`    ${d.status === 'verified' ? green('✔ evidence ' + d.id + ': fixed and verified') : d.status === 'needs-human' ? red('✋ ' + d.id + ': needs a maintainer') : yellow('… ' + d.id + ': fix did not work')}`);
+        p(`    ${d.status === 'verified' ? green('✔ evidence ' + d.id + ': fixed and verified') : d.status === 'needs-human' ? red('✋ ' + d.id + ': needs a maintainer') : d.status === 'progressed' ? green('↪ ' + d.id + ': worked, revealed the next error') : yellow('… ' + d.id + ': fix did not work')}`);
         break;
       case 'bob':
         if (!d.ok) p(dim(`    IBM Bob unavailable: ${d.error}`));

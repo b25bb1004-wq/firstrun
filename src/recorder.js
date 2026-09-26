@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { EventEmitter } from 'node:events';
-import { ensureDir, writeJson, nowIso, tail } from './util.js';
+import { ensureDir, writeJson, nowIso, tail, redactSecrets, redactDeep } from './util.js';
 
 /**
  * Everything a run produces goes through here: the append-only event log the
@@ -23,7 +23,8 @@ export class Recorder extends EventEmitter {
   }
 
   emitEvent(agent, type, data = {}) {
-    const ev = { t: nowIso(), run: this.state.id, agent, type, data };
+    const cleanData = redactDeep(data);
+    const ev = { t: nowIso(), run: this.state.id, agent, type, data: cleanData };
     fs.appendFileSync(this.eventsFile, `${JSON.stringify(ev)}\n`);
     this.emit('event', ev);
     return ev;
@@ -66,15 +67,16 @@ export class Recorder extends EventEmitter {
 
   writeLog(name, text) {
     const file = path.join(this.dir, 'logs', `${name}.log`);
-    fs.writeFileSync(file, text);
+    fs.writeFileSync(file, redactSecrets(text));
     return `logs/${name}.log`;
   }
 
   evidence(record) {
-    writeJson(path.join(this.dir, 'evidence', `${record.id}.json`), record);
-    if (!this.state.evidence.includes(record.id)) this.state.evidence.push(record.id);
+    const cleanRecord = redactDeep(record);
+    writeJson(path.join(this.dir, 'evidence', `${cleanRecord.id}.json`), cleanRecord);
+    if (!this.state.evidence.includes(cleanRecord.id)) this.state.evidence.push(cleanRecord.id);
     this.save();
-    this.emitEvent('doctor', 'evidence', record);
+    this.emitEvent('doctor', 'evidence', cleanRecord);
   }
 
   artifact(name, rel) {
@@ -82,12 +84,13 @@ export class Recorder extends EventEmitter {
   }
 
   savePlan(plan) {
-    this.state.plan = plan;
-    writeJson(path.join(this.dir, 'plan.json'), plan);
+    const cleanPlan = redactDeep(plan);
+    this.state.plan = cleanPlan;
+    writeJson(path.join(this.dir, 'plan.json'), cleanPlan);
     this.save();
   }
 
   save() {
-    writeJson(path.join(this.dir, 'run.json'), this.state);
+    writeJson(path.join(this.dir, 'run.json'), redactDeep(this.state));
   }
 }

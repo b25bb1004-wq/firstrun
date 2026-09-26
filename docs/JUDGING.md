@@ -46,7 +46,7 @@ measurable impact (time saved, fewer errors, less manual effort).
 ## How to judge (every round)
 
 1. **Look like a judge, first.** Open the live URL cold and try the instant check on 2–3 repos you pick yourself. Open the audit and the replay. Read `README.md` top to bottom. Skim `bob_sessions/`. Time how long until you understand what this is.
-2. **Verify every claim.** Check each number on the landing page, in the README and in the pitch against its source (`audit/real-16/audit.json`, run artifacts, `docs/CONTEXT.md`). A claim that doesn't match its evidence is a **critical** finding. So is anything synthetic presented as real, and any credential in the repo.
+2. **Verify every claim.** Check each number on the landing page, in the README and in the pitch against its source (`audit/real-16-v2/audit.json`, run artifacts, `docs/CONTEXT.md`). A claim that doesn't match its evidence is a **critical** finding. So is anything synthetic presented as real, and any credential in the repo.
 3. **Run it.** `node --test test/*.test.js`; `node bin/firstrun.js plan examples/acme-shop`. If you have Docker, run `verify` on one example and on one audit repo.
 4. **Score** each criterion 1–5, with 2–4 sentences of evidence (file paths, URLs, what you tried). Then answer: *would this be in the top 10%? Why not?*
 5. **Rank the improvements** by expected score gain per hour of work. For each: the criterion it moves, the concrete change, who should do it (lane), and how to verify it.
