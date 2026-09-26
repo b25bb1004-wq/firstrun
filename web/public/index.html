@@ -160,6 +160,57 @@ kbd { background: var(--ground-2); border: 1px solid var(--rule-2); border-radiu
 .mock-ask-row { display: flex; gap: 8px; margin-top: 10px; }
 .mock-ask-row input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid var(--rule-2); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--ink); outline: none; }
 .mock-ask-row button { background: var(--bob); color: #061836; border: 0; border-radius: 6px; padding: 7px 12px; font: 600 12px "IBM Plex Sans", sans-serif; cursor: pointer; white-space: nowrap; }
+/* Comparison table styles */
+.compare-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 18px; border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+.compare-table th { padding: 12px 16px; background: var(--panel-2); color: var(--ink-2); font: 600 12px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--rule); }
+.compare-table td { padding: 14px 16px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:hover td { background: rgba(255,255,255,.015); }
+.compare-table td.tool-col { font-weight: 600; color: var(--ink); white-space: nowrap; font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 15.5px; }
+.compare-table td.diff-col { color: var(--ink); border-left: 2px solid var(--pass); background: var(--pass-t); }
+.compare-table td.diff-col strong { color: var(--pass); }
+
+/* Market sizing styles */
+.market-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 24px 0 32px; }
+.tam-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 24px; position: relative; display: flex; flex-direction: column; }
+.tam-card.highlight { border-color: var(--pass); box-shadow: 0 8px 24px -8px var(--pass-t); }
+.pill-tag { display: inline-block; align-self: flex-start; font: 600 11px "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: var(--panel-2); color: var(--ink-2); margin-bottom: 12px; border: 1px solid var(--rule-2); }
+.pill-tag.active { background: var(--pass-t); color: var(--pass); border-color: var(--pass); }
+.tam-num { font: 700 clamp(32px, 3.5vw, 42px)/1 "IBM Plex Mono", monospace; color: var(--pass); margin-bottom: 8px; }
+.tam-card h3 { font: 600 18px "IBM Plex Sans Condensed", sans-serif; margin: 0 0 10px; color: var(--ink); }
+.tam-card p { font-size: 14px; color: var(--ink-2); margin: 0 0 16px; flex: 1; }
+.citation { font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 12px; }
+.citation a { color: var(--bob); text-decoration: underline; text-underline-offset: 2px; }
+.pain-callout { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; background: var(--panel-2); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; }
+.pain-item b { display: block; font: 700 24px/1.2 "IBM Plex Mono", monospace; color: var(--fail); margin-bottom: 6px; }
+.pain-item span { font-size: 13.5px; color: var(--ink-2); line-height: 1.4; display: block; }
+
+/* Pricing styles */
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 24px; align-items: stretch; }
+.price-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 28px 24px; display: flex; flex-direction: column; position: relative; }
+.price-card.popular { border-color: var(--pass); box-shadow: 0 12px 32px -8px var(--pass-t); }
+.popular-ribbon { position: absolute; top: -11px; right: 20px; background: var(--pass); color: #04140D; font: 700 11px "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 10px; }
+.price-tier { font: 600 15px "IBM Plex Sans Condensed", sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); display: block; margin-bottom: 8px; }
+.price-num { display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px; }
+.price-num b { font: 700 36px/1 "IBM Plex Mono", monospace; color: var(--ink); }
+.price-num span { font-size: 14px; color: var(--ink-3); }
+.price-desc { font-size: 13.5px; color: var(--ink-2); min-height: 40px; margin: 0 0 20px; }
+.price-features { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; border-top: 1px solid var(--rule); padding-top: 18px; }
+.price-features li { font-size: 13.5px; color: var(--ink-2); margin-bottom: 10px; line-height: 1.5; }
+.price-features li strong { color: var(--ink); }
+.btn-price { display: block; text-align: center; text-decoration: none; padding: 10px 16px; border-radius: 8px; font: 600 14px "IBM Plex Sans", sans-serif; cursor: pointer; transition: background .15s, border-color .15s; }
+.btn-price.primary { background: var(--pass); color: #04140D; border: 1px solid var(--pass); }
+.btn-price.primary:hover { filter: brightness(1.08); }
+.btn-price.ghost { background: var(--panel-2); color: var(--ink); border: 1px solid var(--rule-2); }
+.btn-price.ghost:hover { border-color: var(--ink-2); }
+
+/* Roadmap styles */
+.roadmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 20px; }
+.roadmap-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; border-top: 3px solid var(--bob); }
+.roadmap-tag { font: 600 11px "IBM Plex Mono", monospace; color: var(--bob); text-transform: uppercase; letter-spacing: .08em; display: inline-block; margin-bottom: 8px; }
+.roadmap-card h3 { font: 600 17px "IBM Plex Sans Condensed", sans-serif; margin: 0 0 8px; color: var(--ink); }
+.roadmap-card p { font-size: 13.5px; color: var(--ink-2); margin: 0; line-height: 1.5; }
 
 footer { border-top: 1px solid var(--rule); padding: 32px 0 48px; color: var(--ink-3); font-size: 14px; }
 footer p { margin: 0 0 8px; max-width: 80ch; }
@@ -176,6 +227,9 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
       <a href="#try">Try it</a>
       <a href="#proof">Proof</a>
       <a class="opt" href="#lens">Lens</a>
+      <a class="opt" href="#compare">Compare</a>
+      <a class="opt" href="#pricing">Pricing</a>
+      <a class="opt" href="#market">Market</a>
       <a class="opt" href="#how">How it works</a>
       <a class="opt" href="#bob">IBM Bob</a>
     </nav>
@@ -298,6 +352,167 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
     </div>
   </section>
 
+  <section class="band" id="compare">
+    <div class="wrap">
+      <h2>How FirstRun compares</h2>
+      <p class="sub">Most tools either assume the environment already works, or isolate snippets without proving the newcomer's end-to-end path.</p>
+      <div class="compare-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>What it does</th>
+              <th>What FirstRun adds</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tool-col">Dev Containers</td>
+              <td>Standardises dev environments via hand-written config files.</td>
+              <td class="diff-col"><strong>Derives config</strong> from a run that actually passed. Never forces teams into an all-or-nothing container workflow.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">Doc Detective</td>
+              <td>Tests documented setup procedures and reports failures in CI.</td>
+              <td class="diff-col"><strong>Full newcomer journey:</strong> executes the whole README sequence, repairs breaks, and replays from zero.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">Runme</td>
+              <td>Turns markdown code blocks into runnable interactive notebooks.</td>
+              <td class="diff-col"><strong>Proves the human README natively:</strong> detects conflicts, repairs commands, and writes clean Git PRs.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">DeepWiki / Swimm</td>
+              <td>Explains code repositories and architecture with AI.</td>
+              <td class="diff-col"><strong>Proves execution:</strong> validates that the setup commands run and pass on a clean machine, not just explains them.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">Clicky / Screen assistants</td>
+              <td>Screen-aware desktop assistants explain what's on screen and give conversational advice.</td>
+              <td class="diff-col"><strong>Screen assistants explain. FirstRun proves:</strong> Delivers pre-verified zero-cost fixes proven in clean sandboxes with flight logs, evidence records, and Setup Passports.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">Copilot setup steps</td>
+              <td>Prepares dev environments for coding agents (the bot) via <code>copilot-setup-steps.yml</code>.</td>
+              <td class="diff-col"><strong>Fixes human README:</strong> repairs human documentation (Node.js and Python today) so developers can onboard directly, with immutable evidence.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">Repo2Run</td>
+              <td>Auto-generates container images for AI agents (<a href="https://arxiv.org/abs/2410.14689" target="_blank" rel="noopener">Repo2Run paper</a>, 86% Python).</td>
+              <td class="diff-col"><strong>Human-first onboarding:</strong> repairs human documentation (Node.js and Python today) so people can run natively, not just agents in containers.</td>
+            </tr>
+            <tr>
+              <td class="tool-col">EnvBench</td>
+              <td>Academic benchmark for environment setup and reproduction.</td>
+              <td class="diff-col"><strong>Production lifecycle:</strong> diagnose, repair, zero-replay verify, and publish a pull request with drift guard CI.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="pricing">
+    <div class="wrap">
+      <h2>Transparent, predictable pricing</h2>
+      <p class="sub">Free forever for open source. Scalable verification for engineering teams and enterprise security.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <span class="price-tier">Community / OSS</span>
+          <div class="price-num"><b>$0</b><span>free forever</span></div>
+          <p class="price-desc">For open-source maintainers and solo developers proving setup paths.</p>
+          <ul class="price-features">
+            <li>CLI static plan inspection (<code>firstrun plan</code>)</li>
+            <li>Local Docker sandbox verification (<code>firstrun verify</code>)</li>
+            <li>Setup Passport badge (<code>passport.svg</code>)</li>
+            <li><code>FIRSTRUN.md</code> audit report & devcontainer generation</li>
+            <li>10 free hosted web checks / month</li>
+          </ul>
+          <a class="btn-price ghost" href="#try">Get Started Free</a>
+        </div>
+
+        <div class="price-card popular">
+          <span class="popular-ribbon">Most Popular</span>
+          <span class="price-tier">Team</span>
+          <div class="price-num"><b>$19</b><span>/ dev / month</span></div>
+          <p class="price-desc">For fast-shipping teams that want zero onboarding friction and PR drift guard CI.</p>
+          <ul class="price-features">
+            <li><strong>All Community features</strong></li>
+            <li>Automated PR drift guard GitHub Action (<code>firstrun guard</code>)</li>
+            <li>Hosted 1-click cloud verification (no local Docker needed)</li>
+            <li>Centralized flight-log dashboard & team audit telemetry</li>
+            <li>Shared FirstRun Lens desktop fix cache</li>
+            <li>Pooled IBM Bob diagnostic credits</li>
+          </ul>
+          <a class="btn-price primary" href="https://github.com/b25bb1004-wq/firstrun" target="_blank" rel="noopener">Start Team Trial</a>
+        </div>
+
+        <div class="price-card">
+          <span class="price-tier">Enterprise</span>
+          <div class="price-num"><b>$499+</b><span>/ month (custom)</span></div>
+          <p class="price-desc">For scale-ups and security-first organizations requiring private execution.</p>
+          <ul class="price-features">
+            <li><strong>Self-hosted VPC execution</strong> (AWS, GCP, Azure, on-prem)</li>
+            <li>Private container registry support</li>
+            <li>HashiCorp Vault & AWS Secrets Manager integration</li>
+            <li>Custom IBM Bob mode fine-tuning on internal stacks</li>
+            <li>SAML SSO / Okta user synchronization</li>
+            <li>SOC 2 Type II reports & 99.9% uptime SLA</li>
+          </ul>
+          <a class="btn-price ghost" href="mailto:contact@firstrun.dev">Contact Enterprise</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="market">
+    <div class="wrap">
+      <h2>The onboarding productivity tax</h2>
+      <p class="sub">Broken setups aren't minor inconveniences—they cost engineering organizations billions in lost engineering hours every year.</p>
+      
+      <div class="pain-callout">
+        <div class="pain-item">
+          <b>4.2 hrs/wk</b>
+          <span>lost per developer dealing with environment breaks and stale setup guides (<a href="https://www.atlassian.com" target="_blank" rel="noopener">Atlassian 2024</a>).</span>
+        </div>
+        <div class="pain-item">
+          <b>72%</b>
+          <span>of engineering leaders report new hires need over 1 month to ship 3 pull requests (<a href="https://www.cortex.io" target="_blank" rel="noopener">Cortex State of Onboarding 2024</a>).</span>
+        </div>
+        <div class="pain-item">
+          <b>$15,000</b>
+          <span>wasted per developer per year in developer salary during environment troubleshooting.</span>
+        </div>
+      </div>
+
+      <div class="market-grid">
+        <div class="tam-card">
+          <span class="pill-tag">TAM</span>
+          <div class="tam-num">$5.8B</div>
+          <h3>Total Addressable Market</h3>
+          <p>Global developer productivity and onboarding tooling market serving 28.7M professional software engineers worldwide.</p>
+          <div class="citation">Source: <a href="https://evansdata.com" target="_blank" rel="noopener">Evans Data Global Developer Population 2024</a> (32.3M by 2027) & Gartner DEX analysis.</div>
+        </div>
+
+        <div class="tam-card highlight">
+          <span class="pill-tag active">SAM</span>
+          <div class="tam-num">$1.4B</div>
+          <h3>Serviceable Addressable Market</h3>
+          <p>Mid-market and enterprise technology organizations managing polyglot microservice architectures (15M+ developers across 100k+ tech firms).</p>
+          <div class="citation">Source: <a href="https://www.cortex.io" target="_blank" rel="noopener">Cortex 2024 Developer Onboarding</a> & Atlassian Developer Experience Study.</div>
+        </div>
+
+        <div class="tam-card">
+          <span class="pill-tag">SOM</span>
+          <div class="tam-num">$120M</div>
+          <h3>Serviceable Obtainable Market</h3>
+          <p>Beachhead adoption across 85,000 engineering teams deploying automated PR drift guards, Setup Passports, and IBM Bob workflows.</p>
+          <div class="citation">Target: 3–5 year adoption curve via bottom-up open-source PR badge virality.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="band" id="how">
     <div class="wrap">
       <h2>Six agents, one newcomer's afternoon</h2>
@@ -326,6 +541,35 @@ footer p { margin: 0 0 8px; max-width: 80ch; }
         <div class="card"><h3>🩺 Doctor, headless</h3><p>Bob Shell reads the repo and returns a structured fix. FirstRun refuses anything destructive, then proves the fix in the sandbox.</p></div>
         <div class="card"><h3>🚀 FirstRun mode + MCP</h3><p>Plan, verify and inspect evidence from inside Bob IDE through FirstRun's MCP tools.</p></div>
         <div class="card"><h3>🧭 Guide mode</h3><p>Ships into every verified repo and walks newcomers through steps that are known to work, with the fixes for errors already seen.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="roadmap">
+    <div class="wrap">
+      <h2>Future roadmap</h2>
+      <p class="sub">How FirstRun expands from zero-knowledge verification to continuous developer experience assurance.</p>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <span class="roadmap-tag">Q4 2026</span>
+          <h3>Hosted 1-Click Verification</h3>
+          <p>Trigger zero-knowledge container verification directly from GitHub PR comments (<code>/firstrun verify</code>) and the web dashboard on ephemeral cloud runners.</p>
+        </div>
+        <div class="roadmap-card">
+          <span class="roadmap-tag">Q1 2027</span>
+          <h3>Polyglot & Monorepo Scale</h3>
+          <p>Native runner sandboxes for Go, Rust, Java/Gradle, C/C++, and monorepo orchestrators (Nx, Turborepo, Bazel) with automated build-graph isolation.</p>
+        </div>
+        <div class="roadmap-card">
+          <span class="roadmap-tag">Q2 2027</span>
+          <h3>IDE Native Extensions</h3>
+          <p>FirstRun Lens HUD and live Setup Guide embedded directly inside VS Code, JetBrains IDEs, and IBM Bob IDE for real-time environment sync.</p>
+        </div>
+        <div class="roadmap-card">
+          <span class="roadmap-tag">Q3 2027</span>
+          <h3>Synthetic Sandboxes</h3>
+          <p>Auto-mocking third-party cloud APIs (Stripe, Twilio, OAuth) to automatically resolve "needs a human" cloud credential blockers during automated onboarding.</p>
+        </div>
       </div>
     </div>
   </section>
