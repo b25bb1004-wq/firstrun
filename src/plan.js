@@ -340,6 +340,10 @@ export function declaredRuntime(text, runtime) {
     const v = m[1];
     if (runtime === 'node' && (Number(v) < 4 || Number(v) > 30)) continue;
     const line = text.slice(0, m.index).split('\n').length;
+    // A version in a HEADING is a feature note, not a setup requirement (koa: '### async functions (node v7.6+)').
+    const lineText = text.split('\n')[line - 1] || '';
+    const nextLine = text.split('\n')[line] || '';
+    if (/^\s{0,3}#{1,6}\s/.test(lineText) || /^\s*(=+|-+)\s*$/.test(nextLine)) continue;
     // minimum: trailing "+" or "or higher/later/newer/above", or a range prefix like ">=" / "at least"
     const minimum = !!(m[2]?.trim() || /(?:>=|≥|at least\s*)\s*v?\d/.test(m[0]));
     return { version: v, line, match: m[0].trim(), minimum };
