@@ -24,6 +24,31 @@ export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
   const c = cmd.trim().replace(/^sudo\s+/, '').replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '');
   const ctx = {};
+
+  // ── 1. NON-COMMANDS ─────────────────────────────────────────────────────
+  // Skip version/output lines (1.50.0, 40-char hex hash, x64)
+  if (/^(\d+\.\d+\.\d+|[a-f0-9]{40}|x64|arm64|amd64)$/i.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip lines starting with prompt characters
+  if (/^[»❯$#>]\s/.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip key=value config lines with a dot in the key (sonar.login=abc)
+  if (/^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*=\S+$/.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+  // Skip prose with square brackets (cd ~/dev [or your preferred dev directory])
+  if (/\[.*\]/.test(c) && !/^(export|echo|cp|mv|mkdir|rm)\b/.test(c)) {
+    return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
+  }
+
+  // ── 2. PLATFORM ──────────────────────────────────────────────────────────
+  // Skip macOS-only lines
+  if (/^open\s+\/Applications\//.test(c) || /^xattr\b/.test(c) || /\.app(\s|$)/.test(c) || /^brew\s+/.test(c) || /^\/Applications\//.test(c)) {
+    return { kind: 'prereq', skip: 'macOS-only command' };
+  }
+
   if (/^git\s+clone\b/.test(c)) return { kind: 'other', skip: 'git clone: HUMBLE starts from a fresh clone already' };
   if (/<[a-z][\w -]*>|\*[a-z_]+\*|\bYOUR[_-]|\byour[-_](?:name|key|token|password|email)/i.test(c) && !/^(export|echo)\b/.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
   if (/\b(user-?name|your-?(?:user|org|name)|owner|org)\/(repo|repository|project)\b|(^|\s)\/?path\/to\//i.test(c)) return { kind: 'other', skip: 'needs a value only you have (placeholder)' };
@@ -40,6 +65,11 @@ export function classify(cmd, facts) {
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
     const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+([\w.-]+)(?:==\S+)?(?:\s|$)/);
     if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfInstallName.toLowerCase().replace(/[-_]/g, '-')) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+    // bun add, deno add
+    const bunSelf = c.match(/^bun\s+add\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
+    if (bunSelf && bunSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
+    const denoSelf = c.match(/^deno\s+add\s+(?:npm:)?((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
+    if (denoSelf && denoSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
   }
   // Live-service tests: the script name contains ":live" or ends with "-live".
   const liveScript = c.match(/^(?:npm|yarn|pnpm)\s+(?:run\s+)?([\w:.-]+)$/);
@@ -274,7 +304,154 @@ export function buildPlan(facts, { repo, commit } = {}) {
   // When pip's is the only install they give (requests: `pip install requests`), that is the setup to test.
   // npm refuses to install a package inside itself, so `npm install koa` stays skipped (the Doctor adds `npm install`).
   const SELF = 'installs the published package; you already have its source';
-  if (!steps.some((s) => !s.skip && s.kind === 'install')) for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
+  // Only re-enable pip self-install for NON-library/CLI projects
+  if (!steps.some((s) => !s.skip && s.kind === 'install')) {
+    const isLibOrCli = (() => {
+      // Check Node library
+      if (facts.node?.name) {
+        const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+        if (repoName) {
+          const pkgName = facts.node.name.split('/').pop();
+          if (pkgName === repoName || facts.cli?.length > 0) return true;
+        }
+      }
+      // Check Python library (pyproject.toml name matches repo)
+      if (facts.python && facts.python.pyproject) {
+        const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+        if (repoName && selfName === repoName) return true;
+      }
+      return false;
+    })();
+    if (!isLibOrCli) {
+      for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
+    }
+  }
+
+  // ── 3. AUDIENCE ─────────────────────────────────────────────────────────────
+  // If the repo is a LIBRARY or CLI (package name equals repo name, no app to start),
+  // skip user-install lines of that same package for ANY manager.
+  // Then make sure contributor path is planned (from CONTRIBUTING or CI workflows).
+  function isLibraryOrCli(facts) {
+    if (!facts.node?.name) return false;
+    const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+    if (!repoName) return false;
+    // Library: package.json name matches repo name
+    const pkgName = facts.node.name.split('/').pop();
+    return pkgName === repoName;
+  }
+
+  function isCliTool(facts) {
+    // Has a CLI bin but no serve/test steps (it's a CLI tool, not an app)
+    return facts.cli?.length > 0;
+  }
+
+  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts);
+  if (isLibOrCli && selfName) {
+    // Skip self-install for all package managers
+    for (const s of steps) {
+      if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
+        // Already skipped by classify
+        continue;
+      }
+      // Check for additional self-install patterns not caught by classify
+      if (s.kind === 'install') {
+        const mgrPatterns = [
+          /^bun\s+add\s+/,
+          /^deno\s+add\s+(?:npm:)?/,
+          /^yarn\s+add\s+/,
+          /^pnpm\s+add\s+/,
+        ];
+        for (const pattern of mgrPatterns) {
+          if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+            s.skip = 'installs the published package; you already have its source';
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Ensure contributor path is planned from CONTRIBUTING or CI workflows
+  // We'll collect CI commands and add them if not already present
+  const ciInstallCommands = facts.ci.commands
+    .filter(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install|pip\s+install\s+-e\s+\.|uv\s+sync|poetry\s+install|make\s+(install|test))/.test(c.run))
+    .map(c => c.run);
+  const ciTestCommands = facts.ci.commands
+    .filter(c => /^(npm\s+(run\s+)?(test|test:)|yarn\s+(run\s+)?(test|test:)|pnpm\s+(run\s+)?(test|test:)|pytest|make(\s+(test|ci))?)/.test(c.run))
+    .map(c => c.run);
+  
+  // Add CI install commands if they're not already in steps
+  for (const ciCmd of ciInstallCommands) {
+    const exists = steps.some(s => !s.skip && s.command === ciCmd);
+    if (!exists) {
+      steps.push({ id: '', command: ciCmd, kind: 'install', source: { file: 'CI', line: 0, section: 'GitHub Actions' }, origin: 'ci', synthetic: 'from CI workflow' });
+    }
+  }
+  for (const ciCmd of ciTestCommands) {
+    const exists = steps.some(s => !s.skip && s.command === ciCmd);
+    if (!exists) {
+      steps.push({ id: '', command: ciCmd, kind: 'test', source: { file: 'CI', line: 0, section: 'GitHub Actions' }, origin: 'ci', synthetic: 'from CI workflow' });
+    }
+  }
+
+  // ── 4. ALTERNATIVES ─────────────────────────────────────────────────────────
+  // Lines that do the same job next to each other form one group:
+  // python -m venv .venv vs uv venv .venv
+  // pip install -r X vs uv pip install -r X
+  // npm install vs yarn vs pnpm install
+  // bun add vs deno add
+  // Run only one per group: the one matching the lockfile or CI; otherwise the first.
+  const alternativeGroups = [
+    // venv alternatives
+    { pattern: /^(python3?\s+-m\s+venv\s+\.venv|uv\s+venv\s+\.venv)$/, reason: 'venv' },
+    // pip/uv pip install -r alternatives
+    { pattern: /^(pip3?\s+install\s+-r|uv\s+pip\s+install\s+-r)/, reason: 'pip install -r' },
+    // npm/yarn/pnpm/bun install alternatives
+    { pattern: /^(npm\s+(i|install|ci)\b|yarn(\s+install)?\b|pnpm\s+(i|install)\b|bun\s+install\b)$/, reason: 'package manager install' },
+    // bun/deno add alternatives
+    { pattern: /^(bun\s+add\s+|deno\s+add\s+(?:npm:)?)/, reason: 'add package' },
+  ];
+
+  for (const group of alternativeGroups) {
+    const matches = steps
+      .map((s, i) => ({ step: s, index: i }))
+      .filter(({ step }) => !step.skip && group.pattern.test(step.command));
+    
+    if (matches.length > 1) {
+      // Find the one matching lockfile or CI
+      let preferred = null;
+      if (facts.node?.lockfile) {
+        const lockfileMgr = facts.node.lockfile === 'package-lock.json' ? 'npm'
+          : facts.node.lockfile === 'yarn.lock' ? 'yarn'
+          : facts.node.lockfile === 'pnpm-lock.yaml' ? 'pnpm'
+          : facts.node.lockfile === 'bun.lockb' || facts.node.lockfile === 'bun.lock' ? 'bun'
+          : null;
+        if (lockfileMgr) {
+          preferred = matches.find(({ step }) => step.command.startsWith(lockfileMgr));
+        }
+      }
+      // Check CI for preferred manager
+      if (!preferred) {
+        const ciInstall = facts.ci.commands.find(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install)/.test(c.run));
+        if (ciInstall) {
+          const ciMgr = ciInstall.run.match(/^(npm|yarn|pnpm|bun)/)?.[1];
+          if (ciMgr) {
+            preferred = matches.find(({ step }) => step.command.startsWith(ciMgr));
+          }
+        }
+      }
+      // Default to first
+      const keep = preferred || matches[0];
+      
+      // Skip the rest
+      for (const { step, index } of matches) {
+        if (step !== keep.step) {
+          step.skip = `alternative to the step above (${group.reason})`;
+        }
+      }
+    }
+  }
+
   steps.forEach((s, i) => { s.id = `S${i + 1}`; });
 
   // Runtime: what the docs tell a newcomer to install vs what the project really needs.
