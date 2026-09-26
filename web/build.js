@@ -11,7 +11,7 @@ import { startServer } from '../src/server.js';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const OUT = path.join(HERE, 'public');
-const ROOTS = ['examples', 'audit/real-16'].map((r) => path.join(ROOT, r));
+const ROOTS = ['examples', 'audit/real-16-v2'].map((r) => path.join(ROOT, r));
 const RUN_FILES = /^(events\.ndjson|plan\.json|run\.json|evidence\/.*|logs\/.*|out\/.*)$/; // never bob/ (stand-in transcripts)
 
 const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
