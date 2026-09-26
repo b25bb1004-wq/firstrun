@@ -10,7 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runPlanner, runDoctor, runScribe } from './solo.js';
+import { runScout, runPlanner, runDoctor, runScribe, runRunner, runVerifier } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('FirstRun')}: your README, proven.
@@ -22,9 +22,11 @@ corrected README plus a Setup Passport.
 ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
+  firstrun run    [path|github-url] [--ref <sha>] [--as-written] [--out <dir>] [--json]
+  firstrun replay <run-dir> [--out <dir>] [--json]
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
-  firstrun doctor --log <file|-> [--repo <dir>] [--bob-budget 1]   Doctor alone: diagnose one failure
+  firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]   Doctor alone: diagnose one failure
   firstrun scribe <run-dir>              Scribe alone: rewrite the report and passport from a finished run
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
@@ -75,12 +77,40 @@ export async function main(argv) {
         onRecorder: (rec) => attachPrinter(rec, { verbose: !!args.verbose }),
       });
       if (res.ok) {
-        console.log(`\n  ${dim('report')}   ${path.join(res.dir, 'out', 'FIRSTRUN.md')}`);
+        console.log(`\\n  ${dim('report')}   ${path.join(res.dir, 'out', 'FIRSTRUN.md')}`);
         console.log(`  ${dim('README')}   ${path.join(res.dir, 'out', 'README.diff')}`);
         console.log(`  ${dim('PR files')} ${path.join(res.dir, 'out', 'pr')}  ${dim('(firstrun apply / firstrun pr)')}`);
         console.log(`  ${dim('watch')}    firstrun ui --root ${path.dirname(res.dir)}`);
       }
       return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : 0) : 1;
+    }
+    case 'run': {
+      const root = await resolveTarget(args._[0], args);
+      if (!args['as-written']) {
+        console.error('Usage: firstrun run <repo> --as-written [--out <dir>] [--json]');
+        return 2;
+      }
+      console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${root} ${dim('· --as-written')}`);
+      const r = await runRunner(root, { out: args.out, asWritten: true });
+      if (args.json) { console.log(JSON.stringify(r)); return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1; }
+      const col = r.verdict === 'WORKS-AS-WRITTEN' ? green : red;
+      console.log(`  ${col(bold(r.verdict))}${r.firstFailure ? ` ${dim(\`(failed at ${r.firstFailure.stepId}: ${r.firstFailure.command}, exit ${r.firstFailure.exitCode})\`)}` : ''}`);
+      console.log(`  ${dim('events:')} ${r.runDir}`);
+      return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1;
+    }
+    case 'replay': {
+      const dir = args._[0] || '.';
+      if (!fs.existsSync(path.join(dir, 'run.json'))) {
+        console.error('Usage: firstrun replay <run-dir> [--out <dir>] [--json]');
+        return 2;
+      }
+      console.log(`${bold(cyan('FirstRun'))} ${dim('·')} ${dir} ${dim('· replay')}`);
+      const r = await runVerifier(dir, { out: args.out });
+      if (args.json) { console.log(JSON.stringify(r)); return r.replay.status === 'passed' ? 0 : 1; }
+      const col = r.replay.status === 'passed' ? green : red;
+      console.log(`  ${col(bold(r.replay.status === 'passed' ? 'REPLAY-PASSED' : 'REPLAY-FAILED'))}${r.replay.failedStep ? ` ${dim(\`(failed at ${r.replay.failedStep})\`)}` : ''} ${dim(\`(${fmtDuration(r.replay.durationMs)})\`)}`);
+      console.log(`  ${dim('events:')} ${r.runDir}`);
+      return r.replay.status === 'passed' ? 0 : 1;
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);
@@ -89,13 +119,13 @@ export async function main(argv) {
       const facts = await scout(root);
       const plan = buildPlan(facts);
       if (args.json) { console.log(JSON.stringify(plan, null, 2)); return 0; }
-      console.log(`${bold('Setup plan')} for ${root}  ${dim(`(${plan.image}: ${plan.runtime.source})`)}`);
-      for (const s of plan.steps) console.log(`  ${s.skip ? dim(`${s.id} ${s.command}  (skip: ${s.skip})`) : `${dim(s.id)} ${s.command} ${dim(`[${s.kind}] ${s.source.file}:${s.source.line}`)}`}`);
-      console.log(`  ${dim('done when:')} ${plan.verify.kind === 'http' ? `GET ${plan.verify.target}` : plan.verify.target}`);
+      console.log(`${bold('Setup plan')} for ${root}  ${dim(\`(${plan.image}: ${plan.runtime.source})\`)}`);
+      for (const s of plan.steps) console.log(`  ${s.skip ? dim(\`${s.id} ${s.command}  (skip: ${s.skip})\`) : \`${dim(s.id)} ${s.command} ${dim(\`[${s.kind}] ${s.source.file}:${s.source.line}\`)}\``);
+      console.log(`  ${dim('done when:')} ${plan.verify.kind === 'http' ? \`GET ${plan.verify.target}\` : plan.verify.target}`);
       if (plan.conflicts.length) {
-        console.log(`\n${bold('Docs vs code')}`);
-        for (const c of plan.conflicts) console.log(`  ${yellow('⚠')} ${c.what}: docs say ${bold(c.docs)}, code says ${bold(c.truth)} ${dim(`(${c.source})`)}`);
-      } else console.log(`\n${green('No docs-vs-code conflicts found statically.')} ${dim('Run `firstrun verify` to prove it.')}`);
+        console.log(`\\n${bold('Docs vs code')}`);
+        for (const c of plan.conflicts) console.log(`  ${yellow('⚠')} ${c.what}: docs say ${bold(c.docs)}, code says ${bold(c.truth)} ${dim(\`(${c.source})\`)}`);
+      } else console.log(`\\n${green('No docs-vs-code conflicts found statically.')} ${dim('Run \`firstrun verify\` to prove it.')}`);
       return 0;
     }
     // Solo agents (#90): one member of the team on its own; each writes events.ndjson for the Dock.
@@ -103,7 +133,7 @@ export async function main(argv) {
       const r = await runScout(await resolveTarget(args._[0], args), { out: args.out });
       if (args.json) { console.log(JSON.stringify(r)); return 0; }
       const f = r.facts;
-      console.log(`${bold('Scout')}: ${f.stack || 'unknown stack'} · docs ${(f.docs || []).join(', ') || 'none'} ${dim(`(events: ${r.runDir})`)}`);
+      console.log(`${bold('Scout')}: ${f.stack || 'unknown stack'} · docs ${(f.docs || []).join(', ') || 'none'} ${dim(\`(events: ${r.runDir})\`)}`);
       console.log(JSON.stringify(f, null, 2));
       return 0;
     }
@@ -120,13 +150,13 @@ export async function main(argv) {
     case 'scribe': {
       const r = await runScribe(args._[0] || '.');
       if (args.json) { console.log(JSON.stringify(r)); return 0; }
-      console.log(`${bold('Scribe')}: ${r.files.report}\n  passport: ${r.files.passport}${r.files.readmeDiff ? `\n  README diff: ${r.files.readmeDiff}` : ''}`);
+      console.log(`${bold('Scribe')}: ${r.files.report}\\n  passport: ${r.files.passport}${r.files.readmeDiff ? `\\n  README diff: ${r.files.readmeDiff}` : ''}`);
       return 0;
     }
     case 'audit': {
       const list = args._[0] || 'audit/repos.json';
       const concurrency = Number(args.concurrency || 3);
-      console.log(`${bold(cyan('FirstRun swarm'))} ${dim('·')} ${list} ${dim(`· ${concurrency} repos at a time`)}`);
+      console.log(`${bold(cyan('FirstRun swarm'))} ${dim('·')} ${list} ${dim(\`· ${concurrency} repos at a time\`)}`);
       const { dir, state } = await audit(path.resolve(list), {
         concurrency, brain: args.brain || 'rules', bobBudget: Number(args['bob-budget'] ?? 0), limit: args.limit ? Number(args.limit) : undefined, only: args.only, id: args.id, rerun: args.rerun,
         onEvent: (ev) => {
@@ -134,12 +164,12 @@ export async function main(argv) {
           if (ev.type === 'repo.done') {
             const p = ev.data.passport;
             const col = ev.data.verdict === 'VERIFIED' ? green : ev.data.verdict === 'PARTIAL' ? yellow : red;
-            console.log(`${col('■')} ${ev.data.slug}: ${col(bold(ev.data.verdict))}${p ? dim(` · breaks ${p.breaksFound} found / ${p.breaksFixed} fixed · replay ${fmtDuration(p.replaySeconds * 1000)}`) : ''}${ev.data.error ? red(` · ${ev.data.error}`) : ''}`);
+            console.log(`${col('■')} ${ev.data.slug}: ${col(bold(ev.data.verdict))}${p ? dim(\` · breaks ${p.breaksFound} found / ${p.breaksFixed} fixed · replay ${fmtDuration(p.replaySeconds * 1000)}\`) : ''}${ev.data.error ? red(` · ${ev.data.error}`) : ''}`);
           }
         },
       });
       const s = state.summary;
-      console.log(`\n${bold(`${s.brokeOnCleanMachine} of ${s.total} READMEs broke on a clean machine`)} · ${s.repairedAutomatically} repaired automatically · ${s.breaksFixed}/${s.breaksFound} breaks fixed with evidence`);
+      console.log(`\\n${bold(\`${s.brokeOnCleanMachine} of ${s.total} READMEs broke on a clean machine\`)} · ${s.repairedAutomatically} repaired automatically · ${s.breaksFixed}/${s.breaksFound} breaks fixed with evidence`);
       console.log(dim(`results: ${dir}`));
       return 0;
     }
@@ -201,7 +231,7 @@ export async function main(argv) {
       const { spawn } = await import('node:child_process');
       const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
       const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
-      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Lens first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Lens first: ${bold(\`cd ${lensDir} && npm install\`)}`); return 1; }
       const project = path.resolve(args._[0] || '.');
       const env = { ...process.env };
       delete env.ELECTRON_RUN_AS_NODE;
@@ -212,7 +242,7 @@ export async function main(argv) {
       const { spawn } = await import('node:child_process');
       const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
       const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
-      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Dock first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Dock first: ${bold(\`cd ${lensDir} && npm install\`)}`); return 1; }
       const project = path.resolve(args._[0] || '.');
       const env = { ...process.env, FIRSTRUN_DOCK: '1' };
       delete env.ELECTRON_RUN_AS_NODE;
