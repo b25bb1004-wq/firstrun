@@ -406,7 +406,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
   // Tests only after an install: a CI test with nothing installed (requests: `make ci`) can only fail.
   // When CI's test is a variant we don't run (koa: `npm run test:coverage`), the package's own `test` script is.
   const hasInstall = steps.some((s) => !s.skip && s.kind === 'install');
-  const pkgTest = facts.node?.scripts?.test && !/no test specified/.test(facts.node.scripts.test) ? 'npm test' : null;
+  // Same package manager as the install (`bun test` is Bun's own runner, not the script, so `bun run test`).
+  const mgr = (steps.find((s) => !s.skip && s.kind === 'install')?.command.match(/^(npm|yarn|pnpm|bun)\b/) || [])[1] || 'npm';
+  const pkgTest = facts.node?.scripts?.test && !/no test specified/.test(facts.node.scripts.test) ? (mgr === 'bun' ? 'bun run test' : `${mgr} test`) : null;
   // The package's own test script beats a CI line (axios' CI also has a `bun test` job for Bun users).
   const libTest = pkgTest || ciTestCommands[0];
   if (isLibOrCli && hasInstall && !steps.some((s) => !s.skip && s.kind === 'test') && libTest) {
