@@ -286,7 +286,8 @@ export class Sandbox {
       '',
     ].join('\n'));
     const started = Date.now();
-    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash /firstrun/step-${id}.sh > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
+    const exitFile = `/firstrun/serve-${id}.exit`;
+    await run('docker', ['exec', '-d', this.name, 'bash', '-c', `setsid bash -c 'bash /firstrun/step-${id}.sh; echo $? > ${exitFile}' > ${logFile} 2>&1 & echo $! > ${pidFile}; wait`]);
     let seen = 0;
     let lastOut = '';
     let crashSeenAt = 0;
@@ -300,13 +301,13 @@ export class Sandbox {
       const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
       const portOpen = port ? (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${port}) >/dev/null 2>&1`])).code === 0 : false;
       if (portOpen || (ready && ready.test(lastOut))) {
-        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile };
+        return { exitCode: 0, out: lastOut, durationMs: Date.now() - started, pidFile, logFile, logSeen: lastOut.length };
       }
       // The app may announce a different port than the one we guessed ("Uvicorn running on
       // http://0.0.0.0:8000"). If that port is really listening, the app is up.
       const announced = announcedPort(lastOut, this.services.map((s) => s.port).filter(Boolean));
       if (announced && announced !== port && (await run('docker', ['exec', this.name, 'bash', '-c', `(echo > /dev/tcp/127.0.0.1/${announced}) >/dev/null 2>&1`])).code === 0) {
-        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced };
+        return { exitCode: 0, out: `${lastOut}\n[firstrun] the app is listening on port ${announced} (it says so in its output)${port ? `, not ${port}` : ''}\n`, durationMs: Date.now() - started, pidFile, port: announced, logFile, logSeen: lastOut.length };
       }
       // Watchers (node --watch, nodemon, uvicorn --reload) keep running after the app crashes.
       // But a crash while a watch-mode compiler is still on its first build isn't final: `tsc --watch & nodemon dist`
@@ -321,12 +322,33 @@ export class Sandbox {
         }
       }
       if (!alive && Date.now() - started > 2000) {
+        // Exit 0 without ever listening: a one-shot command (a CLI example, a script), not a server.
+        // It did what it was asked (commander printed the documented output, then was failed for not
+        // listening on 8080). Report it as passed and let the caller skip the HTTP probe.
+        const code = (await run('docker', ['exec', this.name, 'cat', exitFile])).out.trim();
+        if (code === '0') {
+          return { exitCode: 0, out: `${lastOut}
+[firstrun] the command finished (exit 0) without starting a server: a one-shot command, not an app to keep running
+`, durationMs: Date.now() - started, oneShot: true };
+        }
         await this._killServeGroup(id);
         return { exitCode: 1, out: `${lastOut}\n[firstrun] server process exited before becoming ready${port ? ` on port ${port}` : ''}\n`, durationMs: Date.now() - started };
       }
     }
     await this._killServeGroup(id);
     return { exitCode: 124, out: `${lastOut}\n[firstrun] server did not become ready${port ? ` on port ${port}` : ''} within ${Math.round(timeoutMs / 1000)}s\n`, durationMs: Date.now() - started };
+  }
+
+  /**
+   * After a failed probe: what the server printed since it said "ready", and whether it is still alive.
+   * sahat, taxonomy and GeekyAnts all printed "ready", crashed, and ended as "unknown" because
+   * nobody read the log again.
+   */
+  async serveAftermath(r) {
+    if (!r?.logFile) return { out: '', alive: false };
+    const log = (await run('docker', ['exec', this.name, 'cat', r.logFile])).out;
+    const alive = (await run('docker', ['exec', this.name, 'bash', '-c', `pid=$(cat ${r.pidFile} 2>/dev/null); [ -n "$pid" ] && kill -0 $pid 2>/dev/null`])).code === 0;
+    return { out: log.slice(r.logSeen || 0), alive };
   }
 
   /**

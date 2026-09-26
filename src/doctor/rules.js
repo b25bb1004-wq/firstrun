@@ -990,6 +990,136 @@ export const RULES = [
       };
     },
   },
+  // ── Engine v2: failures that used to end as "unknown" (audit of 31 repos, 2026-09-26) ──
+  {
+    // please: "Hello! What can I call you?: Aborted!" The program waits for a person to answer.
+    id: 'interactive-prompt',
+    test({ log, step }) {
+      const m = log.match(/([^\n]*\?\s*:?\s*)(?:Aborted!|EOFError: EOF when reading a line)|EOFError: EOF when reading a line|Inappropriate ioctl for device|(?:stdin|input) is not a (?:TTY|terminal)/i);
+      if (!m) return null;
+      const q = m[1]?.trim().replace(/\s*:$/, '');
+      return {
+        ruleId: 'interactive-prompt', class: 'interactive', confidence: 0.85,
+        cause: `\`${step.command}\` stops to ask a question${q ? ` ("${q.slice(0, 80)}")` : ''} and waits for a person to type an answer. Everything before it is proven; this step needs you at the keyboard, and the docs don't say so.`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // vargasjona: "Package 'build-essential' has no installation candidate" on a machine whose package lists were never downloaded.
+    id: 'apt-lists-missing',
+    test({ log, step, tried }) {
+      if (!/has no installation candidate|Unable to locate package/.test(log) || !/\bapt(-get)?\s+(-\S+\s+)*install\b/.test(step.command)) return null;
+      if ([...(tried || [])].some((t) => String(t).includes('apt-get update'))) return null;
+      return {
+        ruleId: 'apt-lists-missing', class: 'missing-tool', confidence: 0.85,
+        cause: 'apt has no package lists yet (a fresh Ubuntu machine or container), so it cannot find the package. The docs skip `apt-get update`.',
+        fix: { actions: [{ type: 'insert-before', command: 'apt-get update', kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: 'sudo apt-get update' } },
+      };
+    },
+  },
+  {
+    // przemek: `npm test` runs jest, but jest is not in package.json at all.
+    id: 'test-runner-undeclared',
+    test({ log, facts }) {
+      const m = log.match(/(?:sh|bash): (?:\d+: )?(jest|vitest|mocha|ava|tap|nyc|c8|karma|jasmine): (?:command )?not found/);
+      if (!m || !facts.node) return null;
+      const bin = m[1];
+      const deps = facts.node.deps || [];
+      if (deps.includes(bin)) return null; // declared: deps-not-installed covers it
+      let extra = '';
+      if (bin === 'jest') {
+        const cfg = (facts.files || []).find((f) => /^jest\.config\.(js|cjs|mjs|ts)$/.test(f));
+        let text = '';
+        try { text = cfg ? fs.readFileSync(path.join(facts.root, cfg), 'utf8') : ''; } catch {}
+        if (/ts-jest/.test(text) && !deps.includes('ts-jest')) extra += ' ts-jest';
+        if (!deps.includes('@types/jest') && (facts.files || []).includes('tsconfig.json')) extra += ' @types/jest';
+      }
+      const cmd = `npm install --no-save ${bin}${extra}`;
+      return {
+        ruleId: 'test-runner-undeclared', class: 'missing-dependency', confidence: 0.85,
+        cause: `The test script runs \`${bin}\`, but ${bin} is not in package.json, so installing the project never installs it. It only works on machines that already have it.`,
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: cmd.replace(' --no-save', ' --save-dev') } },
+      };
+    },
+  },
+  {
+    // full-stack-fastapi: "bash: scripts/prestart.sh: No such file or directory". The file exists, in backend/.
+    id: 'wrong-directory',
+    test({ log, step, facts }) {
+      const m = log.match(/(?:bash|sh|python3?|node): (?:line \d+: |\d+: )?(?:can't open file ['"]?)?(?:\/workspace\/)?([\w.-]+\/[\w./-]+|[\w.-]+\.(?:sh|py|js|ts|mjs|cjs))['"]?:? (?:\[Errno 2\] )?No such file or directory/);
+      if (!m) return null;
+      const rel = m[1].replace(/^\.\//, '');
+      const hits = (facts.files || []).filter((f) => f === rel || f.endsWith('/' + rel));
+      if (hits.length !== 1 || hits[0] === rel) return null;
+      const dir = hits[0].slice(0, -rel.length - 1);
+      const cmd = `cd ${dir} && ${step.command}`;
+      return {
+        ruleId: 'wrong-directory', class: 'wrong-order', confidence: 0.85,
+        cause: `\`${step.command}\` must run inside \`${dir}/\` (the file is \`${hits[0]}\`), but the docs never say to change into that folder.`,
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
+    // rest-hapi: the Quick Start clones rest-hapi-demo, then runs `npm start`, which this repo doesn't have.
+    id: 'docs-for-other-repo',
+    test({ log, plan }) {
+      if (!/Missing script: "?[\w:.-]+"?/.test(log)) return null;
+      const re = /^git clone\s+(?:--\S+\s+)*\S*github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:\s|$)/;
+      const clone = plan.steps.find((s) => re.test(s.command));
+      if (!clone) return null;
+      const [, owner, name] = clone.command.match(re);
+      const [pOwner, pName] = String(plan.repo || '').split('/');
+      if (!pName || (name.toLowerCase() === pName.toLowerCase() && owner.toLowerCase() === pOwner.toLowerCase())) return null;
+      if (/your-?(user)?name|username/i.test(owner)) return null;
+      return {
+        ruleId: 'docs-for-other-repo', class: 'docs-mismatch', confidence: 0.8,
+        cause: `The setup steps are for a different repository: they clone \`${owner}/${name}\` (${clone.source?.file || 'README'}:${clone.source?.line || '?'}), not \`${plan.repo}\`. Someone following them in this repo gets commands that don't exist here.`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // maitraysuthar ("0 passing, 2 failing"), teamhide ("5 failed, 33 passed, 16 errors"): the suite ran; some tests fail.
+    // That is the health of the test suite on a clean machine, not a broken setup step.
+    id: 'failing-tests',
+    test({ log, step }) {
+      if (step.kind !== 'test') return null;
+      const mocha = log.match(/(\d+) passing[\s\S]{0,400}?(\d+) failing/);
+      const jest = log.match(/Tests:\s+(\d+) failed, (?:\d+ skipped, )?(?:(\d+) passed, )?(\d+) total/);
+      const py = log.match(/=+ (?:(\d+) failed)?(?:, )?(?:(\d+) passed)?(?:, )?(?:\d+ skipped, )?(?:(\d+) errors?)?[^=\n]* in [\d.]+s/);
+      let failed = 0, total = 0;
+      if (mocha) { failed = +mocha[2]; total = failed + +mocha[1]; }
+      else if (jest) { failed = +jest[1]; total = +jest[3]; }
+      else if (py && (py[1] || py[3])) { failed = (+py[1] || 0) + (+py[3] || 0); total = failed + (+py[2] || 0); }
+      if (!failed) return null;
+      const db = /OperationalError|ECONNREFUSED|Access denied for user|could not connect|Connection refused/i.test(log);
+      const timeouts = /Timeout of \d+ms exceeded|TimeoutError|timed out/i.test(log);
+      const why = db ? ' The failures are database connection or permission errors: the tests expect a database set up differently from the one the docs start.'
+        : timeouts ? ' The failures are timeouts, which usually means a service the tests call is not running.' : '';
+      return {
+        ruleId: 'failing-tests', class: 'failing-tests', confidence: 0.8,
+        cause: `The test suite runs, but ${failed} of ${total} tests fail on a clean setup.${why}`,
+        fix: null,
+      };
+    },
+  },
+  {
+    // sahat e2e: Playwright downloaded Chromium, but the machine lacks the shared libraries it needs
+    // ("chrome-headless-shell: error while loading shared libraries"). The docs skip `playwright install-deps`.
+    id: 'browser-system-libs',
+    test({ log, tried }) {
+      if (!/ms-playwright\/[\w.-]+\/[^\n]*error while loading shared libraries|Host system is missing dependencies to run browsers/.test(log)) return null;
+      const cmd = 'npx playwright install-deps chromium';
+      if ([...(tried || [])].some((t) => String(t).includes('install-deps'))) return null;
+      return {
+        ruleId: 'browser-system-libs', class: 'missing-tool', confidence: 0.88,
+        cause: 'Playwright\'s Chromium is downloaded, but this Linux machine lacks the system libraries it needs to start, so every browser test fails at launch. The docs skip `npx playwright install-deps`.',
+        fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'insert-step', text: cmd } },
+      };
+    },
+  },
 ];
 
 function label(kind) {

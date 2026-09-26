@@ -42,6 +42,8 @@ export async function restoreCwd(sandbox, cwd) {
 }
 
 /** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
+// A failure in one of these kinds blocks every later step; any other failure only blocks its own doc section.
+export const HARD_BLOCK_KINDS = new Set(['install', 'prereq', 'env', 'services', 'migrate', 'build']);
 const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
 
 export function makeBudget(total = 4, perCall = 1.5) {
@@ -167,14 +169,24 @@ export async function verifyRepo(repoDir, opts = {}) {
           }
           rec.savePlan(plan);
         }
-        if (r.exitCode === 0 && plan.verify.kind === 'http') {
+        if (r.oneShot) {
+          // Not a server after all: it ran to completion. Nothing to probe; the step passed on its exit code.
+          step.oneShot = true;
+          if (plan.verify.kind === 'http' && !plan.verify.fromDocs) { plan.verify = { kind: 'exit', target: 'all steps exit 0' }; rec.savePlan(plan); }
+        } else if (r.exitCode === 0 && plan.verify.kind === 'http') {
           const p = await box.probe(plan.verify.target, { timeoutMs: 45_000 });
           r.out += `\n[firstrun] GET ${plan.verify.target} → ${p.status || 'no response'}${p.body ? `\n${tail(p.body, 6)}` : ''}\n`;
           // A URL the docs give must succeed. When the docs name none, "/" is our guess: an API
           // with no root route answers 404, which still proves the server is up and serving.
           const answers = !plan.verify.fromDocs && p.status && p.status < 500;
           if (!p.ok && answers) r.out += `[firstrun] the docs name no URL to check; the server answered ${p.status} on / so it is up\n`;
-          if (!p.ok && !answers) r.exitCode = 1;
+          if (!p.ok && !answers) {
+            r.exitCode = 1;
+            // It said "ready" but doesn't answer: show what it printed since, so the Doctor sees the real crash.
+            const after = await box.serveAftermath(r);
+            if (after.out.trim()) r.out += `\n[firstrun] the server's output after the check:\n${tail(after.out, 40)}\n`;
+            r.out += after.alive ? '[firstrun] the server process is still running but does not answer\n' : '[firstrun] the server process has exited\n';
+          }
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
@@ -235,9 +247,23 @@ export async function verifyRepo(repoDir, opts = {}) {
 
     let i = 0;
     let stopped = null;
+    // Steps form a graph, not a chain: a failed install/env/services/migrate/build step blocks
+    // everything after it (later steps need it), but a failed start, usage or other step only
+    // blocks the rest of its own doc section. One bad line can't hide the rest of the docs
+    // (vargasjona: 20 steps blocked by one line; fastify: a macOS-only snippet hid the real setup).
+    const blockers = [];
+    const blockedBy = (s) => blockers.find((b) => b.hard || (b.file === s.source?.file && b.section === s.source?.section));
     while (i < plan.steps.length) {
       const step = plan.steps[i];
       if (step.skip) { i++; continue; }
+      const blocker = blockedBy(step);
+      if (blocker) {
+        step.status = 'blocked';
+        step.blockedBy = blocker.id;
+        rec.stepStatus(step.id, 'blocked');
+        i++;
+        continue;
+      }
       if (opts.maxMinutes && Date.now() - startedAt > opts.maxMinutes * 60_000) {
         say('runner', `time budget of ${opts.maxMinutes} min reached; stopping before ${step.id}`);
         stopped = step.id;
@@ -426,8 +452,10 @@ export async function verifyRepo(repoDir, opts = {}) {
       step.status = 'needs-human';
       rec.stepStatus(step.id, 'needs-human');
       if (step.kind === 'test' || step.probe) { i++; continue; }
-      stopped = step.id;
-      break;
+      const hard = HARD_BLOCK_KINDS.has(step.kind);
+      blockers.push({ id: step.id, hard, file: step.source?.file, section: step.source?.section });
+      if (hard) { stopped = step.id; break; }
+      i++;
     }
     if (stopped) {
       for (const s of plan.steps) if (s.status === 'pending') { s.status = 'blocked'; rec.stepStatus(s.id, 'blocked'); }
@@ -442,13 +470,13 @@ export async function verifyRepo(repoDir, opts = {}) {
     const replayable = !stopped;
     if (replayable && opts.replay !== false) {
       rec.phase('replay', 'verifier');
-      rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
+      rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human' && s.status !== 'blocked').length });
       const t0 = Date.now();
       replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, cacheVolume, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
       let failed = null;
       for (const step of plan.steps) {
-        if (step.skip || step.status === 'needs-human') continue;
+        if (step.skip || step.status === 'needs-human' || step.status === 'blocked') continue;
         await applyPrereqs(replayBox, step);
         const a = await execStep(step, { agent: 'verifier', box: replayBox });
         if (a.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
