@@ -111,16 +111,59 @@
           <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
           <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3>16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
-        <article>
-          <pre class="diff mono" aria-label="The README change HUMBLE proposed for GeekyAnts/express-typescript"><span class="ctx">  # Install NPM dependencies.</span>
-<span class="del">- npm install;</span>
-<span class="add">+ npm install --legacy-peer-deps</span>
-<span class="ctx">  # Run the app</span>
-<span class="add">+ npm install --global nodemon</span>
-<span class="add">+ docker compose up -d mongo</span>
-<span class="add">+ docker compose up -d redis</span>
-<span class="ctx">  npm run dev;</span></pre>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scribe) 18%,transparent);color:var(--c-scribe)">README diff</span><h3>GeekyAnts/express-typescript</h3><p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that broke four times. This is the whole fix.</p></div>
+        <article class="card-diff-slider">
+          <div class="diff-slider" id="diff-slider" style="--split: 50%;">
+            <!-- Bottom layer: AS PROVEN (HUMBLE Fixed) -->
+            <div class="diff-layer diff-after">
+              <div class="diff-header">
+                <span class="diff-pill pill-after">+ AS PROVEN BY HUMBLE</span>
+                <span class="diff-meta">4/4 breaks fixed · 53s replay</span>
+              </div>
+              <pre class="diff-code mono"><code><span class="c-comment"># 1. Install dependencies with legacy peer deps</span>
+<span class="c-add"><span class="c-sym">+</span> npm install --legacy-peer-deps</span>
+
+<span class="c-comment"># 2. Boot dependencies and global runner</span>
+<span class="c-add"><span class="c-sym">+</span> docker compose up -d mongo</span>
+<span class="c-add"><span class="c-sym">+</span> docker compose up -d redis</span>
+<span class="c-add"><span class="c-sym">+</span> npm install --global nodemon</span>
+
+<span class="c-comment"># 3. Start TypeScript dev server</span>
+<span class="c-ctx">  npm run dev;</span></code></pre>
+            </div>
+
+            <!-- Top layer: AS WRITTEN (README) clipped by clip-path -->
+            <div class="diff-layer diff-before">
+              <div class="diff-header">
+                <span class="diff-pill pill-before">AS WRITTEN IN README</span>
+                <span class="diff-meta">4 breaks on clean machine</span>
+              </div>
+              <pre class="diff-code mono"><code><span class="c-comment"># 1. Install dependencies</span>
+<span class="c-del"><span class="c-sym">-</span> npm install;</span> <span class="c-err"># ERESOLVE peer dep tree conflict</span>
+
+<span class="c-comment"># 2. Missing database and background services</span>
+<span class="c-dim">  (docs omit MongoDB &amp; Redis containers)</span>
+<span class="c-dim">  (docs omit global nodemon compiler)</span>
+
+<span class="c-comment"># 3. Start TypeScript dev server</span>
+<span class="c-del"><span class="c-sym">-</span> npm run dev;</span> <span class="c-err"># ECONNREFUSED 127.0.0.1:27017</span></code></pre>
+            </div>
+
+            <!-- Interactive drag handle -->
+            <div class="diff-handle" role="slider" tabindex="0" aria-label="Compare README as written with HUMBLE fixed" aria-valuenow="50" aria-valuemin="5" aria-valuemax="95">
+              <div class="handle-line"></div>
+              <div class="handle-knob" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M5.5 3L2.5 8L5.5 13M10.5 3L13.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+              </div>
+            </div>
+            <div class="diff-hint">Drag or use arrow keys to compare</div>
+          </div>
+          <div class="cap">
+            <span class="tag" style="background:color-mix(in srgb,var(--c-scribe) 18%,transparent);color:var(--c-scribe)">README DIFF</span>
+            <h3>GeekyAnts/express-typescript</h3>
+            <p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that broke four times. Drag to see the exact four lines HUMBLE proved to get it to pass.</p>
+          </div>
         </article>
         <article>
           <div class="big" style="color:var(--c-verifier)">53s</div>
@@ -180,6 +223,7 @@
 <script src="/assets/hero-gl.js" defer></script>
 <script src="/assets/wall.js" defer></script>
 <script src="/assets/scrub.js" defer></script>
+<script src="/assets/diff-slider.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
 </body>
 </html>
