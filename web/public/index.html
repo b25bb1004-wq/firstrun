@@ -42,6 +42,10 @@
       <svg class="intro-guides" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="intro-word" aria-hidden="true"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></div>
       <div class="intro-stage" aria-hidden="true"></div>
+      <div class="intro-promise">
+        <p class="intro-line">Your README, proven on a clean machine.</p>
+        <ol class="intro-steps mono"><li>Reads your setup docs</li><li>Runs every step on a brand-new machine</li><li>Hands back a fixed README, with proof</li></ol>
+      </div>
       <p class="intro-hint mono">Scroll to meet the crew</p>
     </div>
   </section>
@@ -69,7 +73,7 @@
     <div class="wrap inner">
       <p class="eyebrow mono">Setup docs, verified from zero</p>
       <h1 id="h1">Your README,<br>proven.</h1>
-      <p class="lede">HUMBLE follows your setup docs on a brand-new machine, the way your next teammate will. It fixes the steps that break, proves every fix by doing the whole setup again from zero, and hands you a README that works.</p>
+      <p class="lede">HUMBLE runs your setup docs on a brand-new machine, fixes what breaks, and proves the fix by doing it all again from zero.</p>
       <div class="actions">
         <a class="btn" href="#try">Check a README</a>
         <a class="link" href="/proof">Watch a real run</a>
@@ -91,15 +95,15 @@
     <div class="wrap split">
       <h2 id="h-problem" data-reveal>Day one is where setup docs fail.</h2>
       <div class="prose" data-reveal>
-        <p>Nobody breaks a README on purpose. A version moves on, a service gets added, a step lives in someone's head. The docs still read fine; they just stopped being true.</p>
-        <p>The person who finds out is the newest one on the team, on their first morning, with nobody to ask.</p>
+        <p>Docs drift. A version moves on, a service gets added, a step lives in someone's head.</p>
+        <p>The newest teammate finds out on day one, alone.</p>
       </div>
     </div>
   </section>
 
   <section class="wrap" id="how" aria-labelledby="h-how">
     <h2 id="h-how" data-reveal>How it works</h2>
-    <p class="sub" data-reveal>IBM Bob runs HUMBLE. He reads the repo, sends in a crew of six agents, and steps in when the rules can't explain a failure.</p>
+    <p class="sub" data-reveal>Six agents do the work. IBM Bob steps in when the rules can't explain a failure.</p>
     <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
       <div class="hero-agents-label">
         <span class="mono">Six specialized agents · orchestrated by IBM Bob</span>
@@ -299,7 +303,7 @@
         </article>
         <article>
           <div class="big" style="color:var(--c-verifier)">53s</div>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>GeekyAnts was PARTIAL in the audit. We traced it to our own runner (it gave up on a watcher still compiling), fixed it, and the rerun went 4 breaks found, 4 fixed, replayed from zero in 53 seconds, ending on the app's home page.</p></div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>PARTIAL in the audit. We fixed our own runner and reran it: 4 breaks found, 4 fixed, replayed from zero in 53 seconds.</p></div>
         </article>
         <article>
           <div class="big" style="color:var(--c-doctor)">5/5</div>
@@ -312,7 +316,7 @@
 
   <section class="wrap" id="try" aria-labelledby="h-try">
     <h2 id="h-try" data-reveal>Check a README</h2>
-    <p class="sub" data-reveal>Paste a public GitHub repository. HUMBLE reads its docs next to its manifests, CI and code and shows where they disagree. It takes a few seconds and runs nothing from the repo.</p>
+    <p class="sub" data-reveal>Paste a public GitHub repo. In a few seconds HUMBLE shows where its docs and its code disagree, without running anything.</p>
     <form class="check" id="form" autocomplete="off" data-reveal>
       <label for="repo" class="lbl">Repository</label>
       <div class="row">

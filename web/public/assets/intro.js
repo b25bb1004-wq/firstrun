@@ -19,7 +19,9 @@
   var word = sec.querySelector('.intro-word'), stage = sec.querySelector('.intro-stage'), svg = sec.querySelector('.intro-guides'), hint = sec.querySelector('.intro-hint');
   var slots = [].slice.call(word.children);
   var D = 1000;                        // timeline units per agent
-  var TOTAL = AGENTS.length * D + 400; // + the guides settling at the end
+  var LEAD = 350;                      // the promise holds the first stretch of scroll, before the crew arrives
+  var TOTAL = LEAD + AGENTS.length * D + 500; // + the promise returning under the finished wordmark
+  var promise = sec.querySelector('.intro-promise');
   var anims = [];
   var tl = function (el, kf, o) { var a = el.animate(kf, Object.assign({ fill: 'both' }, o)); a.pause(); anims.push(a); return a; };
 
@@ -44,8 +46,14 @@
     guide(0, top + r.height * 0.86, W, top + r.height * 0.86, 'h', -480);
     slots.forEach(function (s, i) { var b = s.getBoundingClientRect(); guide(b.left - box.left, 0, b.left - box.left, H, 'v', -460 + i * 20); });
 
+    // The promise is what a stranger reads at second zero; it steps aside for the crew and returns under HUMBLE.
+    if (promise) {
+      tl(promise, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-14px)' }], { duration: 0.28 * D, delay: 0.05 * D, easing: EASE_IN_OUT });
+      tl(promise, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 0.4 * D, delay: LEAD + AGENTS.length * D, easing: EASE_OUT, fill: 'forwards' });
+    }
+
     AGENTS.forEach(function (a, i) {
-      var t = i * D, slot = slots[i];
+      var t = LEAD + i * D, slot = slots[i];
       var el = document.createElement('div');
       el.className = 'intro-agent';
       el.innerHTML = '<div class="intro-name" aria-hidden="true">' + a.name.split('').map(function (ch) {

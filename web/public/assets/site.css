@@ -824,3 +824,14 @@ html.js .intro { display: block; position: relative; inset: auto; z-index: auto;
    scroll now that it is the one run walkthrough on the page. */
 .heal { height: 480vh; }
 @media (max-width: 900px) { .heal { height: 560vh; } }
+
+/* v18 (Edith): the 5-second story. The intro's first frame says what HUMBLE does before any scrolling. */
+html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
+.intro-promise { position: absolute; left: 0; right: 0; top: 58%; padding: 0 clamp(16px, 4vw, 40px); display: grid; justify-items: center; gap: 18px; text-align: center; }
+.intro-line { margin: 0; max-width: none; font: 700 clamp(26px, 3.6vw, 48px)/1.08 var(--display); letter-spacing: -.025em; color: var(--ink); text-wrap: balance; }
+.intro-steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px;
+  font-size: 13px; letter-spacing: .02em; color: var(--muted); }
+.intro-steps li { counter-increment: s; }
+.intro-steps li::before { content: "0" counter(s) " "; color: var(--blue); font-weight: 600; }
+.intro.static .intro-promise { position: static; margin-top: 24px; }
+@media (max-width: 700px) { .intro-steps { flex-direction: column; align-items: center; gap: 6px; } .intro-promise { top: 54%; } }
