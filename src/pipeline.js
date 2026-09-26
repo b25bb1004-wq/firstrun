@@ -66,6 +66,17 @@ export const HARD_BLOCK_KINDS = new Set(['install', 'prereq', 'env', 'services',
 /** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
 const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
 
+/**
+ * Return the per-step timeout in milliseconds for a given step kind.
+ * Used by both the first run and the replay so they stay in sync.
+ */
+export function stepTimeoutMs(step) {
+  if (step.kind === 'install') return 25 * 60_000;
+  if (step.kind === 'test') return TEST_MINUTES * 60_000;
+  if (step.kind === 'serve') return 150_000;
+  return 12 * 60_000; // other, build, prereq, env, services, migrate, usage, start
+}
+
 export function makeBudget(total = 4, perCall = 1.5) {
   let spent = 0;
   // cap(): what one Bob call may spend now, never more than the run has left (a 1-Bobcoin run spent 1.45 on huggingface_hub).
@@ -227,7 +238,8 @@ export async function verifyRepo(repoDir, opts = {}) {
           step.probe = { status: p.status, body: tail(p.body || '', 6) };
         }
       } else {
-        const opts = { onData, timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? TEST_MINUTES * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) };
+        const timeoutMs = stepTimeoutMs(step);
+        const opts = { onData, timeoutMs, detectServer: ['other', 'build'].includes(step.kind) };
         r = await box.exec(step.command, opts);
         // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
         const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
@@ -534,6 +546,21 @@ export async function verifyRepo(repoDir, opts = {}) {
         if (step.skip || step.status === 'needs-human' || step.status === 'blocked') continue;
         await applyPrereqs(replayBox, step);
         const a = await execStep(step, { agent: 'verifier', box: replayBox });
+        // Handle timeout in replay the same way as first pass: test timeout is a finding, record it and continue.
+        // Other step timeout is a failure that stops the replay (like other failures).
+        if (a.exitCode === 124) {
+          const mins = Math.round(stepTimeoutMs(step) / 60_000);
+          const note = `\n[firstrun] \`${step.command}\` timed out after ${mins} min in the replay\n`;
+          a.out += note;
+          // Re-write the log with the timeout note
+          rec.writeLog(`replay-${step.id}-${attempts[step.id] || 1}`, a.out);
+          if (step.kind === 'test') {
+            step.status = 'needs-human';
+            rec.stepStatus(step.id, 'needs-human');
+            failed = failed || step.id;
+            continue;
+          }
+        }
         if (a.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
         if (a.exitCode !== 0) failed = failed || step.id;
       }

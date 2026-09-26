@@ -1,3 +1,4 @@
+import { stepTimeoutMs } from './pipeline.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -61,7 +62,10 @@ export async function replayVerifiedPlan(root, { onStep } = {}) {
           const answers = !plan.verify.fromDocs && p.status && p.status < 500;
           if (!p.ok && !answers) { r.exitCode = 1; r.out += `\nGET ${plan.verify.target} → ${p.status}`; }
         }
-      } else r = await box.exec(s.command, { timeoutMs: 20 * 60_000 });
+      } else {
+        const timeoutMs = stepTimeoutMs(s);
+        r = await box.exec(s.command, { timeoutMs });
+      }
       const res = { id: s.id, command: s.command, exitCode: r.exitCode, durationMs: r.durationMs, tail: tail(r.out, 12) };
       results.push(res);
       onStep?.(res);
