@@ -3,11 +3,12 @@
 //
 //   node tools/v2-suite.js            offline gates only (no Docker, no Bobcoins)
 //   node tools/v2-suite.js --json     same, machine-readable summary
+//   node tools/v2-suite.js --v1 <dir> v1 checkout to compare against (default ../v1-main)
 //
 // Gates:
 //   1. unit tests        node --test test/*.test.js
-//   2. planner v1 vs v2  tools/v2-eval.js over the 31 saved docs + recorded failures (when present)
-//   3. doctor replay     tools/rediagnose.js over the recorded failures of each audit: how many are still "unknown"
+//   2. v1 vs v2          tools/v2-eval.js: plans for the 31 saved docs (0 risky skips) and every recorded failure
+//                        re-diagnosed from committed logs (0 worse). Needs a v1 checkout: without one it is NOT RUN.
 // Then it prints the rerun command. The rerun needs Docker and spends Bobcoins: only a human starts it.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -33,42 +34,35 @@ const num = (k) => Number((t.stdout.match(new RegExp(`^ℹ ${k} (\\d+)`, 'm')) |
 out.gates.push({ gate: 'unit tests', ok: t.code === 0, tests: num('tests'), pass: num('pass'), fail: num('fail'), skipped: num('skipped'), seconds: Math.round(t.ms / 1000) });
 say(`1. unit tests: ${num('pass')}/${num('tests')} pass, ${num('fail')} fail, ${num('skipped')} skipped (${Math.round(t.ms / 1000)} s)`);
 
-// 2. planner v1 vs v2 (Edith's harness, #127) when it is on this branch
-if (fs.existsSync(path.join(ROOT, 'tools/v2-eval.js'))) {
-  const e = run(process.execPath, ['tools/v2-eval.js'], 'v2-eval');
-  const tail = e.stdout.trim().split('\n').slice(-8).join('\n');
-  out.gates.push({ gate: 'planner v1 vs v2', ok: e.code === 0, summary: tail });
-  say(`2. planner v1 vs v2 (tools/v2-eval.js): exit ${e.code}\n${tail.replace(/^/gm, '   ')}`);
+// 2. planner + diagnosis, v1 vs v2 (Edith's harness): section 1 plans the 31 saved docs, section 2 re-diagnoses every
+// recorded failure from the logs committed with the audits. It needs a v1 checkout; without one this gate is NOT RUN
+// (never a silent pass). Make one with: git worktree add ../v1-main origin/main   (then copy node_modules into it)
+const v1 = (() => { const i = process.argv.indexOf('--v1'); return path.resolve(ROOT, i >= 0 ? process.argv[i + 1] : '../v1-main'); })();
+const auditsHere = AUDITS.filter((a) => fs.existsSync(path.join(ROOT, a, 'audit.json')));
+if (!fs.existsSync(path.join(ROOT, 'tools/v2-eval.js'))) {
+  out.gates.push({ gate: 'v1 vs v2', ok: false, notRun: 'tools/v2-eval.js missing' });
+  say('2. v1 vs v2: NOT RUN (tools/v2-eval.js missing)');
+} else if (!fs.existsSync(path.join(v1, 'src', 'plan.js')) || !fs.existsSync(path.join(v1, 'node_modules'))) {
+  out.gates.push({ gate: 'v1 vs v2', ok: false, notRun: `no v1 checkout with node_modules at ${v1}` });
+  say(`2. v1 vs v2: NOT RUN (no v1 checkout with node_modules at ${v1}; git worktree add ../v1-main origin/main, then copy node_modules)`);
 } else {
-  out.gates.push({ gate: 'planner v1 vs v2', ok: null, summary: 'tools/v2-eval.js not on this branch yet (Edith #127)' });
-  say('2. planner v1 vs v2: tools/v2-eval.js not on this branch yet (Edith #127)');
+  const e = run(process.execPath, ['tools/v2-eval.js', '--v1', v1, '--audit', auditsHere.join(',')], 'v2-eval');
+  const summary = (e.stdout.match(/\*\*Summary:\*\*.*$/m) || [''])[0];
+  const diag = (e.stdout.match(/^(\d+) recorded failures diagnosed differently by v2, (\d+) unchanged/m) || []);
+  const risky = Number((summary.match(/(\d+) risky skips/) || [])[1] ?? NaN);
+  const failures = diag.length ? Number(diag[1]) + Number(diag[2]) : 0;
+  const worse = (e.stdout.match(/\| unknown \|\s*$/gm) || []).length; // a row whose v2 column went back to unknown
+  const ok = e.code === 0 && risky === 0 && failures > 0 && worse === 0;
+  out.gates.push({ gate: 'v1 vs v2', ok, audits: auditsHere, risky, failuresChecked: failures, changed: Number(diag[1] || 0), worse, summary });
+  say(`2. v1 vs v2 (tools/v2-eval.js, audits: ${auditsHere.join(', ')}):\n   ${summary.replace(/\*\*/g, '')}\n   ${failures} recorded failures re-diagnosed: ${diag[1] || 0} changed, ${worse} worse${failures === 0 ? '  <- 0 failures checked: NOT a pass' : ''}`);
 }
+if (auditsHere.length < AUDITS.length) say(`   note: missing audit logs on this machine: ${AUDITS.filter((a) => !auditsHere.includes(a)).join(', ')}`);
 
-// 3. doctor replay on recorded failures: which "unknown" failures the rules now name
-const doc = [];
-for (const a of AUDITS) {
-  if (!fs.existsSync(path.join(ROOT, a, 'audit.json'))) { doc.push({ audit: a, missing: true }); continue; }
-  const r = run(process.execPath, ['tools/rediagnose.js', a], `rediagnose ${a}`);
-  const blocks = r.stdout.split(/\n(?=\S)/).filter((b) => /recorded:/.test(b));
-  const wasUnknown = blocks.filter((b) => /recorded:\s+unknown/.test(b));
-  const nowNamed = wasUnknown.filter((b) => !/now:\s+unknown/.test(b));
-  // A diagnosis Bob made can't be reproduced by a rules-only replay: that is not a regression.
-  const byBob = (b) => {
-    const [slug, ev] = b.split(/\s+/);
-    try { return JSON.parse(fs.readFileSync(path.join(ROOT, a, 'runs', slug, 'evidence', `${ev}.json`), 'utf8')).diagnosis?.by === 'bob'; } catch { return false; }
-  };
-  const lost = blocks.filter((b) => !/recorded:\s+unknown/.test(b) && /now:\s+unknown/.test(b));
-  const regressed = lost.filter((b) => !byBob(b));
-  doc.push({ audit: a, failures: blocks.length, wasUnknown: wasUnknown.length, nowNamed: nowNamed.length, stillUnknown: wasUnknown.length - nowNamed.length, regressed: regressed.length, bobOnly: lost.length - regressed.length });
-}
-out.gates.push({ gate: 'doctor replay', ok: doc.every((d) => d.missing || d.regressed === 0), audits: doc });
-say('3. doctor replay on recorded failures (rules only):');
-for (const d of doc) say(d.missing ? `   ${d.audit}: not on this machine` : `   ${d.audit}: ${d.failures} failures; ${d.wasUnknown} were unknown, ${d.nowNamed} now named, ${d.stillUnknown} still unknown; ${d.regressed} lost a rules diagnosis${d.bobOnly ? `, ${d.bobOnly} were Bob-diagnosed (not replayed offline)` : ""}`);
-
-// The rerun: ready, not started.
+// The rerun: ready, not started. Concurrency 1 so timings are quotable (teamhide flaked at 3);
+// 0.19 Bobcoins per repo keeps 31 repos under the 6-Bobcoin cap.
 const list = 'audit/v2-31-repos.json';
-const rerun = `node bin/firstrun.js audit ${list} --concurrency 3 --brain auto --bob-budget 0.2 --id v2-31`;
-out.rerun = { list, command: rerun, needs: 'Docker Desktop running; at most 0.2 Bobcoins per repo (31 repos, ~6.2 max)', started: false };
+const rerun = `node bin/firstrun.js audit ${list} --concurrency 1 --brain auto --bob-budget 0.19 --id v2-31`;
+out.rerun = { list, command: rerun, needs: 'Docker Desktop running; at most 0.19 Bobcoins per repo (31 repos, 5.9 max); several hours at concurrency 1', started: false };
 say(`\nReady, NOT started (needs Docker + Bobcoins, a human decides):\n   ${rerun}\n   ${out.rerun.needs}`);
 
 out.ok = out.gates.every((g) => g.ok !== false);

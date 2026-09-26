@@ -67,6 +67,12 @@ async function resolveTarget(target, args) {
 export async function main(argv) {
   const [cmd, ...rest] = argv;
   const args = parseArgs(rest);
+  // Asking for help never runs anything. `audit --help` once started a real 16-repo audit and `verify --help`
+  // started a container: --help / -h on ANY command prints the help and returns before a sandbox exists.
+  if (args.help || args.h || rest.includes('--help') || rest.includes('-h')) {
+    console.log(HELP);
+    return 0;
+  }
   switch (cmd) {
     case 'verify': {
       const root = await resolveTarget(args._[0], args);
@@ -149,11 +155,6 @@ export async function main(argv) {
       return 0;
     }
     case 'audit': {
-      // `audit --help` once started a real 16-repo audit (Docker + Bobcoins). Asking for help never runs anything.
-      if (args.help || args.h) {
-        console.log('usage: firstrun audit <list.json> [--concurrency 3] [--brain rules|auto] [--bob-budget N] [--id name] [--only slug] [--limit N] [--rerun]\n  runs every repo in the list in Docker; --brain auto may spend up to --bob-budget Bobcoins per repo');
-        break;
-      }
       const list = args._[0] || 'audit/repos.json';
       const concurrency = Number(args.concurrency || 3);
       console.log(`${bold(cyan('HUMBLE swarm'))} ${dim('·')} ${list} ${dim(`· ${concurrency} repos at a time`)}`);

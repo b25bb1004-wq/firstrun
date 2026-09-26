@@ -1,0 +1,20 @@
+{
+  "repo": "expressjs/express",
+  "commit": "9a34acf03c",
+  "verifiedAt": "2026-09-25T21:23:13.174Z",
+  "verdict": "VERIFIED",
+  "image": "node:18",
+  "runtime": "Node.js 18",
+  "stepsTotal": 2,
+  "stepsFromReadme": 2,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "replaySeconds": 22,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  }
+}

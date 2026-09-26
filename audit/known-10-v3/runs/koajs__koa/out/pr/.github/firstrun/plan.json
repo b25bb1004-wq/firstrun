@@ -1,0 +1,42 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T21:24:17.229Z",
+  "commit": "824c1cf8de",
+  "image": "node:18",
+  "runtime": {
+    "name": "node",
+    "version": "18",
+    "source": "the error (\"node: bad option: --test\"): `--test` requires Node.js 18+"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "R1",
+      "command": "npm install",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "S2",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm ERR! Test failed.  See above for more details.",
+      "cause": "The README's Node.js 7 is too old: the project needs Node.js 18 (the error (\"node: bad option: --test\"): `--test` requires Node.js 18+).",
+      "fix": "Node.js 18 or newer (`--test` runner requires Node.js 18+)",
+      "evidence": "E1"
+    },
+    {
+      "signature": "# Error: Cannot find module 'on-finished'",
+      "cause": "Dependencies were never installed before \"npm test\"; the docs skip `npm install`.",
+      "fix": "npm install",
+      "evidence": "E2"
+    }
+  ]
+}
