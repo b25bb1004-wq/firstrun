@@ -95,9 +95,9 @@ export function init(container, { reduced = false } = {}) {
     envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
     envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
     envBadge.style.color = 'var(--c-verifier, #2fbf85)';
-    setStep(0, 'pass', '0.2s', steps[0].cmd);
-    setStep(1, 'pass', '1.4s', steps[1].fixCmd);
-    setStep(2, 'pass', '200 OK (0.8s)', steps[2].cmd);
+    setStep(0, 'pass', 'done', steps[0].cmd);
+    setStep(1, 'pass', 'passed', steps[1].fixCmd);
+    setStep(2, 'pass', 'GET / 200', steps[2].cmd);
     diag.textContent = 'GeekyAnts/express-typescript · 1 break fixed · 0 human intervention';
     verdict.textContent = 'VERIFIED';
     verdict.style.color = 'var(--c-verifier, #2fbf85)';
@@ -124,7 +124,7 @@ export function init(container, { reduced = false } = {}) {
       // Step 1 runs & passes
       setStep(0, 'running', 'cloning...');
       activeTimer = setTimeout(() => {
-        setStep(0, 'pass', '0.2s');
+        setStep(0, 'pass', 'done');
         setStep(1, 'running', 'resolving tree...');
 
         // Step 2 fails
@@ -155,11 +155,11 @@ export function init(container, { reduced = false } = {}) {
               setStep(2, 'queued', 'queued');
 
               activeTimer = setTimeout(() => {
-                setStep(0, 'pass', '0.2s');
+                setStep(0, 'pass', 'done');
                 activeTimer = setTimeout(() => {
-                  setStep(1, 'pass', '1.4s');
+                  setStep(1, 'pass', 'passed');
                   activeTimer = setTimeout(() => {
-                    setStep(2, 'pass', '200 OK (0.8s)');
+                    setStep(2, 'pass', 'GET / 200');
                     diag.textContent = 'All steps passed on clean machine. README proven from zero.';
                     // Replay completes: VERIFIED in calm Verifier accent green
                     verdict.textContent = 'VERIFIED';

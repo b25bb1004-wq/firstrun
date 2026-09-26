@@ -20,11 +20,11 @@ export function init(container, { reduced = false } = {}) {
       artName: 'facts',
       artLocation: 'events.ndjson',
       artCode: `{
-  "runtime": "node 16.20.2",
+  "runtime": "node 22",
   "pkgManager": "npm",
   "manifest": "package.json",
-  "services": ["mongo:5.0", "redis:7.0"],
-  "scripts": { "dev": "nodemon src/server.ts" }
+  "services": ["mongo", "redis"],
+  "scripts": { "dev": "tsc --watch & nodemon dist" }
 }`
     },
     {
@@ -52,7 +52,7 @@ export function init(container, { reduced = false } = {}) {
       shapeSvg: '<polygon points="32,10 54,48 10,48" fill="currentColor"/>',
       miniSvg: '<polygon points="10,3 17,16 3,16" fill="currentColor"/>',
       tagline: 'Execute on an untouched machine',
-      desc: 'Executes every planned command inside an ephemeral container. Zero host tools leaked, no cached packages, no assumed environment variables.',
+      desc: 'Executes every planned command inside an ephemeral container. Nothing from your laptop is reused: no host tools, no installed services, no environment variables you forgot you set.',
       artName: 'events.ndjson',
       artLocation: 'events.ndjson',
       artCode: `{"ts":1727339401,"event":"step_start","id":"02","cmd":"npm install"}
@@ -338,7 +338,7 @@ export function init(container, { reduced = false } = {}) {
     setTimeout(() => {
       artDot.style.backgroundColor = a.color;
       artFile.textContent = a.artName;
-      artLoc.textContent = a.artLocation;
+      artLoc.textContent = 'example, abbreviated · ' + a.artLocation;
       artPre.textContent = a.artCode;
 
       artifactCard.style.opacity = '1';
