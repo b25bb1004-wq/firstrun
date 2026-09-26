@@ -67,6 +67,12 @@ async function resolveTarget(target, args) {
 export async function main(argv) {
   const [cmd, ...rest] = argv;
   const args = parseArgs(rest);
+  // Asking for help never runs anything. `audit --help` once started a real 16-repo audit and `verify --help`
+  // started a container: --help / -h on ANY command prints the help and returns before a sandbox exists.
+  if (args.help || args.h || rest.includes('--help') || rest.includes('-h')) {
+    console.log(HELP);
+    return 0;
+  }
   switch (cmd) {
     case 'verify': {
       const root = await resolveTarget(args._[0], args);

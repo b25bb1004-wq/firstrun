@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { redactSecrets } from '../src/redact.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -146,5 +147,5 @@ const risky = report.plan.reduce((n, r) => n + (r.changes || []).filter((c) => c
 p('');
 p(`**Summary:** ${report.plan.length} docs planned, ${report.plan.filter((r) => r.changes?.length).length} with changed lines, ${risky} risky skips (a step that passed in the recorded run and v2 would no longer run).`);
 console.log(out.join('\n'));
-if (opt('json')) fs.writeFileSync(path.resolve(opt('json')), JSON.stringify(report, null, 2));
+if (opt('json')) fs.writeFileSync(path.resolve(opt('json')), redactSecrets(JSON.stringify(report, null, 2)));
 process.exitCode = risky ? 1 : 0;

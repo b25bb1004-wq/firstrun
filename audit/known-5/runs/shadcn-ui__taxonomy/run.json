@@ -1,0 +1,174 @@
+{
+  "id": "known-5-shadcn-ui__taxonomy",
+  "repo": "shadcn-ui/taxonomy",
+  "commit": "298a8857c7+dirty",
+  "startedAt": "2026-09-26T11:49:35.464Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "repaired",
+      "attempts": 3
+    },
+    "S2": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S3": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "bobcoins": 0.570824,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "16 (.nvmrc)",
+      "source": "README.md"
+    }
+  ],
+  "plan": {
+    "repo": "shadcn-ui/taxonomy",
+    "commit": "298a8857c7+dirty",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "R1",
+        "command": "corepack use pnpm@8",
+        "kind": "install",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 66,
+          "endLine": 66,
+          "section": "Taxonomy › Running Locally",
+          "insertedBefore": "S1"
+        }
+      },
+      {
+        "id": "S1",
+        "command": "pnpm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 66,
+          "endLine": 66,
+          "section": "Taxonomy › Running Locally"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "corepack enable"
+          },
+          {
+            "type": "exec",
+            "command": "corepack enable",
+            "kind": "other"
+          }
+        ],
+        "evidence": [
+          "E1",
+          "E2"
+        ]
+      },
+      {
+        "id": "S2",
+        "command": "cp .env.example .env.local",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 72,
+          "endLine": 72,
+          "section": "Taxonomy › Running Locally"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S3",
+        "command": "pnpm dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 78,
+          "endLine": 78,
+          "section": "Taxonomy › Running Locally"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "needs-human",
+        "probe": {
+          "status": 0,
+          "body": "curl: (7) Failed to connect to 127.0.0.1 port 3000 after 0 ms: Couldn't connect to server\n000"
+        }
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "16 (.nvmrc)",
+        "source": "README.md"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 226512
+  },
+  "passport": {
+    "repo": "shadcn-ui/taxonomy",
+    "commit": "298a8857c7+dirty",
+    "verifiedAt": "2026-09-26T12:01:07.139Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 4,
+    "stepsFromReadme": 3,
+    "breaksFound": 3,
+    "breaksFixed": 2,
+    "needsHuman": 1,
+    "replaySeconds": 227,
+    "packageCache": false,
+    "bobcoins": 0.57,
+    "diagnosedByBob": 2,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    }
+  },
+  "finishedAt": "2026-09-26T12:01:07.654Z"
+}

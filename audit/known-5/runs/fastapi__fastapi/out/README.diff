@@ -1,0 +1,22 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -128,12 +128,18 @@ FastAPI stands on the shoulders of giants:
+ 
+ ## Installation
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `python:3.12` machine at `192b12197e`.
++
+ First, [install `uv`](https://docs.astral.sh/uv/getting-started/installation/), and then add FastAPI to your project:
+ 
+ <div class="termy">
+ 
+ ```console
+ $ uv add "fastapi[standard]"
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure; IBM Bob could not help: Bob replied without the expected JSON: 2115 | 
++2116 | Use only the action types you need (usually one or two). If the step needs a real third-party
++2117 | secret, use class "needs-secret" and "fix": null. If you cannot tell, use class "unknown" and "fix": null.
++2118 | 
+ 
+ ---> 100%
+ ```

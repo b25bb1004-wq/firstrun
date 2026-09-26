@@ -1,0 +1,51 @@
+{
+  "id": "E4",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "deno add npm:axios",
+    "exitCode": 127,
+    "durationMs": 132,
+    "logTail": "/firstrun/step-6.sh: line 5: deno: command not found",
+    "logFile": "logs/S5-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "README.md:579 documents `deno add axios` but the `node:19` image ships no Deno; the prior install step (R2) used the wrong installer URL (`https://deno.land/install.sh` instead of the canonical `https://deno.land/x/install/install.sh`), so Deno was never placed on PATH and the command fails with exit code 127.",
+    "confidence": 0.82,
+    "by": "bob",
+    "bobcoins": 0.096648,
+    "taskId": "77a9906460c9b129a6c06010943208c1"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+        "kind": "install"
+      },
+      {
+        "type": "replace-step",
+        "command": "deno add npm:axios",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "Before running `deno add npm:axios`, install Deno if it is not already present: `curl -fsSL https://deno.land/x/install/install.sh | sh` and add `$HOME/.deno/bin` to PATH. Also note that Deno v2 requires an explicit registry prefix, so the command should be `deno add npm:axios`, not `deno add axios`."
+    },
+    "log": "$ curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\" → exit 35\nfix not applied: `curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"` exited 35"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+    "exitCode": 35,
+    "durationMs": 1739,
+    "logTail": ""
+  },
+  "status": "failed",
+  "at": "2026-09-26T12:05:12.426Z"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "E1",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "[ -d /Applications/VSCodeFastify/Visual\\ Studio\\ Code.app ] && echo \"found\"",
+    "exitCode": 1,
+    "durationMs": 124,
+    "logTail": "",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "platform-specific",
+    "cause": "The command checks for a macOS-only path (`/Applications/VSCodeFastify/Visual\\ Studio\\ Code.app`) that does not exist on Linux; `docs/Guides/Contributing.md` line 91 explicitly states the guide is written for macOS and that `/Applications/` is a macOS convention.",
+    "confidence": 0.98,
+    "by": "bob",
+    "bobcoins": 0.054874000000000006,
+    "taskId": "e6d03837af2912286f02c0d4b9c99a18"
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T11:50:53.085Z"
+}
