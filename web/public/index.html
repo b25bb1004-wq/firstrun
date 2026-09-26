@@ -16,9 +16,18 @@
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>document.documentElement.classList.add('js');if(!location.hash)document.documentElement.classList.add('intro-on');</script>
 <script>if (location.hash) { document.addEventListener('DOMContentLoaded', function () { var el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }); }</script>
 </head>
 <body>
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro-board">
+    <svg class="intro-guides" preserveAspectRatio="none"></svg>
+    <div class="intro-stage"></div>
+    <button class="intro-skip mono" type="button" tabindex="-1">Skip</button>
+  </div>
+  <div class="intro-word"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></div>
+</div>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="top">
@@ -359,6 +368,7 @@
   </div>
 </footer>
 
+<script src="/assets/intro.js" defer></script>
 <script src="/assets/heal.js" defer></script>
 <script src="/assets/check.js" defer></script>
 <script src="/assets/site.js" defer></script>

@@ -764,3 +764,30 @@ section[id] {
 .heal-done .cmds li { font-size: 14px; line-height: 1.45; }
 .heal-done .cmds li.cm { font-size: 12.5px; margin-top: 7px; }
 .heal-done .proof { margin-top: 14px; padding-top: 10px; }
+
+/* ===== v14 (Edith): the HUMBLE intro (intro.js). A drafting board after alche.studio's outro: hairline guides,
+   each agent's name condenses to its letter, and the letters spell HUMBLE. Palette only, no shadows. ===== */
+.intro { display: none; }
+html.js .intro { display: block; position: fixed; inset: 0; z-index: 50; pointer-events: auto; }
+html.intro-on { overflow: hidden; }
+html.intro-on .top .mark { opacity: 0; }
+.intro-board { position: absolute; inset: 0; background: var(--bg); }
+.intro-guides { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-guides line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 0; vector-effect: non-scaling-stroke; }
+.intro-guides line.faint { stroke-dasharray: 1; opacity: .55; }
+.intro-guides .compass { fill: none; stroke: var(--blue); stroke-width: 1; stroke-dasharray: 2 5; transform-box: fill-box; transform-origin: center; opacity: .9; }
+.intro-word { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; top: 38%; translate: 0 -50%; display: flex; gap: .02em;
+  font: 800 clamp(64px, 15vw, 220px)/1 var(--display); letter-spacing: -.035em; color: var(--ink); white-space: nowrap; transform-origin: 0 50%; }
+.intro-word span { display: inline-block; min-width: .56em; text-align: center; opacity: 0; }
+.intro-word span.in { opacity: 1; }
+.intro-stage { position: absolute; left: 0; right: 0; top: 66%; display: grid; justify-items: center; gap: 10px; }
+.intro-name { display: flex; font: 750 clamp(40px, 8vw, 116px)/1 var(--display); letter-spacing: -.03em; color: var(--ink); white-space: nowrap; }
+.intro-name span { display: inline-block; overflow: hidden; }
+.intro-name span.hot { color: var(--pink); }
+.intro-role { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.intro-skip { position: absolute; right: clamp(16px, 3vw, 32px); bottom: clamp(16px, 3vw, 28px); background: none; border: 0; padding: 6px 0;
+  font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.intro-skip:hover { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .intro-word span { opacity: 1; } }
+.intro-stage { display: block; height: 1px; }
+.intro-agent { position: absolute; left: 0; right: 0; top: 0; display: grid; justify-items: center; gap: 10px; }
