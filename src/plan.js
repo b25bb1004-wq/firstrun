@@ -92,7 +92,8 @@ export function classify(cmd, facts) {
   if (/^(apt(-get)?|yum|dnf|apk|pacman)\s/.test(c)) return { kind: 'prereq' };
   if (/^(code|cursor|idea|subl|vim|nano)\s/.test(c)) return { kind: 'other', skip: 'opens an editor' };
   if (/^(curl|wget)\s+(-\w+\s+)*https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)/.test(c)) return { kind: 'test', probe: true };
-  if (/^docker(-compose|\s+compose)\b.*\b(up|start)\b/.test(c)) return { kind: 'services' };
+  // `docker compose -f docker/docker-compose.yml up -d db` is services; `docker compose run app npm start` is not.
+  if (/^docker(-compose|\s+compose)(\s+(-f|--file|-p|--project-name|--env-file|--profile)\s+\S+)*\s+(up|start)\b/.test(c)) return { kind: 'services' };
   if (/^docker\s+run\b/.test(c) && /\b(postgres|redis|mysql|mariadb|mongo|rabbitmq|elasticsearch|memcached|minio|mailhog|localstack)/i.test(c)) return { kind: 'services' };
   if (/^docker(-compose|\s+compose)?\s+(build|run|exec|push|pull|login)\b|^docker(-compose)?\s+/.test(c)) return { kind: 'other', skip: 'container-based alternative workflow' };
   if (/^(cp|mv|copy)\s+\S*\.env|^(cp|mv)\s+\S*env\S*\s|^export\s+[A-Z_]+=|^echo\s+.+>>?\s*\.env|^touch\s+\.env|^source\s+\.env|^set\s+-a/.test(c)) return { kind: 'env' };

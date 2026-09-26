@@ -442,14 +442,15 @@ export class Sandbox {
       if (typeof vol !== 'string' || !vol.includes(':')) continue;
       const [src, ...dstParts] = vol.split(':');
       const dst = dstParts.join(':').replace(/:ro$|:rw$/, '');
-      if (src.startsWith('.') || src.startsWith('/') || src.includes('/')) {
-        const hostSrc = path.isAbsolute(src)
-          ? src
-          : path.resolve(this.repoDir, composeDir || '.', src);
-        if (fs.existsSync(hostSrc)) {
-          args.push('-v', `${hostSrc}:${dst}:ro`);
-        }
-      }
+      // Only files from the repo itself (init.sql, config), read-only. The compose file and the image are both
+      // repo-controlled: an absolute path (`/:/host`) or one that climbs out (`../../`) would hand the host's
+      // files to an image the repo chose. Named volumes (`db-data:/var/lib/...`) are skipped: sidecars start fresh.
+      if (path.isAbsolute(src) || /^[A-Za-z]:/.test(src) || src.startsWith('~')) continue;
+      if (!(src.startsWith('.') || src.includes('/'))) continue;
+      const repoRoot = path.resolve(this.repoDir);
+      const hostSrc = path.resolve(repoRoot, composeDir || '.', src);
+      if (hostSrc !== repoRoot && !hostSrc.startsWith(repoRoot + path.sep)) continue;
+      if (fs.existsSync(hostSrc)) args.push('-v', `${hostSrc}:${dst}:ro`);
     }
     args.push(image);
     await must('docker', args);

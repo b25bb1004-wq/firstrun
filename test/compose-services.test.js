@@ -140,3 +140,18 @@ test('sandbox apt shim: package list check correctly triggers when only auxfiles
   }
 });
 
+
+// Friday's review of #133: compose volumes are repo-controlled; only repo-relative paths may reach a sidecar.
+import { classify as classifyReview } from '../src/plan.js';
+import { dockerRunLine as runLineReview } from '../src/doctor/services.js';
+test('REVIEW: docker compose run/exec with start is not a services step', () => {
+  assert.notEqual(classifyReview('docker compose run --rm app npm start', {}).kind, 'services');
+  assert.notEqual(classifyReview('docker compose exec web npm run start', {}).kind, 'services');
+  assert.equal(classifyReview('docker compose -f docker/docker-compose.yml up -d db', {}).kind, 'services');
+  assert.equal(classifyReview('docker-compose up -d', {}).kind, 'services');
+});
+test('REVIEW: absolute or escaping volume paths never become mounts', () => {
+  const line = runLineReview({ name: 'db', image: 'mysql:8', port: 3306, env: {}, volumes: ['/:/host', '../../secrets:/s', '~/.ssh:/k', 'C:/Users:/u', './docker/init.sql:/docker-entrypoint-initdb.d/init.sql', 'db-data:/var/lib/mysql'] });
+  assert.doesNotMatch(line, /-v \/:|\.\.\/\.\.\/secrets|~\/\.ssh|C:\/Users|db-data/);
+  assert.match(line, /-v \.\/docker\/init\.sql:\/docker-entrypoint-initdb\.d\/init\.sql/);
+});

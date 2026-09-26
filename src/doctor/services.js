@@ -102,7 +102,8 @@ export function dockerRunLine(def) {
   const vols = (def.volumes || []).filter((v) => {
     if (typeof v !== 'string' || !v.includes(':')) return false;
     const src = v.split(':')[0];
-    return src.startsWith('.') || src.startsWith('/') || src.includes('/');
+    // Same rule as Sandbox.addService: repo-relative paths only, never absolute host paths or ones that climb out.
+    return !src.startsWith('/') && !/^[A-Za-z]:/.test(src) && !src.startsWith('~') && !src.split('/').includes('..') && (src.startsWith('.') || src.includes('/'));
   }).map((v) => `-v ${v}`).join(' ');
   return `docker run -d --name ${def.name} -p ${def.port}:${def.port}${envs ? ' ' + envs : ''}${vols ? ' ' + vols : ''} ${def.image}`;
 }
