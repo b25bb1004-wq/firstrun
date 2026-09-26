@@ -79,6 +79,18 @@ async function run() {
     fs.writeFileSync('web/public/assets/img/snap_01_hero.png', Buffer.from(heroShot.data, 'base64'));
     console.log('Captured: snap_01_hero.png');
 
+    // 1a. Scroll to Hero Figures
+    await send('Runtime.evaluate', {
+      expression: `
+        var skip = document.querySelector('.skipintro');
+        if (skip) skip.click();
+      `
+    });
+    await sleep(700);
+    const figuresShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_01a_hero_figures.png', Buffer.from(figuresShot.data, 'base64'));
+    console.log('Captured: snap_01a_hero_figures.png');
+
     // 1b. Scroll to Hero Agents Console
     await send('Runtime.evaluate', {
       expression: `
@@ -127,6 +139,18 @@ async function run() {
     fs.writeFileSync('web/public/assets/img/snap_03_scrub.png', Buffer.from(scrubShot.data, 'base64'));
     console.log('Captured: snap_03_scrub.png');
 
+    // 3b. Scroll to Wall
+    await send('Runtime.evaluate', {
+      expression: `
+        var el = document.querySelector('#wall');
+        if (el) el.scrollIntoView({ block: 'center' });
+      `
+    });
+    await sleep(600);
+    const wallShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_03b_wall.png', Buffer.from(wallShot.data, 'base64'));
+    console.log('Captured: snap_03b_wall.png');
+
     // 4. Scroll to Proof & Slider
     await send('Runtime.evaluate', {
       expression: `
@@ -162,7 +186,8 @@ async function run() {
 
     ws.close();
   } finally {
-    chrome.kill('SIGKILL');
+    try { chrome.kill('SIGKILL'); } catch {}
+    process.exit(0);
   }
 }
 

@@ -75,16 +75,16 @@
         <a class="link" href="/proof">Watch a real run</a>
       </div>
       <div class="stats figures">
-        <div><b data-count="16">16</b><span>public repos audited on a clean machine</span></div>
-        <div><b data-count="9" data-suffix=" of 14">9 of 14</b><span>READMEs with setup docs broke</span></div>
-        <div><b data-count="11">11</b><span>breaks fixed and proven from zero</span></div>
+        <div><b data-count="16" data-stat="total">16</b><span>public repos audited on a clean machine</span></div>
+        <div><b data-count="9" data-suffix=" of 14" data-stat="broke">9 of 14</b><span>READMEs with setup docs broke</span></div>
+        <div><b data-count="11" data-stat="fixed">11</b><span>breaks fixed and proven from zero</span></div>
       </div>
     </div>
   </section>
 
   <section class="wrap" aria-label="A run, illustrated">
     <div class="hero-stage" data-motion="hero" aria-hidden="true"></div>
-    <p class="fact" data-reveal>Numbers from an audit of 16 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
+    <p class="fact" data-stat="fact" data-reveal>Numbers from an audit of 16 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
   </section>
 
   <section class="band" id="problem" aria-labelledby="h-problem">
@@ -255,12 +255,12 @@
       <h2 id="h-proof" data-reveal>Real runs you can open</h2>
       <p class="sub" data-reveal>Every number here comes from recorded runs you can open and replay.</p>
 
-      <div class="wall" id="wall" data-audit="real-16-v2" aria-label="The 16 audited repositories and their verdicts"></div>
+      <div class="wall" id="wall" data-audit="auto" aria-label="Audited repositories and their verdicts"></div>
       <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
           <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
-          <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3>16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
+          <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3 data-stat="caption">16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
         <article class="card-diff-slider">
           <div class="diff-slider" id="diff-slider" style="--split: 50%;">

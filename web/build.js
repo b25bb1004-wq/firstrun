@@ -11,7 +11,10 @@ import { startServer } from '../src/server.js';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const OUT = path.join(HERE, 'public');
-const ROOTS = ['examples', 'audit/real-16-v2'].map((r) => path.join(ROOT, r));
+const auditCandidate = process.env.AUDIT_DIR
+  ? [process.env.AUDIT_DIR]
+  : ['audit/real-31-v2', 'audit/v2-31', 'audit/real-16-v2'].filter((r) => fs.existsSync(path.join(ROOT, r))).slice(0, 1);
+const ROOTS = ['examples', ...auditCandidate].map((r) => path.join(ROOT, r));
 const RUN_FILES = /^(events\.ndjson|plan\.json|run\.json|evidence\/.*|logs\/.*|out\/.*)$/; // never bob/ (stand-in transcripts)
 
 const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
@@ -59,4 +62,31 @@ await close();
 
 // run dirs are local paths; don't publish them
 write(path.join(OUT, 'data', 'runs.json'), runs.map(({ dir, ...r }) => r));
+
+// Synchronize landing page index.html static figures with the exported audit
+if (audits.length) {
+  const primaryId = audits[0].id;
+  const primaryDataPath = path.join(OUT, 'data', 'audits', `${primaryId}.json`);
+  if (fs.existsSync(primaryDataPath)) {
+    const primary = JSON.parse(fs.readFileSync(primaryDataPath, 'utf8'));
+    const total = primary.summary?.total ?? primary.repos?.length ?? 0;
+    const noDocs = (primary.repos || []).filter((r) => r.verdict === 'NO-SETUP-DOCS').length;
+    const followable = Math.max(0, total - noDocs);
+    const broke = primary.summary?.brokeOnCleanMachine ?? (primary.repos || []).filter((r) => r.verdict === 'FAILED' || r.verdict === 'PARTIAL').length;
+    const fixed = primary.summary?.breaksFixed ?? 0;
+
+    const landingPath = path.join(OUT, 'index.html');
+    if (fs.existsSync(landingPath)) {
+      let html = fs.readFileSync(landingPath, 'utf8');
+      html = html.replace(/<b data-count="\d+" data-stat="total">\d+<\/b>/, `<b data-count="${total}" data-stat="total">${total}</b>`);
+      html = html.replace(/<b data-count="\d+" data-suffix="[^"]*" data-stat="broke">[^<]+<\/b>/, `<b data-count="${broke}" data-suffix=" of ${followable}" data-stat="broke">${broke} of ${followable}</b>`);
+      html = html.replace(/<b data-count="\d+" data-stat="fixed">\d+<\/b>/, `<b data-count="${fixed}" data-stat="fixed">${fixed}</b>`);
+      html = html.replace(/<p class="fact" data-stat="fact"[^>]*>.*?<\/p>/, `<p class="fact" data-stat="fact" data-reveal>Numbers from an audit of ${total} public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>`);
+      html = html.replace(/<h3 data-stat="caption">.*?<\/h3>/, `<h3 data-stat="caption">${total} public repos, pinned to exact commits</h3>`);
+      fs.writeFileSync(landingPath, html);
+      console.log(`web/public/index.html synced to audit ${primaryId}: ${total} repos, ${broke}/${followable} broke, ${fixed} fixed`);
+    }
+  }
+}
+
 console.log(`web/public: ${runs.length} runs, ${audits.length} audits exported`);
