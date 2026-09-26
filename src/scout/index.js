@@ -130,7 +130,7 @@ export async function scout(root) {
 
   // docker compose
   const composeFile = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml', 'docker-compose.dev.yml'].find(has)
-    || files.find((f) => /(^|\/)(docker-)?compose(\.[^/]*)?\.ya?ml$/i.test(f) && !/node_modules|test|fixture/i.test(f));
+    || files.find((f) => /(^|\/)(docker-)?compose(\.[^/]*)?\.ya?ml$/i.test(f) && !/node_modules|test|fixture|(^|\/)(examples?|demos?|samples?|playground)\//i.test(f));
   if (composeFile) {
     try {
       const doc = YAML.parse(read(composeFile)) || {};
@@ -156,7 +156,9 @@ export async function scout(root) {
 
   // env vars read in code, python app entrypoints, ports
   const vars = new Map();
-  const codeFiles = files.filter((f) => CODE_EXT.test(f) && !/(^|\/)(test|tests|__tests__|spec|e2e|fixtures|migrations|scripts\/ci)\//i.test(f) && !/\.(test|spec)\.[jt]sx?$/.test(f) && !/(^|\/)test_[^/]*\.py$/.test(f)).slice(0, 1500);
+  // examples/, demos/, samples/ are separate projects that show how to USE this one: their env vars and ports are
+  // not this repo's (HUMBLE's own README: "done when" became Redis :6379 from examples/acme-shop).
+  const codeFiles = files.filter((f) => CODE_EXT.test(f) && !/(^|\/)(test|tests|__tests__|spec|e2e|fixtures|migrations|scripts\/ci|examples?|demos?|samples?|playground)\//i.test(f) && !/\.(test|spec)\.[jt]sx?$/.test(f) && !/(^|\/)test_[^/]*\.py$/.test(f)).slice(0, 1500);
   for (const f of codeFiles) {
     const text = read(f);
     if (!text || text.length > 400_000) continue;
@@ -272,6 +274,13 @@ export async function scout(root) {
     ? (files.filter((f) => f.endsWith('.py')).length > files.filter((f) => /\.[jt]sx?$/.test(f)).length ? 'python' : 'node')
     : facts.node ? 'node' : facts.python ? 'python' : 'other';
   facts.cli = cliNames(facts, read, has);
+  // Files package.json `bin` points at: `node bin/tool.js <cmd>` runs this repo's CLI, it doesn't start a server.
+  facts.binPaths = (() => {
+    try {
+      const pkg = JSON.parse(read('package.json') || '{}');
+      return (typeof pkg.bin === 'string' ? [pkg.bin] : Object.values(pkg.bin || {})).map((x) => String(x).replace(/^\.\//, ''));
+    } catch { return []; }
+  })();
   return facts;
 }
 

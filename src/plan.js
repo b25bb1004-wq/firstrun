@@ -19,7 +19,7 @@ export function imageFor(runtime, version) {
 }
 
 const SERVE_RE = /^(?:(?:npm|pnpm|bun)\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|yarn\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|npx\s+(?:next|vite|nodemon|ts-node|tsx)\b(?!.*\bbuild\b)|node\s+\S+\.(?:m?js|cjs)(?!\S)|nodemon\b|next\s+dev|vite(?:\s|$)(?!.*build)|python3?\s+(?:-m\s+)?(?:\S+\.py|flask|uvicorn|http\.server|manage\.py\s+runserver)|flask\s+(?:--app\s+\S+\s+)?run|uvicorn\s|gunicorn\s|hypercorn\s|streamlit\s+run|fastapi\s+(?:dev|run)|poetry\s+run\s+(?:python\s+\S+\.py|uvicorn|flask|gunicorn|python\s+manage\.py\s+runserver)|uv\s+run\s+(?:uvicorn|flask|python\s+\S+\.py|fastapi)|pipenv\s+run\s+(?:python|flask|uvicorn)|rails\s+s|make\s+(?:run|dev|serve|start))/i;
-const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
+const TEST_RE = /^(?:node\s+--test\b|(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
 
 export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
@@ -104,6 +104,9 @@ export function classify(cmd, facts) {
   if (/(db:seed|\bseed\b|loaddata|fixtures?\b)/i.test(c)) return { kind: 'migrate' };
   // `uv run ./manage.py test`, `poetry run pytest`: the runner prefix doesn't change what the command is.
   if (TEST_RE.test(c) || TEST_RE.test(c.replace(/^(?:uv|poetry|pipenv|pdm|hatch)\s+run\s+/, ''))) return { kind: 'test' };
+  // `node bin/firstrun.js plan …` runs this repo's own CLI (a package.json bin): a one-shot command, not a server.
+  const nodeFile = c.match(/^node\s+(?:\.\/)?(\S+\.(?:m?js|cjs))(?:\s|$)/);
+  if (nodeFile && facts?.binPaths?.includes(nodeFile[1])) return { kind: 'other', ...ctx };
   if (SERVE_RE.test(c)) return { kind: 'serve' };
   if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|^make(\s+(build|all))?$|^tsc\b|^npx\s+tsc\b|^python3?\s+setup\.py\s+(build|develop)/.test(c)) return { kind: 'build' };
   return { kind: 'other', ...ctx };
