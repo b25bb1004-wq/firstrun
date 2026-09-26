@@ -43,18 +43,18 @@
     '  float persp = 900.0 / (900.0 + z);',
     '  vec2 q = vec2(c.x, c.y * cos(ang)) * persp + vec2(uRes.x*0.5, uRes.y*0.62 - uScroll*uRes.y*0.18);',
     '  gl_Position = vec4((q / uRes) * 2.0 - 1.0, 0.0, 1.0); gl_Position.y *= -1.0;',
-    '  float fixLine = aFix * step(0.55, k);',
-    '  gl_PointSize = (1.7 + fixLine*0.8 + (1.0-k)*0.5) * uDpr * persp;',
-    // Colour: agent colours in the chaos → calm ink on the page; the broken line red → green.
-    '  vec3 ink = uLight > 0.5 ? vec3(0.08,0.09,0.23) : vec3(0.94,0.91,0.85);',
-    '  vec3 col = mix(agent(aColor), ink * 0.62, k*0.92);',
+    '  float fixLine = 0.0; // the highlighted pink/blue line was removed (Karmanya, 26 Sep): read as a stray stroke',
+    '  gl_PointSize = (2.1 + (1.0-k)*0.5) * uDpr * persp;',
+    // Colour: palette blue/pink in the chaos, settling into toasted oat (#a38a64) on the light theme, pale oat on dark.
+    '  vec3 ink = uLight > 0.5 ? vec3(0.64,0.54,0.39) : vec3(0.94,0.91,0.85);',
+    '  vec3 col = mix(agent(aColor), uLight > 0.5 ? ink : ink * 0.62, k*0.95);',
     '  col = mix(col, vec3(1.0,0.18,0.53), fixLine*uAlarm);',
     '  col = mix(col, vec3(0.14,0.25,1.0), fixLine*uFixed);',
     '  vCol = col;',
     '  vAlpha = mix(0.55, 0.62, k) + fixLine*max(uAlarm,uFixed)*0.4;',
     '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, p) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, p));',
     '  vAlpha *= 1.0 - 0.9 * inC.x * inC.y;',
-    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.34 + fixLine*0.66 : 1.0);',
+    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.95 : 1.0);',
     '}'
   ].join('\n');
   var FS = [
