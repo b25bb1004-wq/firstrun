@@ -159,6 +159,7 @@ request (it never opens one without being asked).
 | **Doc Detective** | Tests documented setup procedures and reports failures | FirstRun runs the entire setup as a newcomer, repairs breaks, and replays from zero |
 | **Runme** | Turns markdown blocks into runnable notebooks | FirstRun proves the human-facing README natively, repairs commands, and writes verified PRs |
 | **DeepWiki / Swimm** | Explains code and architecture with AI | FirstRun proves the setup actually executes and runs, not just explains it |
+| **Clicky / Screen assistants** | Screen-aware AI desktop assistants explain what's on screen and suggest actions | *Screen assistants explain. FirstRun proves.* Pre-verified zero-cost fixes proven in clean sandboxes with flight logs and evidence |
 | **Copilot setup steps** (`copilot-setup-steps.yml`) | Prepares dev environments for coding agents (the bot) | FirstRun fixes the human-facing README (Node.js and Python today) so developers can onboard directly, with immutable evidence |
 | **Repo2Run** | Auto-generates container images for AI agents ([Repo2Run paper](https://arxiv.org/abs/2410.14689), 86% Python) | Repairs the human-facing README (Node.js and Python today) so people can run natively, not just agents in containers |
 | **EnvBench** | Environment validation benchmark | FirstRun is end-to-end: diagnose, repair, replay from zero, and publish a verified PR with drift guard CI |
