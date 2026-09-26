@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { parseMarkdown, isShellBlock, blockCommands, sectionPath } from './markdown.js';
 import { readText } from './util.js';
+import { ciFindings } from './ci-reference.js';
 
 const SETUP_HEADING = /(getting[\s-]*started|install|set[\s-]*up|quick[\s-]*start|develop|local(ly)?\b|run(ning)?\b|how to (run|use|start)|usage|build(ing)?\b|prereq|requirement|database|configur|environment|\btests?\b|testing|contribut|start(ing)?\b|hacking|bootstrap)/i;
 const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|macos only|upgrad|migrating from|benchmark)/i;
@@ -100,7 +101,8 @@ export function classify(cmd, facts) {
   if (/^(npm\s+(i|install|ci)\b|yarn(\s+install)?$|yarn\s+install\b|pnpm\s+(i|install)\b|bun\s+install\b|pip3?\s+install\b|python3?\s+-m\s+pip\s+install\b|poetry\s+install\b|uv\s+(sync|pip\s+install)\b|pipenv\s+install\b|corepack\s+enable\b|npm\s+install\s+-g\b|bundle\s+install\b|composer\s+install\b|go\s+mod\s+download\b)/.test(c)) return { kind: 'install' };
   if (/(migrat|prisma\s+(migrate|db\s+push|generate)|knex\s+migrate|sequelize(-cli)?\s+db:|alembic\s+upgrade|manage\.py\s+(migrate|makemigrations)|db:(migrate|setup|push|reset|create)|typeorm\s+migration|drizzle-kit|createdb\b|psql\b|mysql\s+-u)/i.test(c)) return { kind: 'migrate' };
   if (/(db:seed|\bseed\b|loaddata|fixtures?\b)/i.test(c)) return { kind: 'migrate' };
-  if (TEST_RE.test(c)) return { kind: 'test' };
+  // `uv run ./manage.py test`, `poetry run pytest`: the runner prefix doesn't change what the command is.
+  if (TEST_RE.test(c) || TEST_RE.test(c.replace(/^(?:uv|poetry|pipenv|pdm|hatch)\s+run\s+/, ''))) return { kind: 'test' };
   if (SERVE_RE.test(c)) return { kind: 'serve' };
   if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|^make(\s+(build|all))?$|^tsc\b|^npx\s+tsc\b|^python3?\s+setup\.py\s+(build|develop)/.test(c)) return { kind: 'build' };
   return { kind: 'other', ...ctx };
@@ -586,6 +588,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const pick = tests.find((s) => s.probe) || tests.filter((s) => s.origin !== 'ci').pop() || tests.pop();
     verify = { kind: 'command', target: pick.command };
   }
+
+  // CI as the reference path: where the docs' path differs from what CI runs on a clean Linux machine.
+  for (const f of ciFindings({ facts, steps, classify, classifyFacts, docFile: facts.docs[0], readmeText })) conflicts.push(f);
 
   return {
     repo: repo || path.basename(facts.root),
