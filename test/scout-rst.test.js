@@ -184,7 +184,8 @@ test('plan: flask tutorial README.rst extracts pip install -e . and pytest steps
     return;
   }
   
-  const facts = await scout(fixturePath.replace('examples/tutorial/README.rst', ''));
+  // The repo root, built portably (a string replace of a forward-slash path fails on Windows).
+  const facts = await scout(path.join(process.cwd(), 'test', 'fixtures', 'v2', 'pallets__flask'));
   const plan = buildPlan(facts, { repo: 'pallets/flask' });
   
   const installSteps = plan.steps.filter(s => s.kind === 'install' && !s.skip);
