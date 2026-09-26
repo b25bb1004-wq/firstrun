@@ -548,19 +548,15 @@
     morph: drawMorph
   };
 
+  // Palette only (docs/design/ANTI_VIBECODE.md): blue = scouting/proving, hot pink = running/breaking, ink for the Scribe.
+  const BLUE = [36, 64, 255], DEEP = [27, 43, 184], PINK = [255, 45, 135];
   const AGENT_TINTS = {
-    searching: [79, 140, 255],  // Scout #4f8cff
-    globe:     [79, 140, 255],
-    shaping:   [96, 120, 255],  // Planner #1b2bb8 / #6078ff
-    morph:     [96, 120, 255],
-    working:   [255, 138, 61],  // Runner #ff8a3d
-    orbits:    [255, 138, 61],
-    solving:   [255, 92, 122],  // Doctor #ff5c7a
-    rubik:     [255, 92, 122],
-    listening: [47, 191, 133],  // Verifier #2fbf85
-    wave:      [47, 191, 133],
-    composing: [245, 197, 66],  // Scribe #f5c542
-    ribbon:    [245, 197, 66]
+    searching: BLUE, globe: BLUE,       // Scout
+    shaping: DEEP, morph: DEEP,         // Planner
+    working: PINK, orbits: PINK,        // Runner
+    solving: PINK, rubik: PINK,         // Doctor
+    listening: BLUE, wave: BLUE,        // Verifier
+    composing: null, ribbon: null       // Scribe: plain ink
   };
 
   // --- ThinkingOrb Controller ---
