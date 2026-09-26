@@ -29,7 +29,7 @@ const FULL_RUN_EVENTS = [
 test('full run: scout done with node info', () => {
   const s = applyAll('/repo', 'all', FULL_RUN_EVENTS);
   assert.equal(s.characters.scout.state, 'done');
-  assert.match(s.characters.scout.line, /node 20/);
+  assert.match(s.characters.scout.line, /node 20/i);
 });
 
 test('full run: planner done, 2 steps 2 conflicts', () => {

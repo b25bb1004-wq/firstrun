@@ -64,7 +64,9 @@ export function reduce(state, event) {
     }
     case 'facts': {
       ch('scout').state = 'done';
-      ch('scout').line = [data.stack, data.node && `node ${data.node}`, data.python && `python ${data.python}`].filter(Boolean).join(' · ');
+      // facts.node / facts.python are objects ({ truth: { version } }); show the version the code needs.
+      const v = (x) => (x && typeof x === 'object' ? x.truth?.version : x);
+      ch('scout').line = [data.node && `Node ${v(data.node) || '?'}`, data.python && `Python ${v(data.python) || '?'}`, `${Array.isArray(data.docs) ? data.docs.length : data.docs || 0} docs`].filter(Boolean).join(' · ');
       break;
     }
     case 'plan': {
