@@ -140,7 +140,7 @@ export function init(container, { reduced = false } = {}) {
                   <span style="color: ${a.color}; display: flex; align-items: center;">
                     <svg width="18" height="18" viewBox="0 0 20 20">${a.miniSvg}</svg>
                   </span>
-                  <span style="font-weight: 600; font-size: 16px; color: var(--ink);">${a.name}</span>
+                  <span style="font-family: var(--display); font-weight: 700; font-size: 16px; color: var(--ink);">${a.name}</span>
                 </div>
                 <span style="font-family: var(--mono); font-size: 12px; color: var(--muted);">${a.id}</span>
               </div>
@@ -211,7 +211,7 @@ export function init(container, { reduced = false } = {}) {
                   <span class="c-agent-idx mono" style="font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 2px; background: rgba(79, 140, 255, 0.12); color: var(--c-scout, #4f8cff);">AGENT 01</span>
                   <span class="c-agent-shape-label mono" style="font-size: 12px; color: var(--muted);">● circle</span>
                 </div>
-                <div class="c-agent-name" style="font-size: 24px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em;">Scout</div>
+                <div class="c-agent-name" style="font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.025em;">Scout</div>
               </div>
             </div>
 
