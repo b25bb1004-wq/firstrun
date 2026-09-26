@@ -791,3 +791,16 @@ html.intro-on .top .mark { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .intro-word span { opacity: 1; } }
 .intro-stage { display: block; height: 1px; }
 .intro-agent { position: absolute; left: 0; right: 0; top: 0; display: grid; justify-items: center; gap: 10px; }
+
+/* ===== v15 (Edith): the intro is scroll-driven, not a video. A pinned section; scroll moves H to E. ===== */
+html.js .intro { display: block; position: relative; inset: auto; z-index: auto; height: calc(100vh + 6 * 55vh); pointer-events: auto; }
+.intro-stick { position: sticky; top: 64px; height: calc(100vh - 64px); overflow: hidden; background: var(--bg); }
+.intro-word { top: 34%; }
+.intro-stage { position: absolute; left: 0; right: 0; top: 64%; }
+.intro-guides line { stroke-dasharray: 1; }
+.intro-hint { position: absolute; left: 0; right: 0; bottom: clamp(20px, 5vh, 44px); margin: 0 auto; max-width: none; text-align: center;
+  font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.intro.static { height: auto; }
+.intro.static .intro-stick { position: static; height: 50vh; }
+.intro.static .intro-hint, .intro.static .intro-stage { display: none; }
+.intro-word span { opacity: 0; }

@@ -16,18 +16,10 @@
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<script>document.documentElement.classList.add('js');if(!location.hash)document.documentElement.classList.add('intro-on');</script>
+<script>document.documentElement.classList.add('js');</script>
 <script>if (location.hash) { document.addEventListener('DOMContentLoaded', function () { var el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }); }</script>
 </head>
 <body>
-<div class="intro" id="intro" aria-hidden="true">
-  <div class="intro-board">
-    <svg class="intro-guides" preserveAspectRatio="none"></svg>
-    <div class="intro-stage"></div>
-    <button class="intro-skip mono" type="button" tabindex="-1">Skip</button>
-  </div>
-  <div class="intro-word"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></div>
-</div>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="top">
@@ -44,6 +36,15 @@
 </header>
 
 <main id="main">
+
+  <section class="intro" id="intro" aria-label="HUMBLE: six agents, Harvey, Unity, Mach, Dr.BO, Larp and Echo">
+    <div class="intro-stick">
+      <svg class="intro-guides" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="intro-word" aria-hidden="true"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></div>
+      <div class="intro-stage" aria-hidden="true"></div>
+      <p class="intro-hint mono">Scroll to meet the crew</p>
+    </div>
+  </section>
 
   <section class="heal" id="heal" aria-label="A real setup guide, followed on a clean machine and repaired" hidden>
     <div class="heal-stick">
