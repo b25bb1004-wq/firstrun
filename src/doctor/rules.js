@@ -1125,6 +1125,20 @@ export const RULES = [
       };
     },
   },
+  {
+    // HUMBLE verifying its own README: `firstrun verify examples/acme-shop` starts containers, and the clean machine
+    // has no Docker daemon (only HUMBLE's docker shim, which exits 97). The docs list Docker as a requirement and a
+    // newcomer's laptop has it: this is a limit of HUMBLE's sandbox (no nested Docker), not a README problem.
+    id: 'needs-docker-daemon',
+    test({ log }) {
+      if (!/docker run [^\n]*failed \(97\)|is not available on the clean machine \(no Docker daemon\)|Cannot connect to the Docker daemon/.test(log)) return null;
+      return {
+        ruleId: 'needs-docker-daemon', class: 'sandbox-limit', confidence: 0.9,
+        cause: 'This step starts Docker containers itself, and HUMBLE\'s clean machine has no Docker engine inside it (no nested Docker). On a newcomer\'s laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.',
+        fix: null,
+      };
+    },
+  },
 ];
 
 function label(kind) {
