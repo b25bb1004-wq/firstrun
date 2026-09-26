@@ -154,6 +154,10 @@
 
   // Cancel Button
   cancelBtn.addEventListener('click', () => {
+    if (simulationTimer) {
+      clearInterval(simulationTimer);
+      simulationTimer = null;
+    }
     if (window.dock?.cancel) {
       window.dock.cancel();
     }
@@ -310,6 +314,104 @@
     }
   }
 
+  const AGENTS = ['scout', 'planner', 'runner', 'doctor', 'verifier', 'scribe', 'guide'];
+
+  function blankCharacters() {
+    return {
+      scout:    { state: 'idle', line: '' },
+      planner:  { state: 'idle', line: '' },
+      runner:   { state: 'idle', line: '' },
+      doctor:   { state: 'idle', line: '' },
+      verifier: { state: 'idle', line: '' },
+      scribe:   { state: 'idle', line: '' },
+      guide:    { state: 'idle', line: '' },
+    };
+  }
+
+  function initialDockState(target, agent) {
+    return {
+      target: target || 'examples/acme-shop',
+      agent: agent || 'all',
+      phase: null,
+      verdict: null,
+      characters: blankCharacters(),
+      evidence: [],
+      bobcoins: 0,
+      runDir: null,
+    };
+  }
+
+  // Pure reducer per docs/DOCK_CONTRACT.md §3 and src/dock-state.js
+  function reduceDockState(state, event) {
+    const s = { ...state, characters: { ...state.characters } };
+    function ch(name) { s.characters[name] = { ...s.characters[name] }; return s.characters[name]; }
+    const { type, agent, data } = event;
+
+    switch (type) {
+      case 'phase': {
+        s.phase = data.phase;
+        if (data.phase === 'scout')   { ch('scout').state = 'working'; }
+        if (data.phase === 'plan')    { ch('planner').state = 'working'; }
+        if (data.phase === 'repair')  { ch('doctor').state = 'working'; }
+        if (data.phase === 'publish') { ch('scribe').state = 'working'; }
+        if (data.phase === 'replay' && s.characters.runner.state !== 'needs_you') {
+          ch('runner').state = 'done'; ch('runner').line = '';
+        }
+        if (data.phase === 'done') {
+          for (const n of AGENTS) if (s.characters[n].state === 'working') { ch(n).state = 'done'; }
+        }
+        break;
+      }
+      case 'facts': {
+        ch('scout').state = 'done';
+        const v = (x) => (x && typeof x === 'object' ? x.truth?.version : x);
+        ch('scout').line = [data.node && `Node ${v(data.node) || '?'}`, data.python && `Python ${v(data.python) || '?'}`, `${Array.isArray(data.docs) ? data.docs.length : data.docs || 0} docs`].filter(Boolean).join(' · ');
+        break;
+      }
+      case 'plan': {
+        const n = (data.steps ?? []).length;
+        const c = (data.conflicts ?? []).length;
+        const runnable = (data.steps ?? []).filter((x) => !x.skip).length;
+        ch('planner').line = `${n} step${n !== 1 ? 's' : ''}${c ? `, ${c} conflict${c !== 1 ? 's' : ''}` : ''}`;
+        ch('planner').state = runnable === 0 ? 'needs_you' : 'done';
+        break;
+      }
+      case 'step.start': {
+        if (agent === 'runner' || agent === 'swarm') { ch('runner').state = 'working'; ch('runner').line = data.command ?? ''; }
+        break;
+      }
+      case 'step.end': {
+        if ((agent === 'runner' || agent === 'swarm') && data.status === 'failed') {
+          ch('runner').state = 'needs_you'; ch('runner').line = data.command ?? '';
+        }
+        break;
+      }
+      case 'diagnosis': { ch('doctor').state = 'working'; ch('doctor').line = data.diagnosis?.cause ?? ''; break; }
+      case 'evidence': {
+        const ev = { id: data.id, stepId: data.stepId, status: data.status, cause: '' };
+        s.evidence = [...(s.evidence ?? []).filter((e) => e.id !== data.id), ev];
+        if (data.status === 'verified' || data.status === 'progressed') {
+          ch('doctor').state = 'done'; ch('doctor').line = data.status;
+        } else if (data.status === 'needs-human' || data.status === 'failed') {
+          ch('doctor').state = 'needs_you'; ch('doctor').line = 'needs a human';
+        }
+        break;
+      }
+      case 'bob': { s.bobcoins = (s.bobcoins ?? 0) + (data.bobcoins ?? 0); break; }
+      case 'replay.start': { ch('verifier').state = 'working'; break; }
+      case 'replay.end': {
+        ch('verifier').state = data.status === 'passed' ? 'done' : 'needs_you';
+        ch('verifier').line = data.status ?? '';
+        break;
+      }
+      case 'passport': { ch('scribe').state = 'done'; break; }
+      case 'done': { s.verdict = data.verdict; break; }
+      case 'artifact': { if (data.path) s.runDir = s.runDir ?? data.path.replace(/\/out\/.*$/, ''); break; }
+      default: break;
+    }
+    return s;
+  }
+
   const bobPhaseMessages = {
     scout: "I've sent the Scout in to inspect manifests and docs.",
     plan: "I'm having the Planner build the execution DAG and flag drifts.",
@@ -320,36 +422,48 @@
     done: "Your README is proven from zero. 0 human steps needed."
   };
 
+  function applyDockState(state) {
+    if (!state) return;
+    if (state.target && repoInput && document.activeElement !== repoInput) repoInput.value = state.target;
+    if (state.verdict) setVerdict(state.verdict);
+    if (state.runDir) currentRunDir = state.runDir;
+    if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;
+
+    if (state.phase) {
+      const msg = bobPhaseMessages[state.phase] || `I'm coordinating the ${state.phase} phase…`;
+      bobPrompt.textContent = msg;
+    }
+
+    if (state.evidence && state.evidence.length > 0) {
+      stepCounter.textContent = `${state.evidence.length} break${state.evidence.length !== 1 ? 's' : ''} fixed`;
+    }
+
+    if (state.characters) {
+      Object.keys(state.characters).forEach(agentName => {
+        const info = state.characters[agentName];
+        if (info) {
+          setAgentState(agentName, info.state || 'idle', info.line || '');
+        }
+      });
+    }
+
+    if (state.verdict === 'VERIFIED') {
+      bobPrompt.textContent = "I've proven examples/acme-shop from zero (7 steps, 5 conflicts, 5 breaks fixed, 14 s replay).";
+      cancelBtn.style.display = 'none';
+      verdictPill.textContent = 'REPLAY · VERIFIED';
+      stepCounter.textContent = '7 steps · 5 breaks fixed (14 s)';
+    } else if (state.verdict === 'FAILED') {
+      bobPrompt.textContent = "Run finished with unresolved breaks. Check the flight log.";
+      cancelBtn.style.display = 'none';
+    }
+  }
+
   // Live IPC state listener per docs/DOCK_CONTRACT.md §4:
   // { target, agent, phase, verdict, characters: { scout:{state,line}, … }, evidence:[…], bobcoins, runDir }
   if (window.dock?.onState) {
     window.dock.onState((state) => {
-      if (!state) return;
-      if (state.target) repoInput.value = state.target;
-      if (state.verdict) setVerdict(state.verdict);
-      if (state.runDir) currentRunDir = state.runDir;
-      if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;
-
-      if (state.phase) {
-        const msg = bobPhaseMessages[state.phase] || `I'm coordinating the ${state.phase} phase…`;
-        bobPrompt.textContent = msg;
-        if (audioEnabled) speak(msg);
-      }
-
-      if (state.characters) {
-        Object.keys(state.characters).forEach(agentName => {
-          const info = state.characters[agentName];
-          if (info) {
-            setAgentState(agentName, info.state || 'idle', info.line || '');
-          }
-        });
-      }
-
-      if (state.verdict === 'VERIFIED') {
-        bobPrompt.textContent = "Your README is proven from zero! All steps verified.";
-        cancelBtn.style.display = 'none';
-      } else if (state.verdict === 'FAILED') {
-        bobPrompt.textContent = "Run finished with unresolved breaks. Check the flight log.";
+      applyDockState(state);
+      if (state?.verdict === 'VERIFIED' || state?.verdict === 'FAILED') {
         cancelBtn.style.display = 'none';
       }
     });
@@ -381,32 +495,47 @@
     drawer.classList.add('open');
   }
 
+  let simulationTimer = null;
+
   function simulatePlan(target) {
     if (!isAcmeShop(target)) {
       showDesktopRequired(target);
       return;
     }
 
-    bobPrompt.textContent = "I'll send the Scout and Planner to check examples/acme-shop statically…";
+    if (simulationTimer) { clearInterval(simulationTimer); simulationTimer = null; }
+
     setVerdict('running');
+    verdictPill.textContent = 'REPLAY · PLAN';
     stepCounter.textContent = 'Planning (replay)…';
+    bobPrompt.textContent = "I'll send the Scout and Planner to check examples/acme-shop statically…";
 
-    setAgentState('scout', 'working', 'Reading manifests, package.json, compose');
-    setAgentState('planner', 'idle', 'Waiting for facts');
+    let state = initialDockState('examples/acme-shop', 'planner');
+    applyDockState(state);
 
-    setTimeout(() => {
-      setAgentState('scout', 'done', 'Node 16 LTS, Postgres, Redis dependencies');
-      setAgentState('planner', 'working', 'Parsing README prose into 5 steps');
+    const recorded = window.ACME_SHOP_EVENTS || [];
+    const planEvents = [];
+    for (const ev of recorded) {
+      planEvents.push(ev);
+      if (ev.type === 'plan') break;
+    }
 
-      setTimeout(() => {
-        setAgentState('planner', 'done', '5 steps found · 1 version drift flagged');
-        bobPrompt.textContent = "I've analyzed examples/acme-shop: 5 steps mapped, 1 version drift flagged.";
-        stepCounter.textContent = '5 steps mapped';
+    let i = 0;
+    simulationTimer = setInterval(() => {
+      if (i >= planEvents.length) {
+        clearInterval(simulationTimer);
+        simulationTimer = null;
         setVerdict('passed');
-        verdictPill.textContent = 'REPLAY · PLAN';
-        speak("I've finished the static check: 5 steps identified with 1 version drift.");
-      }, 700);
-    }, 700);
+        verdictPill.textContent = 'REPLAY · PLANNED';
+        stepCounter.textContent = '9 steps · 5 conflicts';
+        bobPrompt.textContent = "I've analyzed examples/acme-shop: 9 steps mapped, 5 conflicts flagged from the recorded run.";
+        speak("I've finished the recorded plan check: 9 steps and 5 conflicts identified.");
+        return;
+      }
+      state = reduceDockState(state, planEvents[i]);
+      applyDockState(state);
+      i++;
+    }, 350);
   }
 
   function simulateVerify(target) {
@@ -415,56 +544,38 @@
       return;
     }
 
-    bobPrompt.textContent = "I'm running the recorded proof for examples/acme-shop: sending in the agents…";
+    if (simulationTimer) { clearInterval(simulationTimer); simulationTimer = null; }
+
+    cancelBtn.style.display = 'block';
     setVerdict('running');
-    verdictPill.textContent = 'REPLAYING';
-    stepCounter.textContent = 'Step 1/5 (replay)';
+    verdictPill.textContent = 'REPLAY · RECORDED';
+    bobPrompt.textContent = "Replaying recorded run: examples/acme-shop (seeded breaks)…";
+    stepCounter.textContent = 'Replay starting…';
     bobcoinMeter.textContent = '0.00 Bobcoins';
 
-    setAgentState('scout', 'working', 'Scanning repo structure');
-    setTimeout(() => {
-      setAgentState('scout', 'done', 'Manifests analyzed');
-      setAgentState('planner', 'working', 'Ordering steps');
+    let state = initialDockState('examples/acme-shop', 'all');
+    applyDockState(state);
 
-      setTimeout(() => {
-        setAgentState('planner', 'done', '5 steps scheduled');
-        setAgentState('runner', 'working', 'Step 1: npm install (exit 0)');
+    const recorded = window.ACME_SHOP_EVENTS || [];
+    // Filter to state-changing events for a responsive, true-to-life playback (~6-8s)
+    const keyEvents = recorded.filter(e => e.type !== 'step.log' && e.type !== 'note' && e.type !== 'fix');
 
-        setTimeout(() => {
-          setAgentState('runner', 'needs_you', 'Step 2: connect ECONNREFUSED 6379');
-          stepCounter.textContent = 'Step 2/5 (Break)';
-          setAgentState('doctor', 'working', 'Diagnosing missing-service rule (Redis)');
-          bobPrompt.textContent = "Step 2 failed with ECONNREFUSED. Doctor is checking the rules first…";
-
-          setTimeout(() => {
-            setAgentState('doctor', 'done', 'Fix: docker compose up -d redis (0 Bobcoins)');
-            setAgentState('runner', 'working', 'Applying Redis sidecar & restarting');
-            bobPrompt.textContent = "Doctor applied the Redis service fix (0 Bobcoins). Runner restarted.";
-
-            setTimeout(() => {
-              setAgentState('runner', 'done', 'App started & listening on port 3000');
-              setAgentState('verifier', 'working', 'Discarding machine; replay from zero');
-              bobPrompt.textContent = "Throwing away container. Verifier is testing the repaired guide from zero…";
-
-              setTimeout(() => {
-                setAgentState('verifier', 'done', 'Replay passed in 23s');
-                setAgentState('scribe', 'working', 'Writing README diff & passport.svg');
-                bobPrompt.textContent = "Replay passed! Scribe is minting your Setup Passport.";
-
-                setTimeout(() => {
-                  setAgentState('scribe', 'done', 'Passport generated: VERIFIED');
-                  setAgentState('guide', 'done', 'Guide mode ready for newcomers');
-                  bobPrompt.textContent = "I've proven examples/acme-shop from zero. 0 human steps needed.";
-                  setVerdict('passed');
-                  verdictPill.textContent = 'REPLAY · VERIFIED';
-                  stepCounter.textContent = '5/5 steps (recorded)';
-                  speak('acme-shop is proven from zero. I am ready to guide your next run.');
-                }, 600);
-              }, 700);
-            }, 600);
-          }, 700);
-        }, 600);
-      }, 600);
-    }, 600);
+    let i = 0;
+    simulationTimer = setInterval(() => {
+      if (i >= keyEvents.length) {
+        clearInterval(simulationTimer);
+        simulationTimer = null;
+        cancelBtn.style.display = 'none';
+        setVerdict('passed');
+        verdictPill.textContent = 'REPLAY · VERIFIED';
+        stepCounter.textContent = '7 steps · 5 breaks fixed (14 s)';
+        bobPrompt.textContent = "examples/acme-shop: recorded run replay VERIFIED (7 steps, 5 conflicts, 5 breaks fixed, 14 s).";
+        speak('examples/acme-shop recorded run replay verified. 7 steps, 5 breaks fixed, 14 seconds.');
+        return;
+      }
+      state = reduceDockState(state, keyEvents[i]);
+      applyDockState(state);
+      i++;
+    }, 180);
   }
 })();
