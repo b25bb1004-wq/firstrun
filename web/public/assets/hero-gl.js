@@ -7,6 +7,13 @@
   var hero = document.querySelector('.hero-full');
   if (!hero) return;
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    var poster = document.createElement('div');
+    poster.className = 'field hero-poster';
+    poster.setAttribute('aria-hidden', 'true');
+    hero.insertBefore(poster, hero.firstChild);
+    return;
+  }
   var canvas = document.createElement('canvas');
   canvas.className = 'field';
   canvas.setAttribute('aria-hidden', 'true');

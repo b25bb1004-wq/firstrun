@@ -9,10 +9,13 @@
 <meta property="og:description" content="Setup docs, verified from zero. Powered by IBM Bob.">
 <meta property="og:image" content="/cover.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#efe7da">
+<meta name="theme-color" content="#eae4d7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
@@ -50,6 +53,25 @@
     </div>
   </section>
 
+  <!-- Section 2: Hero (swapped before self-healing run) -->
+  <section class="hero-full" id="hero" aria-labelledby="h1">
+    <div class="wrap inner">
+      <p class="eyebrow mono">Setup docs, verified from zero</p>
+      <h1 id="h1">Your README,<br>proven.</h1>
+      <p class="lede">HUMBLE runs your setup docs on a brand-new machine, fixes what breaks, and proves the fix by doing it all again from zero.</p>
+      <div class="actions">
+        <a class="btn" href="#try">Check a README</a>
+        <a class="link" href="#heal">Watch a real run &darr;</a>
+      </div>
+      <div class="stats figures">
+        <div><b data-count="16" data-stat="total">16</b><span>public repos audited on a clean machine</span></div>
+        <div><b data-count="9" data-suffix=" of 14" data-stat="broke">9 of 14</b><span>READMEs with setup docs broke</span></div>
+        <div><b data-count="11" data-stat="fixed">11</b><span>breaks fixed and proven from zero</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Self-healing README opener -->
   <section class="heal" id="heal" aria-label="A real setup guide, followed on a clean machine and repaired" hidden>
     <div class="heal-stick">
       <div class="heal-doc">
@@ -64,30 +86,13 @@
         <p class="src mono">GeekyAnts/express-typescript · real run ee9f45c8 · node:22</p>
         <p class="heal-out">That was a real run on a real repo. <a class="link" href="#try">Now check yours.</a></p>
         <div class="bar" aria-hidden="true"><i></i></div>
-        <a class="skipintro mono" href="#h1">Skip the run</a>
+        <a class="skipintro mono" href="#problem">Skip the run</a>
       </aside>
     </div>
   </section>
 
-  <section class="hero-full" aria-labelledby="h1">
-    <div class="wrap inner">
-      <p class="eyebrow mono">Setup docs, verified from zero</p>
-      <h1 id="h1">Your README,<br>proven.</h1>
-      <p class="lede">HUMBLE runs your setup docs on a brand-new machine, fixes what breaks, and proves the fix by doing it all again from zero.</p>
-      <div class="actions">
-        <a class="btn" href="#try">Check a README</a>
-        <a class="link" href="/proof">Watch a real run</a>
-      </div>
-      <div class="stats figures">
-        <div><b data-count="16" data-stat="total">16</b><span>public repos audited on a clean machine</span></div>
-        <div><b data-count="9" data-suffix=" of 14" data-stat="broke">9 of 14</b><span>READMEs with setup docs broke</span></div>
-        <div><b data-count="11" data-stat="fixed">11</b><span>breaks fixed and proven from zero</span></div>
-      </div>
-    </div>
-  </section>
-
   <section class="wrap" aria-label="A run, illustrated">
-    <div class="hero-stage" data-motion="hero" aria-hidden="true"></div>
+    <div class="hero-stage" data-motion="hero"></div>
     <p class="fact" data-stat="fact" data-reveal>Numbers from an audit of 16 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
   </section>
 

@@ -283,10 +283,10 @@ h3 { letter-spacing: -0.012em; }
    Oat is the default look (never #fff); blue means proven/fixed and is the primary action; hot pink means broken.
    The theme toggle switches to a deep-navy night version. Agent colours are remapped into the same family. */
 :root, :root:not([data-theme="dark"]) {
-  --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1;
+  --bg: #eae4d7; --surface: #dfd7c8; --line: #cec4b2;
   --ink: #15163a; --muted: #5f5b6b;
   --blue: #2440ff; --pink: #ff2d87;
-  --accent: var(--blue); --accent-ink: #efe7da; --del: var(--pink);
+  --accent: var(--blue); --accent-ink: #eae4d7; --del: var(--pink);
   --c-scout: #2440ff; --c-planner: #6a5cff; --c-runner: #ff5fa8; --c-doctor: #ff2d87; --c-verifier: #2440ff; --c-scribe: #15163a;
   color-scheme: light;
 }
@@ -298,7 +298,21 @@ h3 { letter-spacing: -0.012em; }
   --c-scout: #5b73ff; --c-planner: #8f84ff; --c-runner: #ff7ab8; --c-doctor: #ff4d9b; --c-verifier: #5b73ff; --c-scribe: #efe7da;
   color-scheme: dark;
 }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1; --ink: #15163a; --muted: #5f5b6b; --accent: var(--blue); --accent-ink: #efe7da; } }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #eae4d7; --surface: #dfd7c8; --line: #cec4b2; --ink: #15163a; --muted: #5f5b6b; --accent: var(--blue); --accent-ink: #eae4d7; } }
+
+/* Static poster frame for hero when prefers-reduced-motion is active */
+.hero-poster {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--blue) 5%, transparent), transparent 65%);
+}
+:root[data-theme="dark"] .hero-poster {
+  background-image: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 65%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-full canvas.field { display: none !important; }
+}
 .eyebrow { color: var(--pink); }
 .btn { background: var(--blue); border-color: var(--blue); color: #fff; }
 .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
