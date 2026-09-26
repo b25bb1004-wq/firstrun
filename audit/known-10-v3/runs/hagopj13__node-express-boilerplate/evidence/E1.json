@@ -1,0 +1,46 @@
+{
+  "id": "E1",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "yarn install",
+    "exitCode": 127,
+    "durationMs": 150,
+    "logTail": "/firstrun/step-2.sh: line 4: yarn: command not found",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`yarn` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "corepack enable"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Yarn (via `corepack enable`)",
+      "command": "corepack enable"
+    },
+    "log": "$ corepack enable\n"
+  },
+  "after": {
+    "stepId": "S6",
+    "n": 2,
+    "command": "yarn install",
+    "exitCode": 0,
+    "durationMs": 47749,
+    "logTail": "! Corepack is about to download https://registry.yarnpkg.com/yarn/-/yarn-1.22.22.tgz\nyarn install v1.22.22\n[1/5] Validating package.json...\n[2/5] Resolving packages...\n[3/5] Fetching packages...\n[4/5] Linking dependencies...\nwarning \"swagger-jsdoc > swagger-parser > @apidevtools/swagger-parser@10.0.2\" has unmet peer dependency \"openapi-types@>=7\".\nwarning \"eslint-plugin-jest > @typescript-eslint/experimental-utils > @typescript-eslint/typescript-estree > tsutils@3.21.0\" has unmet peer dependency \"typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta\".\n[5/5] Building fresh packages...\n$ husky install\nfatal: not a git repository (or any of the parent directories): .git\nDone in 38.95s.",
+    "logFile": "logs/S6-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T21:16:09.273Z"
+}

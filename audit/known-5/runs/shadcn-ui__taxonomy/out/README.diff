@@ -1,0 +1,28 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -60,9 +60,16 @@ If you have some suggestions, feel free to create an issue.
+ 
+ ## Running Locally
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `node:22` machine at `298a8857c7+dirty`: clone to running in 3m47s.
++
++Prerequisites verified by HUMBLE:
++
++- pnpm (via `corepack enable`)
++
+ 1. Install dependencies using pnpm:
+ 
+ ```sh
++corepack use pnpm@8
+ pnpm install
+ ```
+ 
+@@ -76,6 +83,7 @@ cp .env.example .env.local
+ 
+ ```sh
+ pnpm dev
++# HUMBLE: this step still fails on a clean machine: env.mjs lines 9–20 validates NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_ACCESS_TOKEN, SMTP_FROM, POSTMARK_API_TOKEN, POSTMARK_SIGN_IN_TEMPLATE, POSTMARK_ACTIVATION_TEMPLATE, STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, and STRIPE_PRO_MONTHLY_PLAN_ID with z.string().min(1); after copying .env.example those values are all empty strings, so @t3-oss/env-nextjs throws at startup and Next
+ ```
+ 
+ ## License

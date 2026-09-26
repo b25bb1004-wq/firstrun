@@ -1,0 +1,47 @@
+{
+  "id": "E1",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "bun add axios",
+    "exitCode": 127,
+    "durationMs": 116,
+    "logTail": "/firstrun/step-1.sh: line 5: bun: command not found",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "The README.md line 573 documents `bun add axios` but the Docker base image `node:19` does not include Bun; running the command fails with `bun: command not found` (exit 127) because Bun must be installed separately before it can be used.",
+    "confidence": 0.97,
+    "by": "bob",
+    "bobcoins": 0.06753200000000001,
+    "taskId": "e8ea60549d367c5af0c68a375edff6bf"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL=\"$HOME/.bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"",
+        "kind": "install"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Before running `bun add axios`, install Bun first: `curl -fsSL https://bun.sh/install | bash` (and reload your shell or export `~/.bun/bin` onto PATH)."
+    },
+    "log": "$ curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL=\"$HOME/.bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\" → exit 0"
+  },
+  "after": {
+    "stepId": "S4",
+    "n": 2,
+    "command": "bun add axios",
+    "exitCode": 0,
+    "durationMs": 21807,
+    "logTail": "bun add v1.4.2 (744846f84)\n[3.55ms] migrated lockfile from package-lock.json\nResolving dependencies\nResolved, downloaded and extracted [12]\nSaved lockfile\n\n+ @babel/core@7.29.7\n+ @babel/preset-env@7.29.7\n+ @commitlint/cli@21.2.2\n+ @commitlint/config-conventional@21.2.2\n+ @eslint/js@10.0.1\n+ @rollup/plugin-alias@6.0.0\n+ @rollup/plugin-babel@7.1.0\n+ @rollup/plugin-commonjs@29.0.3\n+ @rollup/plugin-json@6.1.0\n+ @rollup/plugin-node-resolve@16.0.3\n+ @rollup/plugin-terser@1.0.0\n+ @vitest/browser@4.1.11\n+ @vitest/browser-playwright@4.1.11\n+ abortcontroller-polyfill@1.7.8\n+ acorn@8.18.0\n+ body-parser@2.3.0\n+ chalk@5.6.2\n+ cross-env@10.1.0\n+ dev-null@0.1.1\n+ eslint@10.10.0\n+ express@5.2.1\n+ formdata-node@6.0.3\n+ formidable@3.5.4\n+ fs-extra@11.4.0\n+ get-stream@9.0.1\n+ globals@17.12.0\n+ gulp@5.0.1\n+ husky@9.1.7\n+ lint-staged@17.5.1\n+ minimist@1.2.8\n+ multer@2.4.0\n+ playwright@1.63.0\n+ prettier@3.9.6\n+ rollup@4.63.3\n+ rollup-plugin-bundle-size@1.0.3\n+ selfsigned@5.5.0\n+ stream-throttle@0.1.3\n+ typescript@5.9.3\n+ vitest@4.1.11\n+ follow-redirects@1.16.0\n+ form-data@4.0.6\n+ https-proxy-agent@5.0.1 (v9.1.0 available)\n+ proxy-from-env@2.1.0\n\ninstalled axios@1.20.0\n\n621 packages installed [21.65s]",
+    "logFile": "logs/S4-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-26T12:03:54.954Z"
+}

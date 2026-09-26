@@ -1,0 +1,35 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -547,6 +547,12 @@
+ 
+ ## Installing
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `node:19` machine at `961241f6c1`.
++
++Prerequisites verified by HUMBLE:
++
++- Before running `bun add axios`, install Bun first: `curl -fsSL https://bun.sh/install | bash` (and reload your shell or export `~/.bun/bin` onto PATH).
++
+ ### Package manager
+ 
+ Using npm:
+@@ -570,13 +576,17 @@ $ pnpm add axios
+ Using bun:
+ 
+ ```bash
++$ curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"
+ $ bun add axios
+ ```
+ 
+ Using Deno:
+ 
+ ```bash
+-$ deno add axios
++$ curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL="$HOME/.deno" && export PATH="$DENO_INSTALL/bin:$PATH"
++$ curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL="$HOME/.deno" && export PATH="$DENO_INSTALL/bin:$PATH"
++$ deno add npm:axios
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure and the Bobcoin budget for this run is spent.
+ ```
+ 
+ Once the package is installed, import it with `import` or `require`:

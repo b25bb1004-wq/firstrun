@@ -1,0 +1,98 @@
+{
+  "id": "known-10-v3-pallets__flask",
+  "repo": "pallets/flask",
+  "commit": "d73fa1cdcb",
+  "startedAt": "2026-09-25T21:16:42.227Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.10 (pyproject.toml requires-python (\">=3.10\"))",
+      "source": "README.md"
+    },
+    {
+      "what": "env var FLASK_RUN_FROM_CLI",
+      "docs": "not documented",
+      "truth": "read in src/flask/app.py:698",
+      "source": "README"
+    },
+    {
+      "what": "env var FLASK_DEBUG",
+      "docs": "not documented",
+      "truth": "read in src/flask/cli.py:481",
+      "source": "README"
+    },
+    {
+      "what": "env var YOURAPPLICATION_SETTINGS",
+      "docs": "not documented",
+      "truth": "read in src/flask/config.py:107",
+      "source": "README"
+    },
+    {
+      "what": "redis service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"celery\"",
+      "source": "Python requirements"
+    }
+  ],
+  "plan": {
+    "repo": "pallets/flask",
+    "commit": "d73fa1cdcb",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "Python version",
+        "docs": "not stated",
+        "truth": "3.10 (pyproject.toml requires-python (\">=3.10\"))",
+        "source": "README.md"
+      },
+      {
+        "what": "env var FLASK_RUN_FROM_CLI",
+        "docs": "not documented",
+        "truth": "read in src/flask/app.py:698",
+        "source": "README"
+      },
+      {
+        "what": "env var FLASK_DEBUG",
+        "docs": "not documented",
+        "truth": "read in src/flask/cli.py:481",
+        "source": "README"
+      },
+      {
+        "what": "env var YOURAPPLICATION_SETTINGS",
+        "docs": "not documented",
+        "truth": "read in src/flask/config.py:107",
+        "source": "README"
+      },
+      {
+        "what": "redis service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"celery\"",
+        "source": "Python requirements"
+      }
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-25T21:16:42.311Z"
+}

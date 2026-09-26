@@ -1,0 +1,28 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T21:23:13.174Z",
+  "commit": "9a34acf03c",
+  "image": "node:18",
+  "runtime": {
+    "name": "node",
+    "version": "18",
+    "source": "Readme.md:56 (\"Node.js 18 or higher\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S7",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S8",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}
