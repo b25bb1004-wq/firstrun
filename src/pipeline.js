@@ -279,6 +279,10 @@ export async function verifyRepo(repoDir, opts = {}) {
         rec.emitEvent('doctor', 'fix', { stepId: step.id, fix });
         const fixLog = [];
         let fixFailed = null; // a fix whose own command fails was not applied (F3)
+        // Stop any background servers before applying fixes: watchers left running (nodemon,
+        // tsc --watch) can race with npm/pip install and crash on a half-replaced tree.
+        // Servers are restarted automatically when the step is retried below.
+        await sandbox.stopServers();
         // Repo patches (PR content) land in the sandbox first so the fix's commands see them.
         for (const p of fix.patches || []) {
           patchOps.push(p);

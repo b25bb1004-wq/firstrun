@@ -10,6 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
+import { runScout, runPlanner, runDoctor, runScribe } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('FirstRun')}: your README, proven.
@@ -22,6 +23,9 @@ ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
+  firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
+  firstrun doctor --log <file|-> [--repo <dir>] [--bob-budget 1]   Doctor alone: diagnose one failure
+  firstrun scribe <run-dir>              Scribe alone: rewrite the report and passport from a finished run
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
   firstrun guide  [path]                 walk through the verified setup on your own machine
@@ -30,6 +34,7 @@ ${bold('Usage')}
   firstrun ui     [--port 4173] [--root <dir>...]
   firstrun mcp                           MCP server for IBM Bob (stdio)
   firstrun lens   [path]                 circle anything on screen and ask about it (Ctrl+Shift+Space)
+  firstrun dock   [path]                 floating Dock: run agents and watch them live (Alt+Command+Space / Ctrl+Alt+Space)
   firstrun bob install                   install FirstRun's custom modes for Bob Shell
   firstrun clean                         remove leftover sandbox containers
 `;
@@ -79,6 +84,8 @@ export async function main(argv) {
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);
+      // With --out (the Dock), the Planner runs as a solo agent and writes events.ndjson there.
+      if (args.out) { const r = await runPlanner(root, { out: args.out }); if (args.json) { console.log(JSON.stringify(r)); return 0; } }
       const facts = await scout(root);
       const plan = buildPlan(facts);
       if (args.json) { console.log(JSON.stringify(plan, null, 2)); return 0; }
@@ -89,6 +96,31 @@ export async function main(argv) {
         console.log(`\n${bold('Docs vs code')}`);
         for (const c of plan.conflicts) console.log(`  ${yellow('⚠')} ${c.what}: docs say ${bold(c.docs)}, code says ${bold(c.truth)} ${dim(`(${c.source})`)}`);
       } else console.log(`\n${green('No docs-vs-code conflicts found statically.')} ${dim('Run `firstrun verify` to prove it.')}`);
+      return 0;
+    }
+    // Solo agents (#90): one member of the team on its own; each writes events.ndjson for the Dock.
+    case 'scout': {
+      const r = await runScout(await resolveTarget(args._[0], args), { out: args.out });
+      if (args.json) { console.log(JSON.stringify(r)); return 0; }
+      const f = r.facts;
+      console.log(`${bold('Scout')}: ${f.stack || 'unknown stack'} · docs ${(f.docs || []).join(', ') || 'none'} ${dim(`(events: ${r.runDir})`)}`);
+      console.log(JSON.stringify(f, null, 2));
+      return 0;
+    }
+    case 'doctor': {
+      const src = args.log === '-' || args.log === true ? 0 : args.log;
+      if (src === undefined) { console.error('Usage: firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]'); return 2; }
+      const r = await runDoctor({ log: fs.readFileSync(src, 'utf8'), repo: args.repo || '.', command: args.command || '', out: args.out, bobBudget: Number(args['bob-budget'] || 0) });
+      if (args.json) { console.log(JSON.stringify(r)); return r.fix ? 0 : 1; }
+      console.log(`${bold('Doctor')}: ${r.diagnosis.cause}`);
+      if (r.fix?.doc?.text) console.log(`${green('Fix:')} ${r.fix.doc.text}`);
+      else console.log(yellow('No proven fix: a maintainer needs to look (add --bob-budget 1 to ask IBM Bob).'));
+      return r.fix ? 0 : 1;
+    }
+    case 'scribe': {
+      const r = await runScribe(args._[0] || '.');
+      if (args.json) { console.log(JSON.stringify(r)); return 0; }
+      console.log(`${bold('Scribe')}: ${r.files.report}\n  passport: ${r.files.passport}${r.files.readmeDiff ? `\n  README diff: ${r.files.readmeDiff}` : ''}`);
       return 0;
     }
     case 'audit': {
@@ -172,6 +204,17 @@ export async function main(argv) {
       if (!fs.existsSync(electron)) { console.log(`Install FirstRun Lens first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
       const project = path.resolve(args._[0] || '.');
       const env = { ...process.env };
+      delete env.ELECTRON_RUN_AS_NODE;
+      const child = spawn(process.execPath, [electron, lensDir, project], { stdio: 'inherit', env });
+      return new Promise((resolve) => child.on('close', (code) => resolve(code ?? 0)));
+    }
+    case 'dock': {
+      const { spawn } = await import('node:child_process');
+      const lensDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lens');
+      const electron = path.join(lensDir, 'node_modules', 'electron', 'cli.js');
+      if (!fs.existsSync(electron)) { console.log(`Install FirstRun Dock first: ${bold(`cd ${lensDir} && npm install`)}`); return 1; }
+      const project = path.resolve(args._[0] || '.');
+      const env = { ...process.env, FIRSTRUN_DOCK: '1' };
       delete env.ELECTRON_RUN_AS_NODE;
       const child = spawn(process.execPath, [electron, lensDir, project], { stdio: 'inherit', env });
       return new Promise((resolve) => child.on('close', (code) => resolve(code ?? 0)));
