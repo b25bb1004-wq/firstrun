@@ -538,6 +538,22 @@ export const RULES = [
     },
   },
   {
+    // MongoDB 6+ dropped the legacy opcodes that old drivers still send (GeekyAnts: connect-mongo 2 → "Unsupported
+    // OP_QUERY command: insert"). The app connects but every write fails, so run the newest server that driver speaks.
+    id: 'mongo-legacy-driver',
+    test({ log, sandbox }) {
+      if (!/Unsupported OP_QUERY command|legacy-opcode-removal/.test(log)) return null;
+      const mongo = (sandbox?.services || []).find((s) => s.name === 'mongo');
+      if (mongo && /^mongo:(4|3)\b/.test(mongo.image)) return null;
+      const text = 'MongoDB 4.4 (this project\'s driver can\'t talk to MongoDB 6+): docker run -d -p 27017:27017 mongo:4.4';
+      return {
+        ruleId: 'mongo-legacy-driver', class: 'runtime-version', confidence: 0.85,
+        cause: 'The app\'s MongoDB driver uses legacy opcodes that MongoDB 6 and later removed ("Unsupported OP_QUERY command"), so it connects but every write fails. The docs don\'t say which MongoDB to run; the driver needs 4.4 or older.',
+        fix: { actions: [{ type: 'service', name: 'mongo', image: 'mongo:4.4', env: {}, port: 27017 }], patches: [], doc: { kind: 'prerequisite', text } },
+      };
+    },
+  },
+  {
     id: 'missing-service',
     async test(ctx) {
       const { log, facts, sandbox, sandboxEnv } = ctx;
