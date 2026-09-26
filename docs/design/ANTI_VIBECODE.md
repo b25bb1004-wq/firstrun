@@ -53,3 +53,12 @@ frame, static).
 - Light: background `#f1efe9`, surface `#e9e6de`, hairline `#d3cfc5`, text `#16181b`, muted `#5d5a54`.
 - **Single accent:** `#2f9e6b` (a calm verified green; `#56c08c` on dark for contrast). Nothing else is coloured.
 - Radius 2px. No shadows. Borders 1px hairline.
+
+## Overrides Karmanya made later (26 Sep) and what still holds
+
+- **Colour:** oat · blue · hot pink (Karmanya's palette). Blue = proven/fixed, hot pink = broken. Hot pink is the one
+  bright colour allowed; still no neon glows, no pastels, no purple.
+- **Motion:** Apple/Meta-level motion is wanted (the WebGL hero, sticky crew, count-ups, reveals). Still no hover motion.
+- **Everything else in the table above still holds.** After the premium pass, an audit (16:50) found 9 violations
+  (soft radii, shadows/text glow, purple, a "not X" headline, coloured tile stripes, a checkmark, a ✚ glyph, three boxed
+  stat cards, pastel tints). All fixed in the next commit. Re-run the audit before every push.

@@ -1,15 +1,15 @@
 // Hero Motion Graphic (Zeus)
 // Story: Setup steps execute -> Step 2 fails -> Doctor repairs -> Machine discarded -> Replays from zero to VERIFIED.
 // Retinted with Agent Identity System (Karmanya/Edith 16:40):
-// Scout #4f8cff ● circle · Planner #9b7bff ■ square · Runner #ff8a3d ▲ triangle
-// Doctor #ff5c7a ✚ plus · Verifier #2fbf85 ◯ ring · Scribe #f5c542 ◆ diamond.
+// Scout #4f8cff ● circle · Planner #1b2bb8 ■ square · Runner #ff8a3d ▲ triangle
+// Doctor #ff5c7a + plus · Verifier #2fbf85 ◯ ring · Scribe #f5c542 ◆ diamond.
 
 export function init(container, { reduced = false } = {}) {
   if (!container) return;
 
   const steps = [
     { num: '01', agent: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
-    { num: '02', agent: 'Doctor', shape: '✚', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
+    { num: '02', agent: 'Doctor', shape: '+', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
     { num: '03', agent: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
   ];
 
@@ -130,7 +130,7 @@ export function init(container, { reduced = false } = {}) {
         // Step 2 fails
         activeTimer = setTimeout(() => {
           setStep(1, 'fail', 'exit 1 (ERESOLVE)');
-          diag.textContent = "Doctor ✚: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
+          diag.textContent = "Doctor +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
           verdict.textContent = 'FAILED';
           verdict.style.color = 'var(--c-doctor, #ff5c7a)';
 

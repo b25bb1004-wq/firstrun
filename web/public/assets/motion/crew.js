@@ -1,7 +1,7 @@
 // Apple-Style Sticky Scrollytelling for Agent Crew Pipeline (Zeus)
 // Conforms to ANTI_VIBECODE.md + Agent Identity System (Karmanya/Edith 16:40):
-// Scout #4f8cff ● circle · Planner #9b7bff ■ square · Runner #ff8a3d ▲ triangle
-// Doctor #ff5c7a ✚ plus · Verifier #2fbf85 ◯ ring · Scribe #f5c542 ◆ diamond.
+// Scout #4f8cff ● circle · Planner #1b2bb8 ■ square · Runner #ff8a3d ▲ triangle
+// Doctor #ff5c7a + plus · Verifier #2fbf85 ◯ ring · Scribe #f5c542 ◆ diamond.
 // Pinned for ~300vh: scroll progress drives agent transitions, shape growth, and artifact reveals.
 
 export function init(container, { reduced = false } = {}) {
@@ -30,7 +30,7 @@ export function init(container, { reduced = false } = {}) {
     {
       id: '02',
       name: 'Planner',
-      color: 'var(--c-planner, #9b7bff)',
+      color: 'var(--c-planner, #1b2bb8)',
       shapeName: 'square',
       shapeSvg: '<rect x="12" y="12" width="40" height="40" rx="4" fill="currentColor"/>',
       miniSvg: '<rect x="4" y="4" width="12" height="12" rx="2" fill="currentColor"/>',
@@ -162,7 +162,7 @@ export function init(container, { reduced = false } = {}) {
   container.innerHTML = `
     <div class="c-scrolly" style="position: relative; height: 300vh; font-family: var(--sans);">
       <!-- Pinned Stage -->
-      <div class="c-sticky" style="position: sticky; top: 76px; height: calc(100vh - 96px); max-height: 600px; min-height: 480px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); overflow: hidden;">
+      <div class="c-sticky" style="position: sticky; top: 76px; height: calc(100vh - 96px); max-height: 600px; min-height: 480px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 2px;  overflow: hidden;">
         
         <!-- Header & Nav Timeline -->
         <div class="c-nav-bar" style="padding: 16px 20px 12px; border-bottom: 1px solid var(--line); background: var(--bg); display: flex; flex-direction: column; gap: 12px;">
@@ -201,7 +201,7 @@ export function init(container, { reduced = false } = {}) {
           <!-- Left: Hero Agent Info + Growing Shape -->
           <div class="c-agent-panel" style="display: flex; flex-direction: column; gap: 16px; max-width: 520px;">
             <div style="display: flex; align-items: center; gap: 16px;">
-              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
+              <div class="c-shape-hero" style="width: 72px; height: 72px; border-radius: 2px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
                 <svg class="c-shape-svg" width="56" height="56" viewBox="0 0 64 64" style="transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), color 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
                   ${agents[0].shapeSvg}
                 </svg>
@@ -230,7 +230,7 @@ export function init(container, { reduced = false } = {}) {
           </div>
 
           <!-- Right: Code Inspector Artifact Card -->
-          <div class="c-artifact-card" style="display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; height: 100%; max-height: 380px; box-shadow: 0 2px 12px rgba(0,0,0,0.18); transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), opacity 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
+          <div class="c-artifact-card" style="display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; height: 100%; max-height: 380px;  transition: transform 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)), opacity 0.3s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">
             
             <!-- Window / File Header -->
             <div style="padding: 10px 14px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px;">
@@ -251,7 +251,7 @@ export function init(container, { reduced = false } = {}) {
             <!-- Footer Meta -->
             <div style="padding: 8px 14px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; background: rgba(255,255,255,0.01);">
               <span class="c-art-loc">events.ndjson</span>
-              <span style="color: var(--accent);">✓ verified</span>
+              <span style="color: var(--accent);">verified</span>
             </div>
           </div>
 

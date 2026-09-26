@@ -17,10 +17,10 @@
   var VS = [
     'precision highp float;',
     'attribute vec2 aTarget; attribute vec4 aSeed; attribute float aColor; attribute float aFix;',
-    'uniform float uTime, uOrder, uAlarm, uFixed, uScroll, uDpr, uMobile, uLight; uniform vec2 uRes, uMouse;',
+    'uniform float uTime, uOrder, uAlarm, uFixed, uScroll, uDpr, uMobile, uLight; uniform vec2 uRes, uMouse; uniform vec4 uClear;',
     'varying vec3 vCol; varying float vAlpha;',
     'vec3 agent(float i){',
-    '  if(i<0.5) return vec3(0.14,0.25,1.0); if(i<1.5) return vec3(0.42,0.36,1.0); if(i<2.5) return vec3(1.0,0.37,0.66);',
+    '  if(i<0.5) return vec3(0.14,0.25,1.0); if(i<1.5) return vec3(0.11,0.17,0.72); if(i<2.5) return vec3(1.0,0.37,0.66);',
     '  if(i<3.5) return vec3(1.0,0.18,0.53); if(i<4.5) return vec3(0.24,0.45,1.0); return vec3(1.0,0.55,0.78); }',
     'void main(){',
     '  float t = uTime;',
@@ -52,6 +52,8 @@
     '  col = mix(col, vec3(0.14,0.25,1.0), fixLine*uFixed);',
     '  vCol = col;',
     '  vAlpha = mix(0.55, 0.62, k) + fixLine*max(uAlarm,uFixed)*0.4;',
+    '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, p) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, p));',
+    '  vAlpha *= 1.0 - 0.9 * inC.x * inC.y;',
     '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.34 + fixLine*0.66 : 1.0);',
     '}'
   ].join('\n');
@@ -69,7 +71,7 @@
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
   } catch (e) { canvas.remove(); var f = document.createElement('script'); f.src = '/assets/hero-field.js'; document.body.appendChild(f); return; }
   gl.useProgram(prog);
-  var U = {}; ['uTime', 'uOrder', 'uAlarm', 'uFixed', 'uScroll', 'uDpr', 'uMobile', 'uRes', 'uMouse', 'uLight'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+  var U = {}; ['uTime', 'uOrder', 'uAlarm', 'uFixed', 'uScroll', 'uDpr', 'uMobile', 'uRes', 'uMouse', 'uLight', 'uClear'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
   var A = {}; ['aTarget', 'aSeed', 'aColor', 'aFix'].forEach(function (n) { A[n] = gl.getAttribLocation(prog, n); });
 
   var W, H, dpr, N = 0, mobile = false, t0 = performance.now(), mouse = [-1e4, -1e4], scrollK = 0, visible = true, raf = 0;
@@ -123,6 +125,14 @@
     buffer('aTarget', tgt, 2); buffer('aSeed', sd, 4); buffer('aColor', col, 1); buffer('aFix', fx, 1);
   }
 
+  var clearRect = [0, 0, 0, 0];
+  function measureClear() {
+    var hr = hero.getBoundingClientRect(), a = hero.querySelector('.inner .eyebrow'), b = hero.querySelector('.inner .actions');
+    if (!a || !b) return;
+    var h1 = hero.querySelector('.inner h1').getBoundingClientRect(), lede = hero.querySelector('.inner .lede').getBoundingClientRect();
+    var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    clearRect = [Math.min(h1.left, lede.left) - hr.left, ra.top - hr.top, Math.max(h1.right, lede.right) - hr.left, rb.bottom - hr.top];
+  }
   function clamp(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function draw(now) {
     raf = 0;
@@ -136,13 +146,13 @@
     if (light) gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); else gl.blendFunc(gl.SRC_ALPHA, gl.ONE);   // additive glow on dark
     gl.uniform1f(U.uTime, reduced ? 0 : t); gl.uniform1f(U.uOrder, order); gl.uniform1f(U.uAlarm, alarm); gl.uniform1f(U.uFixed, fixed);
     gl.uniform1f(U.uScroll, reduced ? 0 : scrollK); gl.uniform1f(U.uDpr, dpr); gl.uniform1f(U.uMobile, mobile ? 1 : 0);
-    gl.uniform2f(U.uRes, W, H); gl.uniform2f(U.uMouse, mouse[0], mouse[1]); gl.uniform1f(U.uLight, light ? 1 : 0);
+    gl.uniform2f(U.uRes, W, H); gl.uniform2f(U.uMouse, mouse[0], mouse[1]); gl.uniform1f(U.uLight, light ? 1 : 0); gl.uniform4f(U.uClear, clearRect[0], clearRect[1], clearRect[2], clearRect[3]);
     gl.drawArrays(gl.POINTS, 0, N);
     if (!reduced && visible) raf = requestAnimationFrame(draw);
   }
   function start() { if (!raf && visible && !reduced) raf = requestAnimationFrame(draw); }
 
-  build();
+  build(); measureClear();
   if (reduced) draw(performance.now());
   else {
     new IntersectionObserver(function (es) { visible = es[0].isIntersecting && !document.hidden; start(); }).observe(hero);
@@ -152,7 +162,7 @@
     addEventListener('scroll', function () { scrollK = clamp(scrollY / (H * 0.9)); }, { passive: true });
     start();
   }
-  var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { build(); if (reduced) draw(performance.now()); }, 150); });
+  var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { build(); measureClear(); if (reduced) draw(performance.now()); }, 150); });
   var themeBtn = document.getElementById('theme');
   if (themeBtn) themeBtn.addEventListener('click', function () { if (reduced) setTimeout(function () { draw(performance.now()); }, 30); });
   var mark = document.querySelector('.top .mark');

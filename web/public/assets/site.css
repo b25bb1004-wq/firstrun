@@ -308,3 +308,16 @@ h3 { letter-spacing: -0.012em; }
 .diff .add { color: var(--blue); } .diff .del { color: var(--pink); }
 .hero-full h1, .hero-full .lede, .hero-full .eyebrow { text-shadow: 0 0 28px var(--bg), 0 0 56px var(--bg); }
 ::selection { background: color-mix(in srgb, var(--pink) 30%, transparent); }
+
+/* ===== v9: back inside Karmanya's anti-vibecode list (radius, shadows, purple, stripes, boxes, pastels) ===== */
+:root { --r: 2px; --r-card: 2px; }
+.btn, .hero-full .btn, .gallery-nav button, .gallery > *, .shot, .tile, .stats { border-radius: 2px; }
+.hero-full h1, .hero-full .lede, .hero-full .eyebrow { text-shadow: none; }
+.tile::before { content: none; }
+/* Stats as figures in the type, not three cards: no boxes, no dividers */
+.stats.figures { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 56px; background: none; border: 0; border-radius: 0; overflow: visible; }
+.stats.figures > div { background: none; padding: 0; text-align: center; }
+.stats.figures span { max-width: 18ch; margin-left: auto; margin-right: auto; }
+/* No purple, no pastels: planner is a deep blue, night variants are solid, not light tints */
+:root, :root:not([data-theme="dark"]) { --c-planner: #1b2bb8; --c-runner: #ff2d87; }
+:root[data-theme="dark"] { --c-planner: #3a4df0; --c-runner: #ff2d87; --c-doctor: #ff2d87; --pink: #ff2d87; --blue: #4b63ff; }
