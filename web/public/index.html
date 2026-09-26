@@ -82,6 +82,8 @@
       <h2 id="h-proof" data-reveal>Real runs, not a mockup</h2>
       <p class="sub" data-reveal>Every number here comes from recorded runs you can open and replay.</p>
 
+      <div class="wall" id="wall" data-audit="real-16-v2" aria-label="The 16 audited repositories and their verdicts"></div>
+      <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
           <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
@@ -100,7 +102,7 @@
         </article>
         <article>
           <div class="big" style="color:var(--c-verifier)">53s</div>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>Clone to running, replayed from scratch</h3><p>GeekyAnts: 4 breaks found, 4 fixed, then the whole guide replayed on a brand-new machine, ending on the app's home page.</p></div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>GeekyAnts was PARTIAL in the audit. We traced it to our own runner (it gave up on a watcher still compiling), fixed it, and the rerun went 4 breaks found, 4 fixed, replayed from zero in 53 seconds, ending on the app's home page.</p></div>
         </article>
         <article>
           <div class="big" style="color:var(--c-doctor)">5/5</div>
@@ -154,6 +156,7 @@
 <script src="/assets/check.js" defer></script>
 <script src="/assets/site.js" defer></script>
 <script src="/assets/hero-gl.js" defer></script>
+<script src="/assets/wall.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
 </body>
 </html>

@@ -262,3 +262,19 @@ h3 { letter-spacing: -0.012em; }
 .hero-full h1, .hero-full .lede, .hero-full .eyebrow { text-shadow: 0 0 24px var(--bg), 0 0 48px var(--bg); }
 .hero-full { min-height: min(92vh, 980px); display: flex; align-items: center; }
 .hero-full .inner { width: 100%; }
+
+/* ===== v7: live audit wall (assets/wall.js) ===== */
+.wall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0 0 14px; perspective: 1200px; }
+@media (max-width: 980px) { .wall { grid-template-columns: repeat(2, 1fr); } }
+.tile { display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); text-decoration: none; color: var(--ink); min-height: 132px; position: relative; overflow: hidden; }
+.tile::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--v); }
+.tile .v { font: 600 12px var(--mono); letter-spacing: .04em; color: var(--v); }
+.tile .n { font-weight: 600; font-size: 15px; line-height: 1.3; word-break: break-word; }
+.tile .b { margin-top: auto; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.dots { display: inline-flex; gap: 3px; } .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--c-doctor); } .dots i.ok { background: var(--c-verifier); }
+.tile:active { transform: scale(0.98); }
+.wall-note { font-size: 14px; margin: 0 0 48px; }
+@media (prefers-reduced-motion: no-preference) {
+  .wall:not(.in) .tile { opacity: 0; transform: rotateX(-68deg) translateY(24px); }
+  .wall.in .tile { transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: calc(var(--i) * 45ms); transform-origin: 50% 0; }
+}
