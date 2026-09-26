@@ -52,21 +52,53 @@ export async function scout(root) {
   const files = await listFiles(root);
   const has = (f) => files.includes(f);
   const read = (f) => readText(path.join(root, f));
-  const facts = { root, files, loadsDotenv: false, docs: [], node: null, python: null, compose: null, envExample: null, envVarsInCode: [], ci: { nodeVersions: [], pythonVersions: [], services: [], commands: [] }, ports: [], makeTargets: [] };
+  const facts = { root, files, loadsDotenv: false, docs: [], docsRst: [], node: null, python: null, compose: null, envExample: null, envVarsInCode: [], ci: { nodeVersions: [], pythonVersions: [], services: [], commands: [] }, ports: [], makeTargets: [] };
 
   // Docs a newcomer reads, in priority order.
   const readme = files.find((f) => /^readme(\.md|\.markdown|\.rst|\.txt)?$/i.test(f));
   if (readme) facts.docs.push(readme);
+
+  // First, collect special contributing/development/installation docs (both .md and .rst) that go to docsRst
+  // These are: CONTRIBUTING.rst, DEVELOPMENT.rst, and docs/**/contributing.(md|rst), docs/**/development.(md|rst), docs/**/installation.(md|rst)
+  // Also consider examples/**/README.(md|rst) for tutorial setup guides (e.g., flask examples/tutorial/README.rst)
+  const extraDocPatterns = [
+    /^contributing\.rst$/i,
+    /^development\.rst$/i,
+    /^docs?\/contributing\.(md|rst)$/i,
+    /^docs?\/development\.(md|rst)$/i,
+    /^docs?\/.*\/contributing\.(md|rst)$/i,
+    /^docs?\/.*\/development\.(md|rst)$/i,
+  ];
+  const specialDocs = files.filter((f) => {
+    if (f === readme) return false;
+    if (/node_modules|test|fixture/i.test(f)) return false;
+    return extraDocPatterns.some((re) => re.test(f));
+  });
+  // Deduplicate while preserving order
+  const seenDocs = new Set();
+  for (const f of specialDocs) {
+    if (!seenDocs.has(f)) {
+      seenDocs.add(f);
+      facts.docsRst.push(f);
+    }
+  }
+
   for (const f of files) {
     if (f === readme) continue;
+    // Skip files already added to docsRst via special patterns
+    if (facts.docsRst.includes(f)) continue;
     if (/^(contributing|development|developing|setup|install|installation|getting[-_]started|hacking)\.md$/i.test(f)) facts.docs.push(f);
     else if (/^docs?\/(.*\/)?(setup|development|developing|getting[-_]started|install(ation)?|local[-_]dev(elopment)?|contributing|quick[-_]?start)\.md$/i.test(f)) facts.docs.push(f);
   }
 
   // reStructuredText setup docs (flask, httpie): listed apart until the planner parses .rst (src/markdown.js).
-  const SETUP_NAME = /(contributing|development|developing|setup|install(ation)?|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
-  facts.docsRst = files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
-    && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5);
+  const SETUP_NAME = /(contributing|development|developing|setup|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
+  facts.docsRst.push(...files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
+    && !facts.docsRst.includes(f)  // Skip already added files
+    && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5));
+
+  // Cap total docsRst at 5
+  if (facts.docsRst.length > 5) facts.docsRst.length = 5;
 
   // Onboarding material that isn't Markdown (PDF handbooks, reStructuredText, wiki exports):
   // the rule-based planner can't read these; IBM Bob's document understanding can.

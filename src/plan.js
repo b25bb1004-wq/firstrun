@@ -3,6 +3,204 @@ import { parseMarkdown, isShellBlock, blockCommands, sectionPath } from './markd
 import { readText } from './util.js';
 import { ciFindings } from './ci-reference.js';
 
+/** Parse reStructuredText and extract shell commands with line numbers and section headings.
+ * Supports:
+ * - Code blocks: .. code-block:: bash|sh|shell|console|text
+ * - Indented blocks after a paragraph ending in ::
+ * - RST headings: title line followed by = - ~ ^ line of same length
+ */
+function parseRST(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const headings = [];
+  const blocks = [];
+  let i = 0;
+  
+  // First pass: find all headings (RST style)
+  while (i < lines.length) {
+    const line = lines[i];
+    // Check for RST heading: a line followed by a line of = - ~ ^ of same length
+    if (i + 1 < lines.length) {
+      const nextLine = lines[i + 1];
+      const trimmed = line.trim();
+      const nextTrimmed = nextLine.trim();
+      if (trimmed && nextTrimmed && /^[=\-~^]+$/.test(nextTrimmed) && nextTrimmed.length === trimmed.length) {
+        const level = nextTrimmed[0] === '=' ? 1 : nextTrimmed[0] === '-' ? 2 : nextTrimmed[0] === '~' ? 3 : 4;
+        headings.push({ level, text: trimmed, line: i });
+        i += 2;
+        continue;
+      }
+    }
+    i++;
+  }
+  
+  // Second pass: find code blocks
+  i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    // Check for .. code-block:: directive
+    const codeBlockMatch = line.match(/^\s*\.\.\s+code-block::\s*(bash|sh|shell|console)?\s*$/i);
+    if (codeBlockMatch) {
+      const lang = (codeBlockMatch[1] || '').toLowerCase();
+      const startLine = i;
+      i++;
+      // Skip blank lines after the directive
+      while (i < lines.length && lines[i].trim() === '') i++;
+      // Get the indentation of the first content line
+      let baseIndent = null;
+      const codeLines = [];
+      while (i < lines.length) {
+        const l = lines[i];
+        if (l.trim() === '') {
+          codeLines.push({ text: '', line: i });
+          i++;
+          continue;
+        }
+        const indent = l.length - l.trimStart().length;
+        if (baseIndent === null) {
+          baseIndent = indent;
+        }
+        if (indent < baseIndent && l.trim() !== '') {
+          // End of code block (less indented non-empty line)
+          break;
+        }
+        codeLines.push({ text: l.slice(baseIndent), line: i });
+        i++;
+      }
+      blocks.push({
+        start: startLine,
+        end: i - 1,
+        lang: lang,
+        lines: codeLines
+      });
+      continue;
+    }
+    
+    // Check for :: at end of paragraph (literal block)
+    if (line.trim().endsWith('::') && !line.trim().startsWith('..')) {
+      const startLine = i;
+      i++;
+      // Skip blank lines
+      while (i < lines.length && lines[i].trim() === '') i++;
+      // Get indentation
+      let baseIndent = null;
+      const codeLines = [];
+      while (i < lines.length) {
+        const l = lines[i];
+        if (l.trim() === '') {
+          codeLines.push({ text: '', line: i });
+          i++;
+          continue;
+        }
+        const indent = l.length - l.trimStart().length;
+        if (baseIndent === null) {
+          baseIndent = indent;
+        }
+        if (indent < baseIndent && l.trim() !== '') {
+          break;
+        }
+        codeLines.push({ text: l.slice(baseIndent), line: i });
+        i++;
+      }
+      if (codeLines.length > 0) {
+        blocks.push({
+          start: startLine,
+          end: i - 1,
+          lang: 'literal',
+          lines: codeLines
+        });
+      }
+      continue;
+    }
+    
+    i++;
+  }
+  
+  // Compute section ranges (each heading runs until next same-or-higher level)
+  const sections = headings.map((h, idx) => {
+    let end = lines.length - 1;
+    for (let j = idx + 1; j < headings.length; j++) {
+      if (headings[j].level <= h.level) { end = headings[j].line - 1; break; }
+    }
+    const next = headings[idx + 1];
+    return { ...h, end, bodyEnd: next ? next.line - 1 : lines.length - 1 };
+  });
+  
+  // Assign each block to its section
+  for (const b of blocks) {
+    let best = null;
+    for (const s of sections) {
+      if (s.line <= b.start && b.start <= s.end && (!best || s.level >= best.level)) {
+        best = s;
+      }
+    }
+    b.section = best;
+  }
+  
+  return { lines, headings, sections, blocks };
+}
+
+/** Check if a block is a shell block (language is bash, sh, shell, console, or literal blocks with prompts) */
+function isRSTShellBlock(block) {
+  const SHELL_LANGS = new Set(['bash', 'sh', 'shell', 'console']);
+  if (SHELL_LANGS.has(block.lang)) return true;
+  // For literal blocks, check if they have any prompted lines
+  if (block.lang === 'literal') {
+    return block.lines.some((l) => /^\s*[\$>]\s+\S/.test(l.text));
+  }
+  return false;
+}
+
+/** Get section path for a line number */
+function rstSectionPath(sections, line) {
+  return sections.filter((s) => s.line <= line && line <= s.end).sort((a, b) => a.level - b.level).map((s) => s.text);
+}
+
+/** Extract commands from an RST block (similar to blockCommands but for RST) */
+function rstBlockCommands(block) {
+  const raw = block.lines;
+  const nonEmpty = raw.filter((l) => l.text.trim() && !l.text.trim().startsWith('#'));
+  
+  // For literal blocks, only take lines that start with a shell prompt
+  if (block.lang === 'literal') {
+    const promptedLines = raw.filter((l) => /^\s*[\$>]\s+\S/.test(l.text));
+    if (promptedLines.length === 0) return [];
+    return promptedLines.map(({ text, line }) => {
+      const m = text.trim().match(/^[\$>]\s+(.*)$/);
+      return { text: m ? m[1].trim() : text.trim(), line, endLine: line };
+    });
+  }
+  
+  // For code-block:: bash|sh|shell|console, process normally (all lines are commands)
+  const gtPrompts = nonEmpty.length > 0 && nonEmpty.every((l) => /^\s*>\s+\S/.test(l.text));
+  const hasPrompts = gtPrompts || raw.some((l) => /^\s*[\$%]\s+\S/.test(l.text));
+  const cmds = [];
+  let acc = null;
+  for (const { text, line } of raw) {
+    let t = text.replace(/\s+$/, '');
+    if (acc) {
+      acc.text += ' ' + t.trim().replace(/\\$/, '').trim();
+      acc.endLine = line;
+      if (!/\\$/.test(t)) { cmds.push(acc); acc = null; }
+      continue;
+    }
+    const trimmed = t.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    let body = trimmed;
+    if (hasPrompts) {
+      const m = trimmed.match(gtPrompts ? /^>\s+(.*)$/ : /^[\$%]\s+(.*)$/);
+      if (!m) continue;
+      body = m[1];
+    } else if (/^[\$%]\s+/.test(body)) body = body.replace(/^[\$%]\s+/, '');
+    body = body.replace(/\s+#\s.*$/, '').replace(/\s*;\s*$/, '');
+    if (/\\$/.test(body)) { acc = { text: body.replace(/\\$/, '').trim(), line, endLine: line }; continue; }
+    cmds.push({ text: body, line, endLine: line });
+  }
+  if (acc) cmds.push(acc);
+  return cmds;
+}
+
+export { parseRST, isRSTShellBlock, rstSectionPath, rstBlockCommands };
+
 const SETUP_HEADING = /(getting[\s-]*started|install|set[\s-]*up|quick[\s-]*start|develop|local(ly)?\b|run(ning)?\b|how to (run|use|start)|usage|build(ing)?\b|prereq|requirement|database|configur|environment|\btests?\b|testing|contribut|start(ing)?\b|hacking|bootstrap)/i;
 const EXCLUDED_HEADING = /(deploy|production|kubernetes|\bk8s\b|helm|heroku|vercel|netlify|render\.com|fly\.io|release|publish|licen[cs]e|faq|troubleshoot|changelog|api reference|endpoints?\b|screenshots?|roadmap|acknowledg|credits|sponsor|macos only|upgrad|migrating from|benchmark)/i;
 // "Windows" sections are skipped, but "Pip (macOS, linux, unix, Windows)" applies to Linux too.
@@ -67,7 +265,10 @@ export function classify(cmd, facts) {
   const norm = (n) => String(n || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
   const addSelf = c.match(/^(?:uv|poetry|pdm)\s+add\s+["']?((?:@[\w.-]+\/)?[\w.-]+)(?:\[[^\]]*\])?/);
   if (addSelf && facts?.selfName && norm(addSelf[1]) === norm(facts.selfName)) return { kind: 'other', skip: 'installs the published package; you already have its source' };
-  const selfInstallName = facts?.cli?.length ? null : facts?.selfName;
+  // Only skip self-install check for pip/npm/etc if this is a CLI tool (not a library).
+  // CLI tool = has CLI bin AND no serve/test steps (it's a tool, not an app)
+  const isCliTool = facts?.cli?.length > 0 && !facts.scripts?.test && !facts.scripts?.start;
+  const selfInstallName = isCliTool ? null : facts?.selfName;
   if (selfInstallName) {
     const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
@@ -269,6 +470,81 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (docFile === facts.docs[0] && steps.filter((s) => !s.skip).length >= 2) break;
   }
 
+  // Also process RST docs (facts.docsRst) for reStructuredText setup guides
+  for (const docFile of facts.docsRst) {
+    const text = readText(path.join(facts.root, docFile));
+    if (!text) continue;
+    const rst = parseRST(text);
+    const shellBlocks = rst.blocks.filter(isRSTShellBlock);
+    const inSetup = (b) => {
+      const p = rstSectionPath(rst.sections, b.start);
+      if (p.some(excludedHeading)) return false;
+      return p.some((h) => SETUP_HEADING.test(h));
+    };
+    let chosen = shellBlocks.filter(inSetup);
+    // Drop "run it with Docker" sections when a non-Docker path exists.
+    const nonDocker = chosen.filter((b) => !rstSectionPath(rst.sections, b.start).some((h) => DOCKER_ALT_HEADING.test(h)));
+    if (nonDocker.length) chosen = nonDocker;
+    if (!chosen.length && docFile === facts.docsRst[0] && facts.docs.length === 0) {
+      chosen = shellBlocks.filter((b) => !rstSectionPath(rst.sections, b.start).some(excludedHeading));
+    }
+    const before = steps.filter((s) => !s.skip).length;
+    const isScaffold = (c) => { const t = c.text.trim().replace(/^sudo\s+/, ''); return SCAFFOLDER_RE.test(t) || NPM_INIT_SCAFFOLDER_RE.test(t); };
+    const scaffoldSections = new Set(chosen.filter((b) => rstBlockCommands(b).some(isScaffold)).map((b) => rstSectionPath(rst.sections, b.start).join(' › ')));
+    for (const b of chosen) {
+      const cmds = rstBlockCommands(b);
+      if (scaffoldSections.has(rstSectionPath(rst.sections, b.start).join(' › '))) {
+        for (const c of cmds) {
+          for (const rawPart of splitAnd(c.text)) {
+            steps.push({ id: '', command: rawPart, kind: 'other', skip: 'scaffolds a new app for users; not this repo\'s setup', source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: rstSectionPath(rst.sections, b.start).join(' › ') }, origin: 'readme' });
+          }
+        }
+        continue;
+      }
+      const managers = new Set();
+      const usageBlock = cmds.some((c) => classify(c.text, classifyFacts).kind !== 'install' && usesProjectCli(c.text, facts));
+      for (const c of cmds) {
+        for (const rawPart of splitAnd(c.text)) {
+          const part = rawPart.replace(/(^|[\s=])([\w.-]+)((?:\|[\w.-]+)+)(?=\s|$)/g, '$1$2');
+          const cls = classify(part, classifyFacts);
+          if (cls.runtimeHint) runtimeHint = true;
+          const step = {
+            id: '',
+            command: part,
+            kind: cls.kind,
+            source: { file: docFile, line: c.line + 1, endLine: c.endLine + 1, section: rstSectionPath(rst.sections, b.start).join(' › ') },
+            origin: 'readme',
+          };
+          if (cls.skip) step.skip = cls.skip;
+          else if (step.kind !== 'install' && (usesProjectCli(part, facts) || (usageBlock && step.kind === 'other'))) step.usage = true;
+          if (cls.subshell) step.subshell = cls.subshell;
+          if (rawPart !== part) step.docCommand = rawPart;
+          if (cls.probe) step.probe = true;
+          const mgr = managerOf(part);
+          if (step.kind === 'install' && mgr && ['npm', 'yarn', 'pnpm', 'bun'].includes(mgr)) {
+            if (managers.size && !managers.has(mgr)) {
+              const preferred = facts.node?.packageManager;
+              if (mgr !== preferred) step.skip = `alternative package manager (project uses ${preferred})`;
+            }
+            managers.add(mgr);
+          }
+          if (/^cd\s+(\S+)$/.test(part)) {
+            const target = part.slice(3).trim().replace(/\/$/, '');
+            const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
+            const prevClone = steps.length && /^git\s+clone/.test(steps[steps.length - 1].command);
+            if (prevClone || (repoName && target.toLowerCase() === repoName.toLowerCase()) || !facts.files.some((f) => f.startsWith(`${target}/`))) {
+              if (prevClone || (repoName && target.toLowerCase() === repoName.toLowerCase())) step.skip = 'cd into the clone: already there';
+            }
+          }
+          if (seen.has(step.command) && !step.skip) continue;
+          seen.add(step.command);
+          steps.push(step);
+        }
+      }
+    }
+    if (steps.filter((s) => !s.skip).length > before) docsUsed.push(docFile);
+  }
+
   // Order: tests after the app is running, keep everything else in doc order.
   const serveIdx = steps.findIndex((s) => s.kind === 'serve' && !s.skip);
   if (serveIdx >= 0) {
@@ -319,13 +595,14 @@ export function buildPlan(facts, { repo, commit } = {}) {
   const SELF = 'installs the published package; you already have its source';
   // Only re-enable pip self-install for NON-library/CLI projects
   if (!steps.some((s) => !s.skip && s.kind === 'install')) {
-    const isLibOrCli = (() => {
+    // Use the same library/CLI detection as below
+    const isLib = (() => {
       // Check Node library
       if (facts.node?.name) {
         const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
         if (repoName) {
           const pkgName = facts.node.name.split('/').pop();
-          if (pkgName === repoName || facts.cli?.length > 0) return true;
+          if (pkgName === repoName) return true;
         }
       }
       // Check Python library (pyproject.toml name matches repo)
@@ -335,6 +612,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
       }
       return false;
     })();
+    // CLI tools are NOT libraries - their README install IS the setup
+    const isCli = facts.cli?.length > 0 && !steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    const isLibOrCli = isLib || isCli;
     if (!isLibOrCli) {
       for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
     }
@@ -356,35 +636,67 @@ export function buildPlan(facts, { repo, commit } = {}) {
       if (pkg && pkg.scripts?.start && !pkg.main && !pkg.exports) return false;
     } catch {}
     // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
+    // BUT NOT if it's a CLI tool (has CLI bin and no serve/start/test scripts in package.json).
     const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
-    return !!selfName && n(selfName) === n(repoName);
+    const hasNodeServeScript = facts.node?.scripts && (facts.node.scripts.start || facts.node.scripts.serve || facts.node.scripts.dev || facts.node.scripts.test);
+    // For Python: check pyproject.toml [project.scripts] for entry points
+    let hasPythonServeScript = false;
+    if (facts.python?.pyproject) {
+      try {
+        const pyp = readText(path.join(facts.root, 'pyproject.toml'));
+        // Check for [project.scripts] section - if it has entries that look like serve/test/start
+        const scriptsSection = pyp.match(/\[project\.scripts\]([\s\S]*?)(?=\n\[)/);
+        if (scriptsSection) {
+          const lines = scriptsSection[1].split('\n');
+          for (const line of lines) {
+            const m = line.match(/^\s*(\w+)\s*=/);
+            if (m) {
+              const name = m[1];
+              if (/^(start|serve|dev|test|run)$/i.test(name)) hasPythonServeScript = true;
+            }
+          }
+        }
+      } catch {}
+    }
+    const hasServeScript = hasNodeServeScript || hasPythonServeScript;
+    const isCli = facts.cli?.length > 0 && !hasServeScript;
+    return !!selfName && n(selfName) === n(repoName) && !isCli;
   }
 
-  function isCliTool(facts) {
+  function isCliTool(facts, steps) {
     // Has a CLI bin but no serve/test steps (it's a CLI tool, not an app)
-    return facts.cli?.length > 0;
+    const hasServeOrTest = steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    return facts.cli?.length > 0 && !hasServeOrTest;
   }
 
-  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts);
+  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts, steps);
   if (isLibOrCli && selfName) {
-    // Skip self-install for all package managers
-    for (const s of steps) {
-      if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
-        // Already skipped by classify
-        continue;
-      }
-      // Check for additional self-install patterns not caught by classify
-      if (s.kind === 'install') {
-        const mgrPatterns = [
-          /^bun\s+add\s+/,
-          /^deno\s+add\s+(?:npm:)?/,
-          /^yarn\s+add\s+/,
-          /^pnpm\s+add\s+/,
-        ];
-        for (const pattern of mgrPatterns) {
-          if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+    // Skip self-install for LIBRARIES only (not CLI tools)
+    // For CLI tools, the README install instruction IS the setup being tested
+    if (isLibraryOrCli(facts) && !isCliTool(facts, steps)) {
+      for (const s of steps) {
+        if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
+          // Already skipped by classify
+          continue;
+        }
+        // Check for additional self-install patterns not caught by classify
+        if (s.kind === 'install') {
+          const mgrPatterns = [
+            /^bun\s+add\s+/,
+            /^deno\s+add\s+(?:npm:)?/,
+            /^yarn\s+add\s+/,
+            /^pnpm\s+add\s+/,
+          ];
+          for (const pattern of mgrPatterns) {
+            if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+              s.skip = 'installs the published package; you already have its source';
+              break;
+            }
+          }
+          // Also check plain pip install <selfName> (not caught by classify when CLI exists)
+          const pipSelf = s.command.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+["']?([\w.-]+)(?:\[[^\]]*\])?(?:==[^\s"']+)?["']?(?:\s|$)/);
+          if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfName.toLowerCase().replace(/[-_]/g, '-')) {
             s.skip = 'installs the published package; you already have its source';
-            break;
           }
         }
       }
