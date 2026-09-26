@@ -448,3 +448,4 @@ html, body {
 .verdict-pill.passed { background: var(--pass-t); color: var(--pass); border: 1px solid var(--pass); }
 .verdict-pill.failed { background: var(--fail-t); color: var(--fail); border: 1px solid var(--fail); }
 .verdict-pill.running { background: var(--bob-t); color: var(--bob); border: 1px solid var(--bob); }
+.verdict-pill.needs_app { background: var(--repair-t); color: var(--repair); border: 1px solid var(--repair); }

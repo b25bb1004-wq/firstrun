@@ -282,11 +282,41 @@
     });
   }
 
-  // Simulation mode for browser preview
+  // Browser preview mode (when window.dock Electron bridge is not connected)
+  function isAcmeShop(target) {
+    return target === 'examples/acme-shop' || target.endsWith('/acme-shop') || target === 'acme-shop';
+  }
+
+  function showDesktopRequired(target) {
+    bobPrompt.textContent = 'Live proof requires FirstRun desktop app';
+    setVerdict('needs_app');
+    stepCounter.textContent = 'Desktop required';
+    
+    drawerTitle.textContent = 'Desktop Verification Required';
+    drawerBody.innerHTML = `
+      <p style="margin:0 0 8px;color:var(--repair)"><strong>Live container verification requires Docker and the FirstRun desktop app:</strong></p>
+      <pre style="background:rgba(0,0,0,.45);padding:8px;border-radius:6px;font:11.5px monospace;color:var(--ink);margin:0 0 8px">firstrun verify ${target}</pre>
+      <p style="margin:0;font-size:12px;color:var(--ink-2)">In browser preview mode without an Electron IPC bridge, you can replay the recorded run for <code>examples/acme-shop</code>.</p>
+    `;
+    drawerActions.innerHTML = `
+      <button class="drawer-action-btn" id="btn-load-demo" type="button">Replay acme-shop demo →</button>
+    `;
+    document.getElementById('btn-load-demo').onclick = () => {
+      repoInput.value = 'examples/acme-shop';
+      simulateVerify('examples/acme-shop');
+    };
+    drawer.classList.add('open');
+  }
+
   function simulatePlan(target) {
-    bobPrompt.textContent = `Quick check: ${target}…`;
+    if (!isAcmeShop(target)) {
+      showDesktopRequired(target);
+      return;
+    }
+
+    bobPrompt.textContent = 'Recorded plan: examples/acme-shop';
     setVerdict('running');
-    stepCounter.textContent = 'Planning…';
+    stepCounter.textContent = 'Planning (replay)…';
 
     setAgentState('scout', 'working', 'Reading manifests, package.json, compose');
     setAgentState('planner', 'idle', 'Waiting for facts');
@@ -297,18 +327,25 @@
 
       setTimeout(() => {
         setAgentState('planner', 'done', '5 steps found · 1 version drift flagged');
-        bobPrompt.textContent = `Plan ready for ${target}`;
+        bobPrompt.textContent = 'Recorded plan: examples/acme-shop (demo)';
         stepCounter.textContent = '5 steps mapped';
         setVerdict('passed');
-        speak('Quick check complete. 5 steps identified with 1 version drift.');
-      }, 800);
-    }, 800);
+        verdictPill.textContent = 'REPLAY · PLAN';
+        speak('Recorded plan complete. 5 steps identified with 1 version drift.');
+      }, 700);
+    }, 700);
   }
 
   function simulateVerify(target) {
-    bobPrompt.textContent = `Proving ${target} in container…`;
+    if (!isAcmeShop(target)) {
+      showDesktopRequired(target);
+      return;
+    }
+
+    bobPrompt.textContent = 'Replaying recorded run: examples/acme-shop (seeded breaks)…';
     setVerdict('running');
-    stepCounter.textContent = 'Step 1/5';
+    verdictPill.textContent = 'REPLAYING';
+    stepCounter.textContent = 'Step 1/5 (replay)';
     bobcoinMeter.textContent = '0.00 Bobcoins';
 
     setAgentState('scout', 'working', 'Scanning repo structure');
@@ -340,16 +377,17 @@
                 setTimeout(() => {
                   setAgentState('scribe', 'done', 'Passport generated: VERIFIED');
                   setAgentState('guide', 'done', 'Guide mode ready for newcomers');
-                  bobPrompt.textContent = `${target} verified!`;
+                  bobPrompt.textContent = 'examples/acme-shop: recorded run replay VERIFIED';
                   setVerdict('passed');
-                  stepCounter.textContent = '5/5 steps proven';
-                  speak('Verification complete. acme-shop is verified from zero.');
-                }, 700);
-              }, 900);
-            }, 800);
-          }, 900);
-        }, 800);
-      }, 700);
-    }, 700);
+                  verdictPill.textContent = 'REPLAY · VERIFIED';
+                  stepCounter.textContent = '5/5 steps (recorded)';
+                  speak('Recorded replay complete: acme-shop verified from zero.');
+                }, 600);
+              }, 700);
+            }, 600);
+          }, 700);
+        }, 600);
+      }, 600);
+    }, 600);
   }
 })();
