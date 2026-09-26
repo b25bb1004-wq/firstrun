@@ -309,3 +309,14 @@ test('test-runner-undeclared: no companion, old Node → a jest major that runs 
   const d22 = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: [] } }, plan: { runtime: { name: 'node', version: '22' } } });
   assert.match(d22.fix.actions[0].command, /--no-save jest$/);
 });
+
+// Real final-engine run (27 Sep): axios on node:19 (README) — its toolchain needs node:util.styleText.
+test('node-builtin-missing: a missing Node built-in export rebases to CI/LTS Node', () => {
+  const rule = RULES.find((r) => r.id === 'node-builtin-missing');
+  const log = "import { formatWithOptions, styleText } from \"node:util\";\nSyntaxError: The requested module 'node:util' does not provide an export named 'styleText'";
+  const d = rule.test({ log, facts: { ci: { nodeVersions: [{ version: '22', workflow: '.github/workflows/ci.yml' }] } }, plan: { runtime: { name: 'node', version: '19' } } });
+  assert.equal(d.fix.actions[0].type, 'rebase');
+  assert.match(d.fix.actions[0].image, /node:22/);
+  assert.equal(rule.test({ log, facts: {}, plan: { runtime: { name: 'node', version: '22' } } }), null);
+  assert.equal(rule.test({ log: 'Error: Cannot find module x', facts: {}, plan: { runtime: { name: 'node', version: '19' } } }), null);
+});

@@ -246,7 +246,9 @@ export function classify(cmd, facts) {
 
   // ── 2. PLATFORM ──────────────────────────────────────────────────────────
   // Skip macOS-only lines
-  if (/^open\s+\/Applications\//.test(c) || /^xattr\b/.test(c) || /\.app(\s|$)/.test(c) || /^brew\s+/.test(c) || /^\/Applications\//.test(c)) {
+  // /Applications/ or a .app bundle ANYWHERE in the line (fastify: `mkdir -p /Applications/VSCodeFastify/…`,
+  // `alias code-fastify="/Applications/…/Visual Studio Code.app/Contents/…"`), ~/Library/, xattr, brew.
+  if (/\/Applications\//.test(c) || /^xattr\b/.test(c) || /\.app(\/|\s|["']|$)/.test(c) || /^brew\s+/.test(c) || /~\/Library\//.test(c)) {
     return { kind: 'prereq', skip: 'macOS-only command' };
   }
 
@@ -660,7 +662,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
     }
     const hasServeScript = hasNodeServeScript || hasPythonServeScript;
     const isCli = facts.cli?.length > 0 && !hasServeScript;
-    return !!selfName && n(selfName) === n(repoName) && !isCli;
+    // Repo names often carry the ecosystem (`commander.js` publishes `commander`, `node-foo` publishes `foo`).
+    const bare = (x) => n(x).replace(/-(js|ts|py|node)$/, '').replace(/^(node|py|python)-/, '');
+    return !!selfName && (n(selfName) === n(repoName) || bare(selfName) === bare(repoName)) && !isCli;
   }
 
   function isCliTool(facts, steps) {
@@ -700,6 +704,35 @@ export function buildPlan(facts, { repo, commit } = {}) {
           }
         }
       }
+    }
+  }
+
+  // Library/CLI repos: user guides and example programs are for people USING the package (final-engine run, 27 Sep).
+  if (isLibraryOrCli(facts)) {
+    // fastify: docs/Guides/Getting-Started.md builds the reader's own app (`npm i fastify-cli`, `npm start`).
+    const USER_GUIDE = /(^|\/)(docs?|guides?)\/(.*\/)?[^/]*(getting[-_ ]?started|quick[-_ ]?start|tutorial|usage|recipes?|examples?)[^/]*$/i;
+    for (const s of steps) {
+      if (s.skip || s.origin === 'ci' || !s.source?.file) continue;
+      if (USER_GUIDE.test(s.source.file) && !/contribut|develop|hacking/i.test(s.source.file)) s.skip = 'user guide for people using this library, not setup of this repo';
+    }
+    // commander: `extra --help`, `program -b subcommand`: example programs the docs invent, which neither the repo,
+    // its package bins nor any tool provides.
+    const KNOWN = /^(node|npm|npx|yarn|pnpm|bun|deno|python3?|pip3?|pipx|uv|poetry|pipenv|pdm|hatch|tox|nox|pytest|make|just|task|cargo|go|java|mvn|gradle|ruby|bundle|rake|php|composer|docker|docker-compose|git|cd|cp|mv|mkdir|rm|ln|cat|echo|export|source|\.|touch|chmod|curl|wget|tar|unzip|sudo|apt|apt-get|sh|bash|env|set|test|\[|corepack|nvm|pyenv|asdf|rustup|dotnet|flask|django-admin|uvicorn|gunicorn|alembic|prisma|next|vite|tsc|jest|vitest|mocha|eslint|prettier|nodemon|pm2|redis-server|redis-cli|psql|mysql|mongosh|createdb)$/;
+    const bins = new Set([...(facts.cli || []), ...(facts.binPaths || [])]);
+    for (const s of steps) {
+      if (s.skip || s.origin === 'ci') continue;
+      // `node string-util.js split …` names a file that isn't where the command says (it lives in examples/).
+      const nodeFile = s.command.match(/^node\s+(?!-)(\S+\.(?:m?js|cjs))\b/);
+      const nf = nodeFile && nodeFile[1].replace(/^\.\//, '');
+      if (nf && !(facts.files || []).includes(nf) && (facts.files || []).some((f) => f.endsWith('/' + nf))) {
+        s.skip = `usage example: \`${nodeFile[1]}\` is not in the repo at that path`;
+        continue;
+      }
+      if (s.kind !== 'other') continue;
+      const first = s.command.trim().replace(/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+/, '').split(/\s+/)[0];
+      if (!first || KNOWN.test(first) || bins.has(first) || first.includes('/') || /\.(m?js|cjs|py|sh|ts)$/.test(first)) continue;
+      if ((facts.files || []).includes(first)) continue;
+      s.skip = `usage example: \`${first}\` is an example program in the docs, not a command this repo provides`;
     }
   }
 

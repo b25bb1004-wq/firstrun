@@ -1160,6 +1160,31 @@ export const RULES = [
       };
     },
   },
+  {
+    // axios (final-engine run, 27 Sep): the README says Node.js v19, so HUMBLE ran node:19; the test toolchain imports
+    // `styleText` from node:util, which only newer Node has: "The requested module 'node:util' does not provide an
+    // export named 'styleText'". CI runs a newer Node: that's the truth to follow.
+    id: 'node-builtin-missing',
+    test({ log, facts, plan }) {
+      if (plan.runtime?.name !== 'node') return null;
+      const m = log.match(/The requested module 'node:([\w/]+)' does not provide an export named '(\w+)'|TypeError: \(0 , _?node[\w$]*\)?\.?(\w+)\)? is not a function|(\w+) is not a function[\s\S]{0,80}node:(util|fs|os|test|process)/);
+      if (!m) return null;
+      const ci = (facts.ci?.nodeVersions || []).map((v) => Number(v.version)).filter((v) => v > 0);
+      const target = String(Math.max(22, ...ci.filter((v) => v <= 24)));
+      if (Number(plan.runtime.version) >= Number(target)) return null;
+      const what = m[1] ? `\`${m[2]}\` from node:${m[1]}` : 'a Node built-in';
+      const src = ci.length ? `CI (${facts.ci.nodeVersions[0].workflow})` : 'the Node.js LTS';
+      return {
+        ruleId: 'node-builtin-missing', class: 'runtime-version', confidence: 0.85,
+        cause: `Node.js ${plan.runtime.version} (what the docs say) is too old: the project's toolchain uses ${what}, which that version doesn't have. ${ci.length ? `CI runs Node ${ci.join(', ')}.` : ''}`.trim(),
+        fix: {
+          actions: [{ type: 'rebase', image: imageFor('node', target), runtime: { name: 'node', version: target, source: src } }],
+          patches: [],
+          doc: { kind: 'prerequisite', text: `Node.js ${target}+`, runtime: { name: 'node', version: target } },
+        },
+      };
+    },
+  },
 ];
 
 function label(kind) {
