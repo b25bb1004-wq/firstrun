@@ -28,6 +28,22 @@ export async function runScout(repoDir, { out } = {}) {
   return { agent: 'scout', facts, runDir: dir };
 }
 
+/** Planner: the ordered setup steps a newcomer would follow, plus docs-vs-code conflicts. No Docker. */
+export async function runPlanner(repoDir, { out } = {}) {
+  const root = path.resolve(repoDir);
+  const dir = runDirFor(root, 'planner', out);
+  const rec = new Recorder(dir, { id: path.basename(dir), repo: path.basename(root) });
+  rec.phase('scout', 'scout');
+  const facts = await scout(root);
+  rec.emitEvent('scout', 'facts', summarizeFacts(facts));
+  rec.phase('plan', 'planner');
+  const plan = buildPlan(facts);
+  rec.savePlan(plan);
+  rec.emitEvent('planner', 'plan', plan);
+  rec.emitEvent('planner', 'done', { verdict: plan.steps.some((s) => !s.skip) ? 'PLANNED' : 'NO-SETUP-DOCS' });
+  return { agent: 'planner', plan, conflicts: plan.conflicts, runDir: dir };
+}
+
 /**
  * Doctor: diagnose one failure log, the moment a newcomer is stuck. Rules first (free); IBM Bob only when
  * a budget is given. The repo gives context (manifests, env files, code the error names).

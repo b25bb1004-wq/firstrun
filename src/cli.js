@@ -10,7 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runDoctor, runScribe } from './solo.js';
+import { runScout, runPlanner, runDoctor, runScribe } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('FirstRun')}: your README, proven.
@@ -83,6 +83,8 @@ export async function main(argv) {
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);
+      // With --out (the Dock), the Planner runs as a solo agent and writes events.ndjson there.
+      if (args.out) { const r = await runPlanner(root, { out: args.out }); if (args.json) { console.log(JSON.stringify(r)); return 0; } }
       const facts = await scout(root);
       const plan = buildPlan(facts);
       if (args.json) { console.log(JSON.stringify(plan, null, 2)); return 0; }

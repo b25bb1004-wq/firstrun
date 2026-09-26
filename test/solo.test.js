@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runScout, runDoctor, runScribe } from '../src/solo.js';
+import { runScout, runPlanner, runDoctor, runScribe } from '../src/solo.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const acme = path.join(ROOT, 'examples', 'acme-shop');
@@ -50,4 +50,14 @@ test('scribe alone: rewrites FIRSTRUN.md + passport from a real finished run (Ge
   assert.equal(JSON.parse(fs.readFileSync(r.files.passport, 'utf8')).verdict, JSON.parse(fs.readFileSync(path.join(dir, 'run.json'), 'utf8')).passport.verdict);
   assert.equal(events(dir).at(-1).agent, 'scribe');
   await assert.rejects(runScribe(tmp()), /no run\.json/);
+});
+
+test('planner alone: plan + conflicts for acme-shop, events for Scout then Planner', async () => {
+  const out = tmp();
+  const r = await runPlanner(acme, { out });
+  assert.ok(r.plan.steps.length > 0);
+  assert.ok(r.conflicts.some((c) => c.what === 'Node.js version'), 'the seeded Node break is found statically');
+  const ev = events(out);
+  assert.deepEqual([...new Set(ev.map((e) => e.agent))], ['scout', 'planner']);
+  assert.equal(ev.at(-1).data.verdict, 'PLANNED');
 });
