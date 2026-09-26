@@ -172,6 +172,8 @@ request (it never opens one without being asked).
 - **Serviceable Addressable Market (SAM) — $1.4B**: Mid-market and enterprise engineering teams managing polyglot microservice architectures (15M+ developers across 100k+ technology firms). According to the [Cortex 2024 State of Developer Onboarding Report](https://www.cortex.io), **72%** of engineering leaders report new hires require 1+ month to ship 3 PRs. [Atlassian's 2024 Developer Experience study](https://www.atlassian.com) shows engineers lose **4.2 hours per week** (~$15,000/developer/year) to broken local environments and stale documentation.
 - **Serviceable Obtainable Market (SOM) — $120M**: Beachhead adoption across 85,000 engineering organizations adopting automated PR drift guards, verified Setup Passports, and IBM Bob IDE workflows over the next 3–5 years.
 
+*Note: TAM/SAM/SOM figures are FirstRun estimates based on cited industry reports.*
+
 ### Pricing tiers
 
 | Tier | Price | Ideal for | What's included |
