@@ -349,6 +349,12 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (!repoName) return false;
     // A Django app with a package.json for its frontend (wagtail/bakerydemo) is an app, not a library.
     if (readText(path.join(facts.root, 'manage.py')) != null || steps.some((s) => /(^|\s|\/)manage\.py\s/.test(s.command))) return false;
+    // A Node repo that starts (scripts.start) and exports nothing (no main/exports) is an app, even when its package
+    // name equals the repo name (madhums/node-express-mongoose regressed VERIFIED → PARTIAL on a CI test otherwise).
+    try {
+      const pkg = JSON.parse(readText(path.join(facts.root, facts.projectDir || '', 'package.json')) || 'null');
+      if (pkg && pkg.scripts?.start && !pkg.main && !pkg.exports) return false;
+    } catch {}
     // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
     const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
     return !!selfName && n(selfName) === n(repoName);

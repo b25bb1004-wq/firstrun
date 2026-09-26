@@ -279,3 +279,16 @@ test('AUDIENCE: uv add "fastapi[standard]" is skipped as the published package, 
   const s = plan.steps.find((x) => /uv add/.test(x.command));
   assert.match(s.skip, /installs the published package/);
 });
+
+// Edith's v2-31 rerun: madhums/node-express-mongoose regressed VERIFIED → PARTIAL because the planner called the
+// Express app a library (package name == repo name) and appended CI's `npm test`.
+test('REGRESSION madhums: an app with scripts.start and no main/exports gets no CI-origin steps', async () => {
+  const plan = await planFor('madhums__node-express-mongoose');
+  assert.equal(plan.steps.filter((s) => s.origin === 'ci').length, 0);
+});
+test('REGRESSION guard: libraries stay libraries (axios, koa)', async () => {
+  for (const slug of ['axios__axios', 'koajs__koa']) {
+    const plan = await planFor(slug);
+    assert.ok(!plan.steps.some((s) => !s.skip && /^(npm|yarn|pnpm|bun)\s+(i|install|add)\s+(axios|koa)\b/.test(s.command)), slug);
+  }
+});
