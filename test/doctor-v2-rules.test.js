@@ -288,3 +288,28 @@ test('browser-system-libs: positive case inserts npx playwright install-deps chr
   assert.equal(res.fix.actions[0].command, 'npx playwright install-deps chromium');
   assert.equal(res.fix.actions[0].kind, 'prereq');
 });
+// Real v2 run (27 Sep, final engine): vargasjona activates a Poetry env the docs never create.
+test('venv-not-created: activating a Poetry env before any poetry install inserts it', () => {
+  const rule = RULES.find((r) => r.id === 'venv-not-created');
+  const step = { command: 'source "$(poetry env info --path)/bin/activate"' };
+  const d = rule.test({ log: '/firstrun/step-9.sh: line 5: /bin/activate: No such file or directory', step, plan: { steps: [step] } });
+  assert.equal(d.fix.actions[0].command, 'poetry install');
+  const done = { command: 'poetry install', status: 'passed' };
+  assert.equal(rule.test({ log: '/bin/activate: No such file or directory', step, plan: { steps: [done, step] } }), null);
+  assert.equal(rule.test({ log: '/bin/activate: No such file or directory', step: { command: 'source .venv/bin/activate' }, plan: { steps: [] } }), null);
+});
+test('planner: dotted config keys with URLs are not commands (sonar.host.url=…)', async () => {
+  const { classify } = await import('../src/plan.js');
+  assert.match(classify('sonar.host.url=http://host.docker.internal:9000', {}).skip || '', /not a command/);
+});
+
+// Real v2 run (27 Sep): vargasjona's poetry.lock pins a torch wheel for CPython 3.11; the docs allowed 3.10.
+test('wheel-python-mismatch: a locked cp311 wheel on Python 3.10 rebases to 3.11', () => {
+  const rule = RULES.find((r) => r.id === 'wheel-python-mismatch');
+  const log = "  Package https://download.pytorch.org/whl/cpu/torch-2.0.0%2Bcpu-cp311-cp311-linux_x86_64.whl cannot be installed in the current environment {'implementation_name': 'cpython'}\nCannot install torch.";
+  const d = rule.test({ log, plan: { runtime: { name: 'python', version: '3.10' } } });
+  assert.equal(d.fix.actions[0].type, 'rebase');
+  assert.match(d.fix.actions[0].image, /python:3\.11/);
+  assert.equal(rule.test({ log, plan: { runtime: { name: 'python', version: '3.11' } } }), null);
+  assert.equal(rule.test({ log: 'Cannot install torch.', plan: { runtime: { name: 'python', version: '3.10' } } }), null);
+});

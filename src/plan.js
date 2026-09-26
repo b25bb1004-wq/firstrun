@@ -35,8 +35,8 @@ export function classify(cmd, facts) {
   if (/^[»❯$#>]\s/.test(c)) {
     return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
   }
-  // Skip key=value config lines with a dot in the key (sonar.login=abc)
-  if (/^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*=\S+$/.test(c)) {
+  // Skip key=value config lines with dots in the key (sonar.login=abc, sonar.host.url=http://…)
+  if (/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_-]*)+=\S+$/.test(c)) {
     return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
   }
   // Skip prose with square brackets (cd ~/dev [or your preferred dev directory])
