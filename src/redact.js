@@ -20,11 +20,19 @@ export const TOKEN_PATTERNS = [
  * valid local dev secrets (like Django's SECRET_KEY=django-insecure-... or DB_PASSWORD=Passw0rd!)
  * are preserved and setup instructions remain working.
  */
+// Exact values from the HUMBLE key store (src/secrets.js) injected into a run: masked wherever they appear,
+// whatever they look like, so an app that prints its key can't leak it into a log, event or report.
+const KNOWN_SECRETS = new Set();
+export function registerSecretValues(values) {
+  for (const v of values || []) if (typeof v === 'string' && v.trim().length >= 4) KNOWN_SECRETS.add(v.trim());
+}
+
 export function redactTokens(text) {
   if (text == null) return text;
   if (typeof text !== 'string') return text;
 
   let result = text;
+  for (const v of KNOWN_SECRETS) result = result.split(v).join(REDACTED);
   for (const pat of TOKEN_PATTERNS) {
     result = result.replace(pat, REDACTED);
   }

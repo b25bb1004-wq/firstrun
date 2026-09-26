@@ -10,6 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
+import { secretNames, setSecret, removeSecret, secretsFile } from './secrets.js';
 import { runScout, runPlanner, runDoctor, runScribe, runRunner, runVerifier } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
@@ -25,6 +26,7 @@ ${bold('Usage')}
   firstrun run    [path|github-url] [--ref <sha>] [--as-written] [--out <dir>] [--json]
   firstrun replay <run-dir> [--json]     Verifier alone: replay a finished run's repaired guide from zero
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
+  firstrun secrets set <NAME> | list | rm <NAME>   your private key store: values hidden, names only
   firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
   firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]   Doctor alone: diagnose one failure
   firstrun scribe <run-dir>              Scribe alone: rewrite the report and passport from a finished run
@@ -62,6 +64,23 @@ async function resolveTarget(target, args) {
     return fetchRepo(target, args.ref);
   }
   return path.resolve(target || '.');
+}
+
+/** Read one line without echoing it (a key being typed); piped stdin works too. */
+async function readHidden(prompt) {
+  if (!process.stdin.isTTY) { let d = ''; for await (const c of process.stdin) d += c; return d.split(/\r?\n/)[0]; }
+  process.stdout.write(prompt);
+  return new Promise((resolve) => {
+    let v = '';
+    process.stdin.setRawMode(true); process.stdin.resume(); process.stdin.setEncoding('utf8');
+    const onData = (ch) => {
+      if (ch === '\r' || ch === '\n') { process.stdin.setRawMode(false); process.stdin.pause(); process.stdin.off('data', onData); process.stdout.write('\n'); resolve(v); }
+      else if (ch === '\u0003') process.exit(130);
+      else if (ch === '\u007f' || ch === '\b') v = v.slice(0, -1);
+      else v += ch;
+    };
+    process.stdin.on('data', onData);
+  });
 }
 
 export async function main(argv) {
@@ -106,6 +125,20 @@ export async function main(argv) {
       const col = r.replay.status === 'passed' ? green : red;
       console.log(`${bold('Verifier')}: ${col(bold(r.replay.status === 'passed' ? 'REPLAY PASSED' : 'REPLAY FAILED'))} in ${Math.round(r.replay.durationMs / 1000)} s ${dim(`(events: ${r.runDir})`)}`);
       return r.replay.status === 'passed' ? 0 : 1;
+    }
+    // The HUMBLE key store (src/secrets.js): values in, names out. A value is never printed.
+    case 'secrets': {
+      const [sub, name] = args._;
+      if (sub === 'list') { const n = secretNames(); console.log(n.length ? n.join('\n') : dim(`no keys stored (${secretsFile()})`)); return 0; }
+      if (sub === 'rm' && name) { console.log(removeSecret(name) ? `${green('✓')} removed ${name}` : `${name} is not stored`); return 0; }
+      if (sub === 'set' && name) {
+        const value = await readHidden(`${name} (hidden, stays on this computer): `);
+        setSecret(name, value);
+        console.log(`${green('✓')} ${name} saved to your HUMBLE key store. HUMBLE uses it in runs; nothing else ever shows it.`);
+        return 0;
+      }
+      console.error('Usage: firstrun secrets set <NAME> | list | rm <NAME>');
+      return 2;
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);

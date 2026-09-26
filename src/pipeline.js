@@ -11,6 +11,8 @@ import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
 import { flagOn } from './flags.js';
 import { run, tail, headTail, nowIso, shortId, readText, shq } from './util.js';
+import { secretsFor } from './secrets.js';
+import { registerSecretValues } from './redact.js';
 
 const MAX_REPAIRS_PER_STEP = 3;
 const MAX_REBASES = 3;
@@ -39,6 +41,22 @@ export async function stillFailing(diagnosis, before, after, ctx) {
 export async function restoreCwd(sandbox, cwd) {
   if (!cwd) return;
   await sandbox.writeFile('/firstrun/cwd', cwd);
+}
+
+/**
+ * Keys from the user's HUMBLE key store that this project reads (env template + env vars in code) go into the box's
+ * shell state through stdin: never on a command line, never in a log. Only the NAMES are reported.
+ */
+export async function injectSecrets(box, facts, say = () => {}) {
+  const wanted = [...Object.keys(facts.envExample?.keys || {}), ...(facts.envVarsInCode || []).map((v) => v.name)];
+  const vals = secretsFor(wanted);
+  const names = Object.keys(vals);
+  if (!names.length) return [];
+  registerSecretValues(Object.values(vals));
+  await box.writeFile('/firstrun/secrets.env', `${names.map((n) => `export ${n}=${shq(vals[n])}`).join('\n')}\n`);
+  await box.sh('cat /firstrun/secrets.env >> /firstrun/state.env && rm -f /firstrun/secrets.env');
+  say(`using ${names.length} key(s) from your HUMBLE key store: ${names.join(', ')} (values stay hidden)`);
+  return names;
 }
 
 /** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
@@ -140,6 +158,7 @@ export async function verifyRepo(repoDir, opts = {}) {
     }
     sandbox = new Sandbox({ image: plan.image, repoDir: root, label: id, cacheVolume, log: (m) => say('runner', m) });
     await sandbox.start();
+    const injected = await injectSecrets(sandbox, facts, (m) => say('runner', m));
     say('runner', `clean machine ready: ${plan.image}`);
 
     const attempts = {};
@@ -446,6 +465,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       const t0 = Date.now();
       replayBox = new Sandbox({ image: plan.image, repoDir: root, label: `${id}-replay`, cacheVolume, patches: patched.map(({ path: p, content }) => ({ path: p, content })) });
       await replayBox.start();
+      await injectSecrets(replayBox, facts);
       let failed = null;
       for (const step of plan.steps) {
         if (step.skip || step.status === 'needs-human') continue;
