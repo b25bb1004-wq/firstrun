@@ -19,7 +19,10 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
   const byLine = new Map();
   for (const s of steps) {
     if (s.origin !== 'readme') continue;
+    // Steps IBM Bob's planner read from prose may cite a file without a line (or a line outside it): the
+    // README diff can't anchor them, so they're left to FIRSTRUN.md instead of crashing the Scribe.
     const k = s.source.line - 1;
+    if (!Number.isInteger(k) || k < 0 || k >= lines.length) continue;
     if (!byLine.has(k)) byLine.set(k, []);
     byLine.get(k).push(s);
   }

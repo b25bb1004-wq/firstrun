@@ -43,7 +43,8 @@ export async function restoreCwd(sandbox, cwd) {
 
 export function makeBudget(total = 4, perCall = 1.5) {
   let spent = 0;
-  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent };
+  // cap(): what one Bob call may spend now, never more than the run has left (a 1-Bobcoin run spent 1.45 on huggingface_hub).
+  return { total, perCall, spend: (x) => { spent += x; }, spent: () => spent, remaining: () => total - spent, cap: () => Math.max(0, Math.min(perCall, total - spent)) };
 }
 
 async function gitInfo(dir) {

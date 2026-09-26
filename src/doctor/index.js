@@ -33,15 +33,15 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
   if (brain === 'rules') {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure (run with --brain auto to ask IBM Bob).', by: 'rules', confidence: 0 }, fix: null };
   }
-  if (bobBudget && bobBudget.remaining() <= 0) {
+  if (bobBudget && (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) < 0.05) {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure and the Bobcoin budget for this run is spent.', by: 'rules', confidence: 0 }, fix: null };
   }
   const request = doctorRequest(ctx);
-  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
+  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
   bobBudget?.spend(res.bobcoins || 0);
   onBob?.(res);
-  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || bobBudget.remaining() > 0)) {
-    const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
+  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) >= 0.05)) {
+    const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
     bobBudget?.spend(retry.bobcoins || 0);
     onBob?.(retry);
     res = { ...retry, bobcoins: (res.bobcoins || 0) + (retry.bobcoins || 0) };
