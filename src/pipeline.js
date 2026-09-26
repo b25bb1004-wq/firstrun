@@ -331,6 +331,7 @@ export async function verifyRepo(repoDir, opts = {}) {
       let repaired = false;
       let restart = false;
       let totalRepairs = 0;
+      let lastDiagnosis = null;
       const history = [];
       const stepEvidence = [];
       for (let k = 0; k < MAX_REPAIRS_PER_STEP && !repaired; k++) {
@@ -347,6 +348,7 @@ export async function verifyRepo(repoDir, opts = {}) {
           },
         });
         rec.emitEvent('doctor', 'diagnosis', { stepId: step.id, diagnosis });
+        lastDiagnosis = diagnosis;
         const evId = `E${rec.state.evidence.length + 1}`;
         const { out: _o, ...before } = attempt;
         if (!fix) {
@@ -502,6 +504,9 @@ export async function verifyRepo(repoDir, opts = {}) {
       step.status = 'needs-human';
       rec.stepStatus(step.id, 'needs-human');
       if (step.kind === 'test' || step.probe) { i++; continue; }
+      // A step HUMBLE's sandbox can't run (it needs a Docker engine inside the container) says nothing about the
+      // steps after it: don't block them (HUMBLE's own README: `ui` doesn't depend on `verify`).
+      if (lastDiagnosis?.class === 'sandbox-limit') { i++; continue; }
       const hard = HARD_BLOCK_KINDS.has(step.kind);
       blockers.push({ id: step.id, hard, file: step.source?.file, section: step.source?.section });
       if (hard) { stopped = step.id; break; }
