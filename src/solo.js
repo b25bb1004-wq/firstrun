@@ -10,6 +10,9 @@ import { readJson, shortId, headTail, run } from './util.js';
 import { Sandbox } from './sandbox.js';
 import { runServicesStep } from './services-shim.js';
 
+// Verifier is in its own branch (hermes/99-replay) to avoid conflicts
+// export async function runVerifier(runDir, { out } = {}) { ... }
+
 /**
  * Solo agents (#90, docs/DOCK_CONTRACT.md): each character of the team, run on its own. A newcomer who only
  * needs one onboarding person calls just that one. Each writes the same events.ndjson as the full pipeline,
