@@ -321,3 +321,21 @@ h3 { letter-spacing: -0.012em; }
 /* No purple, no pastels: planner is a deep blue, night variants are solid, not light tints */
 :root, :root:not([data-theme="dark"]) { --c-planner: #1b2bb8; --c-runner: #ff2d87; }
 :root[data-theme="dark"] { --c-planner: #3a4df0; --c-runner: #ff2d87; --c-doctor: #ff2d87; --pink: #ff2d87; --blue: #4b63ff; }
+
+/* ===== v10: Bricolage Grotesque for display, the system (Apple) stack for body and UI (Karmanya) ===== */
+:root { --display: "Bricolage Grotesque", var(--sans); }
+h1, h2, h3, .stats b, .gallery .big, .mark {
+  font-family: var(--display);
+  font-optical-sizing: auto;               /* Bricolage's opsz axis: tighter, more characterful at display sizes */
+}
+h1 { font-weight: 700; letter-spacing: -0.035em; line-height: 0.98; }
+.hero-full h1 { font-size: clamp(60px, 11vw, 156px); letter-spacing: -0.045em; font-variation-settings: "opsz" 96; }
+h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+h3 { font-weight: 600; letter-spacing: -0.015em; }
+.stats b, .gallery .big { font-weight: 800; letter-spacing: -0.04em; }
+.mark { font-weight: 800; letter-spacing: 0.02em; font-size: 17px; }
+/* body, eyebrows, buttons, nav and code stay on the system stack (SF Pro / Segoe UI Variable) */
+/* v10 tune: Bricolage at hero size needs a little air */
+.hero-full h1 { letter-spacing: -0.028em; font-weight: 650; }
+h1 { letter-spacing: -0.025em; } h2 { letter-spacing: -0.022em; font-weight: 650; }
+.stats b, .gallery .big { letter-spacing: -0.03em; font-weight: 750; }
