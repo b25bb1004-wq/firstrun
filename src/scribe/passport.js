@@ -1,5 +1,5 @@
 import { fmtDuration } from '../util.js';
-import { computeAttribution, computeVerdict, attributeEvidence } from './attribution.js';
+import { computeAttribution, attributeEvidence } from './attribution.js';
 
 export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packageCache = true }) {
   const fromReadme = plan.steps.filter((s) => s.origin === 'readme' && !s.skip).length;
@@ -17,16 +17,17 @@ export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packa
   
   const needsHuman = plan.steps.filter((s) => s.status === 'needs-human').length;
   
-  // Compute verdict with new logic
-  const verdict = computeVerdict({
-    replayPassed: replay?.status === 'passed',
-    stopped,
-    repoBreaks,
-    suiteIssues,
-    needsPerson,
-    humbleUnknowns,
-    breaksFixed,
-  });
+  // Verdict (Friday's review): the v1 rules stay, so a repo whose breaks HUMBLE found AND fixed is still VERIFIED
+  // (koa 2/2, GeekyAnts 4/4). The one addition: when what is left unresolved is only HUMBLE's own limits
+  // (unknown failures), the repo is INCONCLUSIVE, never FAILED on our account.
+  const replayPassed = replay?.status === 'passed';
+  const unresolved = evidence.filter((e) => e.status !== 'verified' && e.status !== 'progressed');
+  let verdict = 'FAILED';
+  // VERIFIED: the replay passed and nothing is left unresolved (fixed breaks are fine).
+  if (replayPassed && needsHuman === 0 && unresolved.length === 0) verdict = 'VERIFIED';
+  // The setup did not replay, and everything still open is HUMBLE's own limit: we can't judge this repo.
+  else if (!replayPassed && unresolved.length && unresolved.every((e) => attributeEvidence(e) === 'humble')) verdict = 'INCONCLUSIVE';
+  else if (replayPassed || (!stopped && breaksFixed > 0)) verdict = 'PARTIAL';
   
   return {
     repo: plan.repo,

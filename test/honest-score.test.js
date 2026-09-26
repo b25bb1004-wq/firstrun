@@ -265,3 +265,21 @@ test('buildPassport: INCONCLUSIVE when only humble unknowns and no other issues'
   assert.equal(passport.breaksFound, 0);
   assert.equal(passport.verdict, 'INCONCLUSIVE');
 });
+// Friday's review of #134: found-AND-fixed breaks keep a repo VERIFIED (the product's headline result).
+import { buildPassport as bpReview } from '../src/scribe/passport.js';
+test('REVIEW: a repo whose breaks were all found and fixed stays VERIFIED', () => {
+  const plan = { repo: 'koajs/koa', runtime: { name: 'node', version: '18' }, image: 'node:18', steps: [{ id: 'S1', origin: 'readme', status: 'repaired' }], verify: { kind: 'command', target: 'npm test' } };
+  const evidence = [
+    { id: 'E1', status: 'verified', diagnosis: { class: 'runtime-version', by: 'rules', ruleId: 'node-test-flag' } },
+    { id: 'E2', status: 'verified', diagnosis: { class: 'wrong-order', by: 'rules', ruleId: 'deps-not-installed' } },
+  ];
+  const p = bpReview({ plan, evidence, replay: { status: 'passed', durationMs: 16000 }, bobcoins: 0, stopped: null });
+  assert.equal(p.verdict, 'VERIFIED');
+  assert.equal(p.breaksFound, 2);
+  assert.equal(p.breaksFixed, 2);
+});
+test('REVIEW: only a HUMBLE unknown left unresolved → INCONCLUSIVE, not FAILED', () => {
+  const plan = { repo: 'x/y', runtime: { name: 'node', version: '22' }, image: 'node:22', steps: [{ id: 'S1', origin: 'readme', status: 'needs-human' }], verify: { kind: 'exit' } };
+  const evidence = [{ id: 'E1', status: 'needs-human', diagnosis: { class: 'unknown', by: 'rules', cause: 'No rule recognises this failure (run with --brain auto to ask IBM Bob).' } }];
+  assert.equal(bpReview({ plan, evidence, replay: null, bobcoins: 0, stopped: 'S1' }).verdict, 'INCONCLUSIVE');
+});
