@@ -49,6 +49,26 @@ function runtimeCause(plan, label, target, src) {
 }
 
 /** Values a template ships instead of a real one: YourConnectionString, <db-url>, [host], changeme, xxx. */
+/** Third-party services whose keys HUMBLE can't create. It tries a well-formed fake first (many apps only check
+ * that the key exists, or its prefix, at startup) and asks a human only if the provider rejects it. */
+const PROVIDER = /^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY|TWITTER|FACEBOOK|LINKEDIN)/;
+export const FAKE_MARK = 'humble_placeholder';
+/** A fake in the shape the provider's SDK expects, and obviously not a real key (no secret scanner matches it). */
+export function fakeFor(name) {
+  const n = name.toUpperCase();
+  if (/^STRIPE.*(PUBLISHABLE|_PK$|PUBLIC)/.test(n)) return `pk_test_${FAKE_MARK}`;
+  if (/^STRIPE.*WEBHOOK/.test(n)) return `whsec_${FAKE_MARK}`;
+  if (/^STRIPE/.test(n)) return `sk_test_${FAKE_MARK}`;
+  if (/(CLIENT_?ID|APP_?ID|_ID)$/.test(n)) return `${FAKE_MARK}_client_id`;
+  return `${FAKE_MARK}_not_a_real_key`;
+}
+/** Human-readable provider for a variable name ("STRIPE_SECRET_KEY" → "Stripe"). */
+export function providerOf(name) {
+  const m = name.toUpperCase().match(PROVIDER);
+  const p = m ? m[1].replace(/_$/, '') : name;
+  return { HF: 'Hugging Face', HUGGING: 'Hugging Face', OPENAI: 'OpenAI', AWS: 'AWS', GCP: 'Google Cloud', GITHUB: 'GitHub', AUTH0: 'Auth0' }[p] || p.charAt(0) + p.slice(1).toLowerCase();
+}
+
 /** Value for dev secrets HUMBLE has to invent (JWT secrets, local DB passwords). Plainly not a credential. */
 export const DEV_SECRET = 'change.me.local.dev.only.not.a.secret';
 
@@ -120,9 +140,7 @@ function devValue(name, { facts, sandboxEnv }) {
   if (/^PORT$/.test(n)) return { value: String(facts.ports[0] || 3000), kind: 'local' };
   if (/^(HOST|HOSTNAME|BIND)$/.test(n)) return { value: '0.0.0.0', kind: 'local' };
   if (/(^|_)(URL|URI|ORIGIN|ENDPOINT)$/.test(n)) return { value: 'http://localhost:3000', kind: 'local' };
-  if (/^(STRIPE|OPENAI|ANTHROPIC|AWS|GCP|GOOGLE|AZURE|GITHUB|SENDGRID|TWILIO|MAILGUN|SLACK|DISCORD|SENTRY|CLOUDINARY|FIREBASE|SUPABASE|AUTH0|CLERK|RESEND|POSTMARK|PUSHER|ALGOLIA|MAPBOX|HUGGING|HF_|COHERE|GROQ|REPLICATE|PLAID|PAYPAL|RAZORPAY)/.test(n)) {
-    return { value: 'changeme', kind: 'secret' };
-  }
+  if (PROVIDER.test(n)) return { value: fakeFor(n), kind: 'fake' };
   // One obvious, non-secret value, the same in the sandbox and in the PR's .env.example: a random-looking
   // string there would read as a leaked credential (and trip secret scanners). Long enough for min-length checks.
   if (/(SECRET|KEY|TOKEN|SALT|PASSWORD|PASS|PEPPER|SIGNING)/.test(n)) return { value: DEV_SECRET, kind: 'generated' };
@@ -383,7 +401,7 @@ export const RULES = [
           for (const n of missing) {
             const { value, kind } = devValue(n, ctx);
             kinds.push(kind);
-            patches.push({ path: envFile, op: 'append-env', key: n, value, comment: kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
+            patches.push({ path: envFile, op: 'append-env', key: n, value, comment: kind === 'fake' ? `Placeholder so the app starts. Features that call ${providerOf(n)} need your own key.` : kind === 'secret' ? 'Required. Use your own key.' : kind === 'generated' ? 'Required at startup. Any random string works for local development.' : 'Required at startup.' });
             actions.push({ type: 'exec', command: `touch .env && printf '\\n%s=%s\\n' ${shq(n)} ${shq(value)} >> .env` });
           }
           doc = doc || { kind: 'note', text: `${envFile} now includes ${missing.join(', ')} (required at startup).`, envVar: missing.join('`, `') };
@@ -452,7 +470,7 @@ export const RULES = [
         if (/_NAME$/.test(n) && !/DB|DATABASE|USER/.test(n)) { values[n] = { value: n.toLowerCase().replace(/_name$/, ''), kind: 'local' }; continue; }
         if (/^(MYSQL|MARIADB)_DATABASE$|^POSTGRES_DB$/.test(n)) { values[n] = { value: 'app', kind: 'local' }; continue; }
         const d = devValue(n, ctx);
-        if (['local', 'generated'].includes(d.kind)) values[n] = d;
+        if (['local', 'generated', 'fake'].includes(d.kind)) values[n] = d;
       }
       // A database URL must agree with the credentials set next to it, so the sidecar and the app match.
       for (const n of names.filter((x) => /DATABASE_URL|DB_URL/.test(x))) {
@@ -466,11 +484,12 @@ export const RULES = [
       if (!sets.length) return null;
       const missing = names.filter((n) => !values[n]);
       const actions = [{ type: 'exec', command: `touch .env && { grep -v -E '^(${sets.map(([k]) => k).join('|')})=' .env; ${sets.map(([k, v]) => `printf '%s=%s\\n' ${shq(k)} ${shq(v.value)}`).join('; ')}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }];
-      const patches = envFile ? sets.map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
+      const patches = envFile ? sets.filter(([, v]) => v.kind !== 'fake').map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
+      const fakes = sets.filter(([, v]) => v.kind === 'fake').map(([k]) => k);
       const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
       return {
         ruleId: 'env-empty-value', class: 'missing-env', confidence: 0.85,
-        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. HUMBLE fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
+        cause: `${envFile || 'The env template'} leaves ${names.length} required value${names.length > 1 ? 's' : ''} blank and the app rejects empty values. HUMBLE fills ${shown} with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP)${fakes.length ? `; ${fakes.join(', ')} get${fakes.length === 1 ? 's' : ''} a placeholder so the app can start (features that call ${[...new Set(fakes.map(providerOf))].join(', ')} need a real key)` : ''}${missing.length ? `; ${missing.join(', ')} need${missing.length === 1 ? 's' : ''} a real value from a human` : ''}.`,
         fix: { actions, patches, doc: { kind: 'note', text: `\`${envFile || '.env'}\` now has working local values for the variables that were blank (${shown}).` } },
       };
     },
@@ -875,6 +894,11 @@ export const RULES = [
       const cmd = `${installPrefix} ${pkg}@^${ver}`;
       return {
         ruleId: 'unbounded-range-no-lockfile', class: 'missing-dependency', confidence: 0.7,
+        // Two valid fixes; the setup-only one is applied and proven, the other is the maintainer's call (never blocks).
+        choice: { name: `${pkg} version`, options: [
+          { id: 'A', label: `Pin ${pkg} to ^${ver} (the version the code was written for)`, setupOnly: true, applied: true },
+          { id: 'B', label: `Update the code for the latest ${pkg} and commit a lockfile`, setupOnly: false },
+        ] },
         cause: `${pkg} is declared as ${range} with no lockfile, so a fresh install gets a newer major of ${pkg} than the code was written for; pinning to ^${ver} restores the version the setup docs assumed.`,
         fix: {
           actions: [{ type: 'insert-before', command: cmd }],
@@ -934,12 +958,18 @@ export const RULES = [
   },
   {
     id: 'secret-required',
-    test({ log }) {
+    test({ log, sandboxEnv = {} }) {
       const m = log.match(/(?:Invalid|Incorrect|missing) API key|401 Unauthorized|AuthenticationError|invalid_api_key|No API key provided|You didn't provide an API key/i);
       if (!m) return null;
+      // The keys HUMBLE faked (or that are still empty or 'changeme') are the ones to ask a human for.
+      const names = Object.entries(sandboxEnv).filter(([k, v]) => PROVIDER.test(k) && (String(v).includes(FAKE_MARK) || v === '' || v === 'changeme')).map(([k]) => k);
+      const who = [...new Set(names.map(providerOf))].join(', ');
       return {
         ruleId: 'secret-required', class: 'needs-secret', confidence: 0.7,
-        cause: 'This step needs a real third-party credential; HUMBLE will not invent one.',
+        cause: names.length
+          ? `${who} rejected the placeholder HUMBLE used for ${names.join(', ')}: this step calls the real service, so it needs your own key. HUMBLE will not invent one.`
+          : 'This step needs a real third-party credential; HUMBLE will not invent one.',
+        ask: { kind: 'secret', name: names.join(', ') || 'API key', names, why: `${m[0]} while running this step${who ? ` (${who})` : ''}` },
         fix: null,
       };
     },
