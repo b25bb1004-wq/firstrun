@@ -66,7 +66,7 @@ function toggleDockPanel() {
   });
   dockPanel.setAlwaysOnTop(true, 'floating');
   dockPanel.setVisibleOnAllWorkspaces(true);
-  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'));
+  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'), { query: { project } }); // the panel pre-fills the repo field with it
   dockPanel.on('closed', () => { dockPanel = null; });
 }
 
