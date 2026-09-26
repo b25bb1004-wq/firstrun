@@ -45,7 +45,7 @@ Reply with ONLY one JSON object in a \`\`\`json block:
   "notes": "anything ambiguous in the docs" }
 \`\`\`
 `;
-  const res = await askBob({ mode: 'firstrun-planner', request, workspace: facts.root, maxCost: budget?.perCall ?? 1.5, name: 'planner' });
+  const res = await askBob({ mode: 'firstrun-planner', request, workspace: facts.root, maxCost: budget?.cap?.() ?? budget?.perCall ?? 1.5, name: 'planner' });
   budget?.spend(res.bobcoins || 0);
   if (!res.ok || !Array.isArray(res.json?.steps)) return { ok: false, error: res.error || 'no steps in reply', bobcoins: res.bobcoins || 0 };
   const steps = res.json.steps

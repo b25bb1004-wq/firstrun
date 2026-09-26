@@ -342,8 +342,11 @@ export function buildPlan(facts, { repo, commit } = {}) {
     }
   }
   const documented = new Set([...Object.keys(facts.envExample?.keys || {})]);
+  // Maintainer tooling (release notes, publishing, deploy, CI helpers) isn't part of a newcomer's setup:
+  // huggingface_hub's GITHUB_TOKEN, read only by utils/release_notes/, was flagged as undocumented.
+  const maintainerOnly = (f) => /(^|\/)(\.github|release[_-]?notes?|releases?|publish\w*|deploy\w*|changelog|ci)(\/|\.|$)/i.test(f || '');
   for (const v of facts.envVarsInCode) {
-    if (v.required && !documented.has(v.name) && !readmeText.includes(v.name)) {
+    if (v.required && !maintainerOnly(v.file) && !documented.has(v.name) && !readmeText.includes(v.name)) {
       conflicts.push({ what: `env var ${v.name}`, docs: 'not documented', truth: `read in ${v.file}:${v.line}`, source: facts.envExample?.file || 'README' });
     }
   }
