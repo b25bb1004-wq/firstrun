@@ -61,8 +61,10 @@ if (auditsHere.length < AUDITS.length) say(`   note: missing audit logs on this 
 // The rerun: ready, not started. Concurrency 1 so timings are quotable (teamhide flaked at 3);
 // 0.19 Bobcoins per repo keeps 31 repos under the 6-Bobcoin cap.
 const list = 'audit/v2-31-repos.json';
-const rerun = `node bin/firstrun.js audit ${list} --concurrency 1 --brain auto --bob-budget 0.19 --id v2-31`;
-out.rerun = { list, command: rerun, needs: 'Docker Desktop running; at most 0.19 Bobcoins per repo (31 repos, 5.9 max); several hours at concurrency 1', started: false };
+// Rules only by default: 0 Bobcoins, and the Bob key should be unset in that shell (Arnav, 26 Sep).
+// Bob passes run later, only on repos HUMBLE couldn't judge, on Karmanya's PC with his key.
+const rerun = `node bin/firstrun.js audit ${list} --concurrency 1 --brain rules --bob-budget 0 --id v2-31`;
+out.rerun = { list, command: rerun, needs: 'Docker Desktop running; rules only, 0 Bobcoins (unset BOB_API_KEY); several hours at concurrency 1. Optional Bob pass afterwards: only INCONCLUSIVE repos, --brain auto --bob-budget 0.19, on the PC of the teammate whose Bobcoins are used (Karmanya), max 5 Bobcoins', started: false };
 say(`\nReady, NOT started (needs Docker + Bobcoins, a human decides):\n   ${rerun}\n   ${out.rerun.needs}`);
 
 out.ok = out.gates.every((g) => g.ok !== false);
