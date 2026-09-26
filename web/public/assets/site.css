@@ -234,3 +234,23 @@ section[id] { scroll-margin-top: 80px; }
 /* Shapes: a gentle 3D tilt layer driven by a spring from the pointer (site.js) */
 .shapes { perspective: 900px; }
 .shape svg { transition: none; }
+
+/* ===== v5: Apple typography (Karmanya) =====
+   Apple's own pages use SF Pro Display/Text. It is licensed and can't be embedded, so we use the system stack:
+   Apple devices render real SF Pro, Windows renders Segoe UI Variable. Metrics copied from apple.com/airpods-pro:
+   headlines 600 with near-zero tracking, body 17px / 25px with -0.022em. */
+:root {
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
+}
+body { font-size: 17px; line-height: 1.47059; letter-spacing: -0.022em; font-feature-settings: "kern"; }
+h1, h2, h3 { font-weight: 600; }
+h1 { letter-spacing: -0.015em; line-height: 1.05; }
+.hero-full h1 { font-size: clamp(56px, 10.5vw, 136px); letter-spacing: -0.02em; }
+h2 { letter-spacing: -0.009em; line-height: 1.1; }
+h3 { letter-spacing: -0.012em; }
+.lede { font-size: clamp(19px, 1.7vw, 24px); line-height: 1.42; letter-spacing: -0.012em; font-weight: 400; }
+.eyebrow { font-family: var(--sans); font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 19px; }
+.stats b { letter-spacing: -0.015em; }
+.btn { font-weight: 400; font-size: 17px; letter-spacing: -0.022em; }
+.eyebrow.mono { font-family: var(--sans); }
