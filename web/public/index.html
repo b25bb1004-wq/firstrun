@@ -36,6 +36,25 @@
 
 <main id="main">
 
+  <section class="heal" id="heal" aria-label="A real setup guide, followed on a clean machine and repaired" hidden>
+    <div class="heal-stick">
+      <div class="heal-doc">
+        <div class="heal-raw"></div>
+        <div class="heal-done" aria-hidden="true"></div>
+      </div>
+      <aside class="heal-panel" aria-live="polite">
+        <p class="phase mono" data-k="phase"></p>
+        <p class="cap" data-k="cap"></p>
+        <p class="doctor" hidden><b class="mono">Doctor</b><span></span></p>
+        <p class="count"><span><b data-k="found">0</b> found</span><span><b data-k="fixed">0</b> fixed</span></p>
+        <p class="src mono">GeekyAnts/express-typescript · real run ee9f45c8 · node:22</p>
+        <p class="heal-out">That was a real run on a real repo. <a class="link" href="#try">Now check yours.</a></p>
+        <div class="bar" aria-hidden="true"><i></i></div>
+        <a class="skipintro mono" href="#h1">Skip the run</a>
+      </aside>
+    </div>
+  </section>
+
   <section class="hero-full" aria-labelledby="h1">
     <div class="wrap inner">
       <p class="eyebrow mono">Setup docs, verified from zero</p>
@@ -317,6 +336,7 @@
   </div>
 </footer>
 
+<script src="/assets/heal.js" defer></script>
 <script src="/assets/check.js" defer></script>
 <script src="/assets/site.js" defer></script>
 <script src="/assets/hero-gl.js" defer></script>
