@@ -66,6 +66,7 @@ One JSON object per line: `{ t, run, agent, type, data }`, with `agent` one of `
 | `dock:open` | UI → main | `{ what: 'report'|'readme-diff'|'passport'|'folder', runDir }` |
 | `dock:cancel` | UI → main | `{}` |
 | `dock:lens` | UI → main | `{}` (opens Lens, the Doctor's circle-an-error mode) |
+| `dock:toggle` | button → main | `{}` (opens or closes the panel) |
 
 ## 5. Files and owners
 
