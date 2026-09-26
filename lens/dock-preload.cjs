@@ -2,7 +2,14 @@
 // Exposes window.dock = { run, open, cancel, lens, toggle, onState }.
 const { contextBridge, ipcRenderer } = require('electron');
 
+let project = '';
+try {
+  const p = new URLSearchParams(window.location.search);
+  project = p.get('project') || p.get('target') || '';
+} catch {}
+
 contextBridge.exposeInMainWorld('dock', {
+  project,
   run:     (agent, target) => ipcRenderer.send('dock:run',    { agent, target }),
   open:    (what, runDir)  => ipcRenderer.send('dock:open',   { what, runDir }),
   cancel:  ()              => ipcRenderer.send('dock:cancel',  {}),

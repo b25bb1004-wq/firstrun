@@ -26,6 +26,22 @@
   const drawerClose = document.getElementById('drawer-close');
   const drawerActions = document.getElementById('drawer-action-container');
 
+  let userEditedRepo = false;
+  if (repoInput) {
+    repoInput.addEventListener('input', () => {
+      userEditedRepo = true;
+    });
+  }
+
+  // Pre-fill target from URL query params (?project=... or ?target=...), window.dock.project, or bridge
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get('project') || params.get('target') || window.dock?.project;
+    if (p && repoInput) {
+      repoInput.value = p;
+    }
+  } catch {}
+
   function getTarget() {
     let t = repoInput ? repoInput.value.trim() : '';
     if (!t) {
@@ -38,7 +54,7 @@
   // Pre-fill target if passed via onProject bridge event
   if (window.dock?.onProject) {
     window.dock.onProject((project) => {
-      if (project && repoInput) {
+      if (project && repoInput && !userEditedRepo) {
         repoInput.value = project;
       }
     });
@@ -424,7 +440,7 @@
 
   function applyDockState(state) {
     if (!state) return;
-    if (state.target && repoInput && document.activeElement !== repoInput) repoInput.value = state.target;
+    if (state.target && repoInput && !userEditedRepo && document.activeElement !== repoInput) repoInput.value = state.target;
     if (state.verdict) setVerdict(state.verdict);
     if (state.runDir) currentRunDir = state.runDir;
     if (state.bobcoins !== undefined) bobcoinMeter.textContent = `${state.bobcoins.toFixed(2)} Bobcoins`;

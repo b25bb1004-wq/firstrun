@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ocr, warmOcr, loadKnownFixes, matchKnownFix, askBobAbout } from './engine.js';
 import { runAgent, open as openArtifact } from './dock-bridge.js';
+import { initialState } from '../src/dock-state.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const HOTKEYS = ['CommandOrControl+Shift+Space', 'Alt+Shift+Q'];
@@ -66,7 +67,10 @@ function toggleDockPanel() {
   });
   dockPanel.setAlwaysOnTop(true, 'floating');
   dockPanel.setVisibleOnAllWorkspaces(true);
-  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'));
+  dockPanel.loadFile(path.join(HERE, 'dock', 'index.html'), { query: { project } });
+  dockPanel.webContents.on('did-finish-load', () => {
+    pushState(initialState(project, 'all'));
+  });
   dockPanel.on('closed', () => { dockPanel = null; });
 }
 
