@@ -31,6 +31,27 @@ function validateRef(ref) {
   return /^[A-Za-z0-9._/-]{1,100}$/.test(ref);
 }
 
+const PRIVATE_MSG = "HUMBLE's hosted check only runs on public GitHub repos. For a private repo, run `firstrun verify` on your own machine.";
+
+/**
+ * Ask GitHub, without our token, whether the repo is public. Only a public repo can be cloned
+ * by the workflow (it clones anonymously). 'public' | 'not-public' | 'unknown' (rate limit or
+ * network: let the workflow decide rather than block a real repo).
+ */
+export async function repoVisibility(owner, name, fetchFn = fetch) {
+  try {
+    const r = await fetchFn(`https://api.github.com/repos/${owner}/${name}`, {
+      headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'humble-hosted-verify' },
+    });
+    if (r.status === 404) return 'not-public';
+    if (!r.ok) return 'unknown';
+    const j = await r.json();
+    return j.private ? 'not-public' : 'public';
+  } catch {
+    return 'unknown';
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!GH_TOKEN) return res.status(500).json({ error: 'Server not configured: missing HOSTED_VERIFY_TOKEN' });
@@ -52,6 +73,11 @@ export default async function handler(req, res) {
   const parsed = parseGithubRepo(repo);
   if (!parsed) {
     return res.status(400).json({ error: 'Invalid repository format. Use owner/name or a GitHub URL.' });
+  }
+
+  // The workflow clones anonymously, so a private (or missing) repo can only fail there. Say so now.
+  if ((await repoVisibility(parsed.owner, parsed.name)) === 'not-public') {
+    return res.status(400).json({ error: PRIVATE_MSG, code: 'not-public' });
   }
 
   // Generate unique request_id for run correlation
