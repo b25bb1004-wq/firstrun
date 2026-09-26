@@ -6,6 +6,7 @@ import { Recorder } from './recorder.js';
 import { diagnose, fixSignature } from './doctor/index.js';
 import { RULES } from './doctor/rules.js';
 import { needsBobPlanner, bobPlan } from './brain/planner.js';
+import { bobReviewPlan } from './brain/review.js';
 import { runServicesStep } from './services-shim.js';
 import { applyPatchOps, materialize } from './patches.js';
 import { publish } from './scribe/index.js';
@@ -133,6 +134,16 @@ export async function verifyRepo(repoDir, opts = {}) {
         for (const s of bp.steps.filter((x) => !known.has(x.command) && !x.skip)) {
           plan.conflicts.push({ what: 'step only in other docs', docs: s.command, truth: `found by IBM Bob in ${s.source.file}${s.source.where ? ` ${s.source.where}` : ''}`, source: s.source.file });
         }
+      }
+    }
+    // Bob reviews the lines the rules can't vouch for, once, before anything runs (≤ 0.2 Bobcoins).
+    if (brain !== 'rules' && plan.plannedBy !== 'bob' && budget.remaining() > 0) {
+      const rv = await bobReviewPlan({ plan, facts, budget, maxCost: Math.min(0.2, budget.remaining()) });
+      if (rv.asked) {
+        rec.state.bobcoins = budget.spent();
+        rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', review: true, asked: rv.asked, skipped: rv.skipped.length, bobcoins: rv.bobcoins, ok: rv.ok, taskId: rv.taskId, error: rv.error });
+        for (const s of rv.skipped) say('planner', `IBM Bob: skip \`${s.command}\` (${s.reason})`);
+        plan.bobReview = { asked: rv.asked, skipped: rv.skipped, bobcoins: rv.bobcoins, ok: rv.ok };
       }
     }
     plan.originalImage = plan.image;
