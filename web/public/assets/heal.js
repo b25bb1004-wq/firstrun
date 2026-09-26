@@ -121,6 +121,9 @@
     });
     raw.classList.toggle('replay', !!b.replay);
     raw.classList.toggle('stamped', !!b.stamp);
+    // DR.BO's scan line sweeps the guide once on every diagnosis beat (restarted, never looped).
+    raw.classList.remove('scan');
+    if (b.doctor) { raw.style.setProperty('--scan-h', raw.offsetHeight + 'px'); void raw.offsetWidth; raw.classList.add('scan'); }
     sec.dataset.beat = n;
     panel.querySelector('[data-k=phase]').textContent = b.phase;
     panel.querySelector('[data-k=cap]').textContent = b.cap;

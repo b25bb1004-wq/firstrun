@@ -835,3 +835,26 @@ html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
 .intro-steps li::before { content: "0" counter(s) " "; color: var(--blue); font-weight: 600; }
 .intro.static .intro-promise { position: static; margin-top: 24px; }
 @media (max-width: 700px) { .intro-steps { flex-direction: column; align-items: center; gap: 6px; } .intro-promise { top: 54%; } }
+
+/* v19 (Edith): the README breaks and heals with more force. Once-per-event motion, GPU only, never looped. */
+.heal-raw { position: relative; }
+.heal-raw .ln.fail .t { animation: heal-glitch 460ms steps(1, end) 1; }
+@keyframes heal-glitch {
+  0% { transform: none; clip-path: none; }
+  12% { transform: translateX(-5px); clip-path: inset(8% 0 58% 0); }
+  24% { transform: translateX(6px); clip-path: inset(52% 0 12% 0); }
+  36% { transform: translateX(-3px); clip-path: inset(28% 0 38% 0); }
+  48% { transform: translateX(2px); clip-path: none; }
+  60%, 100% { transform: none; clip-path: none; }
+}
+.heal-raw.scan::after { content: ""; position: absolute; left: -3%; right: -3%; top: 0; height: 2px; background: var(--pink);
+  animation: heal-scan 1100ms cubic-bezier(.45, 0, .2, 1) both; pointer-events: none; }
+@keyframes heal-scan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(var(--scan-h, 400px)); opacity: 0; }
+}
+.heal-raw .ln.add:not(.hid) .t { animation: heal-reset 520ms cubic-bezier(.23, 1, .32, 1) both; }
+@keyframes heal-reset { from { opacity: 0; filter: blur(4px); transform: scaleX(1.12); } to { opacity: 1; filter: blur(0); transform: none; } }
+@media (prefers-reduced-motion: reduce) { .heal-raw .ln.fail .t, .heal-raw .ln.add .t { animation: none; } .heal-raw.scan::after { display: none; } }
