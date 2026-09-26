@@ -804,3 +804,18 @@ html.js .intro { display: block; position: relative; inset: auto; z-index: auto;
 .intro.static .intro-stick { position: static; height: 50vh; }
 .intro.static .intro-hint, .intro.static .intro-stage { display: none; }
 .intro-word span { opacity: 0; }
+
+/* ===== v16 (Edith): dark mode is "roasted oat", not navy (Karmanya: the plain blue isn't cutting it). A warm
+   espresso near-black from the oat family, so blue and hot pink read cleanly; never pure black, no purple.
+   A faint film grain (texture, not a pattern) keeps large areas from looking flat. ===== */
+:root[data-theme="dark"] {
+  --bg: #16120e; --surface: #1f1a15; --line: #342c24;
+  --ink: #efe7da; --muted: #a89b88;
+  --blue: #5b73ff; --pink: #ff4d9b;
+  --accent: var(--blue); --accent-ink: #16120e; --del: var(--pink);
+  --c-scout: #5b73ff; --c-planner: #3a4df0; --c-runner: #ff4d9b; --c-doctor: #ff4d9b; --c-verifier: #5b73ff; --c-scribe: #efe7da;
+}
+:root[data-theme="dark"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .88  0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
