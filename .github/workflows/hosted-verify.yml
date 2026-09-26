@@ -22,7 +22,8 @@ concurrency:
   group: hosted-verify-${{ github.event.inputs.request_id }}
   cancel-in-progress: false
 
-permissions: {}
+permissions:
+  contents: read   # read-only: actions/checkout must read this private repo; nothing else
 
 jobs:
   verify:
