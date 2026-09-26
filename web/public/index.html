@@ -207,7 +207,7 @@
       <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
-          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
+          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 14 READMEs with setup docs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
           <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3>16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
         <article class="card-diff-slider">
@@ -216,7 +216,7 @@
             <div class="diff-layer diff-after">
               <div class="diff-header">
                 <span class="diff-pill pill-after">+ AS PROVEN BY HUMBLE</span>
-                <span class="diff-meta">4/4 breaks fixed · 53s replay</span>
+                <span class="diff-meta">1/4 breaks fixed · 69s replay</span>
               </div>
               <pre class="diff-code mono"><code><span class="c-comment"># 1. Install dependencies with legacy peer deps</span>
 <span class="c-add"><span class="c-sym">+</span> npm install --legacy-peer-deps</span>
@@ -265,8 +265,8 @@
           </div>
         </article>
         <article>
-          <div class="big" style="color:var(--c-verifier)">53s</div>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>GeekyAnts was PARTIAL in the audit. We traced it to our own runner (it gave up on a watcher still compiling), fixed it, and the rerun went 4 breaks found, 4 fixed, replayed from zero in 53 seconds, ending on the app's home page.</p></div>
+          <div class="big" style="color:var(--c-verifier)">69s</div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>GeekyAnts was PARTIAL in the audit. We traced it to our own runner (it gave up on a watcher still compiling), fixed it, and the rerun went 4 breaks found, 1 fixed, replayed from zero in 69 seconds, ending on the app's home page.</p></div>
         </article>
         <article>
           <div class="big" style="color:var(--c-doctor)">5/5</div>
