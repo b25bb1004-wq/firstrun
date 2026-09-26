@@ -83,8 +83,17 @@
       // 3. The key letter flies to its slot (0.6 to 0.94), then hands over to the slot letter (0.94 to 1).
       var s = to.height / k.height;
       var dxs = to.left + to.width / 2 - kx, dys = to.top + to.height / 2 - (k.top + k.height / 2);
-      tl(keyEl, [{ transform: 'none', opacity: 1 }, { transform: 'translate(' + dxs + 'px,' + dys + 'px) scale(' + s + ')', opacity: 1, offset: 0.85 }, { transform: 'translate(' + dxs + 'px,' + dys + 'px) scale(' + s + ')', opacity: 0 }], { duration: 0.4 * D, delay: t + 0.6 * D, easing: EASE_IN_OUT, fill: 'forwards' });
-      tl(slot, [{ opacity: 0, color: 'var(--blue)' }, { opacity: 1, color: 'var(--blue)', offset: 0.12 }, { opacity: 1, color: 'var(--ink)' }], { duration: 0.5 * D, delay: t + 0.94 * D });
+      // Depth on the flight: the letter tilts in 3D and blurs at peak speed, overshoots its slot, and settles.
+      var P = 'perspective(900px) ', at = function (f, sc, rx, ry) { return P + 'translate(' + dxs * f + 'px,' + dys * f + 'px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) scale(' + sc + ')'; };
+      var tilt = i % 2 ? 1 : -1;
+      tl(keyEl, [
+        { transform: at(0, 1, 0, 0), filter: 'blur(0px)', opacity: 1 },
+        { transform: at(0.5, (1 + s) / 2, 16, 22 * tilt), filter: 'blur(3px)', opacity: 1, offset: 0.42 },
+        { transform: at(1, s * 1.08, -4, -3 * tilt), filter: 'blur(0px)', opacity: 1, offset: 0.74 },
+        { transform: at(1, s * 0.985, 0, 0), filter: 'blur(0px)', opacity: 1, offset: 0.86 },
+        { transform: at(1, s, 0, 0), filter: 'blur(0px)', opacity: 0 },
+      ], { duration: 0.44 * D, delay: t + 0.58 * D, easing: 'cubic-bezier(0.45, 0, 0.2, 1)', fill: 'forwards' });
+      tl(slot, [{ opacity: 0, color: 'var(--blue)', transform: 'scale(1.03)' }, { opacity: 1, color: 'var(--blue)', transform: 'scale(1.01)', offset: 0.12 }, { opacity: 1, color: 'var(--ink)', transform: 'none' }], { duration: 0.5 * D, delay: t + 0.96 * D, easing: EASE_OUT });
 
       // The compass mark confirms the letter, then steps back.
       var b = to, cx = b.left - box.left + b.width / 2, cy = b.top - box.top + b.height / 2;
