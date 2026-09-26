@@ -235,3 +235,9 @@ test('COLLECT: steps planned before vs after for all 31 fixtures', async () => {
   }
   assert.ok(true, 'summary printed');
 });
+// Friday's review of #122 (2026-09-26)
+test('REVIEW: bracketed extras and shell tests are real commands, not prose', () => {
+  assert.equal(classify('pip install -e ".[dev]"', {}).skip, undefined);
+  assert.equal(classify('[ -f .env ] || cp .env.example .env', {}).skip, undefined);
+  assert.match(classify('cd ~/dev [or your preferred dev directory]', {}).skip, /not a command/);
+});

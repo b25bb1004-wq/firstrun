@@ -39,7 +39,8 @@ export function classify(cmd, facts) {
     return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
   }
   // Skip prose with square brackets (cd ~/dev [or your preferred dev directory])
-  if (/\[.*\]/.test(c) && !/^(export|echo|cp|mv|mkdir|rm)\b/.test(c)) {
+  // Only brackets holding an instruction to the reader: `pip install -e ".[dev]"` and `[ -f .env ] || cp …` are real commands.
+  if (/\[\s*(?:or|your|optional|e\.g\.|i\.e\.|replace|choose|if)\b[^\]]*\]/i.test(c)) {
     return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
   }
 
@@ -373,25 +374,24 @@ export function buildPlan(facts, { repo, commit } = {}) {
 
   // Ensure contributor path is planned from CONTRIBUTING or CI workflows
   // We'll collect CI commands and add them if not already present
-  const ciInstallCommands = facts.ci.commands
+  const ciInstallCommands = (facts.ci?.commands || [])
     .filter(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install|pip\s+install\s+-e\s+\.|uv\s+sync|poetry\s+install|make\s+(install|test))/.test(c.run))
     .map(c => c.run);
-  const ciTestCommands = facts.ci.commands
+  const ciTestCommands = (facts.ci?.commands || [])
     .filter(c => /^(npm\s+(run\s+)?(test|test:)|yarn\s+(run\s+)?(test|test:)|pnpm\s+(run\s+)?(test|test:)|pytest|make(\s+(test|ci))?)/.test(c.run))
     .map(c => c.run);
   
-  // Add CI install commands if they're not already in steps
-  for (const ciCmd of ciInstallCommands) {
-    const exists = steps.some(s => !s.skip && s.command === ciCmd);
-    if (!exists) {
-      steps.push({ id: '', command: ciCmd, kind: 'install', source: { file: 'CI', line: 0, section: 'GitHub Actions' }, origin: 'ci', synthetic: 'from CI workflow' });
-    }
+  // Only when the docs give no contributor path of their own, and only for libraries/CLIs whose README
+  // is written for users: one install and one test command from CI, install first. Apps keep their
+  // documented steps untouched (appending every CI command to every repo changed plans that worked).
+  const ciSource = { file: 'CI', line: 0, section: 'GitHub Actions' };
+  if (isLibOrCli && !steps.some((s) => !s.skip && s.kind === 'install') && ciInstallCommands[0]) {
+    const at = steps.findIndex((s) => !s.skip && s.kind === 'test');
+    const st = { id: '', command: ciInstallCommands[0], kind: 'install', source: ciSource, origin: 'ci', synthetic: 'from CI workflow' };
+    if (at >= 0) steps.splice(at, 0, st); else steps.push(st);
   }
-  for (const ciCmd of ciTestCommands) {
-    const exists = steps.some(s => !s.skip && s.command === ciCmd);
-    if (!exists) {
-      steps.push({ id: '', command: ciCmd, kind: 'test', source: { file: 'CI', line: 0, section: 'GitHub Actions' }, origin: 'ci', synthetic: 'from CI workflow' });
-    }
+  if (isLibOrCli && !steps.some((s) => !s.skip && s.kind === 'test') && ciTestCommands[0]) {
+    steps.push({ id: '', command: ciTestCommands[0], kind: 'test', source: ciSource, origin: 'ci', synthetic: 'from CI workflow' });
   }
 
   // ── 4. ALTERNATIVES ─────────────────────────────────────────────────────────
@@ -432,7 +432,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
       }
       // Check CI for preferred manager
       if (!preferred) {
-        const ciInstall = facts.ci.commands.find(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install)/.test(c.run));
+        const ciInstall = (facts.ci?.commands || []).find(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install)/.test(c.run));
         if (ciInstall) {
           const ciMgr = ciInstall.run.match(/^(npm|yarn|pnpm|bun)/)?.[1];
           if (ciMgr) {
