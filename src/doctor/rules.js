@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
+import { TOOLBOX } from './toolbox.js';
 import { PORT_TO_SERVICE, serviceFor, dockerRunLine, serviceKind } from './services.js';
 
 /**
@@ -721,7 +722,8 @@ export const RULES = [
       const tool = m[1];
       const installs = {
         yarn: 'corepack enable', pnpm: 'corepack enable',
-        poetry: 'pip install poetry', pipenv: 'pip install pipenv', uv: 'pip install uv', tox: 'pip install tox', nox: 'pip install nox',
+        poetry: TOOLBOX.poetry, pipenv: 'pip install pipenv', uv: TOOLBOX.uv, tox: 'pip install tox', nox: 'pip install nox',
+        bun: TOOLBOX.bun, deno: TOOLBOX.deno, just: TOOLBOX.just,
         make: 'apt-get update && apt-get install -y make', psql: 'apt-get update && apt-get install -y postgresql-client',
         createdb: 'apt-get update && apt-get install -y postgresql-client', redis_cli: 'apt-get update && apt-get install -y redis-tools',
         'redis-cli': 'apt-get update && apt-get install -y redis-tools', jq: 'apt-get update && apt-get install -y jq',
