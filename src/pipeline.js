@@ -41,7 +41,6 @@ export async function restoreCwd(sandbox, cwd) {
   await sandbox.writeFile('/firstrun/cwd', cwd);
 }
 
-/** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
 /**
  * A step the Doctor inserted (a fix) failed. Run the rules (never Bob) on it once; if one returns a
  * command-only fix (replace-step), rewrite the inserted step and report what changed. null otherwise.
@@ -63,6 +62,7 @@ export async function repairInsertedStep(ns, attempt, { facts, plan, sandbox, tr
 
 // A failure in one of these kinds blocks every later step; any other failure only blocks its own doc section.
 export const HARD_BLOCK_KINDS = new Set(['install', 'prereq', 'env', 'services', 'migrate', 'build']);
+/** Test suites get a shorter limit than installs: a newcomer runs them to see things work (FIRSTRUN_TEST_MINUTES). */
 const TEST_MINUTES = Number(process.env.FIRSTRUN_TEST_MINUTES) || 5;
 
 export function makeBudget(total = 4, perCall = 1.5) {
@@ -412,6 +412,9 @@ export async function verifyRepo(repoDir, opts = {}) {
                 const again = await repairInsertedStep(ns, ia, { facts, plan, sandbox, tried });
                 if (again) {
                   fixLog.push(`$ ${again.from} → exit ${ia.exitCode}; ${again.ruleId}: ${again.cause}; retrying as \`${ns.command}\``);
+                  // The dashboard and replay must show what actually runs.
+                  rec.savePlan(plan);
+                  rec.emitEvent('planner', 'plan', plan);
                   ia = await execStep(ns);
                 }
               }
