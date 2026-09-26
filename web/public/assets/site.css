@@ -254,3 +254,11 @@ h3 { letter-spacing: -0.012em; }
 .stats b { letter-spacing: -0.015em; }
 .btn { font-weight: 400; font-size: 17px; letter-spacing: -0.022em; }
 .eyebrow.mono { font-family: var(--sans); }
+
+/* ===== v6: generative hero field (assets/hero-field.js) replaces the flat shapes ===== */
+.hero-full .field { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero-full .inner { position: relative; z-index: 1; }
+/* Keep the headline crisp over moving particles: a soft backing wash, not a box */
+.hero-full h1, .hero-full .lede, .hero-full .eyebrow { text-shadow: 0 0 24px var(--bg), 0 0 48px var(--bg); }
+.hero-full { min-height: min(92vh, 980px); display: flex; align-items: center; }
+.hero-full .inner { width: 100%; }
