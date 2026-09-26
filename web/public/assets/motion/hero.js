@@ -1,30 +1,35 @@
 // Hero Motion Graphic (Zeus)
 // Story: Setup steps execute -> Step 2 fails -> Doctor repairs -> Machine discarded -> Replays from zero to VERIFIED.
-// Strictly adheres to ANTI_VIBECODE.md (no gradients, sharp 2px corners, real rule wording, no stale status).
+// Retinted with Agent Identity System (Karmanya/Edith 16:40):
+// Scout #4f8cff ● circle · Planner #9b7bff ■ square · Runner #ff8a3d ▲ triangle
+// Doctor #ff5c7a ✚ plus · Verifier #2fbf85 ◯ ring · Scribe #f5c542 ◆ diamond.
 
 export function init(container, { reduced = false } = {}) {
   if (!container) return;
 
   const steps = [
-    { num: '01', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
-    { num: '02', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
-    { num: '03', cmd: 'npm run dev' }
+    { num: '01', agent: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
+    { num: '02', agent: 'Doctor', shape: '✚', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
+    { num: '03', agent: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
   ];
 
   container.innerHTML = `
     <div class="h-seq" style="padding: 18px 0 10px; display: flex; flex-direction: column; gap: 12px; font-family: var(--mono); font-size: 14px;">
       <div class="h-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 10px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">
         <span class="h-status-text">First run: following README as written</span>
-        <span class="h-env-badge" style="padding: 2px 6px; border: 1px solid var(--line); border-radius: var(--r);">Clean Sandbox #1</span>
+        <span class="h-env-badge" style="padding: 2px 8px; border: 1px solid var(--line); border-radius: var(--r); font-size: 12px;">Clean Sandbox #1</span>
       </div>
 
       <div class="h-steps" style="display: flex; flex-direction: column; gap: 8px;">
         ${steps.map((s, i) => `
-          <div class="h-step h-step-${i}" style="display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); transition: border-color 0.2s ease;">
-            <span class="h-step-num" style="color: var(--muted); font-size: 12px;">${s.num}</span>
-            <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line);"></span>
+          <div class="h-step h-step-${i}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); transition: border-color 0.2s ease;">
+            <span class="h-step-badge" style="font-size: 11px; padding: 2px 6px; border-radius: 2px; border: 1px solid var(--line); color: ${s.color}; display: flex; align-items: center; gap: 4px;">
+              <span>${s.shape}</span>
+              <span>${s.num}</span>
+            </span>
+            <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line); transition: background-color 0.2s ease;"></span>
             <code class="h-step-cmd" style="flex: 1; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
-            <span class="h-step-msg" style="font-size: 12px; color: var(--muted);">queued</span>
+            <span class="h-step-msg" style="font-size: 12px; color: var(--muted); transition: color 0.2s ease;">queued</span>
           </div>
         `).join('')}
       </div>
@@ -57,24 +62,25 @@ export function init(container, { reduced = false } = {}) {
     const icon = el.querySelector('.h-step-icon');
     const msg = el.querySelector('.h-step-msg');
     const cmd = el.querySelector('.h-step-cmd');
+    const stepColor = steps[index].color;
 
     if (customCmd) cmd.textContent = customCmd;
 
     if (state === 'running') {
-      el.style.borderColor = 'var(--muted)';
-      icon.style.background = 'var(--muted)';
+      el.style.borderColor = stepColor;
+      icon.style.background = stepColor;
       msg.textContent = message || 'running...';
-      msg.style.color = 'var(--muted)';
+      msg.style.color = stepColor;
     } else if (state === 'pass') {
-      el.style.borderColor = 'var(--accent)';
-      icon.style.background = 'var(--accent)';
+      el.style.borderColor = stepColor;
+      icon.style.background = stepColor;
       msg.textContent = message || 'pass';
-      msg.style.color = 'var(--accent)';
+      msg.style.color = stepColor;
     } else if (state === 'fail') {
-      el.style.borderColor = 'var(--del)';
-      icon.style.background = 'var(--del)';
+      el.style.borderColor = 'var(--c-doctor, #ff5c7a)';
+      icon.style.background = 'var(--c-doctor, #ff5c7a)';
       msg.textContent = message || 'exit 1 (peer conflict)';
-      msg.style.color = 'var(--del)';
+      msg.style.color = 'var(--c-doctor, #ff5c7a)';
     } else if (state === 'queued') {
       el.style.borderColor = 'var(--line)';
       icon.style.background = 'var(--line)';
@@ -86,15 +92,15 @@ export function init(container, { reduced = false } = {}) {
   // Reduced motion: directly show the final verified zero-break state statically
   if (reduced) {
     statusText.textContent = 'Proven from zero: all setup steps passed';
-    envBadge.textContent = 'Clean Sandbox #2';
-    envBadge.style.borderColor = 'var(--accent)';
-    envBadge.style.color = 'var(--accent)';
+    envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+    envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
+    envBadge.style.color = 'var(--c-verifier, #2fbf85)';
     setStep(0, 'pass', '0.2s', steps[0].cmd);
     setStep(1, 'pass', '1.4s', steps[1].fixCmd);
     setStep(2, 'pass', '200 OK (0.8s)', steps[2].cmd);
     diag.textContent = 'GeekyAnts/express-typescript · 1 break fixed · 0 human intervention';
     verdict.textContent = 'VERIFIED';
-    verdict.style.color = 'var(--accent)';
+    verdict.style.color = 'var(--c-verifier, #2fbf85)';
     return;
   }
 
@@ -124,23 +130,22 @@ export function init(container, { reduced = false } = {}) {
         // Step 2 fails
         activeTimer = setTimeout(() => {
           setStep(1, 'fail', 'exit 1 (ERESOLVE)');
-          diag.textContent = "npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
+          diag.textContent = "Doctor ✚: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
           verdict.textContent = 'FAILED';
-          verdict.style.color = 'var(--del)';
+          verdict.style.color = 'var(--c-doctor, #ff5c7a)';
 
           // Discard machine
           activeTimer = setTimeout(() => {
-            statusText.textContent = 'Repair applied. Discarding machine...';
+            statusText.textContent = 'Doctor repair applied. Discarding machine...';
             envBadge.textContent = 'Resetting environment';
             diag.textContent = 'Throwing sandbox away. Re-verifying from zero...';
 
             activeTimer = setTimeout(() => {
               // Replay from zero in Sandbox #2
               statusText.textContent = 'Replay: verifying full guide from zero';
-              envBadge.textContent = 'Clean Sandbox #2';
-              envBadge.style.borderColor = 'var(--accent)';
-              envBadge.style.color = 'var(--accent)';
-              // Fix 1: Reset right-hand status immediately to RUNNING, not stale FAILED
+              envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+              envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
+              envBadge.style.color = 'var(--c-verifier, #2fbf85)';
               verdict.textContent = 'RUNNING';
               verdict.style.color = 'var(--muted)';
               diag.textContent = 'Replaying all commands in clean sandbox...';
@@ -156,9 +161,9 @@ export function init(container, { reduced = false } = {}) {
                   activeTimer = setTimeout(() => {
                     setStep(2, 'pass', '200 OK (0.8s)');
                     diag.textContent = 'All steps passed on clean machine. README proven from zero.';
-                    // Replay completes: VERIFIED in calm accent green
+                    // Replay completes: VERIFIED in calm Verifier accent green
                     verdict.textContent = 'VERIFIED';
-                    verdict.style.color = 'var(--accent)';
+                    verdict.style.color = 'var(--c-verifier, #2fbf85)';
 
                     // Hold on final frame for 7s before gentle seamless cycle
                     activeTimer = setTimeout(runCycle, 7000);
