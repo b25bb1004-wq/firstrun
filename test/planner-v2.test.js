@@ -235,3 +235,47 @@ test('COLLECT: steps planned before vs after for all 31 fixtures', async () => {
   }
   assert.ok(true, 'summary printed');
 });
+// Friday's review of #122 (2026-09-26)
+test('REVIEW: bracketed extras and shell tests are real commands, not prose', () => {
+  assert.equal(classify('pip install -e ".[dev]"', {}).skip, undefined);
+  assert.equal(classify('[ -f .env ] || cp .env.example .env', {}).skip, undefined);
+  assert.match(classify('cd ~/dev [or your preferred dev directory]', {}).skip, /not a command/);
+});
+
+// ── 6. DONE-WHEN (Edith, from the v1-vs-v2 eval in #127: real saved docs) ─────────────────────────
+test('DONE-WHEN: never lint, macOS-only or a multi-line CI block', async () => {
+  for (const f of ['httpie__cli', 'wagtail__bakerydemo', 'psf__requests', 'koajs__koa', 'axios__axios', 'fastify__fastify', 'expressjs__express']) {
+    const plan = await planFor(f);
+    const t = plan.verify.target;
+    assert.ok(!/\n/.test(t), `${f}: done-when is one command, got ${JSON.stringify(t)}`);
+    assert.ok(!/\b(lint|brew|coverage)\b/.test(t), `${f}: done-when must prove setup, got ${t}`);
+  }
+});
+
+test('DONE-WHEN: an app keeps its documented test (wagtail ./manage.py test), no CI steps appended', async () => {
+  const plan = await planFor('wagtail__bakerydemo');
+  assert.equal(plan.verify.target, './manage.py test');
+  assert.ok(!plan.steps.some((s) => s.origin === 'ci'), 'an app does not get CI steps');
+});
+
+test('DONE-WHEN: a probe of the installed CLI beats a test suite (git2txt --help)', async () => {
+  const plan = await planFor('addyosmani__git2txt');
+  assert.equal(plan.verify.target, 'node ./index.js --help');
+});
+
+test('DONE-WHEN: a library whose CI test is a coverage run falls back to its own test script (koa)', async () => {
+  const plan = await planFor('koajs__koa');
+  assert.equal(plan.verify.target, 'npm test');
+});
+
+test('AUDIENCE: requests gets no CI test without an install, and a note says why', async () => {
+  const plan = await planFor('psf__requests');
+  assert.ok(!plan.steps.some((s) => !s.skip && s.origin === 'ci'), 'no CI step with nothing installed');
+  assert.ok(plan.notes.some((n) => /No setup from source was found/.test(n)));
+});
+
+test('AUDIENCE: uv add "fastapi[standard]" is skipped as the published package, not as prose', async () => {
+  const plan = await planFor('fastapi__fastapi');
+  const s = plan.steps.find((x) => /uv add/.test(x.command));
+  assert.match(s.skip, /installs the published package/);
+});
