@@ -119,6 +119,12 @@ function prismaSchema(facts) {
   try { return f ? fs.readFileSync(path.join(facts.root, f), 'utf8') : ''; } catch { return ''; }
 }
 
+/** The Node major the sandbox runs (plan.runtime or the image tag), or null. */
+function runtimeMajor(ctx) {
+  const v = ctx?.plan?.runtime?.name === 'node' ? ctx.plan.runtime.version : (String(ctx?.image || ctx?.plan?.image || '').match(/^node:(\d+)/) || [])[1];
+  return Number(String(v || '').match(/\d+/)?.[0]) || null;
+}
+
 function depRange(facts, name) {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(facts.root, facts.projectDir || '', 'package.json'), 'utf8'));
@@ -1026,7 +1032,8 @@ export const RULES = [
   {
     // przemek: `npm test` runs jest, but jest is not in package.json at all.
     id: 'test-runner-undeclared',
-    test({ log, facts }) {
+    test(ctx) {
+      const { log, facts } = ctx;
       const m = log.match(/(?:sh|bash): (?:\d+: )?(jest|vitest|mocha|ava|tap|nyc|c8|karma|jasmine): (?:command )?not found/);
       if (!m || !facts.node) return null;
       const bin = m[1];
@@ -1040,7 +1047,21 @@ export const RULES = [
         if (/ts-jest/.test(text) && !deps.includes('ts-jest')) extra += ' ts-jest';
         if (!deps.includes('@types/jest') && (facts.files || []).includes('tsconfig.json')) extra += ' @types/jest';
       }
-      const cmd = `npm install --no-save ${bin}${extra}`;
+      // Pin the runner to the version the project's own companions expect. przemek declares ts-jest ^27 and
+      // @types/jest ^27 but not jest; unpinned `npm install jest` got jest 30, which needs Node 18+ and crashed on
+      // node:16 ("availableParallelism is not a function"). Companion major first, else a major that fits the runtime.
+      const major = (r) => (String(r || '').match(/(\d+)/) || [])[1];
+      let pin = '';
+      if (bin === 'jest') {
+        const m2 = major(depRange(facts, 'ts-jest')) || major(depRange(facts, '@types/jest')) || major(depRange(facts, 'babel-jest'));
+        const nodeMajor = Number(String(facts.node?.engines || '').match(/(\d+)/)?.[1] || 0) || null;
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        pin = m2 ? `@${m2}` : (runtime && runtime < 18) || (nodeMajor && nodeMajor < 18 && !runtime) ? '@29' : '';
+      } else if (bin === 'vitest') {
+        const runtime = Number(runtimeMajor(ctx) || 0);
+        if (runtime && runtime < 18) pin = '@0';
+      }
+      const cmd = `npm install --no-save ${bin}${pin}${extra}`;
       return {
         ruleId: 'test-runner-undeclared', class: 'missing-dependency', confidence: 0.85,
         cause: `The test script runs \`${bin}\`, but ${bin} is not in package.json, so installing the project never installs it. It only works on machines that already have it.`,

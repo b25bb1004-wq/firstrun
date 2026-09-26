@@ -288,3 +288,24 @@ test('browser-system-libs: positive case inserts npx playwright install-deps chr
   assert.equal(res.fix.actions[0].command, 'npx playwright install-deps chromium');
   assert.equal(res.fix.actions[0].kind, 'prereq');
 });
+// Real v2 run (26 Sep, final engine): przemek declares ts-jest ^27 / @types/jest ^27 but not jest; the unpinned
+// `npm install --no-save jest` pulled jest 30, which crashed on node:16 ("availableParallelism is not a function").
+import fsPin from 'node:fs';
+import osPin from 'node:os';
+import pathPin from 'node:path';
+test('test-runner-undeclared pins jest to the companion major (ts-jest ^27 → jest@27)', () => {
+  const root = fsPin.mkdtempSync(pathPin.join(osPin.tmpdir(), 'pin-'));
+  fsPin.writeFileSync(pathPin.join(root, 'package.json'), JSON.stringify({ devDependencies: { 'ts-jest': '^27.1.1', '@types/jest': '^27.0.3' } }));
+  const rule = RULES.find((r) => r.id === 'test-runner-undeclared');
+  const d = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: ['ts-jest', '@types/jest'] } }, plan: { runtime: { name: 'node', version: '16' } } });
+  assert.match(d.fix.actions[0].command, /^npm install --no-save jest@27\b/);
+});
+test('test-runner-undeclared: no companion, old Node → a jest major that runs on it', () => {
+  const root = fsPin.mkdtempSync(pathPin.join(osPin.tmpdir(), 'pin-'));
+  fsPin.writeFileSync(pathPin.join(root, 'package.json'), '{}');
+  const rule = RULES.find((r) => r.id === 'test-runner-undeclared');
+  const d = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: [] } }, plan: { runtime: { name: 'node', version: '16' } } });
+  assert.match(d.fix.actions[0].command, /jest@29/);
+  const d22 = rule.test({ log: 'sh: 1: jest: not found', facts: { root, files: ['package.json'], node: { deps: [] } }, plan: { runtime: { name: 'node', version: '22' } } });
+  assert.match(d22.fix.actions[0].command, /--no-save jest$/);
+});
