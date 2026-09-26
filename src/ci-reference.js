@@ -34,6 +34,75 @@ export function ciPlan(facts, classify, classifyFacts) {
   return out.filter((s) => tested.has(`${s.workflow}#${s.job}`) && !/(docs?|deploy|release|publish|lint|label|stale|codeql|pages)[\w-]*\.ya?ml$/i.test(s.workflow));
 }
 
+/** Extract the tested Linux CI job's setup steps (install, build, services, migrate, test) in CI order.
+ * Returns steps with origin 'ci' and source from workflow file, or null if no tested job exists. */
+export function ciPlanSteps(facts, classify, classifyFacts) {
+  const out = [];
+  // Build a map of job -> commands
+  const jobCommands = new Map();
+  for (const c of facts.ci?.commands || []) {
+    if (c.linux === false) continue;
+    const raw = String(c.run || '').split('\n');
+    for (let i = 0; i < raw.length; i++) {
+      let l = raw[i].trim(); const at = i;
+      while (l.endsWith('\\') && i + 1 < raw.length) l = l.slice(0, -1).trim() + ' ' + raw[++i].trim();
+      if (!l || l.startsWith('#')) continue;
+      const k = classify(l, classifyFacts);
+      if (k.skip) continue;
+      const key = `${c.workflow}#${c.job}`;
+      if (!jobCommands.has(key)) jobCommands.set(key, []);
+      jobCommands.get(key).push({ command: l, kind: k.kind, workflow: c.workflow, line: c.line ? c.line + at : 0, job: c.job });
+    }
+  }
+  
+  // Find jobs that have test steps (the "tested" jobs)
+  const testedJobs = new Set();
+  for (const [key, cmds] of jobCommands) {
+    if (cmds.some(s => s.kind === 'test')) testedJobs.add(key);
+  }
+  if (!testedJobs.size) return null;
+  
+  // Build dependency graph from CI facts
+  const jobDeps = new Map();
+  for (const j of facts.ci?.jobs || []) {
+    jobDeps.set(`${j.workflow}#${j.name}`, j.needs || []);
+  }
+  
+  // Find the main tested job (highest scoring)
+  const score = (j) => (/\/ci|tests?|build|main|run-tests|node|python\./i.test(j) ? 100 : 0) - (/cover|alt|nightly|bench/i.test(j) ? 50 : 0)
+    + (jobCommands.get(j)?.filter(s => ['install', 'build', 'services', 'migrate', 'test'].includes(s.kind)).length || 0);
+  const mainJob = [...testedJobs].sort((a, b) => score(b) - score(a))[0];
+  
+  // Collect all jobs in the dependency chain of the main job
+  const collectDeps = (jobKey, visited = new Set()) => {
+    if (visited.has(jobKey)) return;
+    visited.add(jobKey);
+    const deps = jobDeps.get(jobKey) || [];
+    for (const dep of deps) {
+      const depKey = `${mainJob.split('#')[0]}#${dep}`;
+      collectDeps(depKey, visited);
+    }
+  };
+  const jobChain = new Set();
+  collectDeps(mainJob, jobChain);
+  jobChain.add(mainJob);
+  
+  // Get steps from all jobs in the chain, filtered to setup kinds
+  const setupKinds = new Set(['install', 'build', 'services', 'migrate', 'test']);
+  const steps = [];
+  for (const key of jobChain) {
+    const cmds = jobCommands.get(key) || [];
+    for (const s of cmds) {
+      if (setupKinds.has(s.kind) && !/(docs?|deploy|release|publish|lint|label|stale|codeql|pages)[\w-]*\.ya?ml$/i.test(s.workflow)) {
+        steps.push({ ...s, origin: 'ci', source: { file: s.workflow, line: s.line, section: `CI: ${s.job}` } });
+      }
+    }
+  }
+  
+  if (!steps.length) return null;
+  return steps;
+}
+
 const where = (s) => (s.line ? `${s.workflow}:${s.line}` : s.workflow);
 const docLoc = (s) => (s?.source?.file ? `${s.source.file}${s.source.line ? ':' + s.source.line : ''}` : null);
 

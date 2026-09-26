@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { parseMarkdown, isShellBlock, blockCommands, sectionPath } from './markdown.js';
 import { readText } from './util.js';
-import { ciFindings } from './ci-reference.js';
+import { ciFindings, ciPlanSteps } from './ci-reference.js';
 
 /** Parse reStructuredText and extract shell commands with line numbers and section headings.
  * Supports:
@@ -551,6 +551,25 @@ export function buildPlan(facts, { repo, commit } = {}) {
     if (steps.filter((s) => !s.skip).length > before) docsUsed.push(docFile);
   }
 
+  // ── CI FALLBACK ──
+  // When the docs give no runnable steps at all (every docs step skipped or none),
+  // but CI has a tested Linux job, plan that job's setup steps from CI.
+  // Only for repos that HAVE docs files (README, CONTRIBUTING, etc.) but no runnable steps.
+  // Repos with NO docs files (like koajs/koa) use the existing library/CLI contributor path logic.
+  const hasDocsFiles = (facts.docs?.length || 0) + (facts.docsRst?.length || 0) > 0;
+  const hasRunnableDocSteps = steps.some((s) => !s.skip && s.origin === 'readme');
+  if (hasDocsFiles && !hasRunnableDocSteps) {
+    const ciSteps = ciPlanSteps(facts, classify, classifyFacts);
+    if (ciSteps && ciSteps.length) {
+      // Add CI steps with origin 'ci'
+      for (const cs of ciSteps) {
+        steps.push({ id: '', ...cs });
+      }
+      // Mark the plan as from CI
+      // (we'll add this to the returned object below)
+    }
+  }
+
   // Order: tests after the app is running, keep everything else in doc order.
   const serveIdx = steps.findIndex((s) => s.kind === 'serve' && !s.skip);
   if (serveIdx >= 0) {
@@ -968,6 +987,7 @@ export function buildPlan(facts, { repo, commit } = {}) {
     notes,
     verify,
     docsUsed,
+    fromCI: steps.some((s) => s.origin === 'ci'),
   };
 }
 

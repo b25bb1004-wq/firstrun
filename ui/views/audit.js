@@ -68,7 +68,7 @@ export function mountAudit(root, auditId) {
     const coins = Math.round(repos.reduce((a, r) => a + (r.passport?.bobcoins ?? r.run?.bobcoins ?? 0), 0) * 100) / 100;
     const times = st.filter(s => s.verdict === 'VERIFIED' && s.p?.replaySeconds).map(s => s.p.replaySeconds).sort((a, b) => a - b);
     const median = times.length ? times[Math.floor(times.length / 2)] : 0;
-    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0, INCONCLUSIVE: 0, 'NO-SETUP-DOCS': 0 };
+    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0, INCONCLUSIVE: 0, 'CI-ONLY': 0, 'NO-SETUP-DOCS': 0 };
     st.forEach(s => { if (s.verdict) counts[s.verdict] = (counts[s.verdict] || 0) + 1; });
     const all = done === M;
     const started = audit.startedAt ? Date.parse(audit.startedAt) : null;
@@ -86,7 +86,7 @@ export function mountAudit(root, auditId) {
         <div class="gauge g-bob"><span class="gl">Bobcoins</span><span class="gv mono">${coins}</span></div>
         <div class="gauge"><span class="gl">Median clone to running</span><span class="gv mono">${median ? secs(median) : '--'}</span></div>
         <div class="au-verdicts" aria-label="Verdicts">
-          ${['VERIFIED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
+          ${['VERIFIED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE', 'CI-ONLY', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
           <span class="vb v-pending" style="flex:${M - done || 0.0001}"></span>
         </div>
       </div>`);

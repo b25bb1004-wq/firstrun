@@ -253,6 +253,9 @@ export async function scout(root) {
       // Which machines the job runs on: `runs-on: ubuntu-latest`, or a matrix of them. Unknown counts as Linux.
       const os = [].concat(resolve(job?.['runs-on'])).flat().map(String);
       const linux = !os.length || os.some((o) => /ubuntu|linux|\$\{\{/i.test(o));
+      // Store job info for dependency resolution
+      facts.ci.jobs = facts.ci.jobs || [];
+      facts.ci.jobs.push({ name: jobId, needs: job?.needs ? (Array.isArray(job.needs) ? job.needs : [job.needs]) : [], workflow: f });
       for (const step of job?.steps || []) {
         const w = step?.with || {};
         if (/actions\/setup-node/.test(step?.uses || '')) resolve(w['node-version']).forEach((v) => facts.ci.nodeVersions.push({ version: majorOf(v), workflow: f }));

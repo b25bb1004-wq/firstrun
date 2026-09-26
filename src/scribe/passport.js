@@ -4,31 +4,37 @@ import { computeAttribution, attributeEvidence } from './attribution.js';
 export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packageCache = true }) {
   const fromReadme = plan.steps.filter((s) => s.origin === 'readme' && !s.skip).length;
   
+  // Check if plan is from CI
+  const fromCI = plan.fromCI === true;
+
   // Compute attribution
   const { repoBreaks, suiteIssues, needsPerson, humbleUnknowns } = computeAttribution(evidence);
-  
+
   // breaksFound = repoBreaks for compatibility (only repo breaks count as "breaks")
   const breaksFound = repoBreaks;
-  
+
   // breaksFixed counts only verified repo breaks
   const breaksFixed = evidence.filter((e) => 
     e.status === 'verified' && attributeEvidence(e) === 'repo'
   ).length;
-  
+
   const needsHuman = plan.steps.filter((s) => s.status === 'needs-human').length;
-  
+
   // Verdict (Friday's review): the v1 rules stay, so a repo whose breaks HUMBLE found AND fixed is still VERIFIED
   // (koa 2/2, GeekyAnts 4/4). The one addition: when what is left unresolved is only HUMBLE's own limits
   // (unknown failures), the repo is INCONCLUSIVE, never FAILED on our account.
   const replayPassed = replay?.status === 'passed';
   const unresolved = evidence.filter((e) => e.status !== 'verified' && e.status !== 'progressed');
   let verdict = 'FAILED';
+  // CI-ONLY: the docs give no setup; HUMBLE followed the CI workflow instead.
+  // Must check BEFORE VERIFIED since a CI-only replay pass also satisfies VERIFIED conditions.
+  if (fromCI && replayPassed && needsHuman === 0 && unresolved.length === 0) verdict = 'CI-ONLY';
   // VERIFIED: the replay passed and nothing is left unresolved (fixed breaks are fine).
-  if (replayPassed && needsHuman === 0 && unresolved.length === 0) verdict = 'VERIFIED';
+  else if (replayPassed && needsHuman === 0 && unresolved.length === 0) verdict = 'VERIFIED';
   // The setup did not replay, and everything still open is HUMBLE's own limit: we can't judge this repo.
   else if (!replayPassed && unresolved.length && unresolved.every((e) => attributeEvidence(e) === 'humble')) verdict = 'INCONCLUSIVE';
   else if (replayPassed || (!stopped && breaksFixed > 0)) verdict = 'PARTIAL';
-  
+
   return {
     repo: plan.repo,
     commit: plan.commit,
@@ -51,6 +57,8 @@ export function buildPassport({ plan, evidence, replay, bobcoins, stopped, packa
     bobcoins: Math.round((bobcoins || 0) * 100) / 100,
     diagnosedByBob: evidence.filter((e) => e.diagnosis?.by === 'bob').length,
     verify: plan.verify,
+    fromCI,
+    note: fromCI ? 'The docs give no setup; HUMBLE followed the CI workflow instead.' : undefined,
   };
 }
 
@@ -59,6 +67,7 @@ const COLORS = {
   PARTIAL: '#d97706', 
   FAILED: '#dc2626',
   INCONCLUSIVE: '#6366f1',
+  'CI-ONLY': '#d97706',
   'NO-SETUP-DOCS': '#9ca3af'
 };
 
@@ -75,6 +84,9 @@ export function passportBadge(p) {
       break;
     case 'INCONCLUSIVE':
       right = `inconclusive · ${p.humbleUnknowns} humble unknown${p.humbleUnknowns !== 1 ? 's' : ''}`;
+      break;
+    case 'CI-ONLY':
+      right = `ci-only · ${fmtDuration(p.replaySeconds * 1000)}`;
       break;
     case 'NO-SETUP-DOCS':
       right = 'no setup docs';
