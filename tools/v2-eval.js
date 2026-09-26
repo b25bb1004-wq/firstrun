@@ -19,7 +19,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
 const v1Root = path.resolve(opt('v1', path.join(ROOT, '..', 'v1-main')));
-const auditDir = path.resolve(ROOT, opt('audit', 'audit/real-16-v2'));
+// One or more audits (comma-separated); their recorded logs feed both the risk check and the re-diagnosis.
+const auditDirs = opt('audit', 'audit/real-16-v2,audit/known-10-v3,audit/known-5').split(',').map((a) => path.resolve(ROOT, a)).filter((a) => fs.existsSync(a));
 const only = opt('only') ? opt('only').split(',') : null;
 const FIX = path.join(ROOT, 'test', 'fixtures', 'v2');
 
@@ -42,9 +43,9 @@ const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); }
 
 // Commands that actually ran and passed in the recorded audit run, per slug: skipping one of these in v2 is a risk.
 function passedInAudit(slug) {
-  const ev = path.join(auditDir, 'runs', slug, 'events.ndjson');
   const ok = new Set();
-  if (!fs.existsSync(ev)) return ok;
+  const ev = auditDirs.map((a) => path.join(a, 'runs', slug, 'events.ndjson')).find((f) => fs.existsSync(f));
+  if (!ev) return ok;
   for (const line of fs.readFileSync(ev, 'utf8').split('\n')) {
     if (!line.trim()) continue;
     let e; try { e = JSON.parse(line); } catch { continue; }
@@ -53,14 +54,14 @@ function passedInAudit(slug) {
   return ok;
 }
 
-const report = { v1: v1Root, v2: ROOT, audit: path.relative(ROOT, auditDir), plan: [], diagnosis: [] };
+const report = { v1: path.basename(v1Root), v2: path.basename(ROOT), audit: auditDirs.map((a) => path.relative(ROOT, a).split(path.sep).join('/')).join(', '), plan: [], diagnosis: [] };
 const out = [];
 const p = (s = '') => out.push(s);
 
 // ── 1. PLAN ─────────────────────────────────────────────────────────────────────────────────────
 const slugs = fs.readdirSync(FIX).filter((d) => fs.existsSync(path.join(FIX, d, 'meta.json')) && (!only || only.includes(d))).sort();
 p(`# Engine v2 offline eval`);
-p(`v1: ${v1Root}  |  v2: ${ROOT}  |  audit logs: ${report.audit}`);
+p(`v1: ${path.basename(v1Root)}  |  v2: ${path.basename(ROOT)}  |  audit logs: ${report.audit}`);
 p('');
 p(`## 1. Plan: ${slugs.length} saved docs`);
 p('');
@@ -83,7 +84,10 @@ for (const slug of slugs) {
     else if (fate(s) !== fate(t)) changes.push({ cmd, v1: fate(s), v2: fate(t) });
   }
   for (const [cmd, t] of B) if (!A.has(cmd)) changes.push({ cmd, v1: 'absent', v2: fate(t) });
-  for (const c of changes) c.risky = (c.v2 === 'gone' || c.v2.startsWith('skip')) && passed.has(c.cmd);
+  // Installing the published package (npm i axios in axios' own repo) passes but proves nothing about the clone,
+  // so v2 skipping it is intended, not a regression.
+  const intended = (f) => /installs the published package/.test(f);
+  for (const c of changes) c.risky = (c.v2 === 'gone' || c.v2.startsWith('skip')) && !intended(c.v2) && passed.has(c.cmd);
   const runs = (plan) => plan.steps.filter((s) => !s.skip).length;
   const risky = changes.filter((c) => c.risky).length;
   const dw = verifyOf(a) === verifyOf(b) ? 'same' : `${verifyOf(a)} → ${verifyOf(b)}`;
@@ -99,14 +103,14 @@ for (const d of detail) {
 }
 
 // ── 2. DIAGNOSIS ────────────────────────────────────────────────────────────────────────────────
-const audit = readJson(path.join(auditDir, 'audit.json'));
 p(`## 2. Diagnosis: recorded failures in ${report.audit}`);
 p('');
-if (!audit) p(`No audit.json in ${auditDir}; skipped.`);
-else {
-  p('| repo | evidence | command | v1 | v2 | v2 fix |');
-  p('|---|---|---|---|---|---|');
-  let same = 0, changed = 0;
+p('| repo | evidence | command | v1 | v2 | v2 fix |');
+p('|---|---|---|---|---|---|');
+let same = 0, changed = 0;
+for (const auditDir of auditDirs) {
+  const audit = readJson(path.join(auditDir, 'audit.json'));
+  if (!audit) { p(`| no audit.json in ${path.basename(auditDir)}; skipped | | | | | |`); continue; }
   for (const r of audit.repos) {
     if (only && !only.includes(r.slug)) continue;
     const runDir = path.join(auditDir, 'runs', r.slug);
@@ -134,9 +138,9 @@ else {
       if (diff) p(`| ${r.slug} | ${e.id} (${e.status}) | \`${norm(e.before.command).slice(0, 60)}\` | ${d1.id} | ${d2.id} | ${d2.fix ? '`' + d2.fix.slice(0, 70) + '`' : ''} |`);
     }
   }
-  p('');
-  p(`${changed} recorded failures diagnosed differently by v2, ${same} unchanged (rows above are the changed ones).`);
 }
+p('');
+p(`${changed} recorded failures diagnosed differently by v2, ${same} unchanged (rows above are the changed ones).`);
 
 const risky = report.plan.reduce((n, r) => n + (r.changes || []).filter((c) => c.risky).length, 0);
 p('');
