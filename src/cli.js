@@ -10,7 +10,7 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runPlanner, runDoctor, runScribe, runRunner } from './solo.js';
+import { runScout, runPlanner, runDoctor, runScribe, runRunner, runVerifier } from './solo.js';
 import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('HUMBLE')}: your README, proven.
@@ -23,6 +23,7 @@ ${bold('Usage')}
   firstrun verify [path|github-url] [--ref <sha>] [--brain auto|rules|bob] [--bob-budget 4]
                   [--out <dir>] [--keep] [--no-replay] [--verbose] [--flags <list>]
   firstrun run    [path|github-url] [--ref <sha>] [--as-written] [--out <dir>] [--json]
+  firstrun replay <run-dir> [--json]     Verifier alone: replay a finished run's repaired guide from zero
   firstrun plan   [path]                 docs-vs-code conflicts in seconds, no Docker
   firstrun scout  [path|github-url]      Scout alone: what the docs say next to what the code needs
   firstrun doctor --log <file|-> [--repo <dir>] [--command "<cmd>"] [--bob-budget 1]   Doctor alone: diagnose one failure
@@ -96,6 +97,15 @@ export async function main(argv) {
       console.log(`  ${col(bold(r.verdict))}${r.firstFailure ? ` ${dim(`(failed at ${r.firstFailure.stepId}: ${r.firstFailure.command}, exit ${r.firstFailure.exitCode})`)}` : ''}`);
       console.log(`  ${dim('events:')} ${r.runDir}`);
       return r.verdict === 'WORKS-AS-WRITTEN' ? 0 : 1;
+    }
+    case 'replay': {
+      const dir = path.resolve(args._[0] || '.');
+      if (!fs.existsSync(path.join(dir, 'run.json'))) { console.error('Usage: firstrun replay <run-dir> [--out <dir>] [--json]'); return 2; }
+      const r = await runVerifier(dir, { out: args.out, repo: args.repo });
+      if (args.json) { console.log(JSON.stringify(r)); return r.replay.status === 'passed' ? 0 : 1; }
+      const col = r.replay.status === 'passed' ? green : red;
+      console.log(`${bold('Verifier')}: ${col(bold(r.replay.status === 'passed' ? 'REPLAY PASSED' : 'REPLAY FAILED'))} in ${Math.round(r.replay.durationMs / 1000)} s ${dim(`(events: ${r.runDir})`)}`);
+      return r.replay.status === 'passed' ? 0 : 1;
     }
     case 'plan': {
       const root = await resolveTarget(args._[0], args);

@@ -10,9 +10,6 @@ import { readJson, shortId, headTail, run } from './util.js';
 import { Sandbox } from './sandbox.js';
 import { runServicesStep } from './services-shim.js';
 
-// Verifier is in its own branch (hermes/99-replay) to avoid conflicts
-// export async function runVerifier(runDir, { out } = {}) { ... }
-
 /**
  * Solo agents (#90, docs/DOCK_CONTRACT.md): each character of the team, run on its own. A newcomer who only
  * needs one onboarding person calls just that one. Each writes the same events.ndjson as the full pipeline,
@@ -164,6 +161,79 @@ export async function runRunner(repoDir, { out, asWritten = false } = {}) {
   rec.phase('done', 'runner');
   rec.emitEvent('runner', 'done', { verdict, firstFailure });
   return { agent: 'runner', verdict, firstFailure, runDir: dir };
+}
+
+/**
+ * Verifier (replay): takes a finished run directory (its plan.json with repaired
+ * steps + prerequisites), starts a NEW clean sandbox and replays the repaired
+ * guide from zero. Emits events: replay.start, step.start/step.end (agent
+ * verifier), replay.end {status}, done.
+ * Result: { agent:'verifier', replay:{ status, durationMs } }.
+ * Exit 0 pass / 1 fail.
+ */
+export async function runVerifier(runDir, { out, repo } = {}) {
+  const dir = path.resolve(runDir);
+  const saved = readJson(path.join(dir, 'run.json'));
+  if (!saved) throw new Error(`no run.json in ${dir}; point verifier at a finished run folder`);
+  const plan = readJson(path.join(dir, 'plan.json')) || saved.plan;
+  if (!plan?.steps?.length) throw new Error(`${dir} has no plan.json or empty steps; the run did not finish`);
+  const passport = saved.passport;
+  if (!passport) throw new Error(`${dir} has no passport yet; the run did not finish`);
+
+  // Replay in a new isolated directory
+  const replayDir = path.resolve(out || path.join(dir, `verifier-${shortId()}`)); // inside .firstrun, never in the repo
+  const rec = new Recorder(replayDir, { id: path.basename(replayDir), repo: saved.repo });
+  rec.phase('replay', 'verifier');
+  rec.emitEvent('verifier', 'replay.start', { status: 'running', durationMs: 0, image: plan.image, steps: plan.steps.filter((s) => !s.skip && s.status !== 'needs-human').length });
+  const t0 = Date.now();
+
+  // The repo is the folder that holds .firstrun (run.json's repo is a label like owner/name).
+  const repoDir = repo ? path.resolve(repo) : path.basename(dir) === '.firstrun' ? path.dirname(dir) : null;
+  if (!repoDir || !fs.existsSync(repoDir)) throw new Error(`can't find the repo for ${dir}; pass --repo <dir>`);
+  const facts = await scout(repoDir);
+  const cacheVolume = `firstrun-cache-${path.basename(replayDir)}`;
+  await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  await run('docker', ['volume', 'create', '--label', `firstrun=${path.basename(replayDir)}`, cacheVolume]);
+  const sandbox = new Sandbox({ image: plan.image, repoDir, label: path.basename(replayDir), cacheVolume, log: () => {} });
+  let failed = null;
+  try {
+  await sandbox.start();
+  for (const step of plan.steps) {
+    if (step.skip || step.status === 'needs-human') continue;
+    // Apply prereqs from the verified run
+    for (const a of step.prereqs || []) {
+      if (a.type === 'exec') await sandbox.exec(a.command, { timeoutMs: 10 * 60_000, detectServer: false });
+      else if (a.type === 'write') await sandbox.writeFile(a.path, a.content);
+      else if (a.type === 'service') await sandbox.addService({ name: a.name, image: a.image, env: a.env || {}, port: a.port });
+    }
+    rec.emitEvent('verifier', 'step.start', { stepId: step.id, n: 1, command: step.command });
+    let r;
+    if (step.kind === 'services') { const t = Date.now(); r = await runServicesStep(step.command, { sandbox, facts }); r.durationMs = Date.now() - t; }
+    else if (step.kind === 'serve') {
+      r = await sandbox.serve(step.command, { port: step.serve?.port, timeoutMs: 150_000 });
+      if (r.exitCode === 0 && plan.verify?.kind === 'http') {
+        const p = await sandbox.probe(plan.verify.target, { timeoutMs: 45_000 });
+        const answers = !plan.verify.fromDocs && p.status && p.status < 500;
+        if (!p.ok && !answers) { r.exitCode = 1; r.out += `\nGET ${plan.verify.target} → ${p.status}`; }
+      }
+    } else {
+      r = await sandbox.exec(step.command, { timeoutMs: step.kind === 'install' ? 25 * 60_000 : step.kind === 'test' ? (Number(process.env.FIRSTRUN_TEST_MINUTES) || 5) * 60_000 : 12 * 60_000, detectServer: ['other', 'build'].includes(step.kind) });
+    }
+    rec.flushLog(step.id, 1);
+    rec.emitEvent('verifier', 'step.end', { stepId: step.id, n: 1, command: step.command, exitCode: r.exitCode, durationMs: r.durationMs, status: r.exitCode === 0 ? 'passed' : 'failed' });
+    if (r.exitCode !== 0 && step.kind !== 'test' && !step.probe) { failed = step.id; break; }
+    if (r.exitCode !== 0) failed = failed || step.id;
+  }
+  } finally {
+    await sandbox.stop().catch(() => {});
+    await run('docker', ['volume', 'rm', '-f', cacheVolume]).catch(() => {});
+  }
+  const replay = { status: failed ? 'failed' : 'passed', durationMs: Date.now() - t0, failedStep: failed || undefined };
+  rec.phase('done', 'verifier');
+  rec.emitEvent('verifier', 'replay.end', replay);
+  const verdict = replay.status === 'passed' ? 'REPLAY-PASSED' : 'REPLAY-FAILED';
+  rec.emitEvent('verifier', 'done', { verdict, replay });
+  return { agent: 'verifier', replay, runDir: replayDir };
 }
 
 function tail(str, n) {
