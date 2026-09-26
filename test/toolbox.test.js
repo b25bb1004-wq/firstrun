@@ -16,16 +16,19 @@ test('Bob-invented installers for a known tool are replaced by the toolbox comma
 });
 
 test('ordinary commands are left alone', () => {
-  for (const c of ['npm ci', 'curl -fsSL http://127.0.0.1:3000/health', 'pip install -e ".[dev]"', 'curl -sSL https://example.com/setup.sh | sh']) {
+  for (const c of ['npm ci', 'curl -fsSL http://127.0.0.1:3000/health', 'pip install -e ".[dev]"', 'curl -sSL https://example.com/setup.sh | sh',
+    // Edith's case: the tool NAME appears, but the download is Docker's installer.
+    'curl -fsSL https://get.docker.com | sh && echo just to be safe', 'curl -fsSL https://example.com/bun-helpers.sh | bash']) {
     assert.equal(pinInstaller(c), c);
   }
 });
 
 test('every toolbox entry is idempotent and works on node and python images', () => {
   for (const [tool, cmd] of Object.entries(TOOLBOX)) {
-    if (tool === 'pnpm' || tool === 'yarn') continue;
-    assert.match(cmd, new RegExp(`^command -v ${tool === 'just' ? 'just' : tool} >/dev/null \|\|`), tool);
+    assert.ok(cmd.startsWith(`command -v ${tool} >/dev/null || `), `${tool} starts with its idempotency check`);
     assert.match(cmd, /npm install -g|pip install/, tool);
+    // a test that can fail: a non-matching command must not pass the same check
+    assert.equal('rm -rf nothing-like-it'.startsWith(`command -v ${tool} >/dev/null || `), false);
   }
 });
 
