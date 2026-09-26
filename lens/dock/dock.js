@@ -9,13 +9,13 @@
   'use strict';
 
   // DOM Elements
-  const repoInput = document.getElementById('repo-input');
+  const repoInput = document.getElementById('repo-input') || document.getElementById('target');
   const btnBrowse = document.getElementById('btn-browse');
-  const btnPlan = document.getElementById('btn-plan');
+  const btnPlan = document.getElementById('btn-plan') || document.getElementById('run');
   const btnVerify = document.getElementById('btn-verify');
-  const cancelBtn = document.getElementById('cancel-btn');
+  const cancelBtn = document.getElementById('cancel-btn') || document.getElementById('stop');
   const bobBtn = document.getElementById('bob-btn');
-  const bobPrompt = document.getElementById('bob-prompt');
+  const bobPrompt = document.getElementById('bob-prompt') || document.getElementById('hdr');
   const verdictPill = document.getElementById('verdict-pill');
   const stepCounter = document.getElementById('step-counter');
   const bobcoinMeter = document.getElementById('bobcoin-meter');
@@ -25,6 +25,24 @@
   const drawerBody = document.getElementById('drawer-body');
   const drawerClose = document.getElementById('drawer-close');
   const drawerActions = document.getElementById('drawer-action-container');
+
+  function getTarget() {
+    let t = repoInput ? repoInput.value.trim() : '';
+    if (!t) {
+      t = 'examples/acme-shop';
+      if (repoInput) repoInput.value = t;
+    }
+    return t;
+  }
+
+  // Pre-fill target if passed via onProject bridge event
+  if (window.dock?.onProject) {
+    window.dock.onProject((project) => {
+      if (project && repoInput) {
+        repoInput.value = project;
+      }
+    });
+  }
 
   const agents = ['scout', 'planner', 'runner', 'doctor', 'verifier', 'scribe', 'guide'];
   let audioEnabled = false;
@@ -168,7 +186,7 @@
     const actBtn = document.createElement('button');
     actBtn.className = 'drawer-action-btn';
     actBtn.textContent = `${info.actionText} →`;
-    actBtn.onclick = () => info.action(repoInput.value.trim());
+    actBtn.onclick = () => info.action(getTarget());
     drawerActions.appendChild(actBtn);
 
     // Secondary action button if defined
@@ -176,7 +194,7 @@
       const secBtn = document.createElement('button');
       secBtn.className = 'drawer-action-btn secondary';
       secBtn.textContent = `${info.secondaryActionText} →`;
-      secBtn.onclick = () => info.secondaryAction(repoInput.value.trim());
+      secBtn.onclick = () => info.secondaryAction(getTarget());
       drawerActions.appendChild(secBtn);
     }
 
@@ -250,27 +268,28 @@
   }
 
   // Action Buttons
-  btnPlan.addEventListener('click', () => {
-    const target = repoInput.value.trim() || 'examples/acme-shop';
+  btnPlan?.addEventListener('click', () => {
+    const target = getTarget();
     if (!callDockRun('planner', target)) {
       simulatePlan(target);
     }
   });
 
-  btnVerify.addEventListener('click', () => {
-    const target = repoInput.value.trim() || 'examples/acme-shop';
+  btnVerify?.addEventListener('click', () => {
+    const target = getTarget();
     if (!callDockRun('all', target)) {
       simulateVerify(target);
     }
   });
 
-  bobBtn.addEventListener('click', () => {
+  bobBtn?.addEventListener('click', () => {
     openDrawer('guide');
   });
 
   function triggerSoloRun(agent, target) {
-    if (!callDockRun(agent, target)) {
-      alert(`Running solo agent: ${agent} on ${target}`);
+    const t = target || getTarget();
+    if (!callDockRun(agent, t)) {
+      alert(`Running solo agent: ${agent} on ${t}`);
     }
   }
 
