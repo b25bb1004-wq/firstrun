@@ -93,33 +93,54 @@ Tip: most mouse software can map a side button to Ctrl+Shift+Space, so circling 
 
 ## Quick start
 
-Requirements: Node.js 20+, Docker, git. Optional: [Bob Shell](https://bob.ibm.com/docs/shell) signed in, for Bob diagnoses.
+HUMBLE verifies its own README with HUMBLE: the steps below are the ones its planner finds and runs.
+
+**You need:** Node.js 20+ and git. Step 3 also needs Docker (Docker Desktop on Windows/macOS, running).
+Bob is optional: without it HUMBLE uses its rules only and spends 0 Bobcoins.
 
 ```bash
 git clone https://github.com/b25bb1004-wq/firstrun.git
 cd firstrun
 npm install
 node --test test/*.test.js
-
-# 1. Docs vs code in seconds (no Docker)
-node bin/firstrun.js plan examples/acme-shop
-
-# 2. Prove it: follow the README on a clean machine, repair, replay, publish
-node bin/firstrun.js verify examples/acme-shop
-
-# 3. Watch it live
-node bin/firstrun.js ui --root examples
-
-# 4. The swarm: audit many real repositories in parallel
-node bin/firstrun.js audit audit/repos.json --concurrency 3
-
-# Use it from IBM Bob
-node bin/firstrun.js bob install     # HUMBLE modes for Bob Shell
-# Bob IDE picks up .bob/custom_modes.yaml and .bob/mcp.json from this repo
 ```
 
-`firstrun verify <github-url>` works on any public repository. `firstrun pr` opens the pull
-request (it never opens one without being asked).
+**1. Docs vs code, in seconds (no Docker, runs nothing from the repo).** Reads the demo repo's README next
+to its manifests, compose file, CI and code, and prints the plan plus every place they disagree:
+
+```bash
+node bin/firstrun.js plan examples/acme-shop
+```
+
+`examples/acme-shop` is a demo repo whose README drifted in five realistic ways on purpose (seeded breaks).
+
+**2. Watch runs in the dashboard** (open the URL it prints):
+
+```bash
+node bin/firstrun.js ui --root examples
+```
+
+**3. Prove it (needs Docker).** Follows the README on a clean container like a new hire, repairs what breaks
+with evidence, replays the repaired guide from zero, and writes a corrected README plus a Setup Passport:
+
+```bash
+node bin/firstrun.js verify examples/acme-shop --brain rules
+```
+
+`--brain rules` = rules only, 0 Bobcoins. Use `--brain auto --bob-budget 1` to let IBM Bob diagnose what the
+rules don't know (capped at 1 Bobcoin). `verify <github-url>` works on any public repository.
+
+Every subcommand prints its options with `--help` and starts nothing.
+
+### Optional
+
+- **IBM Bob:** `node bin/firstrun.js bob install` adds the HUMBLE modes to Bob Shell. Bob IDE picks up
+  `.bob/custom_modes.yaml` and `.bob/mcp.json` from this repo by itself.
+- **The swarm:** `node bin/firstrun.js audit audit/repos.json --concurrency 1 --brain rules` runs every repository in
+  the list, one clean container each. Needs Docker and takes minutes per repository.
+
+`firstrun pr` opens the pull request with the corrected README (never without being asked).
+
 
 ## What a run produces
 
