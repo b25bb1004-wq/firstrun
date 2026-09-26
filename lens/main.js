@@ -90,6 +90,17 @@ ipcMain.on('dock:open', (_e, { what, runDir }) => { openArtifact(what, runDir); 
 
 ipcMain.on('dock:lens', () => openLens());
 ipcMain.on('dock:toggle', () => toggleDockPanel());
+ipcMain.on('dock:secret:set', async (_e, { name, value }) => {
+  try {
+    const { setSecret } = await import('../src/secrets.js');
+    setSecret(name, value);
+  } catch (err) {
+    console.error('Failed to set secret:', err.message);
+  }
+});
+ipcMain.on('dock:ask:answer', (_e, { id, answer }) => {
+  dockBridge?.answerAsk?.(id, answer);
+});
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -160,7 +171,7 @@ function buildTray() {
   tray.setToolTip(`FirstRun Lens · ${hotkey || 'no hotkey'} · ${project}`);
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: `Circle to ask  (${hotkey || 'no hotkey'})`, click: openLens },
-    { label: 'Open FirstRun Dock', click: toggleDockPanel },
+    { label: 'Open HUMBLE Dock', click: toggleDockPanel },
     { label: `Project: ${path.basename(project)}`, enabled: false },
     { label: 'Change project folder…', click: async () => {
       const r = await dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: project });
@@ -180,7 +191,7 @@ app.whenReady().then(() => {
   createDockButton();
   warmOcr(CACHE).catch(() => {});
   console.log(`FirstRun Lens ready. Press ${hotkey || '(no hotkey available; click the tray icon)'} and circle anything. Project: ${project}`);
-  console.log(`FirstRun Dock ready. ${dockHotkey ? `Press ${dockHotkey} or click` : 'Click'} the Bob button (top-left) to open it.`);
+  console.log(`HUMBLE Dock ready. ${dockHotkey ? `Press ${dockHotkey} or click` : 'Click'} the Bob button (top-left) to open it.`);
 });
 app.on('window-all-closed', (e) => e.preventDefault?.()); // stay in the tray
 app.on('will-quit', () => globalShortcut.unregisterAll());

@@ -462,3 +462,89 @@ html, body {
 .verdict-pill.failed { background: var(--fail-t); color: var(--fail); border: 1px solid var(--fail); }
 .verdict-pill.running { background: var(--bob-t); color: var(--bob); border: 1px solid var(--bob); }
 .verdict-pill.needs_app { background: var(--repair-t); color: var(--repair); border: 1px solid var(--repair); }
+
+/* Human-in-the-Loop Asks (HITL) */
+.asks-section {
+  margin-bottom: 12px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--repair);
+  border-radius: 6px;
+  padding: 10px;
+}
+.asks-badge {
+  background: var(--repair-t);
+  color: var(--repair);
+  border: 1px solid var(--repair);
+  border-radius: 10px;
+  padding: 0 6px;
+  font: 700 10.5px monospace;
+}
+.asks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ask-card {
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ask-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+}
+.ask-kind-badge {
+  font: 700 10px monospace;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.ask-kind-secret { background: rgba(255, 178, 36, 0.15); color: var(--repair); border: 1px solid var(--repair); }
+.ask-kind-service { background: rgba(6, 182, 212, 0.15); color: var(--agent-planner); border: 1px solid var(--agent-planner); }
+.ask-kind-choice { background: rgba(139, 92, 246, 0.15); color: var(--agent-scribe); border: 1px solid var(--agent-scribe); }
+.ask-name { font-weight: 600; color: var(--ink); }
+.ask-why { font-size: 11px; color: var(--ink-2); line-height: 1.35; }
+.ask-input-row { display: flex; gap: 6px; margin-top: 4px; }
+.ask-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--ink);
+  font: 12px monospace;
+}
+.ask-input:focus { border-color: var(--bob); outline: none; }
+.ask-btn {
+  background: var(--panel-3);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ask-btn.primary { background: var(--bob-t); border-color: var(--bob); color: var(--bob); font-weight: 600; }
+.ask-btn:hover { border-color: var(--ink-2); }
+.ask-options-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.ask-opt-btn {
+  text-align: left;
+  background: var(--panel-3);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.ask-opt-btn:hover { border-color: var(--bob); color: var(--bob); }
+

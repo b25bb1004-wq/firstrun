@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src data:">
-  <title>FirstRun Dock</title>
+  <title>HUMBLE Dock</title>
   <link rel="stylesheet" href="dock.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
         </svg>
       </div>
       <div class="dock-title-wrap">
-        <div class="dock-title">FirstRun Dock</div>
+        <div class="dock-title">HUMBLE Dock</div>
         <div class="dock-subtitle" id="bob-prompt">I'm Bob. Give me a repo and I'll send the Scout in first.</div>
       </div>
       <div class="dock-controls">
@@ -56,6 +56,15 @@
           Prove it
         </button>
       </div>
+    </section>
+
+    <!-- Human-in-the-Loop Asks Container (HITL) -->
+    <section class="asks-section" id="asks-section" style="display:none">
+      <div class="section-title">
+        <span style="color:var(--repair)">Human Input Required</span>
+        <span id="asks-count" class="asks-badge">1</span>
+      </div>
+      <div class="asks-list" id="asks-list"></div>
     </section>
 
     <!-- The 7 Real Agents Strip -->

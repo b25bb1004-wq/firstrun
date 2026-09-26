@@ -1,5 +1,5 @@
 /**
- * FirstRun Dock UI Logic
+ * HUMBLE Dock UI Logic
  * Connects the 7 agent character avatars to live events via the IPC contract:
  * window.dock = { run, open, cancel, lens, onState }
  * (see docs/DOCK_CONTRACT.md)
@@ -25,6 +25,9 @@
   const drawerBody = document.getElementById('drawer-body');
   const drawerClose = document.getElementById('drawer-close');
   const drawerActions = document.getElementById('drawer-action-container');
+  const asksSection = document.getElementById('asks-section');
+  const asksCount = document.getElementById('asks-count');
+  const asksList = document.getElementById('asks-list');
 
   let userEditedRepo = false;
   if (repoInput) {
@@ -165,7 +168,7 @@
     audioEnabled = !audioEnabled;
     audioToggle.style.color = audioEnabled ? 'var(--pass)' : 'var(--ink-3)';
     audioToggle.title = audioEnabled ? 'Audio announcements enabled' : 'Toggle audio status announcements';
-    if (audioEnabled) speak('FirstRun audio announcements enabled');
+    if (audioEnabled) speak('HUMBLE audio announcements enabled');
   });
 
   // Cancel Button
@@ -320,7 +323,7 @@
     if (window.dock?.lens) {
       window.dock.lens();
     } else {
-      alert('FirstRun Lens: Press Ctrl+Shift+Space on screen to circle any error.');
+      alert('HUMBLE Lens: Press Ctrl+Shift+Space on screen to circle any error.');
     }
   }
 
@@ -463,11 +466,105 @@
       });
     }
 
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderAsks(asks) {
+      if (!asksSection || !asksList) return;
+      const openAsks = (asks || []).filter(a => a.status !== 'answered' && a.status !== 'skipped');
+      if (!openAsks.length) {
+        asksSection.style.display = 'none';
+        asksList.innerHTML = '';
+        return;
+      }
+
+      asksSection.style.display = 'block';
+      if (asksCount) asksCount.textContent = openAsks.length;
+      asksList.innerHTML = '';
+
+      openAsks.forEach(ask => {
+        const card = document.createElement('div');
+        card.className = 'ask-card';
+        card.id = `ask-${ask.id}`;
+
+        const kindBadgeClass = `ask-kind-${ask.kind || 'choice'}`;
+        card.innerHTML = `
+          <div class="ask-card-head">
+            <span class="ask-kind-badge ${kindBadgeClass}">${ask.kind || 'ASK'}</span>
+            <span class="ask-name">${escapeHtml(ask.name || ask.id)}</span>
+          </div>
+          <div class="ask-why">${escapeHtml(ask.why || 'Input required to continue verification')}</div>
+        `;
+
+        if (ask.kind === 'secret') {
+          const row = document.createElement('div');
+          row.className = 'ask-input-row';
+          row.innerHTML = `
+            <input class="ask-input" type="password" placeholder="Enter value for ${escapeHtml(ask.name)}" autocomplete="off">
+            <button class="ask-btn primary" type="button">Save</button>
+            <button class="ask-btn" type="button">Skip</button>
+          `;
+          const input = row.querySelector('.ask-input');
+          const saveBtn = row.querySelectorAll('.ask-btn')[0];
+          const skipBtn = row.querySelectorAll('.ask-btn')[1];
+
+          saveBtn.onclick = () => {
+            const val = input.value;
+            input.value = ''; // zero-trace: wipe immediately
+            if (window.dock?.setSecret) {
+              window.dock.setSecret(ask.name, val);
+            }
+            if (window.dock?.answerAsk) {
+              window.dock.answerAsk(ask.id, { answered: true, name: ask.name });
+            }
+            ask.status = 'answered';
+            renderAsks(openAsks);
+          };
+
+          skipBtn.onclick = () => {
+            input.value = '';
+            if (window.dock?.answerAsk) {
+              window.dock.answerAsk(ask.id, { skipped: true });
+            }
+            ask.status = 'skipped';
+            renderAsks(openAsks);
+          };
+
+          card.appendChild(row);
+        } else if (ask.options && ask.options.length) {
+          const optsList = document.createElement('div');
+          optsList.className = 'ask-options-list';
+          ask.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'ask-opt-btn';
+            btn.type = 'button';
+            btn.textContent = opt.label || opt.id;
+            btn.onclick = () => {
+              if (window.dock?.answerAsk) {
+                window.dock.answerAsk(ask.id, { answered: true, option: opt.id });
+              }
+              ask.status = 'answered';
+              renderAsks(openAsks);
+            };
+            optsList.appendChild(btn);
+          });
+          card.appendChild(optsList);
+        }
+
+        asksList.appendChild(card);
+      });
+    }
+
+    if (state.asks || state.ask) {
+      renderAsks(state.asks || (state.ask ? [state.ask] : []));
+    }
+
     if (state.verdict === 'VERIFIED') {
-      bobPrompt.textContent = "I've proven examples/acme-shop from zero (7 steps, 5 conflicts, 5 breaks fixed, 14 s replay).";
+      bobPrompt.textContent = "examples/acme-shop: recorded run replay VERIFIED (7 steps, 5 conflicts, 5 breaks fixed, 14 s).";
       cancelBtn.style.display = 'none';
       verdictPill.textContent = 'REPLAY · VERIFIED';
-      stepCounter.textContent = '7 steps · 5 breaks fixed (14 s)';
+      stepCounter.textContent = '7 steps · 5 conflicts, 5 breaks fixed (14 s)';
     } else if (state.verdict === 'FAILED') {
       bobPrompt.textContent = "Run finished with unresolved breaks. Check the flight log.";
       cancelBtn.style.display = 'none';
@@ -491,13 +588,13 @@
   }
 
   function showDesktopRequired(target) {
-    bobPrompt.textContent = `I need the FirstRun desktop app to spin up Docker containers for ${target}.`;
+    bobPrompt.textContent = `I need the HUMBLE desktop app to spin up Docker containers for ${target}.`;
     setVerdict('needs_app');
     stepCounter.textContent = 'Desktop required';
     
     drawerTitle.textContent = 'Desktop Verification Required';
     drawerBody.innerHTML = `
-      <p style="margin:0 0 8px;color:var(--repair)"><strong>Live container verification requires Docker and the FirstRun desktop app:</strong></p>
+      <p style="margin:0 0 8px;color:var(--repair)"><strong>Live container verification requires Docker and the HUMBLE desktop app:</strong></p>
       <pre style="background:rgba(0,0,0,.45);padding:8px;border-radius:6px;font:11.5px monospace;color:var(--ink);margin:0 0 8px">firstrun verify ${target}</pre>
       <p style="margin:0;font-size:12px;color:var(--ink-2)">In browser preview mode without an Electron IPC bridge, you can replay the recorded run for <code>examples/acme-shop</code>.</p>
     `;
@@ -584,9 +681,9 @@
         cancelBtn.style.display = 'none';
         setVerdict('passed');
         verdictPill.textContent = 'REPLAY · VERIFIED';
-        stepCounter.textContent = '7 steps · 5 breaks fixed (14 s)';
+        stepCounter.textContent = '7 steps · 5 conflicts, 5 breaks fixed (14 s)';
         bobPrompt.textContent = "examples/acme-shop: recorded run replay VERIFIED (7 steps, 5 conflicts, 5 breaks fixed, 14 s).";
-        speak('examples/acme-shop recorded run replay verified. 7 steps, 5 breaks fixed, 14 seconds.');
+        speak('examples/acme-shop recorded run replay verified. 7 steps, 5 conflicts, 5 breaks fixed, 14 seconds.');
         return;
       }
       state = reduceDockState(state, keyEvents[i]);
