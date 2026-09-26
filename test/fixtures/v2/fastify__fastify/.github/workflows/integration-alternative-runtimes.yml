@@ -1,0 +1,63 @@
+name: integration Alternative Runtimes
+
+on:
+  push:
+    branches:
+     - main
+     - next
+     - 'v*'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+permissions:
+  contents: read
+
+jobs:
+  install-production:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        runtime: [nsolid]
+        node-version: [24]
+        pnpm-version: [11]
+        include:
+          - nsolid-version: 6
+            node-version: 24
+            runtime: nsolid
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: nodesource/setup-nsolid@1ca68d2589d3d56ecd3881dfe6ffa87eeda9c939 # v1.0.1
+        if: ${{ matrix.runtime == 'nsolid' }}
+        with:
+          node-version: ${{ matrix.node-version }}
+          nsolid-version: ${{ matrix.nsolid-version }}
+
+      - name: Install Pnpm
+        uses: pnpm/action-setup@26f6d4f2c533a43e6b5da0b4a5dd983f98f7b49a # v6.0.4
+        with:
+          version: ${{ matrix.pnpm-version }}
+
+      - name: Install Production
+        run: |
+          pnpm install --ignore-scripts --prod
+
+      - name: Run server
+        run: |
+          node integration/server.js &
+
+      - name: Test
+        if: ${{ success() }}
+        run: |
+          bash integration/test.sh

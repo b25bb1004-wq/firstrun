@@ -1,0 +1,32 @@
+{
+  "repo": "psf/requests",
+  "commit": "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60",
+  "source": "known-10-v3",
+  "files": [
+    "README.md",
+    "tests/certs/README.md",
+    "tests/certs/expired/README.md",
+    "tests/certs/mtls/README.md",
+    ".github/CONTRIBUTING.md",
+    "docs/dev/contributing.rst",
+    "pyproject.toml",
+    "requirements-dev.txt",
+    "docs/requirements.txt",
+    "Makefile",
+    "docs/Makefile",
+    "tests/certs/expired/Makefile",
+    "tests/certs/mtls/Makefile",
+    "tests/certs/mtls/client/Makefile",
+    "tests/certs/valid/server/Makefile",
+    "tests/certs/expired/ca/Makefile",
+    "tests/certs/expired/server/Makefile",
+    ".github/workflows/close-issues.yml",
+    ".github/workflows/zizmor.yml",
+    ".github/workflows/lock-issues.yml",
+    ".github/workflows/publish.yml",
+    ".github/workflows/codeql-analysis.yml",
+    ".github/workflows/lint.yml",
+    ".github/workflows/typecheck.yml",
+    ".github/workflows/run-tests.yml"
+  ]
+}

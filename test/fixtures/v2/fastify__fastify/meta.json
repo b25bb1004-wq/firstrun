@@ -1,0 +1,33 @@
+{
+  "repo": "fastify/fastify",
+  "commit": "f7f73aa7d0233f5f8455ac75a828ab3862419fc4",
+  "source": "known-5",
+  "files": [
+    "README.md",
+    "test/bundler/README.md",
+    "CONTRIBUTING.md",
+    "package.json",
+    "test/bundler/webpack/package.json",
+    "test/bundler/esbuild/package.json",
+    ".github/workflows/integration.yml",
+    ".github/workflows/citgm-package.yml",
+    ".github/workflows/labeler.yml",
+    ".github/workflows/coverage-nix.yml",
+    ".github/workflows/pull-request-title.yml",
+    ".github/workflows/ci-alternative-runtime.yml",
+    ".github/workflows/backport.yml",
+    ".github/workflows/lock-threads.yml",
+    ".github/workflows/lint-ecosystem-order.yml",
+    ".github/workflows/test-compare.yml",
+    ".github/workflows/website.yml",
+    ".github/workflows/citgm.yml",
+    ".github/workflows/package-manager-ci.yml",
+    ".github/workflows/md-lint.yml",
+    ".github/workflows/coverage-win.yml",
+    ".github/workflows/missing_types.yml",
+    ".github/workflows/links-check.yml",
+    ".github/workflows/validate-ecosystem-links.yml",
+    ".github/workflows/integration-alternative-runtimes.yml",
+    ".github/workflows/ci.yml"
+  ]
+}

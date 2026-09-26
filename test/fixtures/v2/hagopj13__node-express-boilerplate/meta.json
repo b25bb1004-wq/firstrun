@@ -1,0 +1,15 @@
+{
+  "repo": "hagopj13/node-express-boilerplate",
+  "commit": "179ae84efec61b14206d0305d941daed6c6d07f9",
+  "source": "known-10-v3",
+  "files": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "package.json",
+    "docker-compose.yml",
+    "docker-compose.prod.yml",
+    "docker-compose.dev.yml",
+    "docker-compose.test.yml",
+    "Dockerfile"
+  ]
+}

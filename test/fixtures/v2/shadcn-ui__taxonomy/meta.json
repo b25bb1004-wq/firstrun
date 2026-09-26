@@ -1,0 +1,11 @@
+{
+  "repo": "shadcn-ui/taxonomy",
+  "commit": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+  "source": "known-5",
+  "files": [
+    "README.md",
+    "package.json",
+    "pnpm-lock.yaml.head",
+    ".nvmrc"
+  ]
+}

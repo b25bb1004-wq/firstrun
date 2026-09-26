@@ -1,0 +1,13 @@
+{
+  "repo": "addyosmani/git2txt",
+  "commit": "e8db771b976d1f463d6b5492beb5ec1c9687328d",
+  "source": "real-16-v2",
+  "files": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "package.json",
+    "package-lock.json.head",
+    ".github/workflows/node.js.yml",
+    ".github/workflows/npm-publish.yml"
+  ]
+}
