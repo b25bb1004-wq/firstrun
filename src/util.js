@@ -162,3 +162,5 @@ export function fmtDuration(ms) {
 export function shq(s) {
   return `'${String(s).replace(/'/g, `'\\''`)}'`;
 }
+
+export { redactTokens, redactSecrets, redactDeep, isPlainPlaceholder, REDACTED, TOKEN_PATTERNS } from './redact.js';
