@@ -267,26 +267,26 @@ html, body {
 .agent-row:hover {
   background: var(--panel-2);
   border-color: var(--rule);
-  transform: translateX(2px);
 }
 .agent-row.selected {
-  border-color: var(--agent-color, var(--bob)) !important;
+  border-color: var(--agent-color, var(--rule-2)) !important;
   background: var(--panel-3) !important;
-  border-left: 4px solid var(--agent-color, var(--bob)) !important;
-  transform: translateX(3px);
 }
 .agent-row.selected .agent-name {
-  color: #FFFFFF;
+  color: var(--agent-color, #FFFFFF);
   font-weight: 700;
 }
 .agent-row.selected .agent-avatar {
-  border-color: var(--agent-color, var(--bob));
-  background: var(--agent-glow, rgba(94,158,255,.2));
+  border-color: var(--agent-color, var(--rule));
+  background: var(--panel-2);
   opacity: 1;
 }
+.agent-row.selected .agent-avatar svg {
+  color: var(--agent-color, var(--ink));
+}
 .agent-row.selected .agent-state-badge {
-  border-color: var(--agent-color, var(--bob));
-  color: var(--agent-color, var(--bob));
+  border-color: var(--agent-color, var(--rule));
+  color: var(--agent-color, var(--ink));
 }
 
 /* Avatar Badge */
@@ -417,19 +417,13 @@ html, body {
   margin: 4px 0 6px;
   background: var(--panel-2);
   border: 1px solid var(--rule);
-  border-left: 3px solid var(--agent-color, var(--bob));
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 10px 12px;
   font-size: 12px;
   display: none;
 }
 .drawer.open {
   display: block;
-  animation: drawerFadeIn 0.15s ease-out;
-}
-@keyframes drawerFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 .drawer-head {
   display: flex;
