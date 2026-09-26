@@ -20,7 +20,7 @@ async function run() {
     '--no-default-browser-check',
     `--remote-debugging-port=${PORT}`,
     '--window-size=1280,900',
-    'http://localhost:4321',
+    process.env.SNAP_URL || 'http://localhost:4390',
   ], { stdio: 'inherit' });
 
   try {
@@ -30,7 +30,7 @@ async function run() {
       try {
         const res = await fetch(`http://127.0.0.1:${PORT}/json/list`);
         const list = await res.json();
-        const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl && t.url.includes('localhost:4321'));
+        const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl && (t.url.includes('4390') || t.url.includes('4321')));
         if (page) {
           wsUrl = page.webSocketDebuggerUrl;
           break;
