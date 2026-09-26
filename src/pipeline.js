@@ -172,7 +172,14 @@ export async function verifyRepo(repoDir, opts = {}) {
         if (r.oneShot) {
           // Not a server after all: it ran to completion. Nothing to probe; the step passed on its exit code.
           step.oneShot = true;
-          if (plan.verify.kind === 'http' && !plan.verify.fromDocs) { plan.verify = { kind: 'exit', target: 'all steps exit 0' }; rec.savePlan(plan); }
+          if (plan.verify.kind === 'http') {
+            // Nothing will ever answer the URL. If the docs promised one, that promise is itself drift: say so.
+            if (plan.verify.fromDocs && !plan.conflicts.some((c) => c.what === 'app URL')) {
+              plan.conflicts.push({ what: 'app URL', docs: plan.verify.target, truth: `\`${step.command}\` finishes and exits; nothing serves that URL`, source: plan.verify.docsSource || 'README' });
+            }
+            plan.verify = { kind: 'exit', target: 'all steps exit 0' };
+            rec.savePlan(plan);
+          }
         } else if (r.exitCode === 0 && plan.verify.kind === 'http') {
           const p = await box.probe(plan.verify.target, { timeoutMs: 45_000 });
           r.out += `\n[firstrun] GET ${plan.verify.target} → ${p.status || 'no response'}${p.body ? `\n${tail(p.body, 6)}` : ''}\n`;
