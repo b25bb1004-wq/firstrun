@@ -9,9 +9,27 @@ Keyframe storyboard generated for the animated video based on Karmanya's shootin
 
 ---
 
-## 🎬 20-Second Animated Teaser (Fast Cuts)
+## 🎬 20-Second Animated Teaser (Production Master)
 
-Total Duration: **20 s** · Voice-Over: **17 s**
+- **Master Video (with VO, Score & SFX)**: [`docs/pitch/firstrun_teaser.mp4`](../firstrun_teaser.mp4) (1080p, 30 fps, 20.00 s, H.264 + AAC audio, 4.9 MB)
+- **Muted Captioned Cut**: [`docs/pitch/firstrun_teaser_captions.mp4`](../firstrun_teaser_captions.mp4) (1080p, 30 fps, 20.00 s, burned-in subtitles, 4.7 MB)
+- **Rough Cut (Pre-Edit)**: [`docs/pitch/firstrun_teaser_rough_cut.mp4`](../firstrun_teaser_rough_cut.mp4)
+- **Clips Directory**: [`docs/pitch/clips/`](../clips/) (`clip01.mp4` – `clip05.mp4`)
+- **Audio Stems**: [`docs/pitch/audio/`](../audio/) (`master_audio.wav`, `soundtrack.wav`, `vo_daniel.wav`, `vo_samantha.wav`)
+- **Graphic Overlays**: [`docs/pitch/overlays/`](../overlays/) (captions, audit stat card, `PROVEN FROM ZERO` badge, `firstrun.dev` lockup)
+
+### Production & Sound Design Notes
+- **VO**: Brisk, consistent narration (~17 s total speech time) matching Karmanya's shooting script.
+- **Soundtrack & SFX**: 100% royalty-free, custom-synthesized 44.1kHz score & foley:
+  - *0:00–0:04*: Soft acoustic piano arpeggio (Eb major/G minor) with gentle stereo rain pitter-patter.
+  - *0:04–0:06.5*: Piano deepens; brick collapse rumble & hollow impact clatter; sudden tape-stop into hard silence.
+  - *0:06.5–0:08.0*: Dramatic breath pause.
+  - *0:08.0–0:12.0*: Bob spark FM shimmer chime; driving 16th-note analog synth pulse with rising resonant filter and sub-bass riser.
+  - *0:12.0–0:17.0*: Stone fracture crack snap; Doctor patch chirp; crystalline high-frequency shatter burst followed by an upward reverse rebuild sweep resolving into a triumphant Bb major chord swell.
+  - *0:17.0–0:20.0*: Tactile stamp impact thunk (80Hz punch + transient snap); Eb major corporate resolve chord settling under the logo.
+- **Motion & Visuals**: Current clips render cinematic 2.5D camera motions (dolly-in, push, crane pull-back, bullet-time push, static settle) from high-res 16:9 keyframes. Prompt packages are ready for Google AI Studio / VideoFX Veo drop-in replacement takes.
+
+Total Duration: **20.00 s** · Voice-Over: **17 s**
 
 ### Clip 1: Day One · 0:00–0:04 (4 s)
 ![Clip 1: Day One](shot01.jpg)
