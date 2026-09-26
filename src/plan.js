@@ -18,7 +18,7 @@ export function imageFor(runtime, version) {
 }
 
 const SERVE_RE = /^(?:(?:npm|pnpm|bun)\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|yarn\s+(?:run\s+)?(?:start|dev|serve|develop|watch)(?::[\w:-]+)?|npx\s+(?:next|vite|nodemon|ts-node|tsx)\b(?!.*\bbuild\b)|node\s+\S+\.(?:m?js|cjs)(?!\S)|nodemon\b|next\s+dev|vite(?:\s|$)(?!.*build)|python3?\s+(?:-m\s+)?(?:\S+\.py|flask|uvicorn|http\.server|manage\.py\s+runserver)|flask\s+(?:--app\s+\S+\s+)?run|uvicorn\s|gunicorn\s|hypercorn\s|streamlit\s+run|fastapi\s+(?:dev|run)|poetry\s+run\s+(?:python\s+\S+\.py|uvicorn|flask|gunicorn|python\s+manage\.py\s+runserver)|uv\s+run\s+(?:uvicorn|flask|python\s+\S+\.py|fastapi)|pipenv\s+run\s+(?:python|flask|uvicorn)|rails\s+s|make\s+(?:run|dev|serve|start))/i;
-const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|python3?\s+manage\.py\s+test|make\s+test|go\s+test)/i;
+const TEST_RE = /^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test(?::[\w:-]+)?\b|npx\s+(?:jest|vitest|mocha|playwright\s+test)|(?:python3?\s+-m\s+)?pytest\b|poetry\s+run\s+pytest|uv\s+run\s+pytest|tox\b|nox\b|(?:python3?\s+)?(?:\.\/)?manage\.py\s+test|make\s+test|go\s+test)/i;
 
 export function classify(cmd, facts) {
   // "DEBUG=app:* npm run devstart" is still "npm run devstart"
@@ -40,7 +40,8 @@ export function classify(cmd, facts) {
   }
   // Skip prose with square brackets (cd ~/dev [or your preferred dev directory])
   // Only brackets holding an instruction to the reader: `pip install -e ".[dev]"` and `[ -f .env ] || cp …` are real commands.
-  if (/\[\s*(?:or|your|optional|e\.g\.|i\.e\.|replace|choose|if)\b[^\]]*\]/i.test(c)) {
+  // `[optional]` is not in the list: `mkdir myapp [optional]` is a command with an optional argument.
+  if (/\[\s*(?:or|your|e\.g\.|i\.e\.|replace|choose|if)\b[^\]]*\]/i.test(c)) {
     return { kind: 'other', skip: 'not a command (output, prompt or config shown in the docs)' };
   }
 
@@ -60,11 +61,16 @@ export function classify(cmd, facts) {
   if (/^vagrant\s+(up|ssh|provision|halt)\b/.test(c)) return { kind: 'other', skip: 'VM-based alternative workflow' };
   // Self-install: "npm install koa" inside koa's own repo installs the published package, not this source.
   // A CLI tool's README install ("pip3 install jello") is the setup being tested; only libraries are skipped.
+  // Adding the package as a dependency (`uv add "fastapi[standard]"`, `poetry add requests`) is always about a
+  // project of yours, never this repo, even for CLIs: a package can't depend on itself.
+  const norm = (n) => String(n || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
+  const addSelf = c.match(/^(?:uv|poetry|pdm)\s+add\s+["']?((?:@[\w.-]+\/)?[\w.-]+)(?:\[[^\]]*\])?/);
+  if (addSelf && facts?.selfName && norm(addSelf[1]) === norm(facts.selfName)) return { kind: 'other', skip: 'installs the published package; you already have its source' };
   const selfInstallName = facts?.cli?.length ? null : facts?.selfName;
   if (selfInstallName) {
     const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
-    const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+([\w.-]+)(?:==\S+)?(?:\s|$)/);
+    const pipSelf = c.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+["']?([\w.-]+)(?:\[[^\]]*\])?(?:==[^\s"']+)?["']?(?:\s|$)/);
     if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfInstallName.toLowerCase().replace(/[-_]/g, '-')) return { kind: 'other', skip: 'installs the published package; you already have its source' };
     // bun add, deno add
     const bunSelf = c.match(/^bun\s+add\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
@@ -333,12 +339,13 @@ export function buildPlan(facts, { repo, commit } = {}) {
   // skip user-install lines of that same package for ANY manager.
   // Then make sure contributor path is planned (from CONTRIBUTING or CI workflows).
   function isLibraryOrCli(facts) {
-    if (!facts.node?.name) return false;
     const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
     if (!repoName) return false;
-    // Library: package.json name matches repo name
-    const pkgName = facts.node.name.split('/').pop();
-    return pkgName === repoName;
+    // A Django app with a package.json for its frontend (wagtail/bakerydemo) is an app, not a library.
+    if (readText(path.join(facts.root, 'manage.py')) != null || steps.some((s) => /(^|\s|\/)manage\.py\s/.test(s.command))) return false;
+    // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
+    const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
+    return !!selfName && n(selfName) === n(repoName);
   }
 
   function isCliTool(facts) {
@@ -374,12 +381,18 @@ export function buildPlan(facts, { repo, commit } = {}) {
 
   // Ensure contributor path is planned from CONTRIBUTING or CI workflows
   // We'll collect CI commands and add them if not already present
-  const ciInstallCommands = (facts.ci?.commands || [])
-    .filter(c => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install|pip\s+install\s+-e\s+\.|uv\s+sync|poetry\s+install|make\s+(install|test))/.test(c.run))
-    .map(c => c.run);
-  const ciTestCommands = (facts.ci?.commands || [])
-    .filter(c => /^(npm\s+(run\s+)?(test|test:)|yarn\s+(run\s+)?(test|test:)|pnpm\s+(run\s+)?(test|test:)|pytest|make(\s+(test|ci))?)/.test(c.run))
-    .map(c => c.run);
+  // A CI `run:` block can hold several commands (requests: `make` + newline + `python -m pip install …`), so every
+  // line is a candidate on its own, and each goes through classify like a README line: lint, coverage, macOS
+  // (`make brew-test`) and publishing never become the check that setup worked.
+  const ciLines = (facts.ci?.commands || []).flatMap((c) => String(c.run || '').replace(/\\\n\s*/g, ' ').split('\n'))
+    .map((l) => l.trim()).filter((l) => l && !l.startsWith('#') && !classify(l, classifyFacts).skip);
+  const plainFirst = (a, b) => a.length - b.length;
+  const ciInstallCommands = ciLines
+    .filter((l) => /^(npm\s+(ci|install)|yarn(\s+install)?|pnpm\s+install|bun\s+install|pip\s+install\s+-e\s+\.|uv\s+sync|poetry\s+install|make\s+install)(\s|$)/.test(l))
+    .sort(plainFirst);
+  const ciTestCommands = ciLines
+    .filter((l) => TEST_RE.test(l) || /^(npm|yarn|pnpm)\s+run\s+test[\w:-]*$/.test(l) || /^make\s+(test|check|ci)$/.test(l))
+    .sort(plainFirst);
   
   // Only when the docs give no contributor path of their own, and only for libraries/CLIs whose README
   // is written for users: one install and one test command from CI, install first. Apps keep their
@@ -390,8 +403,19 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const st = { id: '', command: ciInstallCommands[0], kind: 'install', source: ciSource, origin: 'ci', synthetic: 'from CI workflow' };
     if (at >= 0) steps.splice(at, 0, st); else steps.push(st);
   }
-  if (isLibOrCli && !steps.some((s) => !s.skip && s.kind === 'test') && ciTestCommands[0]) {
-    steps.push({ id: '', command: ciTestCommands[0], kind: 'test', source: ciSource, origin: 'ci', synthetic: 'from CI workflow' });
+  // Tests only after an install: a CI test with nothing installed (requests: `make ci`) can only fail.
+  // When CI's test is a variant we don't run (koa: `npm run test:coverage`), the package's own `test` script is.
+  const hasInstall = steps.some((s) => !s.skip && s.kind === 'install');
+  const pkgTest = facts.node?.scripts?.test && !/no test specified/.test(facts.node.scripts.test) ? 'npm test' : null;
+  // The package's own test script beats a CI line (axios' CI also has a `bun test` job for Bun users).
+  const libTest = pkgTest || ciTestCommands[0];
+  if (isLibOrCli && hasInstall && !steps.some((s) => !s.skip && s.kind === 'test') && libTest) {
+    steps.push({ id: '', command: libTest, kind: 'test', source: libTest === ciTestCommands[0] ? ciSource : { file: 'package.json', line: 0, section: 'scripts.test' }, origin: libTest === ciTestCommands[0] ? 'ci' : 'package', synthetic: libTest === ciTestCommands[0] ? 'from CI workflow' : 'the package\'s own test script' });
+  }
+  // A library whose docs only install the published package, with no contributor setup HUMBLE can find:
+  // say so rather than invent one (psf/requests' saved docs).
+  if (isLibOrCli && steps.some((s) => s.skip === SELF) && !steps.some((s) => !s.skip && (s.kind === 'install' || s.kind === 'test'))) {
+    notes.push('The docs only show installing the published package. No setup from source was found in the README, CONTRIBUTING or CI, so there is no contributor path to prove.');
   }
 
   // ── 4. ALTERNATIVES ─────────────────────────────────────────────────────────
@@ -554,7 +578,11 @@ export function buildPlan(facts, { repo, commit } = {}) {
     serve.serve = { port };
     verify = { kind: 'http', target: `http://127.0.0.1:${port}${url?.[2] && url[1] === String(port) ? url[2] : '/'}`, ...(url && url[1] === String(port) ? { fromDocs: true } : {}) };
   } else if (steps.some((s) => s.kind === 'test' && !s.skip)) {
-    verify = { kind: 'command', target: steps.filter((s) => s.kind === 'test' && !s.skip).pop().command };
+    // Strongest honest proof first: a probe of what was installed (`git2txt --help`, a curl), then the docs'
+    // own test, then a test taken from CI.
+    const tests = steps.filter((s) => s.kind === 'test' && !s.skip);
+    const pick = tests.find((s) => s.probe) || tests.filter((s) => s.origin !== 'ci').pop() || tests.pop();
+    verify = { kind: 'command', target: pick.command };
   }
 
   return {
