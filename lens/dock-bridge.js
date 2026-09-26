@@ -13,17 +13,21 @@ const POLL = 250; // ms between event file reads
 const RATE = 100; // ms between onState pushes (≤10/s)
 
 /** Map agent name → CLI args per DOCK_CONTRACT §1. */
+// Bob runs the engine (decision 26 Sep): rules first, and Bob takes what they can't explain, within a small
+// per-run Bobcoin cap. Override with FIRSTRUN_BOB_RUN / FIRSTRUN_BOB_SOLO; '0' keeps a run rules-only.
+const BOB = { run: process.env.FIRSTRUN_BOB_RUN || '1', solo: process.env.FIRSTRUN_BOB_SOLO || '0.5' };
+
 function agentArgs(agent, target) {
   switch (agent) {
     case 'scout':    return ['scout',   target, '--json'];
     case 'planner':  return ['plan',    target, '--json'];
     case 'runner':   return ['run',     target, '--as-written', '--json'];
-    case 'doctor':   return ['doctor',  '--log', target, '--json'];
+    case 'doctor':   return ['doctor',  '--log', target, '--json', '--bob-budget', BOB.solo];
     case 'verifier': return ['replay',  target, '--json'];
     case 'scribe':   return ['scribe',  target, '--json'];
     case 'guide':    return ['guide',   target];
     case 'all':
-    default:         return ['verify',  target, '--json'];
+    default:         return ['verify',  target, '--json', '--brain', 'auto', '--bob-budget', BOB.run];
   }
 }
 
