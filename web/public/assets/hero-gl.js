@@ -23,38 +23,33 @@
     '  if(i<0.5) return vec3(0.14,0.25,1.0); if(i<1.5) return vec3(0.11,0.17,0.72); if(i<2.5) return vec3(1.0,0.37,0.66);',
     '  if(i<3.5) return vec3(1.0,0.18,0.53); if(i<4.5) return vec3(0.24,0.45,1.0); return vec3(1.0,0.55,0.78); }',
     'void main(){',
-    '  float t = uTime;',
-    // Chaos: each particle rides layered swirls around its own home point (stateless flow).
-    '  vec2 home = aSeed.xy * uRes;',
-    '  vec2 sw = vec2(sin(t*0.37*aSeed.z + home.y*0.004 + aSeed.w*6.28) + sin(t*0.21 + home.x*0.003),',
-    '                 cos(t*0.33*aSeed.z + home.x*0.004 + aSeed.w*6.28) + cos(t*0.19 + home.y*0.0035));',
-    '  vec2 chaos = home + sw * (70.0 + 90.0*aSeed.z) + vec2(sin(t*0.6+aSeed.w*9.0), cos(t*0.5+aSeed.z*7.0))*24.0;',
-    // Order: a wavefront sweeps left→right, each particle settles when it passes (writing the page).
-    '  float wave = clamp(uOrder*1.55 - (aTarget.x/uRes.x)*0.55 - aSeed.w*0.12, 0.0, 1.0);',
-    '  float k = wave*wave*(3.0-2.0*wave);',
-    '  vec2 breathe = vec2(sin(t*1.3+aSeed.w*20.0), cos(t*1.1+aSeed.z*20.0)) * 0.35;',
-    '  vec2 p = mix(chaos, aTarget + breathe, k);',
-    // Pointer carves a hole; ink flows back when it leaves.
-    '  vec2 d = p - uMouse; float dist = length(d);',
-    '  p += (dist < 130.0 ? normalize(d + 0.0001) * (130.0 - dist) * 0.55 : vec2(0.0));',
-    // 3D: scrolling tilts the page back around its lower third and pushes it away.
-    '  vec2 c = p - vec2(uRes.x*0.5, uRes.y*0.62);',
-    '  float ang = uScroll * 1.05; float z = c.y * sin(ang) + uScroll*260.0;',
-    '  float persp = 900.0 / (900.0 + z);',
-    '  vec2 q = vec2(c.x, c.y * cos(ang)) * persp + vec2(uRes.x*0.5, uRes.y*0.62 - uScroll*uRes.y*0.18);',
+    '  float t = uTime * 0.55;',
+    // An immersive volume, not text: every particle lives on a depth layer (aSeed.z: 0 near, 1 far) and drifts
+    // on slow layered swirls. Near layers are larger, brighter and move more; far layers are small and dim.
+    '  float zd = aSeed.z;',
+    '  vec2 home = aSeed.xy * uRes * vec2(1.3, 1.25) - uRes * vec2(0.15, 0.12);',
+    '  float calm = mix(1.0, 0.45, uOrder);',
+    '  vec2 sw = vec2(sin(t*0.37*(0.6+zd) + home.y*0.003 + aSeed.w*6.28) + sin(t*0.21 + home.x*0.0025),',
+    '                 cos(t*0.33*(0.6+zd) + home.x*0.003 + aSeed.w*6.28) + cos(t*0.19 + home.y*0.003));',
+    '  vec2 p = home + sw * (60.0 + 80.0*(1.0-zd)) * calm;',
+    // Depth projection around the centre, pointer parallax (near layers shift more), scroll pushes the layers apart.
+    '  vec2 ctr = uRes * 0.5;',
+    '  float persp = 1.0 / (1.0 + zd * 0.9 + uScroll * (0.6 + zd));',
+    '  vec2 look = (uMouse.x < -1000.0) ? vec2(0.0) : (uMouse - ctr);',
+    '  vec2 q = ctr + (p - ctr) * persp - look * (0.05 * (1.0 - zd)) - vec2(0.0, uScroll * uRes.y * 0.15);',
+    // The pointer opens a gap exactly where the cursor is: repel in screen space, after the projection.
+    '  vec2 d = q - uMouse; float dist = length(d); float R = 120.0 * (1.2 - zd*0.5);',
+    '  q += (dist < R ? normalize(d + 0.0001) * (R - dist) * 0.6 : vec2(0.0));',
     '  gl_Position = vec4((q / uRes) * 2.0 - 1.0, 0.0, 1.0); gl_Position.y *= -1.0;',
-    '  float fixLine = 0.0; // the highlighted pink/blue line was removed (Karmanya, 26 Sep): read as a stray stroke',
-    '  gl_PointSize = (2.1 + (1.0-k)*0.5) * uDpr * persp;',
-    // Colour: palette blue/pink in the chaos, settling into toasted oat (#a38a64) on the light theme, pale oat on dark.
+    '  gl_PointSize = mix(3.4, 1.1, zd) * uDpr * (0.8 + 0.2*persp);',
+    // Colour: a palette burst at first that calms into oat; about one particle in eight keeps its blue or pink.
     '  vec3 ink = uLight > 0.5 ? vec3(0.64,0.54,0.39) : vec3(0.94,0.91,0.85);',
-    '  vec3 col = mix(agent(aColor), uLight > 0.5 ? ink : ink * 0.62, k*0.95);',
-    '  col = mix(col, vec3(1.0,0.18,0.53), fixLine*uAlarm);',
-    '  col = mix(col, vec3(0.14,0.25,1.0), fixLine*uFixed);',
-    '  vCol = col;',
-    '  vAlpha = mix(0.55, 0.62, k) + fixLine*max(uAlarm,uFixed)*0.4;',
-    '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, p) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, p));',
-    '  vAlpha *= 1.0 - 0.9 * inC.x * inC.y;',
-    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.95 : 1.0);',
+    '  float accent = step(0.875, fract(aSeed.w * 7.13));',
+    '  vCol = mix(agent(aColor), ink, uOrder * (1.0 - accent) * 0.95);',
+    '  vAlpha = mix(0.95, 0.28, zd);',
+    '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, q) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, q));',
+    '  vAlpha *= 1.0 - 0.85 * inC.x * inC.y;',
+    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0);',
     '}'
   ].join('\n');
   var FS = [
@@ -81,6 +76,8 @@
   function buffer(name, data, size) {
     if (!bufs[name]) bufs[name] = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufs[name]); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    // Attributes the shader no longer reads (aTarget, aFix since the volume redesign) are optimised away: skip them.
+    if (A[name] < 0) return;
     gl.enableVertexAttribArray(A[name]); gl.vertexAttribPointer(A[name], size, gl.FLOAT, false, 0, 0);
   }
 
