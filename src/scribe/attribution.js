@@ -40,7 +40,7 @@ const INTERACTIVE_CLASSES = new Set([
  */
 export function isHumbleFailure(evidence) {
   if (!evidence.diagnosis) return true; // no diagnosis = unknown
-  const { class: cls, cause, by, ruleId } = evidence.diagnosis;
+  const { class: cls, cause, by, ruleId, bobcoins } = evidence.diagnosis;
   
   // Class is explicitly unknown
   if (cls === 'unknown') return true;
@@ -48,8 +48,13 @@ export function isHumbleFailure(evidence) {
   // Cause says no rule recognises it
   if (cause && /no rule recognises/i.test(cause)) return true;
   
-  // Bob diagnosis with no ruleId (Bob was asked but couldn't help or budget spent)
-  if (by === 'bob' && !ruleId) return true;
+  // Bob diagnosis is humble ONLY when:
+  // - class is unknown (already handled above), OR
+  // - cause says Bob could not help / replied without JSON / budget spent
+  if (by === 'bob') {
+    if (cause && /bob (could not help|replied without json|budget spent)/i.test(cause)) return true;
+    if (typeof bobcoins === 'number' && bobcoins <= 0) return true;
+  }
   
   return false;
 }

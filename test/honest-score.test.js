@@ -102,8 +102,20 @@ test('attributeEvidence: classifies correctly', () => {
   // Humble: no rule recognises
   assert.equal(attributeEvidence({ diagnosis: { class: 'some-class', by: 'rules', cause: 'No rule recognises this failure', ruleId: 'some-rule' } }), 'humble');
   
-  // Humble: Bob without ruleId
-  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 0.5, cause: 'Bob says missing tool' } }), 'humble');
+  // Humble: Bob with bobcoins > 0 but no explicit humble cause (this now goes to repo class, not humble)
+// This test was changed - Bob with actual finding should be repo, not humble
+  // Old test expected humble, but new logic correctly attributes to repo class
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 0.5, cause: 'Bob says missing tool' } }), 'repo');
+
+  // Bob diagnosis with explicit humble causes
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 1, cause: 'Bob could not help' } }), 'humble');
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 1, cause: 'Bob replied without JSON' } }), 'humble');
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 0, cause: 'Bob tried' } }), 'humble');
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: -0.5, cause: 'Budget spent' } }), 'humble');
+
+  // Bob diagnosis with actual finding (not humble) - should be attributed to repo class
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-tool', by: 'bob', bobcoins: 1, cause: 'nodemon not found', ruleId: 'bob-found-missing-tool' } }), 'repo');
+  assert.equal(attributeEvidence({ diagnosis: { class: 'missing-env', by: 'bob', bobcoins: 1, cause: 'NEXTAUTH_SECRET missing', ruleId: 'bob-found-missing-env' } }), 'repo');
 });
 
 test('computeVerdict: INCONCLUSIVE when only humble unknowns', () => {

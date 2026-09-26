@@ -82,7 +82,7 @@ export async function main(argv) {
         console.log(`  ${dim('PR files')} ${path.join(res.dir, 'out', 'pr')}  ${dim('(firstrun apply / firstrun pr)')}`);
         console.log(`  ${dim('watch')}    firstrun ui --root ${path.dirname(res.dir)}`);
       }
-      return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : 0) : 1;
+      return res.ok ? (res.passport.verdict === 'FAILED' ? 2 : res.passport.verdict === 'INCONCLUSIVE' ? 0 : 0) : 1;
     }
     case 'run': {
       const root = await resolveTarget(args._[0], args);
@@ -158,7 +158,7 @@ export async function main(argv) {
           if (ev.type === 'repo.start') console.log(`${cyan('▶')} ${ev.data.slug}`);
           if (ev.type === 'repo.done') {
             const p = ev.data.passport;
-            const col = ev.data.verdict === 'VERIFIED' ? green : ev.data.verdict === 'PARTIAL' ? yellow : red;
+            const col = ev.data.verdict === 'VERIFIED' ? green : ev.data.verdict === 'PARTIAL' ? yellow : ev.data.verdict === 'INCONCLUSIVE' ? cyan : red;
             console.log(`${col('■')} ${ev.data.slug}: ${col(bold(ev.data.verdict))}${p ? dim(` · breaks ${p.breaksFound} found / ${p.breaksFixed} fixed · replay ${fmtDuration(p.replaySeconds * 1000)}`) : ''}${ev.data.error ? red(` · ${ev.data.error}`) : ''}`);
           }
         },

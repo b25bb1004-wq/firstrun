@@ -133,6 +133,6 @@ function noteText(e) {
 
 export function verificationLine(p) {
   const when = p.verifiedAt.slice(0, 10);
-  const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : '❌';
-  return `${icon} **${p.verdict === 'VERIFIED' ? 'Verified' : p.verdict === 'PARTIAL' ? 'Partly verified' : 'Not verified'} by [HUMBLE](FIRSTRUN.md)** on ${when} from a clean \`${p.image}\` machine at \`${p.commit}\`${p.verdict !== 'FAILED' ? `: clone to running in ${fmtDuration(p.replaySeconds * 1000)}` : ''}.`;
+  const icon = p.verdict === 'VERIFIED' ? '✅' : p.verdict === 'PARTIAL' ? '🟡' : p.verdict === 'INCONCLUSIVE' ? '🔵' : '❌';
+  return `${icon} **${p.verdict === 'VERIFIED' ? 'Verified' : p.verdict === 'PARTIAL' ? 'Partly verified' : p.verdict === 'INCONCLUSIVE' ? 'Inconclusive' : 'Not verified'} by [HUMBLE](FIRSTRUN.md)** on ${when} from a clean \`${p.image}\` machine at \`${p.commit}\`${p.verdict !== 'FAILED' && p.verdict !== 'INCONCLUSIVE' ? `: clone to running in ${fmtDuration(p.replaySeconds * 1000)}` : ''}.`;
 }

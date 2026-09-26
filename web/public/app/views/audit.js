@@ -25,6 +25,9 @@ function tileHTML(r) {
   } else if (verdict === 'NO-SETUP-DOCS') {
     const reason = r.error || 'The docs contain no setup commands HUMBLE can follow.';
     mid = h`<p class="t-result t-nodocs" title="${reason}">${reason}</p>`;
+  } else if (verdict === 'INCONCLUSIVE') {
+    const humbles = p?.humbleUnknowns || 0;
+    mid = h`<p class="t-result t-inconclusive" title="Only HUMBLE unknown failures (no rule matched)">Inconclusive: ${humbles} unknown failure${humbles !== 1 ? 's' : ''} from HUMBLE</p>`;
   } else {
     mid = h`<p class="t-result">${breaks === 0 ? 'The README worked as written' : p?.needsHuman ? `${breaks} break${breaks === 1 ? '' : 's'}: ${p.breaksFixed} fixed, ${p.needsHuman} for a human` : `${breaks} break${breaks === 1 ? '' : 's'}, all fixed with evidence`}</p>`;
   }
@@ -65,7 +68,7 @@ export function mountAudit(root, auditId) {
     const coins = Math.round(repos.reduce((a, r) => a + (r.passport?.bobcoins ?? r.run?.bobcoins ?? 0), 0) * 100) / 100;
     const times = st.filter(s => s.verdict === 'VERIFIED' && s.p?.replaySeconds).map(s => s.p.replaySeconds).sort((a, b) => a - b);
     const median = times.length ? times[Math.floor(times.length / 2)] : 0;
-    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0, 'NO-SETUP-DOCS': 0 };
+    const counts = { VERIFIED: 0, PARTIAL: 0, FAILED: 0, INCONCLUSIVE: 0, 'NO-SETUP-DOCS': 0 };
     st.forEach(s => { if (s.verdict) counts[s.verdict] = (counts[s.verdict] || 0) + 1; });
     const all = done === M;
     const started = audit.startedAt ? Date.parse(audit.startedAt) : null;
@@ -83,7 +86,7 @@ export function mountAudit(root, auditId) {
         <div class="gauge g-bob"><span class="gl">Bobcoins</span><span class="gv mono">${coins}</span></div>
         <div class="gauge"><span class="gl">Median clone to running</span><span class="gv mono">${median ? secs(median) : '--'}</span></div>
         <div class="au-verdicts" aria-label="Verdicts">
-          ${['VERIFIED', 'PARTIAL', 'FAILED', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
+          ${['VERIFIED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
           <span class="vb v-pending" style="flex:${M - done || 0.0001}"></span>
         </div>
       </div>`);

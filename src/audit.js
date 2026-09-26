@@ -113,6 +113,7 @@ export function summarize(state) {
     brokeOnCleanMachine: broke.length,
     verified: done.filter((r) => r.verdict === 'VERIFIED').length,
     partial: done.filter((r) => r.verdict === 'PARTIAL').length,
+    inconclusive: done.filter((r) => r.verdict === 'INCONCLUSIVE').length,
     failed: done.filter((r) => r.verdict === 'FAILED' || r.verdict === 'ERROR').length,
     breaksFound: done.reduce((a, r) => a + (r.passport?.breaksFound || 0), 0),
     breaksFixed: done.reduce((a, r) => a + (r.passport?.breaksFixed || 0), 0),
