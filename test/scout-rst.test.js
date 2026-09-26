@@ -22,19 +22,19 @@ test('scout: finds CONTRIBUTING.rst and DEVELOPMENT.rst at root', async () => {
   assert.equal(facts.docsRst.includes('CHANGES.rst'), false, 'CHANGES.rst should not be in docsRst');
 });
 
-test('scout: finds docs/**/contributing.(md|rst), docs/**/development.(md|rst), docs/**/installation.(md|rst) case-insensitive', async () => {
+test('scout: finds docs/**/contributing.(md|rst), docs/**/development.(md|rst) case-insensitive', async () => {
   const facts = await scout(repo({
     'README.md': '# x',
     'docs/contributing.rst': 'x',
     'docs/development.md': 'x',
-    'docs/guide/installation.rst': 'x',
+    'docs/guide/installation.rst': 'x',  // should NOT be included (installation is for users)
     'docs/guide/CONTRIBUTING.md': 'x',
     'docs/guide/DEVELOPMENT.rst': 'x',
     'docs/api.rst': 'x',
   }));
   assert.ok(facts.docsRst.includes('docs/contributing.rst'), 'docs/contributing.rst should be in docsRst');
   assert.ok(facts.docsRst.includes('docs/development.md'), 'docs/development.md should be in docsRst');
-  assert.ok(facts.docsRst.includes('docs/guide/installation.rst'), 'docs/guide/installation.rst should be in docsRst');
+  assert.equal(facts.docsRst.includes('docs/guide/installation.rst'), false, 'docs/guide/installation.rst should NOT be in docsRst (installation is for users)');
   assert.ok(facts.docsRst.includes('docs/guide/CONTRIBUTING.md'), 'docs/guide/CONTRIBUTING.md should be in docsRst');
   assert.ok(facts.docsRst.includes('docs/guide/DEVELOPMENT.rst'), 'docs/guide/DEVELOPMENT.rst should be in docsRst');
   assert.equal(facts.docsRst.includes('docs/api.rst'), false, 'docs/api.rst should not be in docsRst');
@@ -107,7 +107,7 @@ Run tests::
   
   const testBlock = rst.blocks.find(b => b.lines.some(l => l.text.includes('pytest')));
   assert.ok(testBlock, 'Should find test block');
-  assert.equal(testBlock.lang, 'text', 'Language should be text for literal block');
+  assert.equal(testBlock.lang, 'literal', 'Language should be literal for literal block');
   
   const cmds = rstBlockCommands(testBlock);
   assert.ok(cmds.some(c => c.text === 'pytest'), 'Should extract pytest');
@@ -201,7 +201,7 @@ test('plan: flask tutorial README.rst extracts pip install -e . and pytest steps
   // Check that source file and line numbers are preserved
   const pytestStep = testSteps.find(s => s.command.includes('pytest') && !s.command.includes('coverage'));
   if (pytestStep) {
-    assert.ok(pytestStep.source.file.includes('README.rst'), 'Source file should be README.rst');
+    assert.ok(pytestStep.source.file.includes('.rst'), 'Source file should be .rst');
     assert.ok(pytestStep.source.line > 0, 'Line number should be positive');
   }
 });

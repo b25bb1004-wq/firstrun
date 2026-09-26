@@ -38,7 +38,7 @@ function parseRST(text) {
   while (i < lines.length) {
     const line = lines[i];
     // Check for .. code-block:: directive
-    const codeBlockMatch = line.match(/^\s*\.\.\s+code-block::\s*(bash|sh|shell|console|text)?\s*$/i);
+    const codeBlockMatch = line.match(/^\s*\.\.\s+code-block::\s*(bash|sh|shell|console)?\s*$/i);
     if (codeBlockMatch) {
       const lang = (codeBlockMatch[1] || '').toLowerCase();
       const startLine = i;
@@ -105,7 +105,7 @@ function parseRST(text) {
         blocks.push({
           start: startLine,
           end: i - 1,
-          lang: 'text',
+          lang: 'literal',
           lines: codeLines
         });
       }
@@ -139,10 +139,15 @@ function parseRST(text) {
   return { lines, headings, sections, blocks };
 }
 
-/** Check if a block is a shell block (language is bash, sh, shell, console, text, or empty) */
+/** Check if a block is a shell block (language is bash, sh, shell, console, or literal blocks with prompts) */
 function isRSTShellBlock(block) {
-  const SHELL_LANGS = new Set(['', 'bash', 'sh', 'shell', 'console', 'text']);
-  return SHELL_LANGS.has(block.lang);
+  const SHELL_LANGS = new Set(['bash', 'sh', 'shell', 'console']);
+  if (SHELL_LANGS.has(block.lang)) return true;
+  // For literal blocks, check if they have any prompted lines
+  if (block.lang === 'literal') {
+    return block.lines.some((l) => /^\s*[\$>]\s+\S/.test(l.text));
+  }
+  return false;
 }
 
 /** Get section path for a line number */
@@ -154,8 +159,20 @@ function rstSectionPath(sections, line) {
 function rstBlockCommands(block) {
   const raw = block.lines;
   const nonEmpty = raw.filter((l) => l.text.trim() && !l.text.trim().startsWith('#'));
+  
+  // For literal blocks, only take lines that start with a shell prompt
+  if (block.lang === 'literal') {
+    const promptedLines = raw.filter((l) => /^\s*[\$>]\s+\S/.test(l.text));
+    if (promptedLines.length === 0) return [];
+    return promptedLines.map(({ text, line }) => {
+      const m = text.trim().match(/^[\$>]\s+(.*)$/);
+      return { text: m ? m[1].trim() : text.trim(), line, endLine: line };
+    });
+  }
+  
+  // For code-block:: bash|sh|shell|console, process normally (all lines are commands)
   const gtPrompts = nonEmpty.length > 0 && nonEmpty.every((l) => /^\s*>\s+\S/.test(l.text));
-  const hasPrompts = gtPrompts || raw.some((l) => /^\s*[$%]\s+\S/.test(l.text));
+  const hasPrompts = gtPrompts || raw.some((l) => /^\s*[\$%]\s+\S/.test(l.text));
   const cmds = [];
   let acc = null;
   for (const { text, line } of raw) {
@@ -170,10 +187,10 @@ function rstBlockCommands(block) {
     if (!trimmed || trimmed.startsWith('#')) continue;
     let body = trimmed;
     if (hasPrompts) {
-      const m = trimmed.match(gtPrompts ? /^>\s+(.*)$/ : /^[$%]\s+(.*)$/);
+      const m = trimmed.match(gtPrompts ? /^>\s+(.*)$/ : /^[\$%]\s+(.*)$/);
       if (!m) continue;
       body = m[1];
-    } else if (/^[$%]\s+/.test(body)) body = body.replace(/^[$%]\s+/, '');
+    } else if (/^[\$%]\s+/.test(body)) body = body.replace(/^[\$%]\s+/, '');
     body = body.replace(/\s+#\s.*$/, '').replace(/\s*;\s*$/, '');
     if (/\\$/.test(body)) { acc = { text: body.replace(/\\$/, '').trim(), line, endLine: line }; continue; }
     cmds.push({ text: body, line, endLine: line });
@@ -248,7 +265,10 @@ export function classify(cmd, facts) {
   const norm = (n) => String(n || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
   const addSelf = c.match(/^(?:uv|poetry|pdm)\s+add\s+["']?((?:@[\w.-]+\/)?[\w.-]+)(?:\[[^\]]*\])?/);
   if (addSelf && facts?.selfName && norm(addSelf[1]) === norm(facts.selfName)) return { kind: 'other', skip: 'installs the published package; you already have its source' };
-  const selfInstallName = facts?.cli?.length ? null : facts?.selfName;
+  // Only skip self-install check for pip/npm/etc if this is a CLI tool (not a library).
+  // CLI tool = has CLI bin AND no serve/test steps (it's a tool, not an app)
+  const isCliTool = facts?.cli?.length > 0 && !facts.scripts?.test && !facts.scripts?.start;
+  const selfInstallName = isCliTool ? null : facts?.selfName;
   if (selfInstallName) {
     const npmSelf = c.match(/^(?:npm\s+(?:install|i)|yarn\s+add|pnpm\s+add)\s+((?:@[\w.-]+\/)?[\w.-]+)(?:@\S+)?(?:\s|$)/);
     if (npmSelf && npmSelf[1].split('/').pop() === selfInstallName.split('/').pop()) return { kind: 'other', skip: 'installs the published package; you already have its source' };
@@ -571,13 +591,14 @@ export function buildPlan(facts, { repo, commit } = {}) {
   const SELF = 'installs the published package; you already have its source';
   // Only re-enable pip self-install for NON-library/CLI projects
   if (!steps.some((s) => !s.skip && s.kind === 'install')) {
-    const isLibOrCli = (() => {
+    // Use the same library/CLI detection as below
+    const isLib = (() => {
       // Check Node library
       if (facts.node?.name) {
         const repoName = (repo || '').split('/').pop()?.replace(/\.git$/, '');
         if (repoName) {
           const pkgName = facts.node.name.split('/').pop();
-          if (pkgName === repoName || facts.cli?.length > 0) return true;
+          if (pkgName === repoName) return true;
         }
       }
       // Check Python library (pyproject.toml name matches repo)
@@ -587,6 +608,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
       }
       return false;
     })();
+    // CLI tools are NOT libraries - their README install IS the setup
+    const isCli = facts.cli?.length > 0 && !steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    const isLibOrCli = isLib || isCli;
     if (!isLibOrCli) {
       for (const s of steps.filter((x) => x.skip === SELF && /^(pip3?|python3?\s+-m\s+pip)\b/.test(x.command))) { delete s.skip; s.kind = 'install'; }
     }
@@ -602,35 +626,67 @@ export function buildPlan(facts, { repo, commit } = {}) {
     // A Django app with a package.json for its frontend (wagtail/bakerydemo) is an app, not a library.
     if (readText(path.join(facts.root, 'manage.py')) != null || steps.some((s) => /(^|\s|\/)manage\.py\s/.test(s.command))) return false;
     // Library: its published name (package.json, or pyproject/setup.cfg for Python) matches the repo name.
+    // BUT NOT if it's a CLI tool (has CLI bin and no serve/start/test scripts in package.json).
     const n = (x) => String(x || '').toLowerCase().replace(/[-_.]+/g, '-').split('/').pop();
-    return !!selfName && n(selfName) === n(repoName);
+    const hasNodeServeScript = facts.node?.scripts && (facts.node.scripts.start || facts.node.scripts.serve || facts.node.scripts.dev || facts.node.scripts.test);
+    // For Python: check pyproject.toml [project.scripts] for entry points
+    let hasPythonServeScript = false;
+    if (facts.python?.pyproject) {
+      try {
+        const pyp = readText(path.join(facts.root, 'pyproject.toml'));
+        // Check for [project.scripts] section - if it has entries that look like serve/test/start
+        const scriptsSection = pyp.match(/\[project\.scripts\]([\s\S]*?)(?=\n\[)/);
+        if (scriptsSection) {
+          const lines = scriptsSection[1].split('\n');
+          for (const line of lines) {
+            const m = line.match(/^\s*(\w+)\s*=/);
+            if (m) {
+              const name = m[1];
+              if (/^(start|serve|dev|test|run)$/i.test(name)) hasPythonServeScript = true;
+            }
+          }
+        }
+      } catch {}
+    }
+    const hasServeScript = hasNodeServeScript || hasPythonServeScript;
+    const isCli = facts.cli?.length > 0 && !hasServeScript;
+    return !!selfName && n(selfName) === n(repoName) && !isCli;
   }
 
-  function isCliTool(facts) {
+  function isCliTool(facts, steps) {
     // Has a CLI bin but no serve/test steps (it's a CLI tool, not an app)
-    return facts.cli?.length > 0;
+    const hasServeOrTest = steps.some((s) => s.kind === 'serve' || s.kind === 'test');
+    return facts.cli?.length > 0 && !hasServeOrTest;
   }
 
-  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts);
+  const isLibOrCli = isLibraryOrCli(facts) || isCliTool(facts, steps);
   if (isLibOrCli && selfName) {
-    // Skip self-install for all package managers
-    for (const s of steps) {
-      if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
-        // Already skipped by classify
-        continue;
-      }
-      // Check for additional self-install patterns not caught by classify
-      if (s.kind === 'install') {
-        const mgrPatterns = [
-          /^bun\s+add\s+/,
-          /^deno\s+add\s+(?:npm:)?/,
-          /^yarn\s+add\s+/,
-          /^pnpm\s+add\s+/,
-        ];
-        for (const pattern of mgrPatterns) {
-          if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+    // Skip self-install for LIBRARIES only (not CLI tools)
+    // For CLI tools, the README install instruction IS the setup being tested
+    if (isLibraryOrCli(facts) && !isCliTool(facts, steps)) {
+      for (const s of steps) {
+        if (s.kind === 'install' && s.skip === 'installs the published package; you already have its source') {
+          // Already skipped by classify
+          continue;
+        }
+        // Check for additional self-install patterns not caught by classify
+        if (s.kind === 'install') {
+          const mgrPatterns = [
+            /^bun\s+add\s+/,
+            /^deno\s+add\s+(?:npm:)?/,
+            /^yarn\s+add\s+/,
+            /^pnpm\s+add\s+/,
+          ];
+          for (const pattern of mgrPatterns) {
+            if (pattern.test(s.command) && s.command.includes(selfName.split('/').pop())) {
+              s.skip = 'installs the published package; you already have its source';
+              break;
+            }
+          }
+          // Also check plain pip install <selfName> (not caught by classify when CLI exists)
+          const pipSelf = s.command.match(/^(?:pip3?\s+install|python3?\s+-m\s+pip\s+install)\s+["']?([\w.-]+)(?:\[[^\]]*\])?(?:==[^\s"']+)?["']?(?:\s|$)/);
+          if (pipSelf && pipSelf[1].toLowerCase().replace(/[-_]/g, '-') === selfName.toLowerCase().replace(/[-_]/g, '-')) {
             s.skip = 'installs the published package; you already have its source';
-            break;
           }
         }
       }

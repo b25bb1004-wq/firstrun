@@ -66,11 +66,8 @@ export async function scout(root) {
     /^development\.rst$/i,
     /^docs?\/contributing\.(md|rst)$/i,
     /^docs?\/development\.(md|rst)$/i,
-    /^docs?\/installation\.(md|rst)$/i,
     /^docs?\/.*\/contributing\.(md|rst)$/i,
     /^docs?\/.*\/development\.(md|rst)$/i,
-    /^docs?\/.*\/installation\.(md|rst)$/i,
-    /^examples?\/.*\/readme\.(md|rst)$/i,
   ];
   const specialDocs = files.filter((f) => {
     if (f === readme) return false;
@@ -95,7 +92,7 @@ export async function scout(root) {
   }
 
   // reStructuredText setup docs (flask, httpie): listed apart until the planner parses .rst (src/markdown.js).
-  const SETUP_NAME = /(contributing|development|developing|setup|install(ation)?|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
+  const SETUP_NAME = /(contributing|development|developing|setup|getting[-_]started|hacking|local[-_]dev(elopment)?|quick[-_]?start)/i;
   facts.docsRst.push(...files.filter((f) => /\.rst$/i.test(f) && f !== readme && !/node_modules|test|fixture/i.test(f)
     && !facts.docsRst.includes(f)  // Skip already added files
     && ((!f.includes('/') && SETUP_NAME.test(f)) || (/^docs?\//i.test(f) && SETUP_NAME.test(f.split('/').pop())))).slice(0, 5));
