@@ -131,7 +131,7 @@ section { padding: clamp(72px, 11vw, 140px) 0; }
 /* Footer */
 .foot { border-top: 1px solid var(--line); padding: 48px 0 56px; }
 .foot-in { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: baseline; }
-.foot .muted { margin: 0; font-size: 15px; } .foot nav { display: flex; gap: 20px; }
+.foot .muted { margin: 0; font-size: 15px; } .foot nav { display: flex; gap: 20px; flex-wrap: wrap; }
 @media (max-width: 860px) { .foot-in { grid-template-columns: 1fr; } }
 
 /* Plain pages (terms, privacy) */
