@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { buildPlan, classify } from '../src/plan.js';
 import { scout } from '../src/scout/index.js';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const FIXTURE_ROOT = '/home/dev/firstrun/test/fixtures/v2';
+const FIXTURE_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'v2');
 
 async function planFor(fixture) {
   const root = path.join(FIXTURE_ROOT, fixture);
