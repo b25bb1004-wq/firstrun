@@ -74,7 +74,7 @@ export async function replayVerifiedPlan(root, { onStep } = {}) {
 }
 
 export function guardComment({ drift, replay }) {
-  const L = ['### FirstRun setup guard', ''];
+  const L = ['### HUMBLE setup guard', ''];
   const bad = drift.introduced.length || replay?.status === 'failed';
   L.push(bad ? '❌ **This change would break a newcomer\'s first run.**' : '✅ Setup docs and code still agree.', '');
   if (drift.introduced.length) {

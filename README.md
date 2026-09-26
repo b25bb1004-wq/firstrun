@@ -1,11 +1,11 @@
-# FirstRun: your README, proven
+# HUMBLE: your README, proven
 
-**FirstRun follows a repository's setup docs on a clean machine, exactly as a brand-new
+**HUMBLE follows a repository's setup docs on a clean machine, exactly as a brand-new
 contributor would. It repairs every step that breaks, backs each repair with evidence, replays
 the corrected guide from zero, and hands the maintainer a pull request with a README that is
 proven to work.**
 
-Built for the IBM Bob 2.0 Hackathon. IBM Bob is FirstRun's reasoning engine (Bob Shell,
+Built for the IBM Bob 2.0 Hackathon. IBM Bob is HUMBLE's reasoning engine (Bob Shell,
 headless), its home (three custom Bob modes and an MCP server for Bob IDE), and the newcomer's
 guide (a Bob mode that walks people through the verified setup).
 
@@ -28,7 +28,7 @@ Nothing notices until a new person follows the README and gets stuck.
 The newcomer loses days, a senior engineer gets interrupted, and the fix lands in a chat thread
 instead of the README. The next hire hits the same wall.
 
-## What FirstRun does
+## What HUMBLE does
 
 ```
  git clone ──► Scout ──► Planner ──► Runner ──✗──► Doctor ──► fix ──► Runner ──✓──► … ──► Verifier ──► Scribe
@@ -49,7 +49,7 @@ instead of the README. The next hire hits the same wall.
 
 ### Evidence, not opinions
 
-Every change FirstRun proposes carries an **evidence record** made of three parts:
+Every change HUMBLE proposes carries an **evidence record** made of three parts:
 
 1. the failing command and its output,
 2. the diagnosis and fix (with who diagnosed it: a named rule, or IBM Bob plus the Bobcoins it cost),
@@ -61,17 +61,17 @@ Maintainers review proof, not suggestions.
 
 - **Drift guard:** `.github/workflows/firstrun.yml` runs `firstrun guard` on pull requests. It
   flags new docs-vs-code drift statically (in seconds) and replays the committed verified plan.
-- **Newcomer guide:** the `🧭 FirstRun Guide` Bob mode walks a person through the verified
-  steps on *their* machine, one at a time. It knows the failure signatures FirstRun recorded, so
+- **Newcomer guide:** the `🧭 HUMBLE Guide` Bob mode walks a person through the verified
+  steps on *their* machine, one at a time. It knows the failure signatures HUMBLE recorded, so
   "if you see `ECONNREFUSED 127.0.0.1:6379`, start Redis" is already in its head. This is the
   in-IDE, Clicky-style onboarding buddy, grounded in a run that actually passed.
 
-### FirstRun Lens: circle anything, ask about it
+### HUMBLE Lens: circle anything, ask about it
 
 Press **Ctrl+Shift+Space**, circle anything on screen (an error in a terminal, a config line, a
-stack trace) and Lens reads it. If it's a failure FirstRun has already fixed and proven for this
+stack trace) and Lens reads it. If it's a failure HUMBLE has already fixed and proven for this
 project, you get the verified fix instantly, for free. For anything else, ask IBM Bob in the
-**🧭 FirstRun Guide** mode, which reads the project before answering.
+**🧭 HUMBLE Guide** mode, which reads the project before answering.
 
 ```bash
 cd lens && npm install && cd ..
@@ -85,8 +85,8 @@ Tip: most mouse software can map a side button to Ctrl+Shift+Space, so circling 
 
 | Where | How |
 |---|---|
-| **Reasoning engine** | `src/brain/bob.js` drives **Bob Shell headlessly** (`bob run --format json --mode firstrun-doctor --max-cost …`). Bob reads the repository itself (document understanding over READMEs, manifests, configs and source) and answers with a JSON fix that FirstRun validates (destructive commands are refused) and then **proves** in the sandbox. Bob is only called when the rules don't know the failure; every call is budgeted, logged and shown with its Bobcoin cost. |
-| **Custom modes** | `.bob/custom_modes.yaml`: **🚀 FirstRun** (orchestrates runs from Bob IDE), **🩺 FirstRun Doctor** (read-only diagnosis, used headlessly), **🧭 FirstRun Guide** (newcomer walkthrough; FirstRun also ships it into every repo it verifies). |
+| **Reasoning engine** | `src/brain/bob.js` drives **Bob Shell headlessly** (`bob run --format json --mode firstrun-doctor --max-cost …`). Bob reads the repository itself (document understanding over READMEs, manifests, configs and source) and answers with a JSON fix that HUMBLE validates (destructive commands are refused) and then **proves** in the sandbox. Bob is only called when the rules don't know the failure; every call is budgeted, logged and shown with its Bobcoin cost. |
+| **Custom modes** | `.bob/custom_modes.yaml`: **🚀 HUMBLE** (orchestrates runs from Bob IDE), **🩺 HUMBLE Doctor** (read-only diagnosis, used headlessly), **🧭 HUMBLE Guide** (newcomer walkthrough; HUMBLE also ships it into every repo it verifies). |
 | **MCP server** | `.bob/mcp.json` → `firstrun mcp`: `firstrun_plan`, `firstrun_verify`, `firstrun_status`, `firstrun_evidence`, `firstrun_guide`, `firstrun_drift`. Bob's agent can verify a repo, poll progress and explain evidence without leaving the IDE. |
 | **Parallel agents** | `firstrun audit` runs one agent team per repository, several at once (the swarm view in the dashboard). |
 | **Built with Bob** | Task-session exports are in [`bob_sessions/`](bob_sessions/). |
@@ -114,7 +114,7 @@ node bin/firstrun.js ui --root examples
 node bin/firstrun.js audit audit/repos.json --concurrency 3
 
 # Use it from IBM Bob
-node bin/firstrun.js bob install     # FirstRun modes for Bob Shell
+node bin/firstrun.js bob install     # HUMBLE modes for Bob Shell
 # Bob IDE picks up .bob/custom_modes.yaml and .bob/mcp.json from this repo
 ```
 
@@ -146,7 +146,7 @@ request (it never opens one without being asked).
   This keeps runs cheap (Bobcoins are finite) and reproducible.
 - **Nothing is fixed until it replays from zero.** The Verifier throws the machine away and
   starts again with only the repository, the PR's patches and the corrected steps.
-- **Smallest diff wins.** FirstRun edits the lines that were wrong, inserts the lines that were
+- **Smallest diff wins.** HUMBLE edits the lines that were wrong, inserts the lines that were
   missing, and leaves the rest of the README byte-for-byte identical.
 - **Never invent secrets.** Local-only values (a dev session secret, a localhost URL) are
   generated. Real third-party credentials are reported as "needs a human".

@@ -96,19 +96,19 @@ export class Sandbox {
    * Commands a newcomer's laptop has that the clean machine doesn't, translated without touching the docs:
    * - sudo: the container already runs as root, so it just runs the command.
    * - docker / docker-compose called from scripts (a justfile, a Makefile): there is no daemon here.
-   *   "up" asks FirstRun (exit 97 + /firstrun/services.request) to start the services as sidecars,
+   *   "up" asks HUMBLE (exit 97 + /firstrun/services.request) to start the services as sidecars,
    *   then the step is retried and the shim sees they are running.
    */
   async installShims() {
     const sudo = [
       '#!/bin/sh',
-      '# FirstRun: the clean machine runs as root, so sudo just runs the command.',
+      '# HUMBLE: the clean machine runs as root, so sudo just runs the command.',
       'while [ $# -gt 0 ]; do case "$1" in -u|-g|-C|-D|-h|-p|-r|-t|-U) shift 2;; --) shift; break;; -*) shift;; *) break;; esac; done',
       'exec "$@"',
     ].join('\n');
     const docker = [
       '#!/bin/sh',
-      '# FirstRun: no Docker daemon on the clean machine; FirstRun starts services as sidecars.',
+      '# HUMBLE: no Docker daemon on the clean machine; HUMBLE starts services as sidecars.',
       'me=$(basename "$0"); cmd="$me $*"',
       'case " $* " in',
       '  *" up "*|*" start "*|"run "*|" run "*)',
@@ -122,7 +122,7 @@ export class Sandbox {
     // a fresh laptop has lists and a human at the keyboard.
     const apt = [
       '#!/bin/sh',
-      '# FirstRun: behave like apt on a fresh machine with someone answering its prompt.',
+      '# HUMBLE: behave like apt on a fresh machine with someone answering its prompt.',
       'real=/usr/bin/$(basename "$0")',
       'if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null | grep -v -e lock -e partial)" ]; then /usr/bin/apt-get update -qq >/dev/null 2>&1; fi',
       'case "$1" in install|upgrade|dist-upgrade|remove) exec "$real" -y "$@";; *) exec "$real" "$@";; esac',

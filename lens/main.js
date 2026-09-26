@@ -1,6 +1,6 @@
-// FirstRun Lens: press the hotkey, circle anything on screen, get an answer.
+// HUMBLE Lens: press the hotkey, circle anything on screen, get an answer.
 //   npx electron lens [project dir]      (or: node bin/firstrun.js lens [project dir])
-// FirstRun Dock: floating always-on-top button + panel (issue #90, DOCK_CONTRACT §4-5).
+// HUMBLE Dock: floating always-on-top button + panel (issue #90, DOCK_CONTRACT §4-5).
 import { app, BrowserWindow, globalShortcut, desktopCapturer, screen, ipcMain, Tray, Menu, nativeImage, dialog, clipboard } from 'electron';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -120,7 +120,7 @@ async function openLens() {
     overlay.focus();
     if (process.env.FIRSTRUN_LENS_DEBUG) console.log('display', display.bounds, display.workArea, display.scaleFactor, 'window', overlay.getBounds());
   } catch (e) {
-    dialog.showErrorBox('FirstRun Lens', `Could not capture the screen: ${e.message}`);
+    dialog.showErrorBox('HUMBLE Lens', `Could not capture the screen: ${e.message}`);
     overlay?.close();
   } finally {
     busy = false;
@@ -153,17 +153,17 @@ function trayIcon() {
 
 function buildTray() {
   tray ??= new Tray(trayIcon());
-  tray.setToolTip(`FirstRun Lens · ${hotkey || 'no hotkey'} · ${project}`);
+  tray.setToolTip(`HUMBLE Lens · ${hotkey || 'no hotkey'} · ${project}`);
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: `Circle to ask  (${hotkey || 'no hotkey'})`, click: openLens },
-    { label: 'Open FirstRun Dock', click: toggleDockPanel },
+    { label: 'Open HUMBLE Dock', click: toggleDockPanel },
     { label: `Project: ${path.basename(project)}`, enabled: false },
     { label: 'Change project folder…', click: async () => {
       const r = await dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: project });
       if (!r.canceled && r.filePaths[0]) { project = r.filePaths[0]; buildTray(); }
     } },
     { type: 'separator' },
-    { label: 'Quit FirstRun Lens', click: () => app.quit() },
+    { label: 'Quit HUMBLE Lens', click: () => app.quit() },
   ]));
   tray.on('click', openLens);
 }
@@ -175,8 +175,8 @@ app.whenReady().then(() => {
   buildTray();
   createDockButton();
   warmOcr(CACHE).catch(() => {});
-  console.log(`FirstRun Lens ready. Press ${hotkey || '(no hotkey available; click the tray icon)'} and circle anything. Project: ${project}`);
-  console.log(`FirstRun Dock ready. ${dockHotkey ? `Press ${dockHotkey} or click` : 'Click'} the Bob button (top-left) to open it.`);
+  console.log(`HUMBLE Lens ready. Press ${hotkey || '(no hotkey available; click the tray icon)'} and circle anything. Project: ${project}`);
+  console.log(`HUMBLE Dock ready. ${dockHotkey ? `Press ${dockHotkey} or click` : 'Click'} the Bob button (top-left) to open it.`);
 });
 app.on('window-all-closed', (e) => e.preventDefault?.()); // stay in the tray
 app.on('will-quit', () => globalShortcut.unregisterAll());

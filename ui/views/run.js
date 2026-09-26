@@ -1,4 +1,4 @@
-// Run view: the live flight recorder for one FirstRun run.
+// Run view: the live flight recorder for one HUMBLE run.
 import { createModel, applyEvent, modelFromRunState, AGENTS, PHASES } from '../model.js';
 import {
   h, raw, esc, api, apiText, dur, clock, short, STATUS_LABEL, CLASS_LABEL, PHASE_LABEL, STATUS_ICON,

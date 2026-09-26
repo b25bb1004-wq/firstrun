@@ -23,7 +23,7 @@ function tileHTML(r) {
     mid = h`<p class="t-phase">${icon('dot')} ${PHASE_LABEL[run?.phase] || 'Starting'}${run?.stepsTotal ? h` <span class="mono">${run.stepsDone}/${run.stepsTotal}</span>` : ''}</p>
       ${cs ? h`<code class="t-cmd">${cs.command}</code>` : h`<code class="t-cmd dim">${run?.phase === 'replay' ? 'replaying from zero' : '...'}</code>`}`;
   } else if (verdict === 'NO-SETUP-DOCS') {
-    const reason = r.error || 'The docs contain no setup commands FirstRun can follow.';
+    const reason = r.error || 'The docs contain no setup commands HUMBLE can follow.';
     mid = h`<p class="t-result t-nodocs" title="${reason}">${reason}</p>`;
   } else {
     mid = h`<p class="t-result">${breaks === 0 ? 'The README worked as written' : p?.needsHuman ? `${breaks} break${breaks === 1 ? '' : 's'}: ${p.breaksFixed} fixed, ${p.needsHuman} for a human` : `${breaks} break${breaks === 1 ? '' : 's'}, all fixed with evidence`}</p>`;
