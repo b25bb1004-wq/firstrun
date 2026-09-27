@@ -9,6 +9,19 @@
   },
   "steps": [
     {
+      "id": "R1",
+      "command": "pnpm install",
+      "kind": "install",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": ".github/workflows/ci.yml",
+        "line": 43,
+        "section": "CI: test",
+        "insertedBefore": "S1"
+      }
+    },
+    {
       "id": "S1",
       "command": "pnpm test",
       "kind": "test",
@@ -21,7 +34,17 @@
         "line": 43,
         "section": "CI: test"
       },
-      "status": "pending"
+      "status": "repairing",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ],
+      "evidence": [
+        "E1",
+        "E2"
+      ]
     }
   ],
   "conflicts": [

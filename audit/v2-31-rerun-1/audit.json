@@ -93,7 +93,7 @@
       "passport": null,
       "runDir": "runs/edwinhern__express-typescript",
       "startedAt": "2026-09-27T11:35:58.269Z",
-      "phase": "repair",
+      "phase": "coldstart",
       "current": "pnpm test"
     },
     {

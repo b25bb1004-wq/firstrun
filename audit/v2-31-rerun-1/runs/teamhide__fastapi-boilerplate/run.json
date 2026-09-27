@@ -10,8 +10,8 @@
       "attempts": 0
     },
     "S2": {
-      "status": "failed",
-      "attempts": 1
+      "status": "running",
+      "attempts": 2
     },
     "S3": {
       "status": "pending",
@@ -38,7 +38,9 @@
       "attempts": 0
     }
   },
-  "evidence": [],
+  "evidence": [
+    "E1"
+  ],
   "bobcoins": 0,
   "conflicts": [
     {
@@ -57,11 +59,11 @@
   "plan": {
     "repo": "teamhide/fastapi-boilerplate",
     "commit": "df4e6d4f81",
-    "image": "python:3.12",
+    "image": "python:3.11.7",
     "runtime": {
       "name": "python",
-      "version": "3.12",
-      "source": "docs do not say; a newcomer installs the current LTS"
+      "version": "3.11.7",
+      "source": "pyproject.toml poetry python (\"3.11.7\")"
     },
     "steps": [
       {
@@ -90,7 +92,17 @@
           "section": "Features › Run › Install dependency"
         },
         "origin": "readme",
-        "status": "pending"
+        "status": "repairing",
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }"
+          }
+        ],
+        "evidence": [
+          "E1",
+          "E2"
+        ]
       },
       {
         "id": "S3",
