@@ -75,3 +75,39 @@ test('HUMBLE Robot: CSS includes tokens, reduced-motion overrides, sizes, and st
     assert.ok(css.includes(`.humble-robot-${state}`), `Missing CSS class for state: ${state}`);
   }
 });
+
+test('HUMBLE Robot: flight math matches Section 6 of spec (duration clamp, scale peak, bezier, glow)', () => {
+  import('../lens/humble/robot.js').then(({ flightMath }) => {
+    // 1. Duration clamp: clamp(distance / 800, 0.6s, 1.4s)
+    assert.equal(flightMath.duration(0), 0.6, 'dist 0 should clamp to 0.6s');
+    assert.equal(flightMath.duration(400), 0.6, 'dist 400 (0.5s) should clamp to 0.6s');
+    assert.equal(flightMath.duration(800), 1.0, 'dist 800 should equal 1.0s');
+    assert.equal(flightMath.duration(960), 1.2, 'dist 960 should equal 1.2s');
+    assert.equal(flightMath.duration(2000), 1.4, 'dist 2000 (2.5s) should clamp to 1.4s');
+
+    // 2. Scale peak: 1 + sin(u * PI) * 0.3 (1.3x mid-flight)
+    assert.equal(flightMath.scalePeak(0), 1.0, 'start scale should be 1.0');
+    assert.ok(Math.abs(flightMath.scalePeak(0.5) - 1.3) < 1e-6, 'mid-flight scale should peak at 1.3x');
+    assert.ok(Math.abs(flightMath.scalePeak(1) - 1.0) < 1e-6, 'end scale should settle back to 1.0');
+
+    // 3. Glow radius: 8 + (scale - 1) * 20 px
+    assert.equal(flightMath.glowRadius(1.0), 8, 'rest glow radius should be 8px');
+    assert.equal(flightMath.glowRadius(1.3), 14, 'peak glow radius should be 14px');
+
+    // 4. Eased progress: t = 3u^2 - 2u^3
+    assert.equal(flightMath.easedProgress(0), 0);
+    assert.equal(flightMath.easedProgress(0.5), 0.5);
+    assert.equal(flightMath.easedProgress(1), 1);
+
+    // 5. Quadratic Bezier curve point evaluation
+    const P0 = { x: 0, y: 0 };
+    const P1 = { x: 50, y: -60 };
+    const P2 = { x: 100, y: 0 };
+    const startPoint = flightMath.bezierPoint(P0, P1, P2, 0);
+    assert.deepEqual(startPoint, { x: 0, y: 0 });
+    const endPoint = flightMath.bezierPoint(P0, P1, P2, 1);
+    assert.deepEqual(endPoint, { x: 100, y: 0 });
+    const midPoint = flightMath.bezierPoint(P0, P1, P2, 0.5);
+    assert.deepEqual(midPoint, { x: 50, y: -30 });
+  });
+});

@@ -254,7 +254,7 @@
         <object data="./sprites/point.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
       </div>
       <h3>Point</h3>
-      <p>Guiding developer attention. Outstretched pointing arm, active radar beacon ping &amp; focused guidance.</p>
+      <p>Guiding developer attention. Radiant conical lantern beam &amp; outstretched arm pointing at code.</p>
     </div>
 
     <!-- 5. TALK -->
@@ -274,7 +274,7 @@
         <object data="./sprites/celebrate.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
       </div>
       <h3>Celebrate</h3>
-      <p>Replay passed! Squash-and-stretch jump, arms raised high &amp; blue screen flash (<code style="font-family: var(--mono);">#2440ff</code>, no confetti).</p>
+      <p>Replay passed! Victory squash jump, arms high, blue flash &amp; printed PROVEN receipt slip.</p>
     </div>
 
     <!-- 7. WORRIED -->
@@ -321,10 +321,13 @@
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Guide Mode Flight Simulator</h2>
         <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Click anywhere on the canvas: HUMBLE squashes in anticipation, flies in an arced trajectory, lands with bounce, and points at the target.</p>
       </div>
-      <div style="display: flex; gap: 8px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn" onclick="sim.boot()">Boot CRT (420ms)</button>
+        <button class="btn" onclick="sim.peek()">Peek (Eyestalk)</button>
         <button class="btn" onclick="sim.setState('sleep')">Sleep</button>
         <button class="btn" onclick="sim.setState('think')">Think</button>
         <button class="btn" onclick="sim.setState('talk', { say: 'Explaining repo build steps!' })">Talk</button>
+        <button class="btn" onclick="sim.setState('point')">Point (Beam)</button>
         <button class="btn" onclick="sim.setState('celebrate')">Celebrate</button>
         <button class="btn" onclick="sim.setState('worried')">Worried</button>
       </div>

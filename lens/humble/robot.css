@@ -1,26 +1,32 @@
 /**
- * HUMBLE Robot Companion — CRT Mascot Design System & Micro-animations
- * Warm amber glowing light, retro-futurist CRT terminal face, rubber-hose 1960s cartoon motion.
- * Authorized mascot-only exception to the anti-vibecoding rules.
+ * HUMBLE Robot Companion — Lamplighter Mascot Design System & Micro-animations
+ * Spec: docs/design/HUMBLE_CONSOLE_SPEC.md (Sections 5 & 6)
+ * Warm amber glowing light, translucent belly lantern, telescoping eyestalk peek,
+ * and 60fps physics-based quadratic bezier flight.
  */
 
 :root {
-  /* Warm Amber Light Palette (1960s Cartoon CRT Aesthetic) */
+  /* Warm Amber Light Palette (Lamplighter CRT Aesthetic) */
   --robot-core: #ff9a3c;
   --robot-hi: #ffc47a;
   --robot-deep: #e0701c;
-  --robot-out: #3a1c0a;
+  --robot-out: #2b2622;
   --robot-screen: #2a1406;
   --robot-blue: #2440ff;
   --robot-pink: #ff2d87;
 
+  /* Spec Section 1 & 5 Tokens */
+  --c-core: #ff9a3c;
+  --c-hi: #ffc47a;
+  --c-deep: #e0701c;
+  --c-ink: #16181b;
+
   /* Surface & Base System Tokens */
   --robot-bg: #efe7da;
-  --robot-body: #eae4d7;
-  --robot-ink: #16181b;
+  --robot-body: #ece5d8;
   --robot-line: #d2c6b1;
 
-  /* Easing curves */
+  /* Spec Easing Curves */
   --hb-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --hb-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -28,7 +34,6 @@
 [data-theme="dark"],
 :root[data-theme="dark"] {
   --robot-bg: #16120e;
-  --robot-ink: #efe7da;
   --robot-line: #342c24;
 }
 
@@ -40,6 +45,8 @@
   overflow: visible;
   shape-rendering: geometricPrecision;
   image-rendering: -webkit-optimize-contrast;
+  filter: drop-shadow(0 0 8px var(--robot-core));
+  transition: filter 0.15s ease;
 }
 
 /* Standalone container wrapper */
@@ -48,7 +55,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  will-change: transform;
+  will-change: transform, filter;
 }
 
 /* ==========================================================================
@@ -98,121 +105,154 @@
 }
 
 /* ==========================================================================
-   Amber Halo & Glow (Center-balanced soft blur, not neon)
+   Spec Section 5: CRT Boot Animation (420ms step flicker + 300ms scanline)
    ========================================================================== */
 
-.hb-halo {
-  filter: url(#hb-blur);
-  opacity: 0.38;
-  transition: opacity 0.3s ease;
+.humble-robot-booting {
+  animation: hb-crt-flicker 420ms steps(4) forwards;
+  position: relative;
 }
 
-[data-theme="dark"] .hb-halo,
-:root[data-theme="dark"] .hb-halo {
-  opacity: 0.55;
+.humble-robot-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--robot-hi);
+  box-shadow: 0 0 4px var(--robot-core);
+  opacity: 0.85;
+  pointer-events: none;
+  animation: hb-scanline-sweep 300ms ease-out forwards;
+}
+
+@keyframes hb-crt-flicker {
+  0% { opacity: 0; }
+  25% { opacity: 0.8; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+@keyframes hb-scanline-sweep {
+  0% { top: 0%; opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Eye Blink Micro-animation */
+.hb-eye-blink {
+  animation: hb-eye-blink-anim 160ms ease-in-out;
+}
+
+@keyframes hb-eye-blink-anim {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
 }
 
 /* ==========================================================================
-   State 1: SLEEP — Idle breathing bob + dimmed CRT scanlines
+   State 1: SLEEP — Idle breathing bobbing + dimmed amber disc
    ========================================================================== */
 
-.humble-robot-sleep .bot-body {
-  transform-origin: 100px 238px;
-  animation: hb-sleep-bob 3.2s ease-in-out infinite;
+.humble-robot-sleep .bot-body,
+.humble-robot-sleep .bot-sleep-float {
+  transform-origin: 100px 236px;
+  animation: hb-sleep-float 3.4s ease-in-out infinite;
 }
 
-.humble-robot-sleep .hb-halo {
-  opacity: 0.22;
+.humble-robot-sleep .disc-pulse {
+  animation: hb-disc-breathe 3.4s ease-in-out infinite;
 }
 
-@keyframes hb-sleep-bob {
+@keyframes hb-sleep-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
+}
+
+@keyframes hb-disc-breathe {
+  0%, 100% { transform: scaleX(1); opacity: 0.6; }
+  50% { transform: scaleX(0.88); opacity: 0.35; }
 }
 
 /* ==========================================================================
    State 2: THINK — Inquisitive head tilt + antenna pulse
    ========================================================================== */
 
+.humble-robot-think .bot-think-float {
+  animation: hb-think-float 2.8s ease-in-out infinite alternate;
+}
+
 .humble-robot-think .bot-head-think {
-  transform-origin: 100px 124px;
-  animation: hb-think-tilt 2.2s ease-in-out infinite;
+  animation: hb-think-tilt 2.4s ease-in-out infinite alternate;
+  transform-origin: 100px 114px;
 }
 
 .humble-robot-think .antenna-ball-think {
   animation: hb-think-pulse 1.4s ease-in-out infinite alternate;
 }
 
+@keyframes hb-think-float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
+}
+
 @keyframes hb-think-tilt {
-  0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(6deg); }
 }
 
 @keyframes hb-think-pulse {
-  0% { fill: var(--robot-hi); }
+  0% { fill: var(--robot-core); }
   100% { fill: var(--robot-blue); }
 }
 
 /* ==========================================================================
-   State 3: WALK — Dynamic 1960s rubber-hose walk cycle & bobbing
+   State 3: WALK — Smooth gliding transit & counter arm swings
    ========================================================================== */
 
 .humble-robot-walk .walk-stride {
   animation: hb-walk-bob 0.5s ease-in-out infinite alternate;
 }
 
-.humble-robot-walk .walk-leg-l {
-  animation: hb-leg-l 0.5s ease-in-out infinite alternate;
-}
-
-.humble-robot-walk .walk-leg-r {
-  animation: hb-leg-r 0.5s ease-in-out infinite alternate;
-}
-
 .humble-robot-walk .walk-arm-l {
   animation: hb-arm-l 0.5s ease-in-out infinite alternate;
+  transform-origin: 62px 144px;
 }
 
 .humble-robot-walk .walk-arm-r {
   animation: hb-arm-r 0.5s ease-in-out infinite alternate;
+  transform-origin: 138px 144px;
 }
 
 @keyframes hb-walk-bob {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(5px); }
-}
-
-@keyframes hb-leg-l {
-  0% { transform: rotate(-8deg); transform-origin: 86px 196px; }
-  100% { transform: rotate(10deg); transform-origin: 86px 196px; }
-}
-
-@keyframes hb-leg-r {
-  0% { transform: rotate(10deg); transform-origin: 114px 196px; }
-  100% { transform: rotate(-8deg); transform-origin: 114px 196px; }
+  0% { transform: translateY(0) rotate(-3deg); }
+  100% { transform: translateY(5px) rotate(3deg); }
 }
 
 @keyframes hb-arm-l {
-  0% { transform: rotate(-12deg); transform-origin: 66px 158px; }
-  100% { transform: rotate(12deg); transform-origin: 66px 158px; }
+  0% { transform: rotate(-14deg); }
+  100% { transform: rotate(14deg); }
 }
 
 @keyframes hb-arm-r {
-  0% { transform: rotate(12deg); transform-origin: 134px 158px; }
-  100% { transform: rotate(-12deg); transform-origin: 134px 158px; }
+  0% { transform: rotate(14deg); }
+  100% { transform: rotate(-14deg); }
 }
 
 /* ==========================================================================
-   State 4: POINT — Extended rubber-hose arm + radar beacon pulse
+   State 4: POINT — Radiant Conical Lantern Beam + Pointer Ping
    ========================================================================== */
 
-.humble-robot-point .bot-point-hover {
+.humble-robot-point .bot-point-float {
   animation: hb-point-hover 2.8s ease-in-out infinite alternate;
+}
+
+.humble-robot-point .hb-beam-pulse {
+  animation: hb-beam-sweep 1.8s ease-in-out infinite alternate;
+  transform-origin: 118px 168px;
 }
 
 .humble-robot-point .point-beacon {
   animation: hb-beacon-ping 1.4s ease-out infinite;
-  transform-origin: 196px 146px;
+  transform-origin: 194px 146px;
 }
 
 @keyframes hb-point-hover {
@@ -220,27 +260,42 @@
   100% { transform: translateY(-3px); }
 }
 
+@keyframes hb-beam-sweep {
+  0% { opacity: 0.75; transform: scaleY(0.92); }
+  100% { opacity: 1; transform: scaleY(1.08); }
+}
+
 @keyframes hb-beacon-ping {
-  0% { r: 5; opacity: 0.9; stroke-width: 2; }
+  0% { r: 4; opacity: 0.95; stroke-width: 2.5; }
   100% { r: 16; opacity: 0; stroke-width: 1; }
 }
 
 /* ==========================================================================
-   State 5: TALK — Articulated speech mouth + conversational head nod
+   State 5: TALK — Viseme paper flutter & conversational head nod
    ========================================================================== */
 
+.humble-robot-talk .bot-talk-float {
+  animation: hb-talk-hover 2.6s ease-in-out infinite alternate;
+}
+
 .humble-robot-talk .bot-head-nod {
-  transform-origin: 100px 124px;
   animation: hb-talk-nod 0.9s ease-in-out infinite alternate;
+  transform-origin: 100px 114px;
 }
 
 .humble-robot-talk .arm-gesture {
-  transform-origin: 66px 158px;
   animation: hb-talk-gesture 1.2s ease-in-out infinite alternate;
+  transform-origin: 62px 144px;
 }
 
 .humble-robot-talk .talk-mouth {
   animation: hb-talk-viseme 0.44s ease-in-out infinite alternate;
+  transform-origin: 100px 133px;
+}
+
+@keyframes hb-talk-hover {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-3px); }
 }
 
 @keyframes hb-talk-nod {
@@ -255,18 +310,17 @@
 
 @keyframes hb-talk-viseme {
   0% { transform: scaleY(1); }
-  50% { transform: scaleY(1.4) translateY(-1px); }
-  100% { transform: scaleY(0.8) translateY(1px); }
+  50% { transform: scaleY(1.5); }
+  100% { transform: scaleY(0.8); }
 }
 
 /* ==========================================================================
-   State 6: CELEBRATE — Squash-and-stretch jump + blue screen flash (#2440ff)
-   (Strictly NO confetti sparkles per specification)
+   State 6: CELEBRATE — Victory Jump + Blue Screen Flash + PROVEN Slip
    ========================================================================== */
 
 .humble-robot-celebrate .bot-celebrate-jump {
-  transform-origin: 100px 238px;
   animation: hb-jump-squash 1.2s var(--hb-ease-out) infinite;
+  transform-origin: 100px 236px;
 }
 
 .humble-robot-celebrate .screen-flash-blue {
@@ -274,15 +328,15 @@
 }
 
 .humble-robot-celebrate .antenna-wobble {
-  transform-origin: 100px 24px;
   animation: hb-ant-wobble 0.6s ease-in-out infinite alternate;
+  transform-origin: 104px 11px;
 }
 
 @keyframes hb-jump-squash {
   0% { transform: translateY(0) scale(1, 1); }
-  15% { transform: translateY(6px) scale(1.12, 0.86); }
-  45% { transform: translateY(-20px) scale(0.92, 1.12); }
-  75% { transform: translateY(0) scale(1.08, 0.92); }
+  15% { transform: translateY(6px) scale(1.1, 0.88); }
+  45% { transform: translateY(-22px) scale(0.92, 1.12); }
+  75% { transform: translateY(0) scale(1.06, 0.94); }
   100% { transform: translateY(0) scale(1, 1); }
 }
 
@@ -298,7 +352,7 @@
 }
 
 /* ==========================================================================
-   State 7: WORRIED — Face tints hot pink (#ff2d87) + nervous shiver
+   State 7: WORRIED — Nervous Shiver + Pink Alert Pulse
    ========================================================================== */
 
 .humble-robot-worried .bot-worried-shiver {
@@ -318,32 +372,32 @@
 }
 
 @keyframes hb-pink-pulse {
-  0% { fill: var(--robot-pink); filter: drop-shadow(0 0 3px var(--robot-pink)); }
-  100% { fill: #ff65a5; filter: drop-shadow(0 0 8px #ff65a5); }
+  0% { fill: var(--robot-pink); }
+  100% { fill: #ff65a5; }
 }
 
 /* ==========================================================================
-   Speech Bubble Component
+   Spec Section 6: Speech Bubble (bg --c-core, text #1a0e04, 11px, radius 6)
    ========================================================================== */
 
 .humble-bubble {
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 14px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: var(--robot-out);
-  color: var(--robot-hi);
+  background: var(--c-core, #ff9a3c);
+  color: #1a0e04;
   font-family: ui-monospace, "IBM Plex Mono", Menlo, monospace;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.4;
-  padding: 8px 14px;
-  border-radius: 2px;
+  padding: 4px 8px;
+  border-radius: 6px;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  box-shadow: none;
-  border: 1px solid var(--robot-core);
+  box-shadow: 0 0 6px rgba(255, 154, 60, 0.5);
+  border: 1px solid rgba(255, 196, 122, 0.4);
   transition: opacity 0.2s var(--hb-ease-out), transform 0.2s var(--hb-ease-out);
   z-index: 100;
 }
@@ -359,12 +413,12 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--robot-core);
+  border: 5px solid transparent;
+  border-top-color: var(--c-core, #ff9a3c);
 }
 
 /* ==========================================================================
-   Arced Trajectory Flight Mode
+   Spec Section 6: Flight Mode
    ========================================================================== */
 
 .humble-robot-flying {
@@ -379,15 +433,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .humble-robot-sleep .bot-body,
+  .humble-robot-sleep .bot-sleep-float,
+  .humble-robot-sleep .disc-pulse,
+  .humble-robot-think .bot-think-float,
   .humble-robot-think .bot-head-think,
   .humble-robot-think .antenna-ball-think,
   .humble-robot-walk .walk-stride,
-  .humble-robot-walk .walk-leg-l,
-  .humble-robot-walk .walk-leg-r,
   .humble-robot-walk .walk-arm-l,
   .humble-robot-walk .walk-arm-r,
-  .humble-robot-point .bot-point-hover,
+  .humble-robot-point .bot-point-float,
+  .humble-robot-point .hb-beam-pulse,
   .humble-robot-point .point-beacon,
+  .humble-robot-talk .bot-talk-float,
   .humble-robot-talk .bot-head-nod,
   .humble-robot-talk .arm-gesture,
   .humble-robot-talk .talk-mouth,
@@ -395,7 +452,9 @@
   .humble-robot-celebrate .screen-flash-blue,
   .humble-robot-celebrate .antenna-wobble,
   .humble-robot-worried .bot-worried-shiver,
-  .humble-robot-worried .antenna-pink-pulse {
+  .humble-robot-worried .antenna-pink-pulse,
+  .humble-robot-booting,
+  .humble-robot-scanline {
     animation: none !important;
     transition: none !important;
   }
