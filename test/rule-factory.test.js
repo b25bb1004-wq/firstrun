@@ -80,3 +80,23 @@ test('old pins without wheels: the Python that was current at the commit date', 
   // this repo's last commit is 2026, so no older era applies here; the rule must then stay silent
   assert.equal(r, null);
 });
+
+test('era-runtime rebase also era-pins the install (apryor6/flask_api_example: numpy fix rebased to 3.7, then pandas==0.25.0 failed to build against a current Cython)', async () => {
+  const log = "Collecting numpy==1.17.0\nERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects";
+  const r = await rule('python-era-runtime').test({ log, plan: py('3.12'), facts: pyFacts });
+  assert.ok(r, 'recognised');
+  assert.equal(r.fix.actions[0].type, 'rebase');
+  assert.equal(r.fix.actions[0].runtime.version, '3.7');
+  // rebasing the interpreter alone still lets `pip install` pull today's setuptools/Cython as
+  // build deps, which can't build an old sdist either (this exact failure) - the fix must also
+  // era-pin the rest of the install, the same way python-dependency-drift does. replace-step, not
+  // insert-before: S1 itself is the install being diagnosed, and insert-before combined with
+  // rebase in the same fix never actually ran on retry (confirmed against the real repo).
+  assert.equal(r.fix.actions[1].type, 'replace-step');
+  // Target is Python 3.7 (< 3.8): `uv` itself has no distribution there ("No matching
+  // distribution found for uv", confirmed by actually rebasing this repo to 3.7 and watching
+  // `pip install uv` fail outright) - so the era-pin must fall back to a plain pip install with
+  // Cython capped below 3 (Cython 3 can't build pandas 0.25.0's sdist: "Cython-generated file
+  // ... not found"), not python-dependency-drift's usual `uv --exclude-newer`.
+  assert.equal(r.fix.actions[1].command, 'pip install "cython<3.0" "setuptools<58" wheel && pip install --no-build-isolation -r requirements.txt');
+});
