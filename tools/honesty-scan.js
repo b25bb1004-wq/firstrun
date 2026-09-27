@@ -329,7 +329,7 @@ function findViolations(filePath, content) {
         const text = match.slice(1, -1); // remove > and <
         
         const sampleIndicators = [
-          /acme-shop/i, /demo/i, /example/i, /sample/i, /placeholder/i
+          /\bacme-shop\b/i, /\bdemo\b/i, /\bexample\b/i, /\bsample\b/i, /\bplaceholder\b/i
         ];
         
         for (const indicator of sampleIndicators) {

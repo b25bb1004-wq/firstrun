@@ -1,88 +1,117 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-point" aria-label="HUMBLE Robot: Pointing">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-point" aria-label="HUMBLE Lamplighter: Point with Lantern Beam">
   <defs>
-    <filter id="blur-point" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
-    <filter id="bloom-point" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="1.2" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="hb-blur-point" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
     </filter>
-    <pattern id="lines-point" width="4" height="4" patternUnits="userSpaceOnUse">
-      <rect width="4" height="1.2" fill="#ffc47a" opacity="0.09"/>
-    </pattern>
-    <clipPath id="scr-point"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
+    <radialGradient id="hb-disc-point" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#ff9a3c" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hb-lantern-point" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="1"/>
+      <stop offset="60%" stop-color="#ff9a3c" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#e0701c" stop-opacity="0.6"/>
+    </radialGradient>
+    <!-- Radiant Conical Lantern Beam -->
+    <linearGradient id="hb-beam-grad" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#ff9a3c" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="hb-body-point" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe6"/>
+      <stop offset="100%" stop-color="#dbd0be"/>
+    </linearGradient>
   </defs>
   <style>
     :root {
-      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
-      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+      --robot-core: #ff9a3c; --robot-hi: #ffc47a; --robot-deep: #e0701c;
+      --robot-out: #2b2622; --robot-screen: #2a1406; --robot-blue: #2440ff; --robot-pink: #ff2d87;
     }
-    .halo { filter: url(#blur-point); opacity: 0.38; }
+    .bot-point-float { animation: hb-point-hover 2.8s ease-in-out infinite alternate; }
+    .hb-beam-pulse { animation: hb-beam-sweep 1.8s ease-in-out infinite alternate; transform-origin: 120px 168px; }
     .point-beacon { animation: hb-beacon-ping 1.4s ease-out infinite; transform-origin: 196px 146px; }
-    .bot-point-hover { animation: hb-point-hover 2.8s ease-in-out infinite alternate; }
-    @keyframes hb-beacon-ping {
-      0% { r: 5; opacity: 0.9; stroke-width: 2; }
-      100% { r: 16; opacity: 0; stroke-width: 1; }
-    }
     @keyframes hb-point-hover {
       0% { transform: translateY(0); }
       100% { transform: translateY(-3px); }
     }
+    @keyframes hb-beam-sweep {
+      0% { opacity: 0.75; transform: scaleY(0.92); }
+      100% { opacity: 1; transform: scaleY(1.08); }
+    }
+    @keyframes hb-beacon-ping {
+      0% { r: 4; opacity: 0.95; stroke-width: 2.5; }
+      100% { r: 16; opacity: 0; stroke-width: 1; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .point-beacon, .bot-point-hover { animation: none !important; }
-      .point-beacon { opacity: 0.6; r: 8; }
+      .bot-point-float, .hb-beam-pulse, .point-beacon { animation: none !important; }
     }
   </style>
-  <g class="bot-point-hover">
-    <!-- Amber halo glow -->
-    <g class="halo" fill="var(--core, #ff9a3c)">
-      <rect x="32" y="20" width="136" height="108" rx="30"/>
-      <ellipse cx="100" cy="170" rx="44" ry="40"/>
-    </g>
-    <!-- Legs (rubber hose) -->
-    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round">
-      <path d="M86 196 Q84 214 80 228"/>
-      <path d="M114 196 Q116 214 120 228"/>
-    </g>
-    <g fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
-      <ellipse cx="76" cy="231" rx="13" ry="7"/>
-      <ellipse cx="124" cy="231" rx="13" ry="7"/>
-    </g>
-    <!-- Body & chest light -->
-    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
-    <circle cx="100" cy="168" r="7" fill="var(--hi, #ffc47a)" filter="url(#bloom-point)"/>
-    <!-- Left arm at hip / side -->
-    <path d="M66 158 Q50 172 48 188" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="48" cy="190" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
-    <!-- Right arm pointing forward -->
-    <path d="M134 158 Q168 150 196 146" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="196" cy="146" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
-    <!-- Radar beacon pulse at pointer tip -->
-    <circle cx="196" cy="146" r="4" fill="var(--hi, #ffc47a)" filter="url(#bloom-point)"/>
-    <circle class="point-beacon" cx="196" cy="146" r="6" fill="none" stroke="var(--hi, #ffc47a)"/>
-    <!-- Neck -->
-    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
-    <!-- Head: CRT screen -->
-    <g id="head">
-      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
-      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
-      <g clip-path="url(#scr-point)">
-        <g filter="url(#bloom-point)" stroke-linecap="round" fill="none">
-          <!-- Eyes looking to the right towards pointing target -->
-          <g fill="var(--hi, #ffc47a)">
-            <ellipse cx="84" cy="70" rx="9" ry="12"/>
-            <ellipse cx="124" cy="70" rx="9" ry="12"/>
-          </g>
-          <!-- Friendly reassuring smile -->
-          <path d="M84 94 Q100 104 116 94" stroke="var(--hi, #ffc47a)" stroke-width="4"/>
-        </g>
-        <rect x="46" y="34" width="108" height="80" fill="url(#lines-point)"/>
-      </g>
-      <!-- Glass glare -->
-      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
-    </g>
-    <!-- Antenna with ball -->
-    <g id="ant">
-      <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
-      <circle cx="93" cy="2" r="8" fill="var(--hi, #ffc47a)" stroke="var(--out, #3a1c0a)" stroke-width="3" filter="url(#bloom-point)"/>
-    </g>
+
+  <!-- Hover disc -->
+  <ellipse cx="100" cy="236" rx="36" ry="6" fill="url(#hb-disc-point)"/>
+
+  <g class="bot-point-float">
+    <!-- Radiant Conical Light Beam projected from belly lantern -->
+    <polygon class="hb-beam-pulse" points="118,168 200,126 200,210" fill="url(#hb-beam-grad)"/>
+
+    <!-- Backpack with agent cartridges -->
+    <rect x="74" y="128" width="52" height="48" rx="8" fill="#242b35" stroke="var(--robot-out)" stroke-width="3"/>
+    <rect x="78" y="134" width="7" height="12" rx="2" fill="#4589ff"/>
+    <rect x="89" y="134" width="7" height="12" rx="2" fill="#8a3ffc"/>
+    <rect x="100" y="134" width="7" height="12" rx="2" fill="#0072c3"/>
+    <rect x="111" y="134" width="7" height="12" rx="2" fill="#fa4d56"/>
+    <rect x="84" y="152" width="7" height="12" rx="2" fill="#1192e8"/>
+    <rect x="95" y="152" width="7" height="12" rx="2" fill="#009d9a"/>
+
+    <!-- Left Arm (resting at hip) -->
+    <path d="M62 144 Q46 166 52 188" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="53" cy="189" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Right Arm (pointing forward alongside the beam) -->
+    <path d="M138 144 Q168 146 194 146" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="194" cy="146" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+    <!-- Radar ping at pointer tip -->
+    <circle cx="194" cy="146" r="3.5" fill="#ffc47a"/>
+    <circle class="point-beacon" cx="194" cy="146" r="5" fill="none" stroke="#ffc47a"/>
+
+    <!-- Capsule Body -->
+    <rect x="58" y="122" width="84" height="92" rx="42" fill="url(#hb-body-point)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Glowing Belly Lantern (radiating full beam) -->
+    <path d="M74 168 C74 150 86 142 100 142 C114 142 126 150 126 168 C126 186 114 196 100 196 C86 196 74 186 74 168 Z"
+          fill="url(#hb-lantern-point)" stroke="var(--robot-out)" stroke-width="2.5"/>
+    <circle cx="100" cy="168" r="16" fill="#ffc47a" opacity="0.8" filter="url(#hb-blur-point)"/>
+
+    <!-- Receipt slot mouth -->
+    <rect x="86" y="132" width="28" height="3" rx="1.5" fill="#2b2622"/>
+
+    <!-- Telescoping neck (segmented collar rings) -->
+    <rect x="88" y="112" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="85" y="116" width="30" height="4" rx="2" fill="#887b6d" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="88" y="120" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Head Dome -->
+    <path d="M56 82 C56 52 74 38 100 38 C126 38 144 52 144 82 C144 104 128 112 100 112 C72 112 56 104 56 82 Z"
+          fill="url(#hb-body-point)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Top antenna curl -->
+    <path d="M100 38 C98 24 106 18 104 12" fill="none" stroke="var(--robot-out)" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="104" cy="11" r="5" fill="#ff9a3c" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Dark Goggle Faceplate -->
+    <rect x="66" y="58" width="68" height="38" rx="19" fill="#1e1814" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Dual Camera Eyes (focused intently forward towards point target) -->
+    <circle cx="83" cy="77" r="14" fill="#2d2218" stroke="#ffaa33" stroke-width="2"/>
+    <circle cx="87" cy="77" r="7" fill="#ffaa33"/>
+    <circle cx="88" cy="77" r="3.5" fill="#1e1814"/>
+    <circle cx="90" cy="75" r="2" fill="#ffffff"/>
+
+    <circle cx="117" cy="77" r="14" fill="#2d2218" stroke="#ffaa33" stroke-width="2"/>
+    <circle cx="121" cy="77" r="7" fill="#ffaa33"/>
+    <circle cx="122" cy="77" r="3.5" fill="#1e1814"/>
+    <circle cx="124" cy="75" r="2" fill="#ffffff"/>
   </g>
 </svg>
