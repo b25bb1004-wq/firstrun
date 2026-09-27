@@ -946,3 +946,15 @@ html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
 
 /* v20 (Edith): the intro moves slower: more scroll per agent (Arnav: "not this fast"). */
 html.js .intro { height: calc(100vh + 6 * 80vh + 35vh); }
+
+/* ===== v21 (Edith): alche.studio's design language, in HUMBLE's palette. One site-wide liquid background (fluid.js)
+   that ripples a beat behind the cursor, and two full-height hairline column rules. ===== */
+html.has-fluid { background: var(--bg); }
+html.has-fluid body { background: transparent; }
+.fluid-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+html.has-fluid body > *:not(.fluid-bg) { position: relative; z-index: 1; }
+html.has-fluid .top { position: sticky; z-index: 5; }
+html.has-fluid .intro-stick { background: transparent; }
+html::after { content: ""; position: fixed; top: 0; bottom: 0; left: 33.333%; right: 33.333%; z-index: 0; pointer-events: none;
+  border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+@media (max-width: 700px) { html::after { left: 50%; right: auto; border-right: 0; } }
