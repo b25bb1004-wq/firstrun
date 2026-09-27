@@ -95,7 +95,7 @@ export async function askBob({ mode, request, workspace, maxCost = 1.5, maxTurns
   const bobcoins = Number(result?.stats?.session_costs) || 0;
   if (!result) {
     const hint = /login|authenticat|api key|unauthori[sz]ed|not logged in|IBMid/i.test(r.out)
-      ? 'Bob Shell is not signed in (run `bob` once and log in with the hackathon IBMid)'
+      ? 'Sign in to Bob Shell first (open a terminal, run bob)'
       : errors[0] || tail(r.out, 6) || `bob exited with ${r.code}`;
     return { ok: false, error: hint, bobcoins, ms: r.durationMs };
   }

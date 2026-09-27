@@ -357,18 +357,26 @@ ipcMain.handle('dock:checkStep', async (_e, { check, cwd }) => {
 
 // The overlay sends the circled area; answer from proven fixes first, then offer Bob.
 ipcMain.handle('lens:read', async (_e, { png }) => {
-  const buf = Buffer.from(png.split(',')[1], 'base64');
-  const t0 = Date.now();
-  const text = await ocr(buf, CACHE);
-  const known = matchKnownFix(text, loadKnownFixes(project));
-  const imageFile = path.join(os.tmpdir(), `firstrun-lens-${Date.now()}.png`);
-  fs.writeFileSync(imageFile, buf);
-  return { text, known, imageFile, ms: Date.now() - t0 };
+  try {
+    const buf = Buffer.from(png.split(',')[1], 'base64');
+    const t0 = Date.now();
+    const text = await ocr(buf, CACHE);
+    const known = matchKnownFix(text, loadKnownFixes(project));
+    const imageFile = path.join(os.tmpdir(), `firstrun-lens-${Date.now()}.png`);
+    fs.writeFileSync(imageFile, buf);
+    return { text, known, imageFile, ms: Date.now() - t0 };
+  } catch (err) {
+    return { text: '', known: null, imageFile: null, ms: 0, error: `Could not read the selection: ${err.message}` };
+  }
 });
 
 ipcMain.handle('lens:ask', async (_e, { text, question, imageFile }) => {
-  const r = await askBobAbout({ project, text, question, imageFile });
-  return { ok: r.ok, json: r.json, text: r.text, error: r.error, bobcoins: r.bobcoins || 0, ms: r.ms };
+  try {
+    const r = await askBobAbout({ project, text, question, imageFile });
+    return { ok: r.ok, json: r.json, text: r.text, error: r.error, bobcoins: r.bobcoins || 0, ms: r.ms };
+  } catch (err) {
+    return { ok: false, json: null, text: null, error: err.message, bobcoins: 0, ms: 0 };
+  }
 });
 
 ipcMain.on('lens:copy', (_e, s) => clipboard.writeText(String(s)));
