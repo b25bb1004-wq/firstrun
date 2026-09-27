@@ -80,3 +80,20 @@ test('old pins without wheels: the Python that was current at the commit date', 
   // this repo's last commit is 2026, so no older era applies here; the rule must then stay silent
   assert.equal(r, null);
 });
+
+test('era-runtime rebase also era-pins the install (apryor6/flask_api_example: numpy fix rebased to 3.7, then pandas==0.25.0 failed to build against a current Cython)', async () => {
+  const log = "Collecting numpy==1.17.0\nERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects";
+  const r = await rule('python-era-runtime').test({ log, plan: py('3.12'), facts: pyFacts });
+  assert.ok(r, 'recognised');
+  assert.equal(r.fix.actions[0].type, 'rebase');
+  assert.equal(r.fix.actions[0].runtime.version, '3.7');
+  // rebasing the interpreter alone still lets `pip install` pull today's setuptools/Cython as
+  // build deps, which can't build an old sdist either (this exact failure) - the fix must also
+  // era-pin the rest of the install, the same way python-dependency-drift does.
+  assert.equal(r.fix.actions[1].type, 'insert-before');
+  // The cutoff must be Python 3.7's OWN era-end (2019-10-14), not this test repo's real commit
+  // date (2026): a recent commit date is not evidence the pinned toolchain is recent too (the repo
+  // can be touched long after its dependency pins went stale), and pinning to the wrong date is
+  // exactly what let this failure through undetected before.
+  assert.equal(r.fix.actions[1].command, 'pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer 2019-10-14 -r requirements.txt');
+});
