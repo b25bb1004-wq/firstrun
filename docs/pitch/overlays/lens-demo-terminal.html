@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#0d1030;}
+  .win{width:1400px;height:900px;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .term{width:1180px;border-radius:12px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);border:1px solid #2a3050;}
+  .bar{background:#1c1f3a;height:38px;display:flex;align-items:center;padding:0 14px;gap:8px;}
+  .dot{width:12px;height:12px;border-radius:50%;}
+  .r{background:#ff5f56;} .y{background:#ffbd2e;} .g{background:#27c93f;}
+  .title{flex:1;text-align:center;color:#8b93b8;font-size:13px;margin-right:60px;}
+  .body{background:#0a0c1f;color:#d6dbf5;padding:28px 30px;font-size:19px;line-height:1.75;min-height:420px;}
+  .prompt{color:#3dd68c;}
+  .cmd{color:#e6ecf5;}
+  .err{color:#ff6167;}
+  .dim{color:#7c86ad;}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="term">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><div class="title">acme-shop — npm install</div></div>
+    <div class="body" id="body">
+      <div><span class="prompt">$</span> <span class="cmd">npm install</span></div>
+      <div>&nbsp;</div>
+      <div class="err">npm ERR! code EBADENGINE</div>
+      <div class="err">npm ERR! engine Unsupported engine</div>
+      <div class="err">npm ERR! engine Not compatible with your version of node/npm: acme-shop@1.4.0</div>
+      <div class="err">npm ERR! notsup Not compatible with your version of node/npm: acme-shop@1.4.0</div>
+      <div class="err">npm ERR! notsup Required: {"node":">=20"}</div>
+      <div class="err">npm ERR! notsup Actual:   {"npm":"8.19.4","node":"v16.20.2"}</div>
+      <div>&nbsp;</div>
+      <div class="dim">npm ERR! A complete log of this run can be found in:</div>
+      <div class="dim">npm ERR!     /root/.npm/_logs/2026-09-24T22_19_12_666Z-debug-0.log</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
