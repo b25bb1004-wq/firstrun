@@ -741,6 +741,9 @@ export const RULES = [
         python: 'ln -sf "$(command -v python3)" /usr/local/bin/python', pip: 'apt-get update && apt-get install -y python3-pip python3-venv',
         node: 'apt-get update && apt-get install -y nodejs npm', npm: 'apt-get update && apt-get install -y nodejs npm', npx: 'apt-get update && apt-get install -y nodejs npm',
         uvicorn: 'pip install uvicorn', gunicorn: 'pip install gunicorn', flask: 'pip install flask', pytest: 'pip install pytest',
+        // CLIs READMEs assume are installed (rule factory: django-project-template runs django-admin before any pip install).
+        'django-admin': 'pip install django', alembic: 'pip install alembic', celery: 'pip install celery', black: 'pip install black',
+        cookiecutter: 'pip install cookiecutter', virtualenv: 'pip install virtualenv', pipx: 'pip install pipx',
         'docker-compose': null, docker: null,
       };
       // CLIs that READMEs assume are installed globally but the project doesn't depend on.
