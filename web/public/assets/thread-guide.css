@@ -1,0 +1,315 @@
+/**
+ * Thread Guide Styles - The "Prove it live" hero panel
+ * Matches lab.css from the prototype but adapted for production
+ */
+
+.thread-panel {
+  background: var(--c-bg, #16120e);
+  border: 1px solid var(--c-line, #342c24);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  color: var(--c-ink, #efe7da);
+  font-family: var(--sans, "Jost", system-ui, sans-serif);
+}
+
+.thread-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--c-line, #342c24);
+}
+
+.thread-dock {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  background: #0d1030;
+  border: 1.75px solid var(--ring, var(--c-core, #ff9a3c));
+  display: grid;
+  place-items: center;
+  transition: border-color 240ms ease, box-shadow 240ms ease;
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.thread-dock.glow {
+  box-shadow: 0 0 14px -2px var(--ring, var(--c-core, #ff9a3c));
+}
+
+.thread-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.thread-title {
+  font: 700 14px var(--sans);
+  letter-spacing: 0.02em;
+}
+
+.thread-subtitle {
+  font: 500 11px var(--mono, ui-monospace, monospace);
+  color: var(--c-muted, #9c9082);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.thread-status {
+  margin-left: auto;
+  font: 500 11px var(--mono, ui-monospace, monospace);
+  color: var(--c-muted, #9c9082);
+}
+
+.thread-term {
+  position: relative;
+  height: 380px;
+  overflow: hidden auto;
+  background: var(--c-term, #120e0a);
+  scrollbar-width: none;
+}
+
+.thread-term::-webkit-scrollbar {
+  display: none;
+}
+
+.thread-content {
+  position: relative;
+  padding: 14px 16px 60px 44px;
+  font: 13px/1.55 var(--mono, ui-monospace, monospace);
+}
+
+.thread-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 0;
+  min-height: 24px;
+  transition: color 200ms ease;
+}
+
+.thread-row.replay .thread-text {
+  color: #cfc5b6;
+}
+
+.thread-row.is-fail .thread-text {
+  color: var(--c-fail, #ff5c7a);
+}
+
+.thread-row.is-fail .thread-res {
+  color: var(--c-fail, #ff5c7a);
+}
+
+.thread-row.is-pass .thread-res {
+  color: var(--c-ok, #3dd68c);
+}
+
+.thread-prompt {
+  color: var(--c-muted, #9c9082);
+  flex-shrink: 0;
+}
+
+.thread-text {
+  color: var(--c-ink, #efe7da);
+  word-break: break-word;
+}
+
+.thread-res {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--c-muted, #9c9082);
+  white-space: nowrap;
+  padding-left: 12px;
+}
+
+/* Thread SVG layer */
+.thread {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  width: 22px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.thread .seg {
+  stroke: var(--c-thread, #6f8cff);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.thread .seg.replay {
+  stroke: #9fb2ff;
+  stroke-width: 2.2;
+}
+
+.thread .node {
+  fill: var(--c-term, #120e0a);
+  stroke: var(--c-thread, #6f8cff);
+  stroke-width: 1.6;
+  transition: stroke 200ms ease, fill 200ms ease;
+}
+
+.thread .node.fail {
+  stroke: var(--c-crack, #f0287a);
+}
+
+.thread .node.pass {
+  fill: var(--c-thread, #6f8cff);
+}
+
+.thread .crack {
+  stroke: var(--c-crack, #f0287a);
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.thread .stitch {
+  stroke: var(--c-thread, #6f8cff);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.thread .pulse {
+  fill: #cfd8ff;
+  filter: drop-shadow(0 0 5px #9fb2ff);
+}
+
+.thread .knot {
+  fill: none;
+  stroke: var(--c-ok, #3dd68c);
+  stroke-width: 1.8;
+}
+
+.draw {
+  animation: draw var(--d, 280ms) var(--ease-out) forwards;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw {
+    animation: none;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+/* Notes */
+.thread-note {
+  margin: 2px 0 8px 14px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--c-bob, #5e9eff);
+  background: color-mix(in srgb, var(--c-bob, #5e9eff) 9%, transparent);
+  font: 12.5px/1.5 var(--sans, "Jost", system-ui, sans-serif);
+  color: #ddd4c6;
+  border-radius: 0 4px 4px 0;
+}
+
+.thread-note-fix {
+  border-left-color: var(--c-thread, #6f8cff);
+}
+
+.thread-note-fix b {
+  color: var(--c-thread, #6f8cff);
+}
+
+.unfold {
+  animation: unfold 380ms var(--ease-out) both;
+  transform-origin: top left;
+}
+
+@keyframes unfold {
+  from { opacity: 0; transform: translateY(-4px) scaleY(0.6); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unfold { animation: none; }
+}
+
+/* Phase banner */
+.thread-phase-banner {
+  margin: 16px 0 10px;
+  padding: 6px 0;
+  border-top: 1px dashed var(--c-line, #342c24);
+  font: 500 11px var(--mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-muted, #9c9082);
+}
+
+/* Verdict */
+.thread-verdict {
+  display: inline-block;
+  margin: 14px 0 0;
+  padding: 4px 12px;
+  border: 2px solid var(--c-ok, #3dd68c);
+  color: var(--c-ok, #3dd68c);
+  font: 800 18px var(--sans, "Jost", system-ui, sans-serif);
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+  transform: rotate(-2deg);
+}
+
+/* Controls */
+.thread-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.thread-btn {
+  font: 500 13px var(--sans, "Jost", system-ui, sans-serif);
+  padding: 8px 14px;
+  border: 1px solid #c9bfae;
+  background: transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  color: var(--page-ink, #1a1d33);
+}
+
+.thread-btn:hover {
+  background: #fff6;
+}
+
+.thread-src {
+  color: var(--page-muted, #6b6558);
+  font: 12px/1.5 var(--mono, ui-monospace, monospace);
+  margin-top: 14px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .thread-row,
+  .thread-note,
+  .thread-phase-banner,
+  .thread-verdict {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .thread-content {
+    padding-left: 38px;
+    font-size: 12px;
+  }
+  .thread-res {
+    font-size: 10.5px;
+  }
+}
+
+/* Focus visible */
+.thread-btn:focus-visible,
+.thread-term:focus-visible {
+  outline: 2px solid var(--c-core, #ff9a3c);
+  outline-offset: 2px;
+}

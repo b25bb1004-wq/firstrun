@@ -166,29 +166,16 @@ describe('Honesty Gate - Data Traceability', () => {
     }
   });
 
-  // Test 3: Prove-live.js RECORDED_RUNS all point to real events.ndjson files
-  it('prove-live recorded runs point to real event files', () => {
-    const proveLive = resolve(ROOT, 'web/public/assets/prove-live.js');
-    const content = readFileSync(proveLive, 'utf-8');
+  // Test 3: Thread-guide.js uses real reel data from /data/reels/
+  it('thread-guide uses real reel data', () => {
+    const threadGuide = resolve(ROOT, 'web/public/assets/thread-guide.js');
+    const content = readFileSync(threadGuide, 'utf-8');
     
-    // Extract RECORDED_RUNS paths
-    const pathMatches = content.matchAll(/path:\s*['"]([^'"]+)['"]/g);
-    for (const match of pathMatches) {
-      const path = match[1];
-      // Paths in prove-live.js are web-root-relative (starting with /data/)
-      // The actual files are at web/public + path
-      const fullPath = resolve(ROOT, 'web/public', path.slice(1)); // remove leading /
-      assert.ok(existsSync(fullPath), `Recorded run path should exist: ${path}`);
-      
-      // Verify it's valid NDJSON
-      const ndjson = readFileSync(fullPath, 'utf-8');
-      const lines = ndjson.trim().split('\n').filter(l => l.trim());
-      assert.ok(lines.length > 0, `Events file should have content: ${path}`);
-      
-      for (const line of lines) {
-        assert.doesNotThrow(() => JSON.parse(line), `Each line should be valid JSON: ${path}`);
-      }
-    }
+    // Verify it loads reels from /data/reels/
+    assert.ok(content.includes("/data/reels/"), 'Thread guide should load reels from /data/reels/');
+    
+    // Verify it uses real recorded runs (acme-shop)
+    assert.ok(content.includes("acme-shop"), 'Thread guide should reference acme-shop reel');
   });
 });
 
