@@ -206,7 +206,7 @@ ipcMain.on('lens:copy', (_e, s) => clipboard.writeText(String(s)));
 ipcMain.on('lens:close', () => overlay?.close());
 
 function trayIcon() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="2" y="2" width="28" height="28" rx="6" fill="#0E1726"/><circle cx="16" cy="16" r="8" stroke="#3DD68C" stroke-width="3" fill="none"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-90 -180 897 897"><rect x="-90" y="-180" width="897" height="897" rx="180" fill="#0d1030"/><g fill="#fffefe"><polygon points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/><polygon points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/></g></svg>`; // brand face, lens/assets/humble-face.svg
   return nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`).resize({ width: 16, height: 16 });
 }
 

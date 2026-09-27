@@ -98,7 +98,7 @@ html, body {
   transform: scale(1.06);
   box-shadow: 0 0 16px var(--bob);
 }
-.bob-avatar-btn svg { width: 18px; height: 18px; fill: var(--bob); }
+.bob-avatar-btn svg { width: 22px; height: 17px; fill: var(--bob); } /* HUMBLE face is 4:3 */
 
 .dock-title-wrap { flex: 1; min-width: 0; }
 .dock-title {
