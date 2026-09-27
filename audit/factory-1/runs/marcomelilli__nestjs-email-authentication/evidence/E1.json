@@ -1,0 +1,45 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "npm install",
+    "exitCode": 1,
+    "durationMs": 4858,
+    "logTail": "npm error code ERESOLVE\nnpm error ERESOLVE could not resolve\nnpm error\nnpm error While resolving: ts-jest@28.0.3\nnpm error Found: @types/jest@21.1.10\nnpm error node_modules/@types/jest\nnpm error   dev @types/jest@\"^21.1.8\" from the root project\nnpm error\nnpm error Could not resolve dependency:\nnpm error peerOptional @types/jest@\"^27.0.0\" from ts-jest@28.0.3\nnpm error node_modules/ts-jest\nnpm error   dev ts-jest@\"^28.0.3\" from the root project\nnpm error\nnpm error Conflicting peer dependency: @types/jest@27.5.2\nnpm error node_modules/@types/jest\nnpm error   peerOptional @types/jest@\"^27.0.0\" from ts-jest@28.0.3\nnpm error   node_modules/ts-jest\nnpm error     dev ts-jest@\"^28.0.3\" from the root project\nnpm error\nnpm error Fix the upstream dependency conflict, or retry\nnpm error this command with --force or --legacy-peer-deps\nnpm error to accept an incorrect (and potentially broken) dependency resolution.\nnpm error\nnpm error\nnpm error For a full report see:\nnpm error /root/.npm/_logs/2026-09-27T09_32_48_060Z-eresolve-report.txt\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-27T09_32_48_060Z-debug-0.log",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-dependency",
+    "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+    "by": "rules",
+    "ruleId": "npm-peer-conflict",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "npm install --legacy-peer-deps"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "npm install --legacy-peer-deps"
+    },
+    "log": "step command → npm install --legacy-peer-deps"
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 2,
+    "command": "npm install --legacy-peer-deps",
+    "exitCode": 0,
+    "durationMs": 28582,
+    "logTail": "npm warn deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated\nnpm warn deprecated source-map-resolve@0.5.3: See https://github.com/lydell/source-map-resolve#deprecated\nnpm warn deprecated source-map-url@0.4.0: See https://github.com/lydell/source-map-url#deprecated\nnpm warn deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated\nnpm warn deprecated querystring@0.2.0: The querystring API is considered Legacy. new code should use the URLSearchParams API instead.\nnpm warn deprecated multer@1.4.4: Multer 1.x is affected by CVE-2022-24434. This is fixed in v1.4.4-lts.1 which drops support for versions of Node.js before 6. Please upgrade to at least Node.js 6 and version 1.4.4-lts.1 of Multer. If you need support for older versions of Node.js, we are open to accepting patches that would fix the CVE on the main 1.x release line, whilst maintaining compatibility with Node.js 0.10.\nnpm warn deprecated superagent@3.8.3: Please upgrade to v7.0.2+ of superagent.  We have fixed numerous issues with streams, form-data, attach(), filesystem errors not bubbling up (ENOENT on attach()), and all tests are now passing.  See the releases tab for more information at <https://github.com/visionmedia/superagent/releases>.\nnpm warn deprecated formidable@1.2.2: Please upgrade to latest, formidable@v2 or formidable@v3! Check these notes: https://bit.ly/2ZEqIau\nnpm warn deprecated chokidar@2.1.8: Chokidar 2 does not receive security updates since 2019. Upgrade to chokidar 3 with 15x fewer dependencies\n\nadded 1109 packages in 28s",
+    "logFile": "logs/S1-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T09:33:27.673Z"
+}

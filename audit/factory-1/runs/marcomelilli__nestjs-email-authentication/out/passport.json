@@ -1,0 +1,26 @@
+{
+  "repo": "marcomelilli/nestjs-email-authentication",
+  "commit": "d8fbaadc1e",
+  "verifiedAt": "2026-09-27T09:36:30.304Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 2,
+  "stepsFromReadme": 2,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 25,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

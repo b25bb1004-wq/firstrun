@@ -1,0 +1,14 @@
+services:
+  app:
+    image: python:3.6
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  postgres:
+    image: postgres:10
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}

@@ -1,0 +1,28 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:30:43.969Z",
+  "commit": "7d442e2bfb",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "mv example.env .env",
+      "kind": "env"
+    },
+    {
+      "id": "S3",
+      "command": "pipenv install --dev",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

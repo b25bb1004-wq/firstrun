@@ -1,0 +1,52 @@
+{
+  "id": "factory-1-adnanrahic__nodejs-restful-api",
+  "repo": "adnanrahic/nodejs-restful-api",
+  "commit": "200267506f",
+  "startedAt": "2026-09-27T09:30:27.708Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "mongodb service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"mongoose\"",
+      "source": "package.json"
+    }
+  ],
+  "plan": {
+    "repo": "adnanrahic/nodejs-restful-api",
+    "commit": "200267506f",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "mongodb service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"mongoose\"",
+        "source": "package.json"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-27T09:30:27.908Z"
+}

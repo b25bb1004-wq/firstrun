@@ -1,0 +1,274 @@
+{
+  "repo": "hardyscc/aws-nestjs-starter",
+  "commit": "2e312502fc",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "git clone https://github.com/hardyscc/aws-nestjs-starter.git <Your_Project_Name>",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 29,
+        "endLine": 29,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Usage"
+      },
+      "origin": "readme",
+      "skip": "git clone: HUMBLE starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "cd <Your_Project_Name>",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 30,
+        "endLine": 30,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Usage"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 32,
+        "endLine": 32,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Usage"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S4",
+      "command": "aws configure",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 61,
+        "endLine": 61,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Setup Workstation"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S5",
+      "command": "npm run ddb:install",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 82,
+        "endLine": 82,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Install DynamoDB local"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S6",
+      "command": "npm run ddb:start",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 89,
+        "endLine": 89,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local Offline Development"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S7",
+      "command": "npm run sls:offline",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 92,
+        "endLine": 92,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local Offline Development"
+      },
+      "origin": "readme",
+      "status": "blocked",
+      "blockedBy": "S6"
+    },
+    {
+      "id": "S8",
+      "command": "npm run sls:online",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 95,
+        "endLine": 95,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local Offline Development"
+      },
+      "origin": "readme",
+      "status": "blocked",
+      "blockedBy": "S6"
+    },
+    {
+      "id": "S9",
+      "command": "npm run ddb:start",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 102,
+        "endLine": 102,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local NestJS Development - (Optional)"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S10",
+      "command": "npm start",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 105,
+        "endLine": 105,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local NestJS Development - (Optional)"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"npm run start:online\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S11",
+      "command": "npm run start:watch",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 108,
+        "endLine": 108,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local NestJS Development - (Optional)"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S12",
+      "command": "npm run start:online",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 111,
+        "endLine": 111,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Local NestJS Development - (Optional)"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "blocked",
+      "blockedBy": "S9"
+    },
+    {
+      "id": "S13",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 125,
+        "endLine": 125,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Unit Testing"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S14",
+      "command": "npm run test:cov",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 128,
+        "endLine": 128,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › Unit Testing"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S15",
+      "command": "npm run ddb:start",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 135,
+        "endLine": 135,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › E2E Testing"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S16",
+      "command": "npm run test:e2e",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 138,
+        "endLine": 138,
+        "section": "Serverless, AWS, NestJS, GraphQL and DynamoDB starter › E2E Testing"
+      },
+      "origin": "readme",
+      "status": "blocked",
+      "blockedBy": "S15"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "env var IS_DDB_LOCAL",
+      "docs": "not documented",
+      "truth": "read in src/app.module.ts:19",
+      "source": "README"
+    },
+    {
+      "what": "env var REGION",
+      "docs": "not documented",
+      "truth": "read in src/app.module.ts:20",
+      "source": "README"
+    },
+    {
+      "what": "env var SERVICE",
+      "docs": "not documented",
+      "truth": "read in src/app.module.ts:23",
+      "source": "README"
+    },
+    {
+      "what": "env var STAGE",
+      "docs": "not documented",
+      "truth": "read in src/app.module.ts:23",
+      "source": "README"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/dev/graphql",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

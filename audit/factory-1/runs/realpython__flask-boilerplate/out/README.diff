@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -88,6 +88,8 @@ Project Structure
+ 
+ ### Quick Start
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `488e33624b`: clone to running in 3m22s.
++
+ 1. Clone the repo
+   ```
+   $ git clone https://github.com/realpython/flask-boilerplate.git
+@@ -108,6 +110,7 @@ Project Structure
+ 5. Run the development server:
+   ```
+   $ python app.py
++  # HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+   ```
+ 
+ 6. Navigate to [http://localhost:5000](http://localhost:5000)

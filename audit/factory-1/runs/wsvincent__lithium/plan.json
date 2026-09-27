@@ -1,0 +1,117 @@
+{
+  "repo": "wsvincent/lithium",
+  "commit": "14c0374eaa",
+  "image": "python:3.13",
+  "runtime": {
+    "name": "python",
+    "version": "3.13",
+    "source": "README.md:9 (\"Python 3.13\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "git clone https://github.com/wsvincent/lithium.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 32,
+        "endLine": 32,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation"
+      },
+      "origin": "readme",
+      "skip": "git clone: HUMBLE starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "cd lithium",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 33,
+        "endLine": 33,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "uv sync",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 40,
+        "endLine": 40,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation › uv"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+        }
+      ],
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S4",
+      "command": "uv run manage.py migrate",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 46,
+        "endLine": 46,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation › uv"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S5",
+      "command": "uv run manage.py createsuperuser",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 47,
+        "endLine": 47,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation › uv"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S6",
+      "command": "uv run manage.py runserver",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 48,
+        "endLine": 48,
+        "section": "Lithium: A Django-Powered Boilerplate › 📖 Installation › uv"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "python:3.13",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.13",
+    "source": "README.md:9 (\"Python 3.13\")"
+  }
+}

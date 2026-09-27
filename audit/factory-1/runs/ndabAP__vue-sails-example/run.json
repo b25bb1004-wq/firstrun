@@ -1,0 +1,171 @@
+{
+  "id": "factory-1-ndabAP__vue-sails-example",
+  "repo": "ndabAP/vue-sails-example",
+  "commit": "2b2dd1dc3b",
+  "startedAt": "2026-09-27T09:39:17.050Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S4": {
+      "status": "needs-human",
+      "attempts": 5
+    },
+    "S5": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "ndabAP/vue-sails-example",
+    "commit": "2b2dd1dc3b",
+    "image": "node:16",
+    "runtime": {
+      "name": "node",
+      "version": "16",
+      "source": "native modules fail to build on Node.js 18 and the repo pins no version"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 31,
+          "endLine": 31,
+          "section": "NOT MAINTAINED Vue.js with Sails.js example project › Installation › Prerequisites › Get Node.js"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "S2",
+        "command": "sudo apt-get install -y nodejs",
+        "kind": "prereq",
+        "source": {
+          "file": "README.md",
+          "line": 32,
+          "endLine": 32,
+          "section": "NOT MAINTAINED Vue.js with Sails.js example project › Installation › Prerequisites › Get Node.js"
+        },
+        "origin": "readme",
+        "status": "blocked",
+        "blockedBy": "S1"
+      },
+      {
+        "id": "S3",
+        "command": "sudo npm install sails -g",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 38,
+          "endLine": 38,
+          "section": "NOT MAINTAINED Vue.js with Sails.js example project › Installation › Prerequisites › Get Sails.js (optional)"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S4",
+        "command": "cd frontend && npm install",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 44,
+          "endLine": 44,
+          "section": "NOT MAINTAINED Vue.js with Sails.js example project › Installation › Prerequisites › Install modules"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "evidence": [
+          "E2",
+          "E3",
+          "E4",
+          "E5"
+        ]
+      },
+      {
+        "id": "S5",
+        "command": "cd ../backend && npm install",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 45,
+          "endLine": 45,
+          "section": "NOT MAINTAINED Vue.js with Sails.js example project › Installation › Prerequisites › Install modules"
+        },
+        "origin": "readme",
+        "status": "blocked",
+        "blockedBy": "S4"
+      }
+    ],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 19378
+  },
+  "passport": {
+    "repo": "ndabAP/vue-sails-example",
+    "commit": "2b2dd1dc3b",
+    "verifiedAt": "2026-09-27T10:08:45.560Z",
+    "verdict": "PARTIAL",
+    "image": "node:16",
+    "runtime": "Node.js 16",
+    "stepsTotal": 5,
+    "stepsFromReadme": 5,
+    "breaksFound": 4,
+    "breaksFixed": 0,
+    "needsHuman": 2,
+    "repoBreaks": 4,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 2,
+    "replaySeconds": 19,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T10:08:46.131Z"
+}

@@ -1,0 +1,126 @@
+{
+  "id": "factory-1-jpadilla__django-project-template",
+  "repo": "jpadilla/django-project-template",
+  "commit": "7d442e2bfb",
+  "startedAt": "2026-09-27T09:30:37.102Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "jpadilla/django-project-template",
+    "commit": "7d442e2bfb",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "django-admin.py startproject --template=https://github.com/jpadilla/django-project-template/archive/master.zip --name=Procfile --extension=py,md,env project_name",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 19,
+          "endLine": 23,
+          "section": "Django 3.0+ project template › How to install"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "S2",
+        "command": "mv example.env .env",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 24,
+          "endLine": 24,
+          "section": "Django 3.0+ project template › How to install"
+        },
+        "origin": "readme",
+        "status": "blocked",
+        "blockedBy": "S1"
+      },
+      {
+        "id": "S3",
+        "command": "pipenv install --dev",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 25,
+          "endLine": 25,
+          "section": "Django 3.0+ project template › How to install"
+        },
+        "origin": "readme",
+        "status": "blocked",
+        "blockedBy": "S1"
+      }
+    ],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 2068
+  },
+  "passport": {
+    "repo": "jpadilla/django-project-template",
+    "commit": "7d442e2bfb",
+    "verifiedAt": "2026-09-27T09:30:43.969Z",
+    "verdict": "PARTIAL",
+    "image": "python:3.12",
+    "runtime": "Python 3.12",
+    "stepsTotal": 3,
+    "stepsFromReadme": 3,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 0,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 2,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T09:30:44.844Z"
+}

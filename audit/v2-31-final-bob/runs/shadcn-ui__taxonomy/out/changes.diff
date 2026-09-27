@@ -1,0 +1,447 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -60,6 +60,12 @@ If you have some suggestions, feel free to create an issue.
+ 
+ ## Running Locally
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `298a8857c7`: clone to running in 56s.
++
++Prerequisites verified by HUMBLE:
++
++- pnpm (via `corepack enable`)
++
+ 1. Install dependencies using pnpm:
+ 
+ ```sh
+@@ -76,6 +82,7 @@ cp .env.example .env.local
+ 
+ ```sh
+ pnpm dev
++# HUMBLE: this step still fails on a clean machine: `.env.example` ships all third-party credentials as empty strings (lines 10-32), but `env.mjs` lines 9-20 validate every one of them with `z.string().min(1)`, so Next.js aborts at config-load time with 'Invalid environment variables' for NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_ACCESS_TOKEN, SMTP_FROM, POSTMARK_API_TOKEN, POSTMARK_SIGN_IN_TEMPLATE, POSTMARK_ACTIVATION_TEMPLA
+ ```
+ 
+ ## License
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -2,6 +2,7 @@
+   "name": "taxonomy",
+   "version": "0.2.0",
+   "private": true,
++  "packageManager": "pnpm@8.15.9",
+   "author": {
+     "name": "shadcn",
+     "url": "https://twitter.com/shadcn"
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,154 @@
++# Setup Passport: shadcn-ui/taxonomy
++
++🟡 **PARTIAL**: HUMBLE followed this project's setup docs on a clean `node:22` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `298a8857c7` |
++| Verified | 2026-09-27 08:52 UTC |
++| Runtime | Node.js 22 (`node:22`) |
++| Clone to running, from zero | **56s** |
++| Steps followed | 3 from the docs, 0 added by HUMBLE |
++| Breaks found / fixed | 3 / 2 |
++| Needs a human | 1 |
++| Done when | `GET http://127.0.0.1:3000/` answers |
++| IBM Bob | 2 diagnosises, 0.67 Bobcoins |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `pnpm install` (README.md:66).
++
++## Verified setup
++
++```bash
++pnpm install
++cp .env.example .env.local
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing tool <a id="e1"></a>
++
++- **Docs said:** `pnpm install` (README.md:66)
++- **Cause:** `pnpm` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** pnpm (via `corepack enable`)
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-1.sh: line 5: pnpm: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ corepack enable
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++Prisma schema loaded from prisma/schema.prisma
++
++✔ Generated Prisma Client (4.13.0 | library) to ./node_modules/.pnpm/@prisma+client@4.13.0_prisma@4.13.0/node_modules/@prisma/client in 97ms
++You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
++```
++import { PrismaClient } from '@prisma/client'
++const prisma = new PrismaClient()
++```
++Done in 38.8s
++```
++</details>
++
++### E2: Wrong runtime version <a id="e2"></a>
++
++- **Docs said:** `pnpm install` (README.md:66)
++- **Cause:** pnpm-lock.yaml line 1 declares lockfileVersion '6.0' (written by pnpm v7/v8), but Corepack downloads pnpm 12.6.0 which only accepts lockfile format v9+; package.json has no 'packageManager' field to pin a compatible pnpm version.
++- **Diagnosed by:** IBM Bob (0.06254399999999999 Bobcoins), confidence 97%
++- **Doc change:** Add `"packageManager": "pnpm@8.15.9"` to package.json so Corepack pins pnpm to a version that understands the lockfileVersion 6.0 format used in pnpm-lock.yaml.
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-12.6.0.tgz
++Downloading the pnpm 12.6.0 binary for linux-x64...
++Error: ERR_PNPM_BROKEN_LOCKFILE
++
++  × The lockfile at "/workspace/pnpm-lock.yaml" is broken: The lockfileVersion
++  │ of 6.0 is incompatible with the supported formats (1:18)
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++patched package.json
++wrote package.json
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++Prisma schema loaded from prisma/schema.prisma
++
++✔ Generated Prisma Client (4.13.0 | library) to ./node_modules/.pnpm/@prisma+client@4.13.0_prisma@4.13.0/node_modules/@prisma/client in 97ms
++You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
++```
++import { PrismaClient } from '@prisma/client'
++const prisma = new PrismaClient()
++```
++Done in 38.8s
++```
++</details>
++
++### E3: Needs a real credential <a id="e3"></a>
++
++- **Docs said:** `pnpm dev` (README.md:78)
++- **Cause:** `.env.example` ships all third-party credentials as empty strings (lines 10-32), but `env.mjs` lines 9-20 validate every one of them with `z.string().min(1)`, so Next.js aborts at config-load time with 'Invalid environment variables' for NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_ACCESS_TOKEN, SMTP_FROM, POSTMARK_API_TOKEN, POSTMARK_SIGN_IN_TEMPLATE, POSTMARK_ACTIVATION_TEMPLA
++- **Diagnosed by:** IBM Bob (0.07541 Bobcoins), confidence 99%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++[1]     at f (file:///workspace/node_modules/.pnpm/@t3-oss+env-nextjs@0.2.2_zod@3.21.4/node_modules/@t3-oss/env-nextjs/dist/index.mjs:1:505)
++[1]     at l (file:///workspace/node_modules/.pnpm/@t3-oss+env-nextjs@0.2.2_zod@3.21.4/node_modules/@t3-oss/env-nextjs/dist/index.mjs:1:695)
++[1]     at C (file:///workspace/node_modules/.pnpm/@t3-oss+env-nextjs@0.2.2_zod@3.21.4/node_modules/@t3-oss/env-nextjs/dist/index.mjs:1:868)
++[1]     at file:///workspace/env.mjs:4:20
++[1]     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
++[1]     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
++[1]     at async loadConfig (/workspace/node_modules/.pnpm/next@13.3.2-canary.13_@babel+core@7.21.4_@opentelemetry+api@1.1.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/server/config.js:528:36)
++[1]     at async NextServer.prepare (/workspace/node_modules/.pnpm/next@13.3.2-canary.13_@babel+core@7.21.4_@opentelemetry+api@1.1.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/server/next.js:153:24)
++[1]     at async Server.<anonymous> (/workspace/node_modules/.pnpm/next@13.3.2-canary.13_@babel+core@7.21.4_@opentelemetry+api@1.1.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/server/lib/render-server.js:117:17) {
++[1]   type: 'Error'
++[1] }
++[1] next dev exited with code 1
++[0] Generated 15 documents in .contentlayer
++[firstrun] the server process is still running but does not answer
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Node.js version | not stated | 16 (.nvmrc) | README.md |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 2/3 fixed">
++  <title>HUMBLE: partly verified · 2/3 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 2/3 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,26 @@
++{
++  "repo": "shadcn-ui/taxonomy",
++  "commit": "298a8857c7",
++  "verifiedAt": "2026-09-27T08:52:20.757Z",
++  "verdict": "PARTIAL",
++  "image": "node:22",
++  "runtime": "Node.js 22",
++  "stepsTotal": 3,
++  "stepsFromReadme": 3,
++  "breaksFound": 3,
++  "breaksFixed": 2,
++  "needsHuman": 1,
++  "repoBreaks": 3,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 0,
++  "replaySeconds": 56,
++  "packageCache": false,
++  "bobcoins": 0.67,
++  "diagnosedByBob": 2,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/"
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,53 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T08:52:20.757Z",
++  "commit": "298a8857c7",
++  "image": "node:22",
++  "runtime": {
++    "name": "node",
++    "version": "22",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/"
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "pnpm install",
++      "kind": "install",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "corepack enable"
++        },
++        {
++          "type": "write",
++          "path": "package.json",
++          "content": "{\n  \"name\": \"taxonomy\",\n  \"version\": \"0.2.0\",\n  \"private\": true,\n  \"packageManager\": \"pnpm@8.15.9\",\n  \"author\": {\n    \"name\": \"shadcn\",\n    \"url\": \"https://twitter.com/shadcn\"\n  },\n  \"scripts\": {\n    \"dev\": \"concurrently \\\"contentlayer dev\\\" \\\"next dev\\\"\",\n    \"build\": \"contentlayer build && next build\",\n    \"turbo\": \"next dev --turbo\",\n    \"start\": \"next start\",\n    \"lint\": \"next lint\",\n    \"preview\": \"next build && next start\",\n    \"postinstall\": \"prisma generate\"\n  },\n  \"dependencies\": {\n    \"@editorjs/code\": \"^2.8.0\",\n    \"@editorjs/editorjs\": \"^2.26.5\",\n    \"@editorjs/embed\": \"^2.5.3\",\n    \"@editorjs/header\": \"^2.7.0\",\n    \"@editorjs/inline-code\": \"^1.4.0\",\n    \"@editorjs/link\": \"^2.5.0\",\n    \"@editorjs/list\": \"^1.8.0\",\n    \"@editorjs/paragraph\": \"^2.9.0\",\n    \"@editorjs/table\": \"^2.2.1\",\n    \"@hookform/resolvers\": \"^3.1.0\",\n    \"@next-auth/prisma-adapter\": \"^1.0.6\",\n    \"@prisma/client\": \"^4.13.0\",\n    \"@radix-ui/react-accessible-icon\": \"^1.0.2\",\n    \"@radix-ui/react-accordion\": \"^1.1.1\",\n    \"@radix-ui/react-alert-dialog\": \"^1.0.3\",\n    \"@radix-ui/react-aspect-ratio\": \"^1.0.2\",\n    \"@radix-ui/react-avatar\": \"^1.0.2\",\n    \"@radix-ui/react-checkbox\": \"^1.0.3\",\n    \"@radix-ui/react-collapsible\": \"^1.0.2\",\n    \"@radix-ui/react-context-menu\": \"^2.1.3\",\n    \"@radix-ui/react-dialog\": \"^1.0.3\",\n    \"@radix-ui/react-dropdown-menu\": \"^2.0.4\",\n    \"@radix-ui/react-hover-card\": \"^1.0.5\",\n    \"@radix-ui/react-label\": \"^2.0.1\",\n    \"@radix-ui/react-menubar\": \"^1.0.2\",\n    \"@radix-ui/react-navigation-menu\": \"^1.1.2\",\n    \"@radix-ui/react-popover\": \"^1.0.5\",\n    \"@radix-ui/react-progress\": \"^1.0.2\",\n    \"@radix-ui/react-radio-group\": \"^1.1.2\",\n    \"@radix-ui/react-scroll-area\": \"^1.0.3\",\n    \"@radix-ui/react-select\": \"^1.2.1\",\n    \"@radix-ui/react-separator\": \"^1.0.2\",\n    \"@radix-ui/react-slider\": \"^1.1.1\",\n    \"@radix-ui/react-slot\": \"^1.0.1\",\n    \"@radix-ui/react-switch\": \"^1.0.2\",\n    \"@radix-ui/react-tabs\": \"^1.0.3\",\n    \"@radix-ui/react-toast\": \"^1.1.3\",\n    \"@radix-ui/react-toggle\": \"^1.0.2\",\n    \"@radix-ui/react-toggle-group\": \"^1.0.3\",\n    \"@radix-ui/react-tooltip\": \"^1.0.5\",\n    \"@t3-oss/env-nextjs\": \"^0.2.2\",\n    \"@typescript-eslint/parser\": \"^5.59.0\",\n    \"@vercel/analytics\": \"^1.0.0\",\n    \"@vercel/og\": \"^0.0.21\",\n    \"class-variance-authority\": \"^0.4.0\",\n    \"clsx\": \"^1.2.1\",\n    \"cmdk\": \"^0.1.22\",\n    \"concurrently\": \"^8.0.1\",\n    \"contentlayer\": \"^0.3.1\",\n    \"date-fns\": \"^2.29.3\",\n    \"lucide-react\": \"^0.92.0\",\n    \"next\": \"13.3.2-canary.13\",\n    \"next-auth\": \"4.22.1\",\n    \"next-contentlayer\": \"^0.3.1\",\n    \"next-themes\": \"^0.2.1\",\n    \"nodemailer\": \"^6.9.1\",\n    \"postmark\": \"^3.0.15\",\n    \"prop-types\": \"^15.8.1\",\n    \"react\": \"^18.2.0\",\n    \"react-day-picker\": \"^8.7.1\",\n    \"react-dom\": \"^18.2.0\",\n    \"react-editor-js\": \"^2.1.0\",\n    \"react-hook-form\": \"^7.43.9\",\n    \"react-textarea-autosize\": \"^8.4.1\",\n    \"sharp\": \"^0.31.3\",\n    \"shiki\": \"^0.11.1\",\n    \"stripe\": \"^11.18.0\",\n    \"tailwind-merge\": \"^1.12.0\",\n    \"tailwindcss-animate\": \"^1.0.5\",\n    \"zod\": \"^3.21.4\"\n  },\n  \"devDependencies\": {\n    \"@commitlint/cli\": \"^17.6.1\",\n    \"@commitlint/config-conventional\": \"^17.6.1\",\n    \"@ianvs/prettier-plugin-sort-imports\": \"^3.7.2\",\n    \"@tailwindcss/line-clamp\": \"^0.4.4\",\n    \"@tailwindcss/typography\": \"^0.5.9\",\n    \"@types/node\": \"^18.16.0\",\n    \"@types/react\": \"18.0.15\",\n    \"@types/react-dom\": \"18.0.6\",\n    \"autoprefixer\": \"^10.4.14\",\n    \"eslint\": \"^8.39.0\",\n    \"eslint-config-next\": \"13.0.0\",\n    \"eslint-config-prettier\": \"^8.8.0\",\n    \"eslint-plugin-react\": \"^7.32.2\",\n    \"eslint-plugin-tailwindcss\": \"^3.11.0\",\n    \"husky\": \"^8.0.3\",\n    \"mdast-util-toc\": \"^6.1.1\",\n    \"postcss\": \"^8.4.23\",\n    \"prettier\": \"^2.8.8\",\n    \"prettier-plugin-tailwindcss\": \"^0.1.13\",\n    \"pretty-quick\": \"^3.1.3\",\n    \"prisma\": \"^4.13.0\",\n    \"rehype\": \"^12.0.1\",\n    \"rehype-autolink-headings\": \"^6.1.1\",\n    \"rehype-pretty-code\": \"^0.9.5\",\n    \"rehype-slug\": \"^5.1.0\",\n    \"remark\": \"^14.0.2\",\n    \"remark-gfm\": \"^3.0.1\",\n    \"tailwindcss\": \"^3.3.1\",\n    \"typescript\": \"4.7.4\",\n    \"unist-util-visit\": \"^4.1.2\"\n  }\n}\n",
++          "kind": "other"
++        }
++      ]
++    },
++    {
++      "id": "S2",
++      "command": "cp .env.example .env.local",
++      "kind": "env"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "/firstrun/step-1.sh: line 5: pnpm: command not found",
++      "cause": "`pnpm` is not installed; the docs assume it is.",
++      "fix": "pnpm (via `corepack enable`)",
++      "evidence": "E1"
++    },
++    {
++      "signature": "Error: ERR_PNPM_BROKEN_LOCKFILE",
++      "cause": "pnpm-lock.yaml line 1 declares lockfileVersion '6.0' (written by pnpm v7/v8), but Corepack downloads pnpm 12.6.0 which only accepts lockfile format v9+; package.json has no 'packageManager' field to pin a compatible pnpm version.",
++      "fix": "Add `\"packageManager\": \"pnpm@8.15.9\"` to package.json so Corepack pins pnpm to a version that understands the lockfileVersion 6.0 format used in pnpm-lock.yaml.",
++      "evidence": "E2"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,21 @@
++# Verified setup for shadcn-ui/taxonomy
++
++Verified by HUMBLE on 2026-09-27 at commit `298a8857c7` on a clean `node:22` machine. Clone to running took 56s.
++
++Prerequisites: Node.js 22.
++
++## Steps
++
++1. `pnpm install`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `cp .env.example .env.local`
++   - Kind: env
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `/firstrun/step-1.sh: line 5: pnpm: command not found` | `pnpm` is not installed; the docs assume it is. | pnpm (via `corepack enable`) |
++| `Error: ERR_PNPM_BROKEN_LOCKFILE` | pnpm-lock.yaml line 1 declares lockfileVersion '6.0' (written by pnpm v7/v8), but Corepack downloads pnpm 12.6.0 which only accepts lockfile format v9+; package.json has no 'packageManager' field to pin a compatible pnpm version. | Add `"packageManager": "pnpm@8.15.9"` to package.json so Corepack pins pnpm to a version that understands the lockfileVersion 6.0 format used in pnpm-lock.yaml. |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,16 @@
++{
++  "name": "taxonomy",
++  "image": "node:22",
++  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
++  "postCreateCommand": "pnpm install && cp .env.example .env.local",
++  "forwardPorts": [
++    3000
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -37,4 +37,7 @@ yarn-error.log*
+ next-env.d.ts
+ 
+ .vscode
+-.contentlayer
+\ No newline at end of file
++.contentlayer
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

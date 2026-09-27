@@ -1,0 +1,26 @@
+{
+  "repo": "wagtail/bakerydemo",
+  "commit": "c8f8255593+dirty",
+  "verifiedAt": "2026-09-27T08:59:04.275Z",
+  "verdict": "VERIFIED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 7,
+  "stepsFromReadme": 7,
+  "breaksFound": 3,
+  "breaksFixed": 3,
+  "needsHuman": 0,
+  "repoBreaks": 3,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 267,
+  "packageCache": false,
+  "bobcoins": 2.09,
+  "diagnosedByBob": 2,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "fromCI": false
+}

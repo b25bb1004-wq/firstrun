@@ -1,0 +1,36 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:32:28.659Z",
+  "commit": "744239535f",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "python wsgi.py",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    },
+    {
+      "id": "S4",
+      "command": "pip install pytest",
+      "kind": "install"
+    },
+    {
+      "id": "S5",
+      "command": "pytest",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

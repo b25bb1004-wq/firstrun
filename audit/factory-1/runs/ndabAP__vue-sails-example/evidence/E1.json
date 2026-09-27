@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -",
+    "exitCode": 1,
+    "durationMs": 110038,
+    "logTail": "  information both about supported versions of Node.js and supported Linux\n  distributions. To learn more about usage, see the repository:\n    https://github.com/nodesource/distributions\n\n================================================================================\n================================================================================\n\nContinuing in 20 seconds ...\n\n\n================================================================================\n▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n================================================================================\n\n                           SCRIPT DEPRECATION WARNING                    \n\n  \n  This script, located at https://deb.nodesource.com/setup_X, used to\n  install Node.js is deprecated now and will eventually be made inactive.\n\n  Please visit the NodeSource distributions Github and follow the\n  instructions to migrate your repo.\n  https://github.com/nodesource/distributions\n\n  The NodeSource Node.js Linux distributions GitHub repository contains\n  information about which versions of Node.js and which Linux distributions\n  are supported and how to install it.\n  https://github.com/nodesource/distributions\n\n\n                          SCRIPT DEPRECATION WARNING\n\n================================================================================\n▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n================================================================================\n\nTO AVOID THIS WAIT MIGRATE THE SCRIPT\nContinuing in 60 seconds (press Ctrl-C to abort) ...\n\n\n## Installing the NodeSource Node.js 10.x repo...\n\n\n## Populating apt-get cache...\n\n+ apt-get update\nHit:1 http://deb.debian.org/debian bookworm InRelease\nHit:2 http://deb.debian.org/debian bookworm-updates InRelease\nHit:3 http://deb.debian.org/debian-security bookworm-security InRelease\nReading package lists...\n\n## Installing packages required for setup: lsb-release...\n\n+ apt-get install -y lsb-release > /dev/null 2>&1\n\n## Confirming \"bookworm\" is supported...\n\n+ curl -sLf -o /dev/null 'https://deb.nodesource.com/node_10.x/dists/bookworm/Release'\n\n## Your distribution, identified as \"bookworm\", is not currently supported, please contact NodeSource at https://github.com/nodesource/distributions/issues if you think this is incorrect or would like your distribution to be considered for support",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:41:15.793Z"
+}

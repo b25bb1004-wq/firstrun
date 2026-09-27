@@ -1,0 +1,14 @@
+services:
+  app:
+    image: node:10
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  mongodb:
+    image: bitnami/mongodb:latest
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      MONGODB_USERNAME: app
+      MONGODB_PASSWORD: password
+      MONGODB_DATABASE: hackathon

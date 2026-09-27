@@ -1,0 +1,23 @@
+{
+  "id": "E4",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "make run",
+    "exitCode": 1,
+    "durationMs": 4513,
+    "logTail": "docker compose up\nmake: *** [Makefile:18: run] Error 97\n\n[firstrun] server process exited before becoming ready on port 8000",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:34:42.485Z"
+}

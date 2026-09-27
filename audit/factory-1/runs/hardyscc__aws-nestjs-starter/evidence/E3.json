@@ -1,0 +1,23 @@
+{
+  "id": "E3",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "npm run ddb:start",
+    "exitCode": 1,
+    "durationMs": 5372,
+    "logTail": "\n> aws-nestjs-starter@0.0.1 ddb:start\n> sls dynamodb start\n\nEnvironment: linux, node 22.23.3, framework 3.40.0 (local), plugin 7.2.3, SDK 4.5.1\nDocs:        docs.serverless.com\nSupport:     forum.serverless.com\nBugs:        github.com/serverless/serverless/issues\nError:\nError: Unable to start DynamoDB Local process!\n    at Object.start (/workspace/node_modules/dynamodb-localhost/dynamodb/starter.js:52:19)\n    at Object.start (/workspace/node_modules/dynamodb-localhost/index.js:20:32)\n    at ServerlessDynamodbLocal.startHandler (/workspace/node_modules/serverless-dynamodb-local/index.js:264:29)\n    at PluginManager.runHooks (/workspace/node_modules/serverless/lib/classes/plugin-manager.js:530:15)\n    at PluginManager.invoke (/workspace/node_modules/serverless/lib/classes/plugin-manager.js:564:20)\n    at async PluginManager.run (/workspace/node_modules/serverless/lib/classes/plugin-manager.js:604:7)\n    at async Serverless.run (/workspace/node_modules/serverless/lib/serverless.js:179:5)\n    at async /workspace/node_modules/serverless/scripts/serverless.js:819:9\n\n× Uncaught exception\n/workspace/node_modules/serverless/scripts/serverless.js:52\n        throw error;\n        ^\n\nError: spawn java ENOENT\n    at ChildProcess._handle.onexit (node:internal/child_process:285:19)\n    at onErrorNT (node:internal/child_process:483:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)\nEmitted 'error' event on ChildProcess instance at:\n    at ChildProcess._handle.onexit (node:internal/child_process:291:12)\n    at onErrorNT (node:internal/child_process:483:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'spawn java',\n  path: 'java',\n  spawnargs: [\n    '-Djava.library.path=/workspace/.dynamodb/DynamoDBLocal_lib',\n    '-jar',\n    'DynamoDBLocal.jar',\n    '-port',\n    8000,\n    '-inMemory',\n    '-sharedDb'\n  ]\n}\n\nNode.js v22.23.3",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:32:25.887Z"
+}

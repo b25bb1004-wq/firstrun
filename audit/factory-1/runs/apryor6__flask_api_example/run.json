@@ -1,0 +1,158 @@
+{
+  "id": "factory-1-apryor6__flask_api_example",
+  "repo": "apryor6/flask_api_example",
+  "commit": "744239535f",
+  "startedAt": "2026-09-27T09:30:31.856Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "apryor6/flask_api_example",
+    "commit": "744239535f",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "pip install -r requirements.txt",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 22,
+          "endLine": 22,
+          "section": "Example of a scalable Flask API › Running the app"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "S2",
+        "command": "python manage.py seed_db",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 30,
+          "endLine": 30,
+          "section": "Example of a scalable Flask API › Running the app"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"python wsgi.py\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "python wsgi.py",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 38,
+          "endLine": 38,
+          "section": "Example of a scalable Flask API › Running the app"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "blocked"
+      },
+      {
+        "id": "S4",
+        "command": "pip install pytest",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 51,
+          "endLine": 51,
+          "section": "Example of a scalable Flask API › Running tests"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S5",
+        "command": "pytest",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 52,
+          "endLine": 52,
+          "section": "Example of a scalable Flask API › Running tests"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      }
+    ],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "apryor6/flask_api_example",
+    "commit": "744239535f",
+    "verifiedAt": "2026-09-27T09:32:28.659Z",
+    "verdict": "INCONCLUSIVE",
+    "image": "python:3.12",
+    "runtime": "Python 3.12",
+    "stepsTotal": 4,
+    "stepsFromReadme": 4,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 0,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 0,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T09:32:30.033Z"
+}

@@ -1,0 +1,150 @@
+{
+ "generatedAt": "2026-09-27T09:30:14.379Z",
+ "note": "Rule factory batch 1: popular app repos HUMBLE has never run, pinned to HEAD on 27 Sep 2026. Rules only, 0 Bobcoins.",
+ "repos": [
+  {
+   "slug": "MoathShraim__Nodejs-rest-api-project-structure-Express",
+   "url": "https://github.com/MoathShraim/Nodejs-rest-api-project-structure-Express",
+   "ref": "65792bb648aca9d90520e07d6d14d53efe1d2d68",
+   "stack": "node",
+   "stars": 365,
+   "source": "factory-1"
+  },
+  {
+   "slug": "adnanrahic__nodejs-restful-api",
+   "url": "https://github.com/adnanrahic/nodejs-restful-api",
+   "ref": "200267506f13fe99ac360fb215ee0f5647dc5c4a",
+   "stack": "node",
+   "stars": 329,
+   "source": "factory-1"
+  },
+  {
+   "slug": "apryor6__flask_api_example",
+   "url": "https://github.com/apryor6/flask_api_example",
+   "ref": "744239535f1b4a7d122491693ac49590ef761fef",
+   "stack": "python",
+   "stars": 417,
+   "source": "factory-1"
+  },
+  {
+   "slug": "caktus__django-project-template",
+   "url": "https://github.com/caktus/django-project-template",
+   "ref": "644148f7327a7bb54e52d3de8a7fe3c03c674b20",
+   "stack": "python",
+   "stars": 208,
+   "source": "factory-1"
+  },
+  {
+   "slug": "christianalfoni__webpack-express-boilerplate",
+   "url": "https://github.com/christianalfoni/webpack-express-boilerplate",
+   "ref": "170d929d1fffcb02c37244098e29a1d8b1aa535f",
+   "stack": "node",
+   "stars": 1374,
+   "source": "factory-1"
+  },
+  {
+   "slug": "hardyscc__aws-nestjs-starter",
+   "url": "https://github.com/hardyscc/aws-nestjs-starter",
+   "ref": "2e312502fcba622fd55a166eb31851856d929d30",
+   "stack": "node",
+   "stars": 348,
+   "source": "factory-1"
+  },
+  {
+   "slug": "jpadilla__django-project-template",
+   "url": "https://github.com/jpadilla/django-project-template",
+   "ref": "7d442e2bfb13071732a236084048a96fa93cb396",
+   "stack": "python",
+   "stars": 723,
+   "source": "factory-1"
+  },
+  {
+   "slug": "kutia-software-company__express-typescript-starter",
+   "url": "https://github.com/kutia-software-company/express-typescript-starter",
+   "ref": "de844c46fa912151228c5679385deb6c444c2eb3",
+   "stack": "node",
+   "stars": 229,
+   "source": "factory-1"
+  },
+  {
+   "slug": "lincolnloop__django-layout",
+   "url": "https://github.com/lincolnloop/django-layout",
+   "ref": "c61297ca496d9befa219a267f36692aceb9b8406",
+   "stack": "python",
+   "stars": 330,
+   "source": "factory-1"
+  },
+  {
+   "slug": "mape__node-express-boilerplate",
+   "url": "https://github.com/mape/node-express-boilerplate",
+   "ref": "457e3c15c9e1e0ef4d119c1fb0d6c51d7a96b29c",
+   "stack": "node",
+   "stars": 843,
+   "source": "factory-1"
+  },
+  {
+   "slug": "marcomelilli__nestjs-email-authentication",
+   "url": "https://github.com/marcomelilli/nestjs-email-authentication",
+   "ref": "d8fbaadc1e8d76dcbf53d5f588deb8bceacddfcf",
+   "stack": "node",
+   "stars": 494,
+   "source": "factory-1"
+  },
+  {
+   "slug": "mongodb-developer__mern-stack-example",
+   "url": "https://github.com/mongodb-developer/mern-stack-example",
+   "ref": "6a5e9397b197cbb8edb34c787af7e6c8977b0152",
+   "stack": "node",
+   "stars": 408,
+   "source": "factory-1"
+  },
+  {
+   "slug": "monstar-lab-oss__nestjs-starter-rest-api",
+   "url": "https://github.com/monstar-lab-oss/nestjs-starter-rest-api",
+   "ref": "6da20f930269d68c1417f6b1992fd820172ce013",
+   "stack": "node",
+   "stars": 639,
+   "source": "factory-1"
+  },
+  {
+   "slug": "ndabAP__vue-sails-example",
+   "url": "https://github.com/ndabAP/vue-sails-example",
+   "ref": "2b2dd1dc3b44ccc70dc72c6d03df5427d1c52f4a",
+   "stack": "node",
+   "stars": 293,
+   "source": "factory-1"
+  },
+  {
+   "slug": "nerdeveloper__hackathon-starter-kit",
+   "url": "https://github.com/nerdeveloper/hackathon-starter-kit",
+   "ref": "d129ad74653887acaed64e5777668756598a5204",
+   "stack": "node",
+   "stars": 344,
+   "source": "factory-1"
+  },
+  {
+   "slug": "realpython__flask-boilerplate",
+   "url": "https://github.com/realpython/flask-boilerplate",
+   "ref": "488e33624bf0236fc16358d9e8cd66590e0e89ee",
+   "stack": "python",
+   "stars": 1579,
+   "source": "factory-1"
+  },
+  {
+   "slug": "tko22__flask-boilerplate",
+   "url": "https://github.com/tko22/flask-boilerplate",
+   "ref": "8be897648118ba3caf5c1a7cc967bbf801438b11",
+   "stack": "python",
+   "stars": 303,
+   "source": "factory-1"
+  },
+  {
+   "slug": "wsvincent__lithium",
+   "url": "https://github.com/wsvincent/lithium",
+   "ref": "14c0374eaab52dc49898229ffe9a3e8f0e0e51c2",
+   "stack": "python",
+   "stars": 2461,
+   "source": "factory-1"
+  }
+ ]
+}

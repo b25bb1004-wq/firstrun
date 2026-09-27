@@ -1,0 +1,242 @@
+{
+  "repo": "lincolnloop/django-layout",
+  "commit": "c61297ca49",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "uv run --with django django-admin startproject --template=https://github.com/lincolnloop/django-layout/zipball/main --extension=py,md,gitignore,yaml,json,toml --name=Makefile,Dockerfile --exclude=.github YOUR_PROJECT_NAME",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 55,
+        "endLine": 60,
+        "section": "Django Layout › Usage › Start project"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "python -m venv --prompt . --upgrade-deps .venv",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 69,
+        "endLine": 69,
+        "section": "Django Layout › Usage › Start project"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S3",
+      "command": "django-admin startproject --template=https://github.com/lincolnloop/django-layout/zipball/main --extension=py,md,gitignore,yaml,json,toml --name=Makefile,Dockerfile --exclude=.github YOUR_PROJECT_NAME",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 77,
+        "endLine": 82,
+        "section": "Django Layout › Usage › Start project"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "cd YOUR_PROJECT_NAME",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 92,
+        "endLine": 92,
+        "section": "Django Layout › Usage › Quick start"
+      },
+      "origin": "readme",
+      "skip": "needs a value only you have (placeholder)",
+      "status": "skipped"
+    },
+    {
+      "id": "S5",
+      "command": "make init",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 98,
+        "endLine": 98,
+        "section": "Django Layout › Usage › Quick start"
+      },
+      "origin": "readme",
+      "status": "needs-human",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+        }
+      ],
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S6",
+      "command": "make run",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 104,
+        "endLine": 104,
+        "section": "Django Layout › Usage › Quick start"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"make run\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S7",
+      "command": "make init",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 132,
+        "endLine": 132,
+        "section": "{{ projectname }} › Installation"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S8",
+      "command": "make run",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 140,
+        "endLine": 140,
+        "section": "{{ projectname }} › Usage › Run the project"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 8000
+      },
+      "status": "needs-human"
+    },
+    {
+      "id": "S9",
+      "command": "docker compose run --rm app python manage.py createsuperuser",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 150,
+        "endLine": 150,
+        "section": "{{ projectname }} › Usage › Admin access"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S10",
+      "command": "docker compose run --rm app bash",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 160,
+        "endLine": 160,
+        "section": "{{ projectname }} › Usage › Running commands"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S11",
+      "command": "docker compose run --rm app python manage.py createsuperuser",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 161,
+        "endLine": 161,
+        "section": "{{ projectname }} › Usage › Running commands"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S12",
+      "command": "docker compose run --rm app python manage.py migrate",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 162,
+        "endLine": 162,
+        "section": "{{ projectname }} › Usage › Running commands"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S13",
+      "command": "docker compose run --rm app python manage.py shell",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 163,
+        "endLine": 163,
+        "section": "{{ projectname }} › Usage › Running commands"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S14",
+      "command": "docker compose build",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 179,
+        "endLine": 179,
+        "section": "{{ projectname }} › Usage › Update project"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.14 (pyproject.toml requires-python (\"==3.14.7\"))",
+      "source": "README.md"
+    }
+  ],
+  "notes": [
+    "The repo has both Node.js and Python; HUMBLE used the Python image because the first install step is python. The Node.js part was not set up separately."
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

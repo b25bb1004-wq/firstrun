@@ -1,0 +1,13 @@
+{
+  "name": "fastapi",
+  "image": "python:3.12",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "uv sync --no-dev --group tests --extra all && mkdir coverage",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

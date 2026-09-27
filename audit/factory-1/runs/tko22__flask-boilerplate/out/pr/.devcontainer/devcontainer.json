@@ -1,0 +1,17 @@
+{
+  "name": "flask-boilerplate",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "pip3 install virtualenv && virtualenv venv && source venv/bin/activate && make recreate_db",
+  "forwardPorts": [
+    5000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

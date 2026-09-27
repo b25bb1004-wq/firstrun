@@ -1,0 +1,22 @@
+services:
+  app:
+    image: node:22
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  mongo:
+    image: mongo
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  mongo-express:
+    image: mongo-express
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password

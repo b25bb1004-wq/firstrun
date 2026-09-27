@@ -1,0 +1,16 @@
+{
+  "name": "aws-nestjs-starter",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "npm install && npm run sls:offline && npm run sls:online",
+  "forwardPorts": [
+    3000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

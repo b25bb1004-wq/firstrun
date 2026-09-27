@@ -1,0 +1,13 @@
+{
+  "name": "vue-sails-example",
+  "image": "node:16",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "sudo npm install sails -g",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

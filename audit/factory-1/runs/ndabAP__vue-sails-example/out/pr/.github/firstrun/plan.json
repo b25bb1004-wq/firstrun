@@ -1,0 +1,33 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T10:08:45.560Z",
+  "commit": "2b2dd1dc3b",
+  "image": "node:16",
+  "runtime": {
+    "name": "node",
+    "version": "16",
+    "source": "native modules fail to build on Node.js 18 and the repo pins no version"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "sudo apt-get install -y nodejs",
+      "kind": "prereq"
+    },
+    {
+      "id": "S3",
+      "command": "sudo npm install sails -g",
+      "kind": "install"
+    },
+    {
+      "id": "S5",
+      "command": "cd ../backend && npm install",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}
