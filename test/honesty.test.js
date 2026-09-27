@@ -127,9 +127,9 @@ describe('Honesty Gate - Data Traceability', () => {
     // The headline stats must carry data-count and equal the published audit's own summary
     const audit = JSON.parse(readFileSync(resolve(ROOT, 'audit/v2-31-final/audit.json'), 'utf-8'));
     const s = audit.summary;
-    const withDocs = audit.repos.filter((r) => r.verdict !== 'NO-SETUP-DOCS').length;
+    // Team wording (Karmanya, 27 Sep): "18 of 31 READMEs broke on a clean machine", i.e. out of every audited repo
     assert.ok(content.includes(`data-count="${s.total}" data-stat="total"`), `repos audited stat should be data-count="${s.total}"`);
-    assert.ok(content.includes(`data-count="${s.brokeOnCleanMachine}" data-suffix=" of ${withDocs}" data-stat="broke"`), `broke stat should be ${s.brokeOnCleanMachine} of ${withDocs}`);
+    assert.ok(content.includes(`data-count="${s.brokeOnCleanMachine}" data-suffix=" of ${s.total}" data-stat="broke"`), `broke stat should be ${s.brokeOnCleanMachine} of ${s.total}`);
     assert.ok(content.includes(`data-count="${s.breaksFixed}" data-stat="fixed"`), `breaks fixed stat should be data-count="${s.breaksFixed}"`);
     
     // Check the footnote references the audit
