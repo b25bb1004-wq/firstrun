@@ -564,8 +564,9 @@ async function publishGuide(args) {
   const run = readJson(runFile);
 
   // Check verdict is VERIFIED
-  if (run.phase !== 'done' || run.verdict !== 'VERIFIED') {
-    console.error(`${red('Error:')} Can only publish guide from a VERIFIED run (got ${run.verdict || run.phase})`);
+  const runVerdict = run.verdict || run.passport?.verdict || null;
+  if (run.phase !== 'done' || runVerdict !== 'VERIFIED') {
+    console.error(`${red('Error:')} Can only publish guide from a VERIFIED run (got ${runVerdict || run.phase})`);
     return 1;
   }
 
