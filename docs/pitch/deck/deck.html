@@ -5,12 +5,14 @@
 <title>HUMBLE Deck</title>
 <!-- Every number on these slides comes from a file in this repo; the source path is in the HTML comment next to it. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">
 <style>
   :root{
-    --ink:#0d1030; --ink2:#55546c; --blue:#2d4fa0; --electric:#1f3bff; --crack:#f0287a;
-    --paper:#f4e9dc; --paper2:#e9dccd; --line:#b9aa9c;
-    --sans:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+    --ink:#413333; --ink2:#6e5c58; --blue:#315B8C; --electric:#315B8C; --crack:#F2765E;
+    --paper:#F5EBDD; --paper2:#ECDFCC; --line:#CDB9A3;
+    --sans:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
+    --display:"Bricolage Grotesque",Futura,"Jost",sans-serif;
+    --label:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
     --mono:"JetBrains Mono",Consolas,monospace;
   }
   @page{size:1920px 1080px;margin:0}
@@ -18,20 +20,21 @@
   html,body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .slide{width:1920px;height:1080px;position:relative;overflow:hidden;page-break-after:always;break-after:page;background:var(--paper);padding:120px 140px}
   .slide:last-child{page-break-after:auto;break-after:auto}
-  .kicker{font-family:var(--mono);font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:36px}
+  .kicker{font-family:var(--label);font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:36px}
   .kicker .n{color:var(--line);margin-right:18px}
+  h1,h2,.big,.nums .v,.stats .v,.stats b{font-family:var(--display)}
   h1{font-size:96px;line-height:1.02;font-weight:700;letter-spacing:-.02em}
   h2{font-size:76px;line-height:1.05;font-weight:700;letter-spacing:-.02em;max-width:1500px}
   p.lead{font-size:38px;line-height:1.4;color:var(--ink2);max-width:1400px;margin-top:36px}
   .fix{color:var(--electric)} .brk{color:var(--crack)} .blue{color:var(--blue)}
   .mono{font-family:var(--mono)}
-  .foot{position:absolute;left:140px;right:140px;bottom:56px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:18px;color:var(--ink2)}
+  .foot{position:absolute;left:140px;right:140px;bottom:56px;display:flex;justify-content:space-between;font-family:var(--label);font-size:18px;color:var(--ink2)}
   .foot img{height:30px}
-  .src{font-family:var(--mono);font-size:18px;color:var(--ink2)}
+  .src{font-family:var(--label);font-size:18px;color:var(--ink2)}
   .rule{height:2px;background:var(--ink);opacity:.12;margin:48px 0}
 
   /* 1 cover */
-  .cover{padding:0;background:#0d1030}
+  .cover{padding:0;background:#413333}
   .cover img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .cover .team{position:absolute;left:95px;bottom:120px;font-size:30px;font-weight:600;color:#f4e9dc}
 
@@ -63,7 +66,7 @@
   .nums .v{font-size:150px;font-weight:700;letter-spacing:-.04em;line-height:1}
   .nums .l{font-size:26px;color:var(--ink2);margin-top:14px;line-height:1.3}
   .bar{display:flex;height:72px;margin-top:130px;border-radius:4px;overflow:hidden}
-  .bar div{display:flex;align-items:center;padding-left:18px;font-family:var(--mono);font-size:22px;font-weight:600;color:#fff;white-space:nowrap}
+  .bar div{display:flex;align-items:center;padding-left:18px;font-family:var(--label);font-size:22px;font-weight:600;color:#fff;white-space:nowrap}
   .legend{display:flex;gap:44px;margin-top:22px;font-size:24px;color:var(--ink2)}
   .legend b{color:var(--ink)}
   .sw{display:inline-block;width:18px;height:18px;border-radius:3px;margin-right:10px;vertical-align:-2px}
@@ -71,7 +74,7 @@
   /* 6 crew */
   .crew{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:60px;border-top:2px solid rgba(13,16,48,.15)}
   .crew>div{padding:40px 40px 40px 0;border-bottom:2px solid rgba(13,16,48,.15)}
-  .crew .nm{font-family:var(--mono);font-size:44px;font-weight:600}
+  .crew .nm{font-family:var(--label);font-size:44px;font-weight:600}
   .crew .rl{font-size:26px;color:var(--blue);margin-top:6px;font-weight:600}
   .crew .ds{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.35}
 
@@ -91,38 +94,40 @@
   .feat b{display:block;font-size:32px;color:var(--ink)}
   .feat span{color:var(--ink2);font-size:24px}
   .shot{border:2px solid rgba(13,16,48,.15);border-radius:8px;overflow:hidden;background:#fff}
-  .cap{font-family:var(--mono);font-size:18px;color:var(--ink2);margin-top:12px}
+  .cap{font-family:var(--label);font-size:18px;color:var(--ink2);margin-top:12px}
 
   /* 9 surfaces */
   .surf{display:grid;grid-template-columns:repeat(4,1fr);gap:36px;margin-top:60px}
   .surf>div{border:2px solid var(--ink);padding:34px 30px;min-height:360px;position:relative}
   .surf .t{font-size:36px;font-weight:700;line-height:1.15}
   .surf .d{font-size:24px;color:var(--ink2);margin-top:16px;line-height:1.4}
-  .tag{position:absolute;left:30px;bottom:28px;font-family:var(--mono);font-size:20px;padding:6px 14px;border-radius:3px;font-weight:600}
+  .tag{position:absolute;left:30px;bottom:28px;font-family:var(--label);font-size:20px;padding:6px 14px;border-radius:3px;font-weight:600}
   .tag.live{background:var(--ink);color:var(--paper)}
   .tag.plan{border:2px dashed var(--ink2);color:var(--ink2)}
 
   /* 10 business */
-  .note{display:inline-block;font-family:var(--mono);font-size:24px;border:2px dashed var(--crack);color:var(--crack);padding:10px 20px;margin-bottom:30px}
+  .note{display:inline-block;font-family:var(--label);font-size:24px;border:2px dashed var(--crack);color:var(--crack);padding:10px 20px;margin-bottom:30px}
   .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:60px}
   .tier{border-top:6px solid var(--ink);padding-top:28px}
   .tier .t{font-size:44px;font-weight:700}
-  .tier .p{font-family:var(--mono);font-size:26px;color:var(--blue);margin-top:10px}
+  .tier .p{font-family:var(--label);font-size:26px;color:var(--blue);margin-top:10px}
   .tier .d{font-size:26px;color:var(--ink2);margin-top:18px;line-height:1.4}
 
   /* 11 vs */
   .vs{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:0;margin-top:70px}
   .vs>div{padding:30px 36px 30px 0}
-  .vs .t{font-family:var(--mono);font-size:26px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+  .vs .t{font-family:var(--label);font-size:26px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
   .vs .d{font-size:30px;line-height:1.4;margin-top:14px}
   .vs .us{border-left:6px solid var(--electric);padding-left:36px}
   .vs .us .t{color:var(--electric)}
 
   /* 12 close */
-  .close{padding:0;background:#0d1030}
+  .close{padding:0;background:var(--paper)}
   .close img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .close .inner{position:absolute;left:140px;top:140px;right:140px}
-  .close .url{font-family:var(--mono);font-size:56px;font-weight:600;color:var(--ink);margin-top:40px;background:rgba(244,233,220,.85);display:inline-block;padding:18px 28px}
+  .close .url{font-family:var(--label);font-size:56px;font-weight:600;color:var(--ink);margin-top:40px;background:none;display:block;padding:0}
+  .close .names{display:flex;gap:64px;letter-spacing:.04em}
+  .close .names span+span::before{content:"·";margin-right:64px;color:var(--crack);font-weight:700}
   .close .pb{position:absolute;right:140px;bottom:90px;font-size:34px;color:var(--ink)}
 </style>
 </head>
@@ -209,7 +214,7 @@
   <!-- verdict counts from audit.json repos[].verdict: VERIFIED 14, PARTIAL 12, NO-SETUP-DOCS 2, FAILED 1, INCONCLUSIVE 1, CI-ONLY 1 -->
   <div class="bar">
     <div style="flex:14;background:var(--electric)">VERIFIED 14</div>
-    <div style="flex:12;background:var(--blue)">FIXES PROVEN 12</div>
+    <div style="flex:12;background:#7D9CC0">FIXES PROVEN 12</div>
     <div style="flex:2;background:var(--line)">2</div>
     <div style="flex:1;background:var(--crack);padding-left:8px">1</div>
     <div style="flex:1;background:#8b8a9c;padding-left:8px">1</div>
@@ -217,7 +222,7 @@
   </div>
   <div class="legend">
     <span><i class="sw" style="background:var(--electric)"></i><b>VERIFIED</b> fixed and replayed from zero</span>
-    <span><i class="sw" style="background:var(--blue)"></i><b>FIXES PROVEN</b> found the breaks, proved its fixes, one step needs a person</span>
+    <span><i class="sw" style="background:#7D9CC0"></i><b>FIXES PROVEN</b> found the breaks, proved its fixes, one step needs a person</span>
   </div>
   <div class="legend" style="margin-top:12px">
     <span><i class="sw" style="background:var(--line)"></i>no setup docs 2</span>
@@ -319,12 +324,11 @@
 
 <!-- 12 · Close -->
 <section class="slide close">
-  <img class="bg" src="../../../web/public/brand/gradient-bg-1920.jpg" alt="">
   <div class="inner">
     <img src="../../../web/public/brand/humble-logo.svg" alt="HUMBLE" style="height:150px">
     <h1 style="margin-top:70px">The README,<br>that <span class="blue">fixes itself.</span></h1>
     <div class="url">firstrun-sigma.vercel.app</div>
-    <p style="font-size:30px;margin-top:40px;color:var(--ink)">Arnav · Karmanya · team HUMBLE</p>
+    <p class="names" style="font-size:30px;margin-top:40px;color:var(--ink)"><span>Arnav</span><span>Karmanya</span><span>team HUMBLE</span></p>
   </div>
   <div class="pb">Powered by <b>IBM Bob 2.0</b></div>
 </section>
