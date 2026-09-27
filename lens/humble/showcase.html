@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUMBLE Companion — Amber CRT Mascot Showcase</title>
+<link rel="stylesheet" href="./robot.css">
+<style>
+  :root {
+    --bg: #efe7da;
+    --surface: #e4dcce;
+    --line: #d2c6b1;
+    --ink: #15163a;
+    --muted: #5e5a52;
+    --accent: #ff9a3c;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  }
+  [data-theme="dark"] {
+    --bg: #16120e;
+    --surface: #221c17;
+    --line: #342c24;
+    --ink: #efe7da;
+    --muted: #9e9589;
+    --accent: #ffc47a;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    line-height: 1.5;
+    padding: 40px 24px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { margin-bottom: 32px; border-bottom: 1px solid var(--line); padding-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  p.sub { margin: 6px 0 0; color: var(--muted); font-size: 15px; max-width: 680px; }
+  .controls { display: flex; gap: 10px; align-items: center; }
+  button.btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* States Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card-stage {
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .state-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+  .card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  /* Size Variants Showcase */
+  .sizes-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 36px;
+  }
+  .sizes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+  }
+  .sizes-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 20px 0;
+  }
+  .size-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    min-height: 340px;
+  }
+  .size-item object.humble-robot-24 { width: 24px !important; height: 30px !important; }
+  .size-item object.humble-robot-56 { width: 56px !important; height: 70px !important; }
+  .size-item object.humble-robot-96 { width: 96px !important; height: 120px !important; }
+  .size-item object.humble-robot-256 { width: 256px !important; height: 320px !important; }
+  .size-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Interactive Stage Demo */
+  .demo-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 28px;
+  }
+  .demo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .demo-canvas {
+    height: 320px;
+    background: var(--bg);
+    border: 2px dashed var(--line);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  .demo-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--muted);
+    font-size: 14px;
+    font-family: var(--mono);
+    pointer-events: none;
+    text-align: center;
+  }
+  #target-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--robot-hi, #ffc47a);
+    outline: 2px solid var(--robot-core, #ff9a3c);
+    outline-offset: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .agent-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .agent-pill {
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-family: var(--mono);
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .agent-pill.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>HUMBLE Companion — Amber CRT Mascot</h1>
+      <p class="sub">Original retro-futurist CRT terminal guide made of warm amber glowing light. 1960s cartoon squash &amp; stretch motion, rubber-hose limbs, and 7 expressive states.</p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="theme-btn">Theme: Oat Light</button>
+      <button class="btn" id="motion-btn">Motion: Full 60fps</button>
+    </div>
+  </header>
+
+  <!-- 7 States Gallery -->
+  <div class="grid">
+    <!-- 1. SLEEP -->
+    <div class="card" data-state="sleep">
+      <div class="state-tag">State 1</div>
+      <div class="card-stage">
+        <object data="./sprites/sleep.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Sleep</h3>
+      <p>Screen off / gentle breathing bobbing, faint CRT scanlines &amp; dimmed antenna ball (opacity 0.45).</p>
+    </div>
+
+    <!-- 2. THINK -->
+    <div class="card" data-state="think">
+      <div class="state-tag">State 2</div>
+      <div class="card-stage">
+        <object data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Think</h3>
+      <p>Isolation phase executing steps. Inquisitive head tilt, upward focused gaze &amp; active antenna pulse.</p>
+    </div>
+
+    <!-- 3. WALK -->
+    <div class="card" data-state="walk">
+      <div class="state-tag">State 3</div>
+      <div class="card-stage">
+        <object data="./sprites/walk.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Walk</h3>
+      <p>Traversing screen towards action bounds. 1960s rubber-hose leg stride &amp; rhythmic counter arm swings.</p>
+    </div>
+
+    <!-- 4. POINT -->
+    <div class="card" data-state="point">
+      <div class="state-tag">State 4</div>
+      <div class="card-stage">
+        <object data="./sprites/point.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Point</h3>
+      <p>Guiding developer attention. Radiant conical lantern beam &amp; outstretched arm pointing at code.</p>
+    </div>
+
+    <!-- 5. TALK -->
+    <div class="card" data-state="talk">
+      <div class="state-tag">State 5</div>
+      <div class="card-stage">
+        <object data="./sprites/talk.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Talk</h3>
+      <p>Explaining instructions and decisions. 3-shape alternating speaking mouth &amp; friendly gesturing arm.</p>
+    </div>
+
+    <!-- 6. CELEBRATE -->
+    <div class="card" data-state="celebrate">
+      <div class="state-tag">State 6</div>
+      <div class="card-stage">
+        <object data="./sprites/celebrate.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Celebrate</h3>
+      <p>Replay passed! Victory squash jump, arms high, blue flash &amp; printed PROVEN receipt slip.</p>
+    </div>
+
+    <!-- 7. WORRIED -->
+    <div class="card" data-state="worried">
+      <div class="state-tag">State 7</div>
+      <div class="card-stage">
+        <object data="./sprites/worried.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+      </div>
+      <h3>Worried</h3>
+      <p>Break diagnosed or command failed. Screen tints hot pink (<code style="font-family: var(--mono);">#ff2d87</code>) with nervous shiver.</p>
+    </div>
+  </div>
+
+  <!-- Size Variants Section -->
+  <div class="sizes-section">
+    <div class="sizes-header">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Size Variants (24px, 56px, 96px, 256px)</h2>
+      <span style="font-family: var(--mono); font-size: 13px; color: var(--muted);">Aspect Ratio: 200:250 (4:5)</span>
+    </div>
+    <div class="sizes-row">
+      <div class="size-item">
+        <object data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-24"></object>
+        <span class="size-label">24px (Tray / Status)</span>
+      </div>
+      <div class="size-item">
+        <object data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-56"></object>
+        <span class="size-label">56px (Sidebar Guide)</span>
+      </div>
+      <div class="size-item">
+        <object data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-96"></object>
+        <span class="size-label">96px (Standard Card)</span>
+      </div>
+      <div class="size-item">
+        <object data="./sprites/celebrate.svg" type="image/svg+xml" class="humble-robot humble-robot-256"></object>
+        <span class="size-label">256px (Hero / Splash)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Flight & Guide Simulator -->
+  <div class="demo-section">
+    <div class="demo-header">
+      <div>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Guide Mode Flight Simulator</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Click anywhere on the canvas: HUMBLE squashes in anticipation, flies in an arced trajectory, lands with bounce, and points at the target.</p>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn" onclick="sim.boot()">Boot CRT (420ms)</button>
+        <button class="btn" onclick="sim.peek()">Peek (Eyestalk)</button>
+        <button class="btn" onclick="testLanternBeam()">Lantern BEAM Cone (§6)</button>
+        <button class="btn" onclick="testSpatialTarget()">Spatial Target Box (§17)</button>
+        <button class="btn" onclick="testCaptureFlash()">1s Capture Flash (§17)</button>
+        <button class="btn" onclick="sim.setState('sleep')">Sleep</button>
+        <button class="btn" onclick="sim.setState('think')">Think</button>
+        <button class="btn" onclick="sim.setState('talk', { say: 'Explaining repo build steps!' })">Talk</button>
+        <button class="btn" onclick="sim.setState('celebrate')">Celebrate</button>
+        <button class="btn" onclick="sim.setState('worried')">Worried</button>
+      </div>
+    </div>
+
+    <div class="demo-canvas" id="canvas">
+      <div class="demo-hint" id="hint">Click anywhere here to fly and point</div>
+      <div id="target-dot"></div>
+      <div id="sim-robot-container" style="position: absolute; left: 30px; bottom: 20px;"></div>
+    </div>
+
+    <div class="agent-selector">
+      <span style="font-size: 12px; font-family: var(--mono); color: var(--muted); margin-right: 6px;">Antenna Tint:</span>
+      <button class="agent-pill active" onclick="setAgent('default', this)">Core Blue — #0f62fe</button>
+      <button class="agent-pill" onclick="setAgent('harvey', this)">Harvey — Scout</button>
+      <button class="agent-pill" onclick="setAgent('unity', this)">Unity — Planner</button>
+      <button class="agent-pill" onclick="setAgent('mach', this)">Mach — Runner</button>
+      <button class="agent-pill" onclick="setAgent('drbo', this)">DR.BO — Doctor</button>
+      <button class="agent-pill" onclick="setAgent('larp', this)">Larp — Verifier</button>
+      <button class="agent-pill" onclick="setAgent('echo', this)">Echo — Scribe</button>
+      <button class="agent-pill" onclick="setAgent('vigil', this)">Vigil — Security</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { HumbleRobot } from './robot.js';
+
+  // Theme Toggle
+  const themeBtn = document.getElementById('theme-btn');
+  let dark = false;
+  themeBtn.addEventListener('click', () => {
+    dark = !dark;
+    document.documentElement.dataset.theme = dark ? 'dark' : '';
+    themeBtn.textContent = 'Theme: ' + (dark ? 'Roasted Dark' : 'Oat Light');
+  });
+
+  // Motion Toggle
+  const motionBtn = document.getElementById('motion-btn');
+  let reduced = false;
+  motionBtn.addEventListener('click', () => {
+    reduced = !reduced;
+    if (reduced) {
+      const style = document.createElement('style');
+      style.id = 'force-reduced';
+      style.textContent = '* { animation: none !important; transition: none !important; }';
+      document.head.appendChild(style);
+      motionBtn.textContent = 'Motion: Reduced (Static)';
+    } else {
+      const el = document.getElementById('force-reduced');
+      if (el) el.remove();
+      motionBtn.textContent = 'Motion: Full 60fps';
+    }
+  });
+
+  // Initialize Simulator Robot
+  const stageContainer = document.getElementById('sim-robot-container');
+  const sim = new HumbleRobot(stageContainer, {
+    size: '96',
+    initialState: 'think',
+    spritePath: './robot.svg'
+  });
+  window.sim = sim;
+
+  // Simulator Canvas Click Flight
+  const canvas = document.getElementById('canvas');
+  const hint = document.getElementById('hint');
+  const targetDot = document.getElementById('target-dot');
+
+  canvas.addEventListener('click', async (e) => {
+    if (hint) hint.style.display = 'none';
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Show target indicator
+    targetDot.style.left = (clickX - 6) + 'px';
+    targetDot.style.top = (clickY - 6) + 'px';
+    targetDot.style.opacity = '1';
+
+    // Target position for mascot slightly offset to the left so it points at target
+    const targetX = Math.max(10, Math.min(rect.width - 120, clickX - 105));
+    const targetY = Math.max(10, Math.min(rect.height - 140, clickY - 60));
+
+    await sim.flyTo(targetX, targetY);
+    sim.say('Pointing right here!');
+  });
+
+  window.setAgent = function(name, btn) {
+    document.querySelectorAll('.agent-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    sim.setAgent(name);
+  };
+
+  window.testLanternBeam = function() {
+    const hint = document.getElementById('hint');
+    if (hint) {
+      hint.style.display = 'block';
+      hint.textContent = 'this broke here: npm install exit 1';
+      sim.pointAt(hint, { say: 'this broke here' });
+    }
+  };
+
+  window.testSpatialTarget = function() {
+    const hint = document.getElementById('hint');
+    if (hint) {
+      const r = hint.getBoundingClientRect();
+      sim.showSpatialTarget(r);
+      setTimeout(() => sim.hideSpatialTarget(), 3000);
+    }
+  };
+
+  window.testCaptureFlash = function() {
+    sim.triggerCaptureFlash({ x: 20, y: 20, width: window.innerWidth - 40, height: 350 });
+  };
+</script>
+</body>
+</html>
