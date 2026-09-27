@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HUMBLE Companion — Amber CRT Mascot Showcase</title>
 <link rel="stylesheet" href="./robot.css">
+<link rel="stylesheet" href="./debugger-ui.css">
 <style>
   :root {
     --bg: #efe7da;
@@ -351,10 +352,31 @@
       <button class="agent-pill" onclick="setAgent('vigil', this)">Vigil — Security</button>
     </div>
   </div>
+
+  <!-- Spec Section 13 & 14: Debugger & Security Guard Showcase -->
+  <div class="demo-section" style="margin-top: 36px;">
+    <div class="demo-header">
+      <div>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Debugger Sub-panel &amp; Security Guard UI (Spec §13 &amp; §14)</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Real step failure capture, host-vs-proof diffs, doctor rule matching with lantern beam, and security guard shield &amp; verdict chips.</p>
+      </div>
+      <div id="guard-badge-container"></div>
+    </div>
+
+    <!-- Command Line with Verdict Chip -->
+    <div style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.18); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+      <span>$ npm install <span class="hb-verdict-chip chip-warn">warn: sudo</span> <span class="hb-verdict-chip chip-block">blocked: deletes outside repo</span></span>
+      <span style="color: var(--muted); font-size: 11px;">step 2 of 5</span>
+    </div>
+
+    <!-- Debugger Sub-panel Container -->
+    <div id="debugger-container"></div>
+  </div>
 </div>
 
 <script type="module">
   import { HumbleRobot } from './robot.js';
+  import { createDebuggerPanel, createGuardBadge } from './debugger-ui.js';
 
   // Theme Toggle
   const themeBtn = document.getElementById('theme-btn');
@@ -403,17 +425,16 @@
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    // Show target indicator
     targetDot.style.left = (clickX - 6) + 'px';
     targetDot.style.top = (clickY - 6) + 'px';
     targetDot.style.opacity = '1';
 
-    // Target position for mascot slightly offset to the left so it points at target
     const targetX = Math.max(10, Math.min(rect.width - 120, clickX - 105));
     const targetY = Math.max(10, Math.min(rect.height - 140, clickY - 60));
 
-    await sim.flyTo(targetX, targetY);
-    sim.say('Pointing right here!');
+    await sim.flyTo(targetX, targetY, {
+      say: 'Pointing right here!'
+    });
   });
 
   window.setAgent = function(name, btn) {
@@ -421,6 +442,43 @@
     btn.classList.add('active');
     sim.setAgent(name);
   };
+
+  // Mount Security Guard Badge
+  const guardContainer = document.getElementById('guard-badge-container');
+  if (guardContainer) {
+    guardContainer.appendChild(createGuardBadge({
+      commandsRun: 12,
+      blocked: 1,
+      warned: 1,
+      secretsShown: 0
+    }));
+  }
+
+  // Mount Debugger Sub-panel with real acme-shop EBADENGINE failure
+  const dbgContainer = document.getElementById('debugger-container');
+  if (dbgContainer) {
+    dbgContainer.appendChild(createDebuggerPanel({
+      step: 2,
+      command: 'npm install',
+      log: 'npm ERR! code EBADENGINE\nnpm ERR! engine Unsupported engine\nnpm ERR! package.json requires node >=20.0.0',
+      hostVsProof: [
+        'node 18.19.0 here · 20.11.0 in the proven run',
+        'npm 9.2.0 here · 10.2.4 in the proven run'
+      ],
+      ruleId: 'runtime-version (node-engine)',
+      matchedLine: 'npm ERR! code EBADENGINE',
+      fix: {
+        command: 'nvm use 20 || export PATH="/usr/local/opt/node@20/bin:$PATH"',
+        why: 'Align local Node engine with verified sandbox proof (node:20-slim)'
+      }
+    }, {
+      mascot: sim,
+      onRunFix: async (fix) => {
+        await new Promise(r => setTimeout(r, 600));
+        return true; // Fix verified!
+      }
+    }));
+  }
 </script>
 </body>
 </html>
