@@ -253,5 +253,30 @@ The debugger (13, 15) and the security guard (14) are not separate tools: they a
 
 **Budgets and fallback:** default session cap 0.5 Bobcoins, per-call caps above, shown before the call (`ask Bob · ≤ 0.2`). No Bob configured or cap reached → rules-only mode with a visible `rules only` chip; nothing breaks. Tests use a fake `askBob` (injectable), never real coins; one real Bob call per mode is recorded for the demo only with Arnav's go-ahead from Karmanya's coins.
 
+## 17. Spatial context: HUMBLE knows where things are on your screen
+
+Clicky's best trick (source: `ElementLocationDetector.swift`, the `[POINT:x,y:label:screenN]` tag): the companion sees the screen on demand and flies to the exact thing you need. HUMBLE does the same for setup, built on Lens (`lens/main.js`, `lens/overlay.js`: Ctrl+Shift+Space capture already exists) and on the same engine contract as section 16: **deterministic first, Bob for judgment, verification always.**
+
+**What spatial context means in HUMBLE**
+- **Where to act:** "Show me how" flies the Lamplighter to the user's own terminal window (the one whose title or cwd matches the repo) and beams at its prompt line: `paste it here`. When a dev server comes up, it beams at the browser tab/window on `localhost:PORT`, or offers to open it.
+- **Where it broke:** when the user's terminal shows an error, HUMBLE finds that exact error line ON SCREEN and beams at it, then shows the diagnosis (section 13). Same for an editor showing a red squiggle in `.env` or `package.json`.
+- **Where to look next:** the `.env.example` file in the editor sidebar, the Docker Desktop tray icon when Docker isn't running, the second monitor (`screen2`) if the terminal lives there.
+
+**How it works (layers)**
+1. **Window map (deterministic, no pixels):** enumerate top-level windows with title, app, bounds and screen (Electron `desktopCapturer.getSources` names + OS window APIs; on Windows `EnumWindows` via a tiny PowerShell/`node` helper, on macOS `CGWindowListCopyWindowInfo`). Match: terminal apps (Windows Terminal, iTerm, Terminal, VS Code terminal), editors, browsers with `localhost` in the title. Result = `spatial map` JSON: `[{ id: "W3", app, title, bounds, screen, role: terminal|editor|browser|docker }]`.
+2. **Local OCR on demand (deterministic, private):** only on hotkey or when the user presses `look at my screen`, capture the relevant window, run the OS's built-in OCR (Windows `Windows.Media.Ocr`, macOS Vision `VNRecognizeTextRequest`), get lines with bounding boxes. Match those lines against the doctor rules and the fingerprint (D2). A match gives an exact box → exact beam target. No network, no model.
+3. **Bob for judgment (text only):** if the rules can't place it, Bob (`firstrun-guide` or `firstrun-debugger` mode) receives the redacted OCR lines with box ids (`B17: "Error: connect ECONNREFUSED 127.0.0.1:5432"`) and the window map ids, and answers with a Clicky-style tag that cites ids instead of raw pixels: `[POINT:B17:the error:screen1]` or `[POINT:W3:your terminal]` or `[POINT:none]`. HUMBLE maps ids to coordinates itself, so Bob never needs the screenshot and can't point at something that isn't there.
+4. **Verification:** a point is only drawn if the id exists in the current map, the box is still visible (re-check the window bounds right before the flight), and the label matches the box text for OCR targets.
+
+**Coordinates (port Clicky's care):** convert between OCR image space, window space, screen space and the overlay's CSS pixels with DPI scale per monitor (`screen.getAllDisplays()` scaleFactor); clamp to the display; multi-monitor offsets; if the target is on another screen the Lamplighter flies to the edge nearest that screen and says `over on your other screen`.
+
+**Privacy (non-negotiable, shown in the intro trust line):** no background capture; capture only on the hotkey or the `look at my screen` button, with a 1s amber border flash around the captured window so the user sees exactly what was read; screenshots stay in memory and are discarded after OCR; only redacted OCR text + ids may go to Bob; the security tab (14) logs every capture (time, window title, whether Bob saw text), never the image. Password managers, browser private windows and any window the user excludes are never captured (deny-list by app name).
+
+**UI:** the beam (section 6) now targets real screen boxes; the target box gets a 2px `--c-core` rounded outline with a soft glow for the bubble's 3s hold; a small `👁 looked at: Windows Terminal` chip appears in the console header after a capture.
+
+**Web console:** cannot see the visitor's screen: it replays a RECORDED spatial moment from our own demo machine (a screenshot we took ourselves + its real OCR boxes), labelled `recorded on our demo machine`.
+
+Acceptance: window-map classifier tests on real window titles; coordinate conversion tests (2 monitors, 150% scaling, negative offsets); OCR matcher test on a recorded OCR result of a real error; Bob answer with an unknown id or mismatched label is rejected; a test proving no capture happens without the hotkey/button; the deny-list honoured.
+
 **Pitch line:** "One engine. It plans your setup, proves it, debugs it on your machine, and guards every command, with IBM Bob as the brain and a rules engine as the seatbelt."
 
