@@ -4,35 +4,36 @@
    `--ink: var(--ink, …)` form was a self-reference, which CSS treats as invalid,
    so every colour in the Dock silently failed and the panel rendered murky. */
 :root {
-  --bg: #080C1F;           /* brand ink, deepened for a window background */
-  --panel: #10163A;
-  --panel-2: #161E4A;
-  --panel-3: #1D2860;
-  --rule: #232E66;
-  --rule-2: #2C3A7A;
-  --ink: #F3F5FF;
-  --ink-2: #B9C2EA;
-  --ink-3: #8390C4;
-  --pass: #3DD68C;
-  --pass-t: rgba(61,214,140,.12);
-  --pass-glow: rgba(61,214,140,.35);
-  --bob: #6F8BFF;          /* readable electric blue on navy */
-  --bob-t: rgba(31,59,255,.16);
-  --bob-glow: rgba(31,59,255,.45);
-  --electric: #1F3BFF;     /* the fix / primary action */
-  --crack: #F0287A;        /* the break */
-  --fail: #F0287A;
-  --fail-t: rgba(240,40,122,.12);
-  --repair: #FFB224;
-  --repair-t: rgba(255,178,36,.12);
+  /* Banner 1 palette: drafting paper, ink, blue = the fix, pink = the break. */
+  --bg: #F4EDE3;           /* paper */
+  --panel: #FBF7F1;        /* lighter sheet */
+  --panel-2: #EFE6DA;
+  --panel-3: #E7DCCD;
+  --rule: #DDD0BF;         /* blueprint construction line */
+  --rule-2: #CBBBA7;
+  --ink: #0D1030;          /* brand ink */
+  --ink-2: #454663;
+  --ink-3: #7C7A8C;
+  --pass: #1E8C5A;         /* verified: deep green that reads on paper */
+  --pass-t: rgba(30,140,90,.10);
+  --pass-glow: rgba(30,140,90,.25);
+  --bob: #1F3BFF;
+  --bob-t: rgba(31,59,255,.08);
+  --bob-glow: rgba(31,59,255,.25);
+  --electric: #1F3BFF;
+  --crack: #E0236D;
+  --fail: #E0236D;
+  --fail-t: rgba(224,35,109,.09);
+  --repair: #B86E00;       /* amber darkened for contrast on paper */
+  --repair-t: rgba(184,110,0,.10);
 
-  --agent-scout: #10B981;
-  --agent-planner: #06B6D4;
-  --agent-runner: #F59E0B;
-  --agent-doctor: #EF4444;
-  --agent-verifier: #3DD68C;
-  --agent-scribe: #8B5CF6;
-  --agent-guide: #5E9EFF;
+  --agent-scout: #0F7A5A;
+  --agent-planner: #0B6E8A;
+  --agent-runner: #B86E00;
+  --agent-doctor: #E0236D;
+  --agent-verifier: #1E8C5A;
+  --agent-scribe: #5B3FC4;
+  --agent-guide: #1F3BFF;
 }
 
 * { box-sizing: border-box; }
@@ -61,7 +62,10 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   padding: 16px;
-  background: #0B0F24;
+  background: var(--bg);
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
 }
 
 /* Header & Bob Brand */
@@ -167,7 +171,7 @@ html, body {
 .repo-input {
   flex: 1;
   min-width: 0;
-  background: rgba(0,0,0,.35);
+  background: var(--panel);
   border: 1px solid var(--rule);
   border-radius: 7px;
   padding: 7px 10px;
@@ -270,7 +274,7 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-.agent-row:hover { background: rgba(255,255,255,.03); }
+.agent-row:hover { background: rgba(13,16,48,.035); }
 .agent-row.selected {
   border-color: var(--agent-color, var(--rule-2)) !important;
   background: var(--panel-3) !important;
@@ -336,7 +340,7 @@ html, body {
   display: none; /* CLI names live in the row tooltip; the list reads as a crew, not a man page */
   font: 11px Consolas, "IBM Plex Mono", monospace;
   color: var(--ink-3);
-  background: rgba(0,0,0,.25);
+  background: var(--panel-2);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -363,7 +367,7 @@ html, body {
 /* 1. Idle */
 .state-idle .agent-avatar { opacity: .85; }
 .state-idle .agent-avatar svg { color: var(--agent-color, var(--ink-2)); }
-.state-idle .agent-state-badge { color: var(--ink-3); background: rgba(255,255,255,.04); }
+.state-idle .agent-state-badge { color: var(--ink-3); background: rgba(13,16,48,.04); }
 
 /* 2. Working (Pulse & Glow) */
 .state-working {
