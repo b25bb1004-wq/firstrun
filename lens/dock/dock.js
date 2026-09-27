@@ -367,7 +367,12 @@
   }
 
   function openConsole() {
-    if (window.dock?.open) {
+    // dock.open() only knows report/readme-diff/passport/folder, so 'console' opened a file browser.
+    // The console guides you in the repo folder (its guide comes from <repo>/.firstrun), not in a run dir.
+    if (window.dock?.console) {
+      const t = getTarget();
+      window.dock.console(/^https?:\/\/|^git@/.test(t) ? (currentRunDir || t) : t);
+    } else if (window.dock?.open) {
       window.dock.open('console', currentRunDir || getTarget());
     } else {
       bobPrompt.textContent = 'Opening HUMBLE Console…';

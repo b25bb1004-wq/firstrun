@@ -2,21 +2,21 @@
 /* Tokens match lens/humble/robot.js and dock.css */
 
 :root {
-  /* Dark default (spec section 2) */
-  --c-bg: #16120e;
-  --c-surface: #1c1712;
+  /* Light default (matches the Dock's clean light theme, spec section 11) */
+  --c-bg: #f5f0e8;
+  --c-surface: #fff8f0;
   --c-term: #120e0a;
-  --c-line: #342c24;
-  --c-ink: #efe7da;
-  --c-ink-2: #b8ab98;
+  --c-line: #dccbb8;
+  --c-ink: #1c1712;
+  --c-ink-2: #5a5145;
   --c-ink-3: #7a6e5f;
-  --c-core: #ff9a3c;
-  --c-hi: #ffc47a;
-  --c-deep: #e0701c;
-  --c-ok: #3dd68c;
-  --c-fail: #ff5c7a;
-  --c-warn: #ffb224;
-  --c-bob: #5E9EFF;
+  --c-core: #e0701c;
+  --c-hi: #ff9a3c;
+  --c-deep: #c05818;
+  --c-ok: #2aa86c;
+  --c-fail: #e03d55;
+  --c-warn: #d49600;
+  --c-bob: #3d7ae0;
 
   /* Agent colors (from robot.js AGENT_COLORS) */
   --agent-scout: #10b981;      /* harvey -> cyan-green */
@@ -55,26 +55,6 @@
   --footer-height: 52px;
   --terminal-min-h: 240px;
   --terminal-max-h: 420px;
-}
-
-/* Light theme (spec section 11) */
-@media (prefers-color-scheme: light) {
-  :root {
-    --c-bg: #f5f0e8;
-    --c-surface: #fff8f0;
-    --c-term: #120e0a;
-    --c-line: #dccbb8;
-    --c-ink: #1c1712;
-    --c-ink-2: #5a5145;
-    --c-ink-3: #7a6e5f;
-    --c-core: #e0701c;
-    --c-hi: #ff9a3c;
-    --c-deep: #c05818;
-    --c-ok: #2aa86c;
-    --c-fail: #e03d55;
-    --c-warn: #d49600;
-    --c-bob: #3d7ae0;
-  }
 }
 
 /* Reduced motion (spec section 11) */
@@ -149,12 +129,6 @@ html, body { height: 100%; background: var(--c-bg); font-family: var(--font-ui);
 
 .brand-avatar:hover {
   transform: scale(1.05);
-}
-
-.brand-avatar svg {
-  width: 22px;
-  height: 17px;
-  fill: #fffefe;
 }
 
 .brand-avatar.celebrate {

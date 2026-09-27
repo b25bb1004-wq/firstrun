@@ -302,10 +302,27 @@ ipcMain.handle('dock:runStep', async (_e, { command, cwd, check }) => {
     return { ok: false, blocked: true, reason: guard.reason, ruleId: guard.ruleId };
   }
 
+  // Proven steps are Linux commands. On Windows/macOS translate them first (src/onboarder/platform.js):
+  // `cp .env.example .env` has no meaning in cmd.exe, so on Windows the step runs as PowerShell Copy-Item.
+  let runCommand = command;
+  let translation = null;
+  if (process.platform !== 'linux') {
+    const { translate } = await import('../src/onboarder/platform.js');
+    translation = translate({ command }, process.platform, { repoRoot });
+    if (!translation.command) {
+      return { ok: false, manual: true, reason: translation.text, hint: translation.hint, status: translation.status };
+    }
+    runCommand = process.platform === 'win32'
+      ? translation.commands.map((c) => `${c}; if (-not $?) { exit 1 }`).join('; ')   // stop at the first failing piece, like &&
+      : translation.commands.join(' && ');
+    const guard2 = classify(runCommand, { repoDir: repoRoot });
+    if (guard2.verdict === 'block') return { ok: false, blocked: true, reason: guard2.reason, ruleId: guard2.ruleId };
+  }
+
   const { spawn } = await import('node:child_process');
   return new Promise((resolve) => {
-    const shell = process.platform === 'win32' ? (process.env.ComSpec || 'cmd.exe') : (process.env.SHELL || '/bin/bash');
-    const shellArgs = process.platform === 'win32' ? ['/d', '/s', '/c', command] : ['-c', command];
+    const shell = process.platform === 'win32' ? 'powershell.exe' : (process.env.SHELL || '/bin/bash');
+    const shellArgs = process.platform === 'win32' ? ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', runCommand] : ['-c', runCommand];
     const proc = spawn(shell, shellArgs, { cwd: repoRoot, env: process.env });
     let stdout = '', stderr = '';
 

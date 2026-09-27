@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HUMBLE Deck</title>
+<!-- Every number on these slides comes from a file in this repo; the source path is in the HTML comment next to it. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">
+<style>
+  :root{
+    --ink:#413333; --ink2:#6e5c58; --blue:#315B8C; --electric:#315B8C; --crack:#F2765E;
+    --blue2:#3b59a8; --paper:#F5EBDD; --paper2:#ECDFCC; --line:#CDB9A3;
+    --sans:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
+    --display:"Bricolage Grotesque",Futura,"Jost",sans-serif;
+    --label:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
+    --mono:"JetBrains Mono",Consolas,monospace;
+  }
+  @page{size:1920px 1080px;margin:0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{letter-spacing:.012em;word-spacing:.04em;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slide{width:1920px;height:1080px;position:relative;overflow:hidden;page-break-after:always;break-after:page;background:var(--paper);padding:120px 140px}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+  .kicker{font-family:var(--label);font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:36px}
+  .kicker .n{color:var(--line);margin-right:18px}
+  h1,h2,.big,.nums .v,.stats .v,.stats b{font-family:var(--display)}
+  h1{font-size:96px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
+  h2{font-size:76px;line-height:1.1;font-weight:700;letter-spacing:-.01em;max-width:1500px}
+  p.lead{font-size:38px;line-height:1.55;letter-spacing:.01em;color:var(--ink2);max-width:1400px;margin-top:36px}
+  .fix{color:var(--electric)} .brk{color:var(--crack)} .blue{color:var(--blue2)}
+  .mono{font-family:var(--mono)}
+  .foot{position:absolute;left:140px;right:140px;bottom:56px;display:flex;justify-content:space-between;font-family:var(--label);font-size:18px;color:var(--ink2)}
+  .foot img{height:30px}
+  .src{font-family:var(--label);font-size:18px;color:var(--ink2)}
+  .rule{height:2px;background:var(--ink);opacity:.12;margin:48px 0}
+
+  /* 1 cover */
+  .cover{padding:0;background:#413333}
+  .cover img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .cover .team{position:absolute;left:95px;bottom:120px;font-size:30px;font-weight:600;color:#f4e9dc}
+
+  /* 2 problem */
+  .big{font-size:300px;line-height:.9;font-weight:700;letter-spacing:-.04em}
+  .big small{font-size:120px;color:var(--ink2);font-weight:500;letter-spacing:-.02em}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
+
+  /* 3 flow */
+  .flow{display:flex;gap:0;margin-top:70px;align-items:stretch}
+  .flow .st{flex:1;border-top:6px solid var(--ink);padding:28px 22px 0 0}
+  .flow .st.b{border-color:var(--crack)} .flow .st.f{border-color:var(--electric)}
+  .flow .st .t{font-size:36px;font-weight:700}
+  .flow .st .d{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.5}
+  .outs{display:flex;gap:28px;margin-top:80px}
+  .outs div{border:2px solid var(--ink);padding:22px 30px;font-size:30px;font-weight:600}
+  .outs div.v{background:var(--ink);color:var(--paper)}
+
+  /* 4 run */
+  .code{font-family:var(--mono);font-size:30px;padding:24px 30px;border-radius:6px;margin-top:18px}
+  .code.b{background:#fbe0ea;color:#8a0f41;border-left:8px solid var(--crack)}
+  .code.f{background:#e3e7ff;color:#1a2a9a;border-left:8px solid var(--electric)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;margin-top:70px}
+  .stat .v{font-size:88px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .stat .l{font-size:24px;color:var(--ink2);margin-top:12px}
+
+  /* 5 numbers */
+  .nums{display:grid;grid-template-columns:repeat(5,1fr);gap:30px;margin-top:90px}
+  .nums .v{font-size:150px;font-weight:700;letter-spacing:-.04em;line-height:1}
+  .nums .l{font-size:26px;color:var(--ink2);margin-top:14px;line-height:1.5}
+  .bar{display:flex;height:72px;margin-top:130px;border-radius:4px;overflow:hidden}
+  .bar div{display:flex;align-items:center;padding-left:18px;font-family:var(--label);font-size:22px;font-weight:600;color:#fff;white-space:nowrap}
+  .legend{display:flex;gap:44px;margin-top:22px;font-size:24px;color:var(--ink2)}
+  .legend b{color:var(--ink)}
+  .sw{display:inline-block;width:18px;height:18px;border-radius:3px;margin-right:10px;vertical-align:-2px}
+
+  /* 6 crew */
+  .crew{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:60px;border-top:2px solid rgba(13,16,48,.15)}
+  .crew>div{padding:40px 40px 40px 0;border-bottom:2px solid rgba(13,16,48,.15)}
+  .crew .nm{font-family:var(--label);font-size:44px;font-weight:600}
+  .crew .rl{font-size:26px;color:var(--blue);margin-top:6px;font-weight:600}
+  .crew .ds{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.5}
+
+  /* 7 engine */
+  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:60px}
+  .layer{border-top:6px solid var(--ink);padding-top:26px}
+  .layer.bob{border-color:var(--blue)} .layer.ver{border-color:var(--electric)}
+  .layer .t{font-size:42px;font-weight:700}
+  .layer .d{font-size:25px;color:var(--ink2);margin-top:14px;line-height:1.55}
+  .bobres{display:flex;align-items:baseline;gap:40px;margin-top:70px;padding-top:40px;border-top:2px solid rgba(13,16,48,.12)}
+  .bobres .v{font-size:120px;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .bobres .l{font-size:28px;color:var(--ink2);line-height:1.5}
+
+  /* 8 desktop */
+  .desk{display:grid;grid-template-columns:760px 1fr;gap:80px;margin-top:50px}
+  .feat{font-size:28px;line-height:1.5;padding:18px 0;border-bottom:2px solid rgba(13,16,48,.1)}
+  .feat b{display:block;font-size:32px;color:var(--ink)}
+  .feat span{color:var(--ink2);font-size:24px}
+  .shot{border:2px solid rgba(13,16,48,.15);border-radius:8px;overflow:hidden;background:#fff}
+  .cap{font-family:var(--label);font-size:18px;color:var(--ink2);margin-top:12px}
+
+  /* 9 surfaces */
+  .surf{display:grid;grid-template-columns:repeat(4,1fr);gap:36px;margin-top:60px}
+  .surf>div{border:2px solid var(--ink);padding:34px 30px;min-height:360px;position:relative}
+  .surf .t{font-size:36px;font-weight:700;line-height:1.15}
+  .surf .d{font-size:24px;color:var(--ink2);margin-top:16px;line-height:1.4}
+  .tag{position:absolute;left:30px;bottom:28px;font-family:var(--label);font-size:20px;padding:6px 14px;border-radius:3px;font-weight:600}
+  .tag.live{background:var(--ink);color:var(--paper)}
+  .tag.plan{border:2px dashed var(--ink2);color:var(--ink2)}
+
+  /* 10 business */
+  .note{display:inline-block;font-family:var(--label);font-size:24px;border:2px dashed var(--crack);color:var(--crack);padding:10px 20px;margin-bottom:30px}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:60px}
+  .tier{border-top:6px solid var(--ink);padding-top:28px}
+  .tier .t{font-size:44px;font-weight:700}
+  .tier .p{font-family:var(--label);font-size:26px;color:var(--blue);margin-top:10px}
+  .tier .d{font-size:26px;color:var(--ink2);margin-top:18px;line-height:1.4}
+
+  /* 11 vs */
+  .vs{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:0;margin-top:70px}
+  .vs>div{padding:30px 36px 30px 0}
+  .vs .t{font-family:var(--label);font-size:26px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+  .vs .d{font-size:30px;line-height:1.4;margin-top:14px}
+  .vs .us{border-left:6px solid var(--electric);padding-left:36px}
+  .vs .us .t{color:var(--electric)}
+
+  /* 12 close */
+  .close{padding:0;background:var(--paper)}
+  .close img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .close .inner{position:absolute;left:140px;top:140px;right:140px}
+  .close .url{font-family:var(--label);font-size:56px;font-weight:600;color:var(--ink);margin-top:40px;background:none;display:block;padding:0}
+  .close .names{display:flex;gap:64px;letter-spacing:.04em}
+  .close .names span+span::before{content:"·";margin-right:64px;color:var(--crack);font-weight:700}
+  .close .pb{position:absolute;right:140px;bottom:90px;font-size:34px;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- 1 · Cover (Banner 2) -->
+<section class="slide cover">
+  <img class="bg" src="../../../web/public/brand/cover-1920.jpg" alt="HUMBLE: The README, that fixes itself. Powered by IBM Bob 2.0">
+  <div class="team">Arnav · Karmanya</div>
+</section>
+
+<!-- 2 · Problem -->
+<section class="slide">
+  <div class="kicker"><span class="n">01</span>The problem</div>
+  <div class="split">
+    <div>
+      <h2>Setup docs are the only code nobody tests.</h2>
+      <p class="lead">A new hire clones the repo, follows the README, and the first command fails. They debug alone. The maintainer never sees it.</p>
+    </div>
+    <div>
+      <!-- audit/v2-31-final-combined/audit.json summary.brokeOnCleanMachine=19, total=31 -->
+      <div class="big"><span class="brk">19</span><small> of 31</small></div>
+      <p class="lead" style="margin-top:20px;color:var(--ink)">real, popular READMEs broke on a clean machine.</p>
+      <p class="src" style="margin-top:24px">HUMBLE audit v2-31, pinned commits, 27 Sep 2026</p>
+    </div>
+  </div>
+  <div class="foot"><img src="../../../web/public/brand/humble-logo.svg" alt=""><span>HUMBLE · IBM Bob 2.0 Hackathon</span></div>
+</section>
+
+<!-- 3 · What HUMBLE does -->
+<section class="slide">
+  <div style="position:absolute;right:0;top:0;bottom:0;width:780px;background:url(../../../web/public/brand/banner-1920.jpg) right center/auto 100% no-repeat"></div>
+  <div style="position:relative;width:1000px">
+    <div class="kicker"><span class="n">02</span>What HUMBLE does</div>
+    <h2 style="font-size:66px">Follow the README on a clean machine, like a new hire.</h2>
+    <div class="flow" style="flex-wrap:wrap;row-gap:40px;max-width:900px">
+      <div class="st" style="flex:0 0 33%"><div class="t">Follow</div><div class="d">every step, as written, in a fresh container</div></div>
+      <div class="st b" style="flex:0 0 33%"><div class="t brk">Break</div><div class="d">record the exit code and log</div></div>
+      <div class="st" style="flex:0 0 33%"><div class="t">Diagnose</div><div class="d">rules first, IBM Bob for the long tail</div></div>
+      <div class="st f" style="flex:0 0 33%"><div class="t fix">Fix</div><div class="d">smallest change, with evidence</div></div>
+      <div class="st f" style="flex:0 0 66%"><div class="t fix">Replay from zero</div><div class="d">throw the machine away, run the corrected guide again</div></div>
+    </div>
+    <div class="outs" style="margin-top:60px"><div class="v">VERIFIED</div><div>corrected README</div><div>Setup Passport</div></div>
+  </div>
+  <div class="src" style="position:absolute;right:40px;bottom:30px;background:rgba(244,233,220,.9);padding:4px 10px">brand art; the fix shown is real (GeekyAnts run)</div>
+</section>
+
+<!-- 4 · One real run -->
+<section class="slide">
+  <div class="kicker"><span class="n">03</span>One real run · GeekyAnts/express-typescript @ 6b9bb70e23</div>
+  <!-- audit/v2-31-final-combined/runs/GeekyAnts__express-typescript/out/FIRSTRUN.md -->
+  <div class="split" style="grid-template-columns:1.1fr 1fr;gap:80px">
+    <div>
+      <div class="src">README.md:140 said</div>
+      <div class="code b">$ npm install<br><span style="font-size:24px">npm error ERESOLVE could not resolve dependency<br>peer typescript@"^2.7 || ^3" from awesome-typescript-loader</span></div>
+      <div class="src" style="margin-top:36px">DR.BO (rule npm-peer-conflict) fixed it, LARP replayed from zero</div>
+      <div class="code f">$ npm install --legacy-peer-deps</div>
+    </div>
+    <div>
+      <div class="outs" style="margin-top:0"><div class="v" style="font-size:44px;padding:20px 40px">VERIFIED</div></div>
+      <p class="lead" style="color:var(--ink);font-size:34px">4 more breaks found on the way: a missing tool (nodemon), two undocumented services (MongoDB, Redis), a legacy Mongo driver.</p>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="v">5 / 5</div><div class="l">breaks found / fixed</div></div>
+    <div class="stat"><div class="v">1m53s</div><div class="l">clone to running, from zero</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">need a human</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">Bobcoins (rules handled it)</div></div>
+  </div>
+  <div class="foot"><span>source: audit/v2-31-final-combined/runs/GeekyAnts__express-typescript</span><span>node:22 · no package cache</span></div>
+</section>
+
+<!-- 5 · Audit numbers -->
+<section class="slide">
+  <div class="kicker"><span class="n">04</span>31 real repos, audited from zero</div>
+  <!-- audit/v2-31-final-combined/audit.json summary: verified 14, partial 12, repairedAutomatically 16, brokeOnCleanMachine 19, breaksFixed 36 -->
+  <div class="nums">
+    <div><div class="v fix">26<small style="font-size:60px"> /31</small></div><div class="l">repos where HUMBLE proved its fixes</div></div>
+    <div><div class="v fix">14</div><div class="l">VERIFIED: fixed and replayed from zero on a clean machine</div></div>
+    <div><div class="v fix">36</div><div class="l">breaks fixed, each with evidence</div></div>
+    <div><div class="v fix">16<small style="font-size:60px"> /19</small></div><div class="l">broken READMEs repaired automatically</div></div>
+    <div><div class="v blue">+3</div><div class="l">repos to VERIFIED from one IBM Bob pass (4.58 Bobcoins)</div></div>
+  </div>
+  <div class="bar">
+    <div style="flex:14;background:var(--electric)">VERIFIED 14</div>
+    <div style="flex:12;background:#7D9CC0">FIXES PROVEN 12</div>
+    <div style="flex:2;background:var(--line)">2</div>
+    <div style="flex:3;background:#C9B8A6;padding-left:10px">next 3</div>
+  </div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--electric)"></i><b>VERIFIED</b> fixed and replayed from zero</span>
+    <span><i class="sw" style="background:#7D9CC0"></i><b>FIXES PROVEN</b> breaks fixed with evidence; one step needs a person (a key, a service)</span>
+  </div>
+  <div class="legend" style="margin-top:12px">
+    <span><i class="sw" style="background:var(--line)"></i>2 repos have no setup docs to test</span>
+    <span><i class="sw" style="background:#C9B8A6"></i><b>Next 3</b>: the rules being trained now (1 failed, 1 inconclusive, 1 CI-only today)</span>
+  </div>
+  <div class="foot"><span>source: audit/v2-31-final-combined/audit.json (rules pass + IBM Bob pass)</span><span>no synthetic data</span></div>
+</section>
+
+<!-- 6 · Crew -->
+<section class="slide">
+  <div class="kicker"><span class="n">05</span>The crew</div>
+  <h2>Six agents. One clean replay.</h2>
+  <div class="crew">
+    <div><div class="nm">HARVEY</div><div class="rl">Scout</div><div class="ds">reads manifests: runtime pins, env templates, services</div></div>
+    <div><div class="nm">UNITY</div><div class="rl">Planner</div><div class="ds">turns the prose README into ordered, runnable steps</div></div>
+    <div><div class="nm">MACH</div><div class="rl">Runner</div><div class="ds">runs each step as written in a fresh container</div></div>
+    <div><div class="nm brk">DR.BO</div><div class="rl">Doctor</div><div class="ds">diagnoses the break: 40+ rules, then IBM Bob</div></div>
+    <div><div class="nm fix">LARP</div><div class="rl">Verifier</div><div class="ds">throws the machine away, replays from zero</div></div>
+    <div><div class="nm">ECHO</div><div class="rl">Scribe</div><div class="ds">README diff, Setup Passport, FIRSTRUN.md report</div></div>
+  </div>
+  <div class="foot"><span>source: docs/pitch/SUBMISSION.md "How it works"</span><span>+ VIGIL, the security guard, on your machine</span></div>
+</section>
+
+<!-- 7 · One engine -->
+<section class="slide">
+  <div class="kicker"><span class="n">06</span>One engine · powered by IBM Bob 2.0</div>
+  <h2>Rules first. Bob for judgment. Verify always.</h2>
+  <div class="layers">
+    <div class="layer"><div class="t">Rules first</div><div class="d">Deterministic doctor and guard rules. Free, instant, offline. Known breaks never cost a Bobcoin.</div></div>
+    <div class="layer bob"><div class="t blue">IBM Bob judges</div><div class="d">Custom modes (doctor, planner, debugger, security) with redacted evidence and a hard Bobcoin cap per call. Bob can only tighten a security verdict, never loosen it.</div></div>
+    <div class="layer ver"><div class="t fix">Verify always</div><div class="d">Nothing Bob says counts until the replay from zero passes.</div></div>
+  </div>
+  <!-- docs/pitch/BOB_PASS_REPORT.md: 10 repos, 3 moved to VERIFIED, 27 calls, 4.58 Bobcoins; combined VERIFIED 14 -->
+  <div class="bobres">
+    <div class="v">11 <span style="color:var(--line)">&rarr;</span> <span class="fix">14</span></div>
+    <div class="l">VERIFIED repos after one IBM Bob pass<br>10 hard repos rerun · <b style="color:var(--ink)">4.58 Bobcoins</b> total</div>
+  </div>
+  <div class="foot"><span>source: docs/pitch/BOB_PASS_REPORT.md, audit/v2-31-final-bob</span><span>docs/design/HUMBLE_CONSOLE_SPEC.md §16</span></div>
+</section>
+
+<!-- 8 · Desktop app -->
+<section class="slide">
+  <div class="kicker"><span class="n">07</span>On your machine</div>
+  <h2 style="font-size:66px">Once the setup is proven, HUMBLE walks your machine through it.</h2>
+  <div class="desk">
+    <div>
+      <div class="feat"><b>Dock</b><span>the crew's live state and a Bobcoin meter</span></div>
+      <div class="feat"><b>Lens</b><span>Ctrl+Shift+Space, circle an error: proven fix, or ask Bob</span></div>
+      <div class="feat"><b>HUMBLE console guide</b><span>step by step, asks before it runs; debugger diffs your machine vs the proof</span></div>
+      <div class="feat"><b class="brk">Security guard</b><span>every command: ok / warn / block before it runs</span></div>
+      <div class="feat" style="border:0"><b>Spatial pointing + EMO-style mascot</b><span>finds the error line on screen and beams at it</span></div>
+    </div>
+    <div>
+      <div class="shot" style="height:560px"><img src="../../../lens/humble/robot-states.png" alt="" style="width:100%;margin-top:-6%"></div>
+      <div class="cap">mascot states from lens/humble/robot-states.png (design sheet)</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · Four surfaces -->
+<section class="slide">
+  <div class="kicker"><span class="n">08</span>One engine, four ways in</div>
+  <h2>Four surfaces.</h2>
+  <div class="surf">
+    <div><div class="t">README CI Action</div><div class="d">a check on every PR that keeps setup docs honest</div><span class="tag plan">planned</span></div>
+    <div><div class="t">Desktop guide</div><div class="d">Dock, Lens, console guide and security guard for new hires</div><span class="tag live">shipped</span></div>
+    <div><div class="t">Prove it live</div><div class="d">paste a public repo: docs-vs-code conflicts in ~2 s, replay of a real verified run</div><span class="tag live">live on the web</span></div>
+    <div><div class="t">Audits at scale</div><div class="d">parallel runs across many repos, one report</div><span class="tag live">31-repo audit done</span></div>
+  </div>
+  <div class="foot"><span>firstrun-sigma.vercel.app</span><span>source: docs/pitch/SUBMISSION.md, docs/pitch/cards/05-four-surfaces.html</span></div>
+</section>
+
+<!-- 10 · Business model -->
+<section class="slide">
+  <div class="kicker"><span class="n">09</span>Business model</div>
+  <div class="note">Our plan, not traction.</div>
+  <h2>Free where it spreads. Paid where it saves teams hours.</h2>
+  <div class="tiers">
+    <div class="tier"><div class="t">Open source</div><div class="p">free</div><div class="d">Public repos: the CLI, the web check and a verified badge in the README.</div></div>
+    <div class="tier"><div class="t">Teams</div><div class="p">per private repo / month</div><div class="d">Private repos, CI Action, the desktop guide for every new hire.</div></div>
+    <div class="tier"><div class="t">Paid audits</div><div class="p">per engagement</div><div class="d">For dev-tool companies: prove every quickstart and example repo works from zero.</div></div>
+  </div>
+  <div class="foot"><span>proposal; no prices committed</span><span>HUMBLE</span></div>
+</section>
+
+<!-- 11 · Why us -->
+<section class="slide">
+  <div class="kicker"><span class="n">10</span>Why HUMBLE</div>
+  <h2 style="font-size:64px;max-width:1640px">Others check or plan your setup. HUMBLE <span class="fix">fixes the README itself</span>, proves it from zero, then walks your machine through it with a debugger and a security guard.</h2>
+  <div class="vs">
+    <div><div class="t">Day-One Ready</div><div class="d">runs setup commands, scorecard of what wasn't verified</div></div>
+    <div><div class="t">DevOnboard</div><div class="d">checks your environment, generates guidance</div></div>
+    <div class="us"><div class="t">HUMBLE</div><div class="d">clean machine, replay from zero, README fix + Passport, a 31-repo audit, the on-screen guide</div></div>
+  </div>
+  <div class="foot"><span>competitors as described in their submissions (docs/design/COMPETITION_AND_SECURITY.md)</span><span></span></div>
+</section>
+
+<!-- 12 · Close -->
+<section class="slide close">
+  <img class="bg" src="../../../web/public/brand/gradient-bg-1920.jpg" alt="">
+  <div class="inner">
+    <img src="../../../web/public/brand/humble-logo.svg" alt="HUMBLE" style="height:150px">
+    <h1 style="margin-top:70px">The README,<br>that <span class="blue">fixes itself.</span></h1>
+    <div class="url">firstrun-sigma.vercel.app</div>
+    <p class="names" style="font-size:30px;margin-top:40px;color:var(--ink)"><span>Arnav</span><span>Karmanya</span><span>team HUMBLE</span></p>
+  </div>
+  <div class="pb">Powered by <b>IBM Bob 2.0</b></div>
+</section>
+
+<script>
+  // Preview mode for PNG export: deck.html#s3 shows only slide 3.
+  var m=location.hash.match(/^#s(\d+)$/);
+  if(m){document.querySelectorAll('.slide').forEach(function(el,i){if(i+1!=+m[1])el.style.display='none'});}
+</script>
+</body>
+</html>
