@@ -35,9 +35,9 @@
     '    h += s * w; grad += (d / r) * cos((r - front) * 0.09) * w;',
     '  }',
     // Paper-like tone bent by the ripple slope; light catches the slopes.
-    '  vec2 uv = (px + grad * 22.0) / 260.0;',
+    '  vec2 uv = (px + grad * 55.0) / 260.0;',
     '  float tex = fbm(uv) - 0.5;',
-    '  float shade = tex * 0.045 + h * 0.035 + dot(grad, vec2(-0.6, 0.8)) * 0.05;',
+    '  float shade = tex * 0.05 + h * 0.08 + dot(grad, vec2(-0.6, 0.8)) * 0.13;',
     '  vec3 col = uBg + (uDark > 0.5 ? shade * 0.8 : shade) * vec3(1.0, 0.96, 0.9);',
     '  gl_FragColor = vec4(col, 1.0);',
     '}'

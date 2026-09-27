@@ -979,3 +979,27 @@ html::after { content: ""; position: fixed; top: 0; bottom: 0; left: 33.333%; ri
 .outro.drawn .g { stroke-dashoffset: 0; } .outro.drawn .arc { opacity: .9; }
 .outro.drawn .outro-word span { opacity: 1; transform: none; filter: blur(0); } .outro.drawn .outro-line { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .sec-rule { transform: none; } .outro-guides .g { stroke-dashoffset: 0; } .outro-guides .arc, .outro-word span, .outro-line { opacity: 1; transform: none; filter: none; } }
+
+/* ===== v23 (Edith): the visible alche pass. No panels: one continuous liquid field. Giant editorial type, big air,
+   content aligned to the column rules, cards become thin-rule rows. ===== */
+html.has-fluid .band { background: transparent; border-bottom: 0; }
+section.band, section.wrap, #how, #try { padding-top: clamp(120px, 18vh, 220px); padding-bottom: clamp(60px, 10vh, 120px); }
+/* Hero: editorial, left-aligned on the first column rule, huge. */
+.hero-full { text-align: left; border-bottom: 0; padding: clamp(140px, 22vh, 260px) 0 clamp(80px, 12vh, 140px); }
+.hero-full .inner { max-width: none; padding-left: calc(33.333vw - clamp(16px, 4vw, 40px)); padding-right: clamp(16px, 4vw, 40px); }
+.hero-full .eyebrow, .hero-full .lede { margin-left: 0; margin-right: 0; }
+.hero-full h1 { font-size: clamp(72px, 13.5vw, 232px); line-height: .9; letter-spacing: -.045em; margin: 18px 0 28px; }
+.hero-full .lede { max-width: 34ch; font-size: clamp(18px, 1.5vw, 22px); }
+.hero-full .actions { justify-content: flex-start; gap: 28px; }
+.hero-full .btn { background: none; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 0 0 4px; color: var(--ink); font-weight: 600; }
+.hero-full .btn:hover { background: none; color: var(--blue); border-color: var(--blue); }
+.hero-full .stats.figures { margin-top: clamp(56px, 9vh, 96px); gap: clamp(32px, 6vw, 96px); }
+/* Headings get room; body copy sits in the middle column band. */
+section h2 { font-size: clamp(40px, 6vw, 96px); line-height: .95; letter-spacing: -.035em; max-width: 14ch; }
+section .sub, section .prose { max-width: 46ch; }
+/* Cards → thin-rule rows: no fills, no boxes. */
+.gallery article, .gallery figure, .crew li, .agent-chip, .wall .tile, .bob-list li {
+  background: transparent !important; border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important; }
+.gallery article, .gallery figure { padding-top: 24px; }
+.hero-agents, .crew-stage, .hero-agents-grid { background: transparent !important; border-color: var(--line) !important; border-radius: 0 !important; }
+@media (max-width: 700px) { .hero-full .inner { padding-left: clamp(16px, 4vw, 40px); } }
