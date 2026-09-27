@@ -31,6 +31,7 @@ ${bold('Usage')}
   firstrun audit  <repos.json> [--concurrency 3] [--limit N] [--only a,b] [--id name] [--rerun failed|all] [--brain rules]
   firstrun guard  --base <ref> [--replay] [--comment <pr-number>]
   firstrun guide  [path]                 walk through the verified setup on your own machine
+  firstrun onboard <repo> --from <run-dir> [--guide] [--dry-run]  run the HUMBLE onboarder (MVP)
   firstrun apply  [path]                 copy the corrected files from .firstrun/out/pr into the repo
   firstrun pr     [path]                 apply on a new branch and open a pull request (gh)
   firstrun ui     [--port 4173] [--root <dir>...]
@@ -193,6 +194,10 @@ export async function main(argv) {
     case 'guide': {
       const { guide } = await import('./guide.js');
       return guide(path.resolve(args._[0] || '.'), { yes: !!args.yes });
+    }
+    case 'onboard': {
+      const { onboard } = await import('./onboarder/onboard.js');
+      return onboard(args);
     }
     case 'apply': {
       const root = path.resolve(args._[0] || '.');
