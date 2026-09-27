@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src data:;">
+  <title>HUMBLE Console</title>
+  <link rel="stylesheet" href="console.css">
+</head>
+<body>
+  <div class="console-window" role="dialog" aria-modal="true" aria-label="HUMBLE Console">
+    <!-- Header -->
+    <header class="console-header">
+      <div class="mascot-container" id="mascot-container" aria-hidden="true"></div>
+      <div class="header-text">
+        <div class="console-title">HUMBLE</div>
+        <div class="console-subtitle" id="console-subtitle">onboarding acme-shop</div>
+      </div>
+      <div class="header-right">
+        <span class="status-dot" id="status-dot" aria-live="polite"></span>
+        <button class="icon-btn close-btn" id="close-btn" aria-label="Close console">×</button>
+      </div>
+    </header>
+
+    <div class="divider" aria-hidden="true"></div>
+
+    <!-- Intro Panel (Step 1: before terminal) -->
+    <section class="intro-panel" id="intro-panel" role="region" aria-label="Machine check">
+      <div class="intro-body">
+        <p class="intro-personal" id="intro-personal">hi, we're arnav and karmanya. this is humble.</p>
+        <p class="intro-trust" id="intro-trust">nothing runs without your ok. first i only look at your machine, read-only.</p>
+      </div>
+      <div class="intro-checklist-label" id="intro-checklist-label">CHECKING YOUR MACHINE</div>
+      <ul class="checklist" id="checklist" role="list" aria-label="Required tools">
+        <!-- Checklist rows injected here -->
+      </ul>
+      <div class="checklist-divider" id="checklist-divider" style="display:none" aria-hidden="true"></div>
+      <ul class="checklist optional-checklist" id="optional-checklist" role="list" aria-label="Optional tools" style="display:none">
+        <!-- Optional rows injected here -->
+      </ul>
+      <div class="intro-footer">
+        <button class="btn-primary btn-start" id="btn-start" type="button" disabled>Start</button>
+        <button class="btn-skip" id="btn-skip" type="button">skip intro</button>
+      </div>
+    </section>
+
+    <!-- Terminal Pane -->
+    <section class="terminal-pane" id="terminal-pane" role="log" aria-live="polite" aria-label="Terminal" style="display:none">
+      <div class="terminal-content" id="terminal-content"></div>
+      <div class="caret" id="caret" aria-hidden="true">▌</div>
+      <div class="scroll-pill" id="scroll-pill" aria-label="New output below">↓ new output</div>
+    </section>
+
+    <div class="divider" aria-hidden="true"></div>
+
+    <!-- Footer -->
+    <footer class="console-footer" id="console-footer">
+      <div class="footer-left" id="footer-left">
+        <button class="btn-secondary btn-show-how" id="btn-show-how" type="button" style="display:none">Show me how</button>
+        <button class="btn-primary btn-do-it" id="btn-do-it" type="button" style="display:none">Do it for me</button>
+      </div>
+      <div class="footer-right" id="footer-right">
+        <span class="step-counter" id="step-counter" style="display:none">step 1/6</span>
+      </div>
+      <!-- Inline confirmation (replaces footer during "Do it for me") -->
+      <div class="inline-confirm" id="inline-confirm" style="display:none" role="alertdialog" aria-modal="true" aria-label="Confirm command">
+        <span class="confirm-text" id="confirm-text"></span>
+        <button class="btn-primary btn-confirm-run" id="btn-confirm-run" type="button">run</button>
+        <button class="btn-secondary btn-confirm-cancel" id="btn-confirm-cancel" type="button">cancel</button>
+      </div>
+      <!-- Stop button (replaces run during execution) -->
+      <button class="btn-danger btn-stop" id="btn-stop" type="button" style="display:none">stop</button>
+    </footer>
+
+    <!-- Watch onboarding again link -->
+    <a class="replay-link" id="replay-link" href="#" style="display:none">watch onboarding again</a>
+  </div>
+
+  <script type="module" src="console.js"></script>
+</body>
+</html>
