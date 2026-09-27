@@ -124,10 +124,64 @@ html, body { height: 100%; background: var(--c-bg); font-family: var(--font-ui);
 }
 
 .mascot-container {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0d1030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.brand-avatar:hover {
+  transform: scale(1.05);
+}
+
+.brand-avatar svg {
+  width: 22px;
+  height: 17px;
+  fill: #fffefe;
+}
+
+.brand-avatar.celebrate {
+  box-shadow: 0 0 16px var(--c-ok);
+  border-color: var(--c-ok);
+}
+
+.brand-avatar.worried {
+  box-shadow: 0 0 16px var(--c-fail);
+  border-color: var(--c-fail);
+  animation: shake 180ms steps(3);
+}
+
+.brand-avatar.think {
+  box-shadow: 0 0 12px var(--c-core);
+  border-color: var(--c-core);
+}
+
+.guide-error-banner {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: color-mix(in srgb, var(--c-fail) 12%, transparent);
+  border: 1px solid var(--c-fail);
+  border-radius: var(--radius-sm);
+  color: var(--c-fail);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .header-text {
@@ -594,26 +648,26 @@ html, body { height: 100%; background: var(--c-bg); font-family: var(--font-ui);
 /* Terminal accessibility */
 .terminal-content { user-select: text; }
 
-/* Bubble styles for mascot (spec section 6) — injected by robot.js */
-/* These are here as reference; robot.js creates its own bubble element */
-/*
+/* Bubble styles for mascot (spec section 6) */
 .humble-bubble {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) scale(0.5);
+  top: 48px;
+  left: 28px;
+  transform: scale(0.8);
   background: var(--c-core);
   color: #1a0e04;
   font-size: 11px;
   font-weight: 500;
   padding: 4px 8px;
   border-radius: 6px;
-  box-shadow: 0 0 6px rgba(255,154,60,.5);
+  box-shadow: 0 0 6px rgba(255, 154, 60, 0.5);
   white-space: nowrap;
   opacity: 0;
-  transition: transform 400ms var(--hb-ease-bounce), opacity 200ms ease;
+  transition: transform 300ms var(--hb-ease-bounce), opacity 200ms ease;
   pointer-events: none;
   z-index: 100;
 }
-.humble-bubble.visible { opacity: 1; transform: translateX(-50%) scale(1); }
-*/
+.humble-bubble.visible {
+  opacity: 1;
+  transform: scale(1);
+}
