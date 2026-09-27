@@ -1,0 +1,29 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,8 @@
+ 
+ # Hackathon Starter Kit(Node-Typescript/Express)
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:10` machine at `d129ad7465`: clone to running in 51s.
++
+ [![Build Status](https://travis-ci.org/nerdeveloper/hackathon-starter-kit.svg?branch=master)](https://travis-ci.org/nerdeveloper/hackathon-starter-kit)
+ ![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/nerdeveloper/hackathon-starter-kit/master)
+ ![David](https://img.shields.io/david/dev/nerdeveloper/hackathon-starter-kit)
+@@ -105,7 +107,7 @@ git clone https://github.com/nerdeveloper/hackathon-starter-kit.git
+ cd hackathon-starter-kit
+ 
+ # Copy .env.example to .env
+-cp .env.variable.env variable.env
++cp env.variable.env variable.env
+ 
+ # Create a database (with MongoDB)
+ # Update variable.env file with database credentials
+@@ -117,6 +119,7 @@ npm install
+ 
+ # Then simply start your app
+ npm start
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ **Warning:** If you want to use some API that need https to work (for example Github or Facebook),

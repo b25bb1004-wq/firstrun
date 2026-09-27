@@ -1,0 +1,46 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "uv sync",
+    "exitCode": 127,
+    "durationMs": 143,
+    "logTail": "/firstrun/step-1.sh: line 5: uv: command not found",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`uv` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "uv",
+      "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+    },
+    "log": "$ command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }\nCollecting uv\n  Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)\nDownloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20.5 MB)\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--\r   ╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.3/20.5 MB ? eta -:--:--\r   ━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/20.5 MB 7.7 MB/s eta 0:00:03\r   ━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.9/20.5 MB 8.2 MB/s eta 0:00:03\r   ━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/20.5 MB 7.7 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/20.5 MB 8.0 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━ 8.9/20.5 MB 8.2 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━ 10.7/20.5 MB 8.4 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 8.4 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 8.5 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━ 16.0/20.5 MB 8.5 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━ 17.8/20.5 MB 8.6 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━ 19.9/20.5 MB 8.7 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 8.7 MB/s eta 0:00:00\nInstalling collected packages: uv\nSuccessfully installed uv-0.12.19"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "uv sync",
+    "exitCode": 0,
+    "durationMs": 63011,
+    "logTail": " + emails==1.1.2\n + fastapi==0.141.1\n + fastapi-cli==0.0.32\n + fastapi-cloud-cli==0.21.0\n + fastar==0.11.0\n + greenlet==3.5.2\n + h11==0.16.0\n + httpcore==1.0.9\n + httptools==0.8.0\n + httpx==0.28.1\n + idna==3.18\n + iniconfig==2.3.0\n + jinja2==3.1.6\n + librt==0.15.0\n + mako==1.3.12\n + markdown-it-py==4.2.0\n + markupsafe==3.0.3\n + mdurl==0.1.2\n + mypy==2.3.1\n + mypy-extensions==1.1.0\n + packaging==26.2\n + pathspec==1.1.1\n + pluggy==1.6.0\n + prek==0.4.14\n + psycopg==3.3.4\n + psycopg-binary==3.3.4\n + puremagic==2.2.0\n + pwdlib==0.3.1\n + pycparser==3.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pydantic-extra-types==2.11.1\n + pydantic-settings==2.15.0\n + pygments==2.20.0\n + pyjwt==2.13.0\n + pytest==9.1.1\n + python-dateutil==2.9.0.post0\n + python-dotenv==1.2.2\n + python-multipart==0.0.32\n + pyyaml==6.0.3\n + rich==15.0.0\n + rich-toolkit==0.20.1\n + rignore==0.7.6\n + ruff==0.16.4\n + sentry-sdk==2.68.1\n + shellingham==1.5.4\n + six==1.17.0\n + sqlalchemy==2.0.51\n + sqlmodel==0.0.39\n + starlette==1.3.1\n + ty==0.0.74\n + typer==0.27.1\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + urllib3==2.7.0\n + uvicorn==0.49.0\n + uvloop==0.22.1\n + watchfiles==1.2.0\n + websockets==16.0\n + zizmor==1.29.0",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T08:40:36.122Z"
+}

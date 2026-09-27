@@ -1,0 +1,25 @@
+{
+  "repo": "kutia-software-company/express-typescript-starter",
+  "commit": "de844c46fa",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

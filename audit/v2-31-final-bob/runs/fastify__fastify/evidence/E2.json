@@ -1,0 +1,49 @@
+{
+  "id": "E2",
+  "stepId": "S14",
+  "before": {
+    "stepId": "S14",
+    "n": 1,
+    "command": "yarn test",
+    "exitCode": 1,
+    "durationMs": 46040,
+    "logTail": "      syscall: 'connect',\n      address: '127.0.0.1',\n      port: 33607\n    }\n  }\n\ntest at test/close.test.js:1:1\n✖ /workspace/test/close.test.js (30007.706803ms)\n  'test timed out after 30000ms'\n\ntest at test/client-timeout.test.js:7:1\n✖ requestTimeout should return 408 (1036.7369ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  + actual - expected\n  \n  + 'HTTP/1.1 408 Request Timeout\\r\\nConnection: close\\r\\n\\r\\n'\n  - 'HTTP/1.1 408 Request Timeout\\r\\n' +\n  -   'Content-Length: 71\\r\\n' +\n  -   'Content-Type: application/json\\r\\n' +\n  -   '\\r\\n' +\n  -   '{\"error\":\"Request Timeout\",\"message\":\"Client Timeout\",\"statusCode\":408}'\n  \n      at assert.<computed> [as strictEqual] (node:internal/test_runner/test:320:18)\n      at Socket.<anonymous> (/workspace/test/client-timeout.test.js:31:16)\n      at Socket.emit (node:events:531:35)\n      at endReadableNT (node:internal/streams/readable:1698:12)\n      at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'HTTP/1.1 408 Request Timeout\\r\\nConnection: close\\r\\n\\r\\n',\n    expected: 'HTTP/1.1 408 Request Timeout\\r\\nContent-Length: 71\\r\\nContent-Type: application/json\\r\\n\\r\\n{\"error\":\"Request Timeout\",\"message\":\"Client Timeout\",\"statusCode\":408}',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at test/https/custom-https-server.test.js:15:3\n✖ Should support a custom https server (151.061767ms)\n  TypeError: fetch failed\n      at Object.processResponse (/workspace/node_modules/undici/lib/web/fetch/index.js:272:16)\n      at /workspace/node_modules/undici/lib/web/fetch/index.js:1117:19\n      at node:internal/process/task_queues:149:7\n      at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n      at AsyncResource.runMicrotask (node:internal/process/task_queues:146:8)\n      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n      at /workspace/node_modules/undici/index.js:159:7\n      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n      at async TestContext.<anonymous> (/workspace/test/https/custom-https-server.test.js:45:20)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    [cause]: Error: connect ECONNREFUSED 127.0.0.1:39051\n        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1638:16) {\n      errno: -111,\n      code: 'ECONNREFUSED',\n      syscall: 'connect',\n      address: '127.0.0.1',\n      port: 39051\n    }\n  }\nerror Command failed with exit code 1.\ninfo Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.",
+    "logFile": "logs/S14-1.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "The CI matrix in .github/workflows/ci.yml (line 65) tests only on Node.js 24 and 26; the newcomer's container is node:22, which has different HTTP timeout body serialization and DNS resolution behavior that causes client-timeout.test.js, close.test.js, and custom-http-server.test.js to fail.",
+    "confidence": 0.82,
+    "by": "bob",
+    "bobcoins": 0.364164,
+    "taskId": "626890b596d4a91700319dc37f017182"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "node:26",
+        "name": "node",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Node.js 24 or 26 is required to run the test suite (the CI matrix in .github/workflows/ci.yml targets node-version: [24, 26]). Use the node:26 Docker image or install Node.js 26 before running `npm run unit`."
+    },
+    "log": "rebased onto node:26\nwarning: S13 failed on the new machine (exit 127)"
+  },
+  "after": {
+    "stepId": "S14",
+    "n": 2,
+    "command": "yarn test",
+    "exitCode": 127,
+    "durationMs": 152,
+    "logTail": "/firstrun/step-3.sh: line 5: yarn: command not found",
+    "logFile": "logs/S14-2.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-27T08:52:32.941Z",
+  "revealed": "E3"
+}

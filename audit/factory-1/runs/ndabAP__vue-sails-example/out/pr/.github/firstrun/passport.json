@@ -1,0 +1,26 @@
+{
+  "repo": "ndabAP/vue-sails-example",
+  "commit": "2b2dd1dc3b",
+  "verifiedAt": "2026-09-27T10:08:45.560Z",
+  "verdict": "PARTIAL",
+  "image": "node:16",
+  "runtime": "Node.js 16",
+  "stepsTotal": 5,
+  "stepsFromReadme": 5,
+  "breaksFound": 4,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 4,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 2,
+  "replaySeconds": 19,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "fromCI": false
+}

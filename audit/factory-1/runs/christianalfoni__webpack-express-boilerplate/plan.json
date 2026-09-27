@@ -1,0 +1,32 @@
+{
+  "repo": "christianalfoni/webpack-express-boilerplate",
+  "commit": "170d929d1f",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [],
+  "conflicts": [
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in server.js:11",
+      "source": "README"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

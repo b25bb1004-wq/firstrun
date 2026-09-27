@@ -1,0 +1,14 @@
+*.egg-info
+*.pyc
+.coverage
+.coverage.*
+.venv
+.vscode
+/.ruff_cache
+/staticfiles
+/{{ project_name }}.yml
+__pycache__
+dist/
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

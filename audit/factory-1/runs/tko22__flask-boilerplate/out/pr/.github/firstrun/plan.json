@@ -1,0 +1,38 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:47:44.556Z",
+  "commit": "8be8976481",
+  "image": "python:3.6",
+  "runtime": {
+    "name": "python",
+    "version": "3.6",
+    "source": "README.md:6 (\"Python 3.6\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5000/"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "pip3 install virtualenv",
+      "kind": "install"
+    },
+    {
+      "id": "S3",
+      "command": "virtualenv venv",
+      "kind": "install"
+    },
+    {
+      "id": "S4",
+      "command": "source venv/bin/activate",
+      "kind": "install"
+    },
+    {
+      "id": "S6",
+      "command": "make recreate_db",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

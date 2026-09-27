@@ -1,0 +1,26 @@
+{
+  "repo": "monstar-lab-oss/nestjs-starter-rest-api",
+  "commit": "6da20f9302",
+  "verifiedAt": "2026-09-27T09:39:38.130Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 2,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 55,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

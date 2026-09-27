@@ -1,0 +1,14 @@
+{
+  "name": "node-express-realworld-example-app",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "npm install && npx prisma generate && export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres && npx prisma migrate deploy && npx prisma db seed",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

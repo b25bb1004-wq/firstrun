@@ -1,0 +1,101 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T07:56:13.249Z",
+  "commit": "410fccec23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/auth/facebook/callback",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "docker run -d --name mongo -p 27017:27017 mongo:7",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S4",
+      "command": "npm start",
+      "kind": "serve",
+      "serve": {
+        "port": 8080
+      },
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo:7",
+          "env": {},
+          "port": 27017,
+          "volumes": [],
+          "composeDir": null
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "npm test",
+      "kind": "test"
+    },
+    {
+      "id": "R2",
+      "command": "pkill -f 'node app.js' || true",
+      "kind": "other",
+      "origin": "repair"
+    },
+    {
+      "id": "R3",
+      "command": "npx playwright install-deps chromium",
+      "kind": "prereq",
+      "origin": "repair"
+    },
+    {
+      "id": "S7",
+      "command": "npm run test:e2e:replay",
+      "kind": "test"
+    },
+    {
+      "id": "S9",
+      "command": "npx playwright test test/e2e/nyt.e2e.test.js --config=test/playwright.config.js --project=chromium-replay",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "[cause]: Error: connect ECONNREFUSED 127.0.0.1:27017",
+      "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+      "fix": "docker run -d --name mongo -p 27017:27017 mongo:7",
+      "evidence": "E1"
+    },
+    {
+      "signature": "Error: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+      "cause": "test/playwright.config.js line 92 sets `reuseExistingServer: !process.env.CI`; the node:22 Docker image sets CI=true in its environment, so reuseExistingServer becomes false — Playwright then refuses to start because the app from step S4 (npm start) is already bound to port 8080.",
+      "fix": "If you have the app already running (e.g. from `npm start`), stop it before running `npm run test:e2e:replay` when the CI environment variable is set; or ensure CI is unset so Playwright can reuse the existing server automatically.",
+      "evidence": "E2"
+    },
+    {
+      "signature": "- [pid=1762] exception while trying to kill process: Error: kill ESRCH",
+      "cause": "Playwright's Chromium is downloaded, but this Linux machine lacks the system libraries it needs to start, so every browser test fails at launch. The docs skip `npx playwright install-deps`.",
+      "fix": "npx playwright install-deps chromium",
+      "evidence": "E3"
+    },
+    {
+      "signature": "Error: No tests found.",
+      "cause": "README.md line 1569 uses the placeholder path `test/e2e.../testfile.e2e.test.js` — the `...` makes it an invalid pattern that matches no real files, so Playwright exits with 'No tests found'; the correct form shown elsewhere in the docs (e.g. README.md:1566 / S8) is a concrete path like `test/e2e/nyt.e2e.test.js`.",
+      "fix": "Replace `test/e2e.../testfile.e2e.test.js` with a real file path such as `test/e2e/nyt.e2e.test.js` in all three single-file example commands (README.md lines 1566, 1569, 1572); the `...` placeholder is not a valid glob and causes Playwright to report 'No tests found'.",
+      "evidence": "E6"
+    }
+  ]
+}

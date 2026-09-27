@@ -1,0 +1,23 @@
+{
+  "id": "E3",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 5984,
+    "logTail": "\n      32 | \n      33 | passport.use(\n    > 34 |     new googleStrategy(\n         |     ^\n      35 |         {\n      36 |             clientID: `${process.env.GOOGLE_CLIENT_ID}`,\n      37 |             clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,\n\n      at Strategy.OAuth2Strategy (node_modules/passport-oauth2/lib/strategy.js:86:34)\n      at new Strategy (node_modules/passport-google-oauth20/lib/strategy.js:52:18)\n      at Object.<anonymous> (src/handlers/passport.ts:34:5)\n      at Object.<anonymous> (src/controllers/authController.ts:5:1)\n      at Object.<anonymous> (src/routes/index.ts:7:1)\n\nFAIL __tests__/contact.test.ts\n  ● Test suite failed to run\n\n    TypeError: OAuth2Strategy requires a clientID option\n\n      32 | \n      33 | passport.use(\n    > 34 |     new googleStrategy(\n         |     ^\n      35 |         {\n      36 |             clientID: `${process.env.GOOGLE_CLIENT_ID}`,\n      37 |             clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,\n\n      at Strategy.OAuth2Strategy (node_modules/passport-oauth2/lib/strategy.js:86:34)\n      at new Strategy (node_modules/passport-google-oauth20/lib/strategy.js:52:18)\n      at Object.<anonymous> (src/handlers/passport.ts:34:5)\n      at Object.<anonymous> (src/controllers/authController.ts:5:1)\n      at Object.<anonymous> (src/routes/index.ts:7:1)\n\nFAIL __tests__/homepage.test.ts\n  ● Test suite failed to run\n\n    TypeError: OAuth2Strategy requires a clientID option\n\n      32 | \n      33 | passport.use(\n    > 34 |     new googleStrategy(\n         |     ^\n      35 |         {\n      36 |             clientID: `${process.env.GOOGLE_CLIENT_ID}`,\n      37 |             clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,\n\n      at Strategy.OAuth2Strategy (node_modules/passport-oauth2/lib/strategy.js:86:34)\n      at new Strategy (node_modules/passport-google-oauth20/lib/strategy.js:52:18)\n      at Object.<anonymous> (src/handlers/passport.ts:34:5)\n      at Object.<anonymous> (src/controllers/authController.ts:5:1)\n      at Object.<anonymous> (src/routes/index.ts:7:1)\n\nTest Suites: 4 failed, 4 total\nTests:       0 total\nSnapshots:   0 total\nTime:        4.765s\nRan all test suites.\nForce exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?\nnpm ERR! Test failed.  See above for more details.",
+    "logFile": "logs/S8-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:42:22.046Z"
+}

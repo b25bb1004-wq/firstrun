@@ -1,0 +1,112 @@
+{
+  "id": "factory-1-MoathShraim__Nodejs-rest-api-project-structure-Express",
+  "repo": "MoathShraim/Nodejs-rest-api-project-structure-Express",
+  "commit": "65792bb648",
+  "startedAt": "2026-09-27T09:30:26.991Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "env var JWT_SECRET",
+      "docs": "not documented",
+      "truth": "read in controllers/authController.js:11",
+      "source": "README"
+    },
+    {
+      "what": "env var JWT_EXPIRES_IN",
+      "docs": "not documented",
+      "truth": "read in controllers/authController.js:13",
+      "source": "README"
+    },
+    {
+      "what": "env var DATABASE",
+      "docs": "not documented",
+      "truth": "read in server.js:15",
+      "source": "README"
+    },
+    {
+      "what": "env var DATABASE_PASSWORD",
+      "docs": "not documented",
+      "truth": "read in server.js:15",
+      "source": "README"
+    },
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in server.js:27",
+      "source": "README"
+    },
+    {
+      "what": "mongodb service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"mongoose\"",
+      "source": "package.json"
+    }
+  ],
+  "plan": {
+    "repo": "MoathShraim/Nodejs-rest-api-project-structure-Express",
+    "commit": "65792bb648",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "env var JWT_SECRET",
+        "docs": "not documented",
+        "truth": "read in controllers/authController.js:11",
+        "source": "README"
+      },
+      {
+        "what": "env var JWT_EXPIRES_IN",
+        "docs": "not documented",
+        "truth": "read in controllers/authController.js:13",
+        "source": "README"
+      },
+      {
+        "what": "env var DATABASE",
+        "docs": "not documented",
+        "truth": "read in server.js:15",
+        "source": "README"
+      },
+      {
+        "what": "env var DATABASE_PASSWORD",
+        "docs": "not documented",
+        "truth": "read in server.js:15",
+        "source": "README"
+      },
+      {
+        "what": "env var PORT",
+        "docs": "not documented",
+        "truth": "read in server.js:27",
+        "source": "README"
+      },
+      {
+        "what": "mongodb service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"mongoose\"",
+        "source": "package.json"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-27T09:30:27.297Z"
+}

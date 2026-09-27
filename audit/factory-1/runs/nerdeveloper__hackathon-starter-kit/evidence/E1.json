@@ -1,0 +1,45 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "cp .env.variable.env variable.env",
+    "exitCode": 1,
+    "durationMs": 210,
+    "logTail": "cp: cannot stat '.env.variable.env': No such file or directory",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-file",
+    "cause": ".env.variable.env does not exist; the repo ships env.variable.env.",
+    "by": "rules",
+    "ruleId": "missing-copy-source",
+    "confidence": 0.92
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "cp env.variable.env variable.env"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "cp env.variable.env variable.env"
+    },
+    "log": "step command → cp env.variable.env variable.env"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "cp env.variable.env variable.env",
+    "exitCode": 0,
+    "durationMs": 195,
+    "logTail": "",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T09:41:01.761Z"
+}

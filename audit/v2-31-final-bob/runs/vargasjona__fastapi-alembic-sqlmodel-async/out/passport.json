@@ -1,0 +1,27 @@
+{
+  "repo": "vargasjona/fastapi-alembic-sqlmodel-async",
+  "commit": "96f10870e7",
+  "verifiedAt": "2026-09-27T07:39:00.511Z",
+  "verdict": "FAILED",
+  "image": "python:3.11",
+  "runtime": "Python 3.11",
+  "stepsTotal": 8,
+  "stepsFromReadme": 7,
+  "breaksFound": 6,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 6,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 1.28,
+  "diagnosedByBob": 3,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:15432/",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

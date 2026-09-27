@@ -1,0 +1,16 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -26,6 +26,12 @@ https://github.com/user-attachments/assets/8698e9dd-1794-4f96-9c3f-85add17e330b
+ * [License](#license)
+ 
+ ## 📖 Installation
++
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.13` machine at `14c0374eaa`: clone to running in 6m03s.
++
++Prerequisites verified by HUMBLE:
++
++- uv
+ Lithium can be installed via Pip or Docker. To start, clone the repo to your local computer and change into the proper directory.
+ 
+ ```

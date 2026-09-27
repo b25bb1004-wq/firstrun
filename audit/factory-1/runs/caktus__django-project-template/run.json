@@ -1,0 +1,102 @@
+{
+  "id": "factory-1-caktus__django-project-template",
+  "repo": "caktus/django-project-template",
+  "commit": "644148f732",
+  "startedAt": "2026-09-27T09:30:33.707Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "env var ENVIRONMENT",
+      "docs": "not documented",
+      "truth": "read in docs/conf.py:369",
+      "source": "README"
+    },
+    {
+      "what": "env var SECRET_KEY",
+      "docs": "not documented",
+      "truth": "read in docs/conf.py:370",
+      "source": "README"
+    },
+    {
+      "what": "env var DOMAIN",
+      "docs": "not documented",
+      "truth": "read in docs/conf.py:371",
+      "source": "README"
+    },
+    {
+      "what": "env var DEFAULT_FROM_EMAIL",
+      "docs": "not documented",
+      "truth": "read in docs/conf.py:372",
+      "source": "README"
+    },
+    {
+      "what": "postgres service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"psycopg2-binary\"",
+      "source": "Python requirements"
+    }
+  ],
+  "plan": {
+    "repo": "caktus/django-project-template",
+    "commit": "644148f732",
+    "image": "python:3.7",
+    "runtime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.rst:59 (\"Python >= 3.7\")"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "env var ENVIRONMENT",
+        "docs": "not documented",
+        "truth": "read in docs/conf.py:369",
+        "source": "README"
+      },
+      {
+        "what": "env var SECRET_KEY",
+        "docs": "not documented",
+        "truth": "read in docs/conf.py:370",
+        "source": "README"
+      },
+      {
+        "what": "env var DOMAIN",
+        "docs": "not documented",
+        "truth": "read in docs/conf.py:371",
+        "source": "README"
+      },
+      {
+        "what": "env var DEFAULT_FROM_EMAIL",
+        "docs": "not documented",
+        "truth": "read in docs/conf.py:372",
+        "source": "README"
+      },
+      {
+        "what": "postgres service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"psycopg2-binary\"",
+        "source": "Python requirements"
+      }
+    ],
+    "notes": [
+      "The repo has both Node.js and Python; HUMBLE used the Python image because the first install step is python. The Node.js part was not set up separately."
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "python:3.7",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.rst:59 (\"Python >= 3.7\")"
+    }
+  },
+  "error": "No setup docs: read README.rst, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-27T09:30:33.938Z"
+}

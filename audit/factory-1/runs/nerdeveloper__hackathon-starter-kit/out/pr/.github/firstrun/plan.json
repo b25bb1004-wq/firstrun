@@ -1,0 +1,41 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:43:17.379Z",
+  "commit": "d129ad7465",
+  "image": "node:10",
+  "runtime": {
+    "name": "node",
+    "version": "10",
+    "source": "README.md:86 (\"Node.js 10.0+\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/status",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "cp env.variable.env variable.env",
+      "kind": "env"
+    },
+    {
+      "id": "S4",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S6",
+      "command": "npm i -g ngrok",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "cp: cannot stat '.env.variable.env': No such file or directory",
+      "cause": ".env.variable.env does not exist; the repo ships env.variable.env.",
+      "fix": "cp env.variable.env variable.env",
+      "evidence": "E1"
+    }
+  ]
+}

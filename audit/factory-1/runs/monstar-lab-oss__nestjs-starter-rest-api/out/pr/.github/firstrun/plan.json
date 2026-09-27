@@ -1,0 +1,34 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:39:38.130Z",
+  "commit": "6da20f9302",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S5",
+      "command": "npm run test",
+      "kind": "test"
+    },
+    {
+      "id": "R1",
+      "command": "cp .env.template .env",
+      "kind": "env",
+      "origin": "repair"
+    }
+  ],
+  "knownFailures": []
+}

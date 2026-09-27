@@ -1,0 +1,52 @@
+{
+  "id": "factory-1-christianalfoni__webpack-express-boilerplate",
+  "repo": "christianalfoni/webpack-express-boilerplate",
+  "commit": "170d929d1f",
+  "startedAt": "2026-09-27T09:30:32.058Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in server.js:11",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "christianalfoni/webpack-express-boilerplate",
+    "commit": "170d929d1f",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [
+      {
+        "what": "env var PORT",
+        "docs": "not documented",
+        "truth": "read in server.js:11",
+        "source": "README"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-27T09:30:32.252Z"
+}

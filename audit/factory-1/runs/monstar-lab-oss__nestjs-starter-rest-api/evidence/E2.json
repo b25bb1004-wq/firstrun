@@ -1,0 +1,47 @@
+{
+  "id": "E2",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "npm run test:e2e",
+    "exitCode": 1,
+    "durationMs": 8297,
+    "logTail": "    > 132 |     await app.close();\n          |               ^\n      133 |     await closeDBAfterTest();\n      134 |   });\n      135 | });\n\n      at Object.<anonymous> (user/user.e2e-spec.ts:132:15)\n\nFAIL test/app.e2e-spec.ts\n  ● Console\n\n    console.log\n      Dropping e2e_test_db database and recreating it\n\n      at resetDBBeforeTest (test-utils.ts:22:11)\n\n  ● AppController (e2e) › / (GET)\n\n    connect ECONNREFUSED 127.0.0.1:5432\n\n\n\n\n  ● Test suite failed to run\n\n    Config validation error: \"APP_PORT\" is required. \"DB_HOST\" is required. \"DB_NAME\" is required. \"DB_USER\" is required. \"DB_PASS\" is required. \"JWT_PUBLIC_KEY_BASE64\" is required. \"JWT_PRIVATE_KEY_BASE64\" is required. \"JWT_ACCESS_TOKEN_EXP_IN_SEC\" is required. \"JWT_REFRESH_TOKEN_EXP_IN_SEC\" is required. \"DEFAULT_ADMIN_USER_PASSWORD\" is required\n\n      11 | @Module({\n      12 |   imports: [\n    > 13 |     ConfigModule.forRoot(configModuleOptions),\n         |                  ^\n      14 |     TypeOrmModule.forRootAsync({\n      15 |       imports: [ConfigModule],\n      16 |       inject: [ConfigService],\n\n      at Function.forRoot (../node_modules/@nestjs/config/dist/config.module.js:96:23)\n      at Object.<anonymous> (../src/shared/shared.module.ts:13:18)\n      at Object.<anonymous> (../src/article/article.module.ts:5:1)\n      at Object.<anonymous> (../src/app.module.ts:5:1)\n      at Object.<anonymous> (app.e2e-spec.ts:5:1)\n\n  ● Test suite failed to run\n\n    TypeError: Cannot read properties of undefined (reading 'close')\n\n      33 |\n      34 |   afterAll(async () => {\n    > 35 |     await app.close();\n         |               ^\n      36 |     await closeDBAfterTest();\n      37 |   });\n      38 | });\n\n      at Object.<anonymous> (app.e2e-spec.ts:35:15)\n\nTest Suites: 4 failed, 4 total\nTests:       30 failed, 30 total\nSnapshots:   0 total\nTime:        7.359 s\nRan all test suites.",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "The app requires APP_PORT, DB_HOST, DB_NAME, DB_USER and 6 more from .env.template, but the docs never say to create .env from it.",
+    "by": "rules",
+    "ruleId": "missing-env-var",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "cp .env.template .env",
+        "kind": "env"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "cp .env.template .env"
+    },
+    "log": "$ cp .env.template .env → exit 0"
+  },
+  "after": {
+    "stepId": "S6",
+    "n": 2,
+    "command": "npm run test:e2e",
+    "exitCode": 1,
+    "durationMs": 10366,
+    "logTail": "    > 147 |     await app.close();\n          |               ^\n      148 |     await closeDBAfterTest();\n      149 |   });\n      150 | });\n\n      at Object.<anonymous> (auth/auth.e2e-spec.ts:147:15)\n\nFAIL test/app.e2e-spec.ts\n  ● Console\n\n    console.log\n      Dropping e2e_test_db database and recreating it\n\n      at resetDBBeforeTest (test-utils.ts:22:11)\n\n  ● AppController (e2e) › / (GET)\n\n    connect ECONNREFUSED 127.0.0.1:5432\n\n\n\n\n  ● Test suite failed to run\n\n    Config validation error: \"JWT_PUBLIC_KEY_BASE64\" is not allowed to be empty. \"JWT_PRIVATE_KEY_BASE64\" is not allowed to be empty\n\n      11 | @Module({\n      12 |   imports: [\n    > 13 |     ConfigModule.forRoot(configModuleOptions),\n         |                  ^\n      14 |     TypeOrmModule.forRootAsync({\n      15 |       imports: [ConfigModule],\n      16 |       inject: [ConfigService],\n\n      at Function.forRoot (../node_modules/@nestjs/config/dist/config.module.js:96:23)\n      at Object.<anonymous> (../src/shared/shared.module.ts:13:18)\n      at Object.<anonymous> (../src/article/article.module.ts:5:1)\n      at Object.<anonymous> (../src/app.module.ts:5:1)\n      at Object.<anonymous> (app.e2e-spec.ts:5:1)\n\n  ● Test suite failed to run\n\n    TypeError: Cannot read properties of undefined (reading 'close')\n\n      33 |\n      34 |   afterAll(async () => {\n    > 35 |     await app.close();\n         |               ^\n      36 |     await closeDBAfterTest();\n      37 |   });\n      38 | });\n\n      at Object.<anonymous> (app.e2e-spec.ts:35:15)\n\nTest Suites: 4 failed, 4 total\nTests:       30 failed, 30 total\nSnapshots:   0 total\nTime:        8.914 s\nRan all test suites.",
+    "logFile": "logs/S6-2.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-27T09:38:05.256Z",
+  "revealed": "E3"
+}

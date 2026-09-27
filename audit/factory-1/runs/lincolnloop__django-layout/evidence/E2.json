@@ -1,0 +1,24 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "make init",
+    "exitCode": 2,
+    "durationMs": 4178,
+    "logTail": "command -v uvx || curl -LsSf https://astral.sh/uv/install.sh | sh \\\n\t&& docker compose build \\\n\t&& docker compose run --rm app python manage.py migrate \\\n    && docker compose stop \\\n\t&& git init && git add . \\\n\t&& command -v pre-commit || uv tool install pre-commit \\\n\t&& pre-commit install\n/usr/local/bin/uvx\n[firstrun] 'docker compose build' is not available on the clean machine (no Docker daemon)\nResolved 10 packages in 2.32s\nDownloading virtualenv (5.2MiB)\n Downloaded virtualenv\nPrepared 10 packages in 1.35s\nInstalled 10 packages in 40ms\n + cfgv==3.5.0\n + distlib==0.4.3\n + filelock==4.0.4\n + identify==2.6.20\n + nodeenv==1.11.0\n + platformdirs==4.12.0\n + pre-commit==4.6.2\n + python-discovery==1.6.1\n + pyyaml==6.0.3\n + virtualenv==21.13.0\nInstalled 1 executable: pre-commit\nwarning: `/root/.local/bin` is not on your PATH. To use installed tools, run `export PATH=\"/root/.local/bin:$PATH\"` or `uv tool update-shell`.\n/bin/bash: line 7: pre-commit: command not found\nmake: *** [Makefile:8: init] Error 127",
+    "logFile": "logs/S5-2.log"
+  },
+  "diagnosis": {
+    "class": "sandbox-limit",
+    "cause": "This step starts Docker containers itself, and HUMBLE's clean machine has no Docker engine inside it (no nested Docker). On a newcomer's laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.",
+    "by": "rules",
+    "ruleId": "needs-docker-daemon",
+    "confidence": 0.9
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:34:35.259Z"
+}

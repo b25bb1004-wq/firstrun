@@ -1,0 +1,58 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T07:39:00.511Z",
+  "commit": "96f10870e7",
+  "image": "python:3.11",
+  "runtime": {
+    "name": "python",
+    "version": "3.11",
+    "source": "a locked wheel built only for CPython 3.11"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:15432/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "sudo apt-get install build-essential",
+      "kind": "prereq"
+    },
+    {
+      "id": "S2",
+      "command": "sudo apt-get -y install make",
+      "kind": "prereq"
+    },
+    {
+      "id": "R1",
+      "command": "poetry install",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "S10",
+      "command": "make init-db",
+      "kind": "other"
+    },
+    {
+      "id": "S14",
+      "command": "make add-dev-migration",
+      "kind": "migrate"
+    },
+    {
+      "id": "S29",
+      "command": "make run-test",
+      "kind": "serve",
+      "serve": {
+        "port": 15432
+      }
+    },
+    {
+      "id": "S30",
+      "command": "make pytest",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

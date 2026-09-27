@@ -1,0 +1,19 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -15,12 +15,15 @@ This is a simple Django 3.0+ project template with my preferred setup. Most Djan
+ 
+ ## How to install
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `7d442e2bfb`: clone to running in 2s.
++
+ ```bash
+ $ django-admin.py startproject \
+   --template=https://github.com/jpadilla/django-project-template/archive/master.zip \
+   --name=Procfile \
+   --extension=py,md,env \
+   project_name
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ $ mv example.env .env
+ $ pipenv install --dev
+ ```

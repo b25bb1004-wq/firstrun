@@ -1,0 +1,24 @@
+{
+  "id": "E4",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 3,
+    "command": "npm run test:e2e",
+    "exitCode": 1,
+    "durationMs": 22835,
+    "logTail": "\n    getaddrinfo ENOTFOUND pgsqldb\n\n\n\n  ● AuthController (e2e) › Refreshing JWT token › should successfully get new auth token using refresh token\n\n    getaddrinfo ENOTFOUND pgsqldb\n\n\n\n\n  ● Test suite failed to run\n\n    TypeError: Cannot read properties of undefined (reading 'close')\n\n      145 |\n      146 |   afterAll(async () => {\n    > 147 |     await app.close();\n          |               ^\n      148 |     await closeDBAfterTest();\n      149 |   });\n      150 | });\n\n      at Object.<anonymous> (auth/auth.e2e-spec.ts:147:15)\n\nFAIL test/app.e2e-spec.ts\n  ● Console\n\n    console.log\n      Dropping e2e_test_db database and recreating it\n\n      at resetDBBeforeTest (test-utils.ts:22:11)\n\n  ● AppController (e2e) › / (GET)\n\n    getaddrinfo ENOTFOUND pgsqldb\n\n\n\n\n  ● Test suite failed to run\n\n    TypeError: Cannot read properties of undefined (reading 'close')\n\n      33 |\n      34 |   afterAll(async () => {\n    > 35 |     await app.close();\n         |               ^\n      36 |     await closeDBAfterTest();\n      37 |   });\n      38 | });\n\n      at Object.<anonymous> (app.e2e-spec.ts:35:15)\n\nTest Suites: 4 failed, 4 total\nTests:       30 failed, 30 total\nSnapshots:   0 total\nTime:        21.078 s\nRan all test suites.",
+    "logFile": "logs/S6-3.log"
+  },
+  "diagnosis": {
+    "class": "failing-tests",
+    "cause": "The test suite runs, but 30 of 30 tests fail on a clean setup.",
+    "by": "rules",
+    "ruleId": "failing-tests",
+    "confidence": 0.8
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:38:36.880Z"
+}

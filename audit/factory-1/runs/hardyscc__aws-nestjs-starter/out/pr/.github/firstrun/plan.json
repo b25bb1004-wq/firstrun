@@ -1,0 +1,47 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:39:09.047Z",
+  "commit": "2e312502fc",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/dev/graphql",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S7",
+      "command": "npm run sls:offline",
+      "kind": "other"
+    },
+    {
+      "id": "S8",
+      "command": "npm run sls:online",
+      "kind": "other"
+    },
+    {
+      "id": "S12",
+      "command": "npm run start:online",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    },
+    {
+      "id": "S16",
+      "command": "npm run test:e2e",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

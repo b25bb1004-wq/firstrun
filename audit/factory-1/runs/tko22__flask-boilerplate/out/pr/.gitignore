@@ -1,0 +1,15 @@
+*.pyc
+.vscode/
+venv/
+__pycache__
+.DS_Store/
+migrations/
+postgres-data/
+.mypy_cache
+.pytest_cache
+api.log
+test.db
+creds.ini
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

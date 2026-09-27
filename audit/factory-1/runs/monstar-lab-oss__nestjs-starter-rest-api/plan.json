@@ -1,0 +1,156 @@
+{
+  "repo": "monstar-lab-oss/nestjs-starter-rest-api",
+  "commit": "6da20f9302",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 50,
+        "endLine": 50,
+        "section": "Installation"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S2",
+      "command": "npm run start",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 112,
+        "endLine": 112,
+        "section": "Running the app › Local"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"npm run start:prod\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "npm run start:dev",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 115,
+        "endLine": 115,
+        "section": "Running the app › Local"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"npm run start:prod\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "npm run start:prod",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 118,
+        "endLine": 118,
+        "section": "Running the app › Local"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "needs-human"
+    },
+    {
+      "id": "S5",
+      "command": "npm run test",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 140,
+        "endLine": 140,
+        "section": "Test"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "R1",
+      "command": "cp .env.template .env",
+      "kind": "env",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": "README.md",
+        "line": 143,
+        "endLine": 143,
+        "section": "Test",
+        "insertedBefore": "S6"
+      }
+    },
+    {
+      "id": "S6",
+      "command": "npm run test:e2e",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 143,
+        "endLine": 143,
+        "section": "Test"
+      },
+      "origin": "readme",
+      "status": "needs-human",
+      "evidence": [
+        "E2",
+        "E3"
+      ],
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "touch .env && { grep -v -E '^(JWT_PUBLIC_KEY_BASE64|JWT_PRIVATE_KEY_BASE64)=' .env; printf '%s=%s\\n' 'JWT_PUBLIC_KEY_BASE64' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'JWT_PRIVATE_KEY_BASE64' 'change.me.local.dev.only.not.a.secret'; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "command": "npm run test:cov",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 146,
+        "endLine": 146,
+        "section": "Test"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "20 (.tool-versions)",
+      "source": "README.md"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

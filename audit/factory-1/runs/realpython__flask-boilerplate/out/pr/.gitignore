@@ -1,0 +1,7 @@
+*.pyc
+.DS_Store
+env
+venv
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

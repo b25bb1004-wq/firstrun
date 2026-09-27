@@ -1,0 +1,32 @@
+{
+  "repo": "mape/node-express-boilerplate",
+  "commit": "457e3c15c9",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [],
+  "conflicts": [
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in siteConfig.sample.js:36",
+      "source": "README"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

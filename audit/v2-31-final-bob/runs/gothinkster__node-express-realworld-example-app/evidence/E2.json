@@ -1,0 +1,54 @@
+{
+  "id": "E2",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "npx prisma migrate deploy",
+    "exitCode": 1,
+    "durationMs": 2154,
+    "logTail": "Prisma schema loaded from src/prisma/schema.prisma\nDatasource \"db\": PostgreSQL database \"postgres\", schema \"public\" at \"localhost:5432\"\n\nError: P1001: Can't reach database server at `localhost`:`5432`\n\nPlease make sure your database server is running at `localhost`:`5432`.",
+    "logFile": "logs/S3-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "README.md line 46 runs `npx prisma migrate deploy` without ever starting a PostgreSQL server; the error `P1001: Can't reach database server at localhost:5432` proves no database is running.",
+    "confidence": 0.99,
+    "by": "bob",
+    "bobcoins": 0.047774,
+    "taskId": "6298e7aaa068b54cebd1d1d8e633d62e"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "postgres",
+        "image": "postgres:16-alpine",
+        "port": 5432,
+        "env": {
+          "POSTGRES_USER": "postgres",
+          "POSTGRES_PASSWORD": "postgres",
+          "POSTGRES_DB": "postgres"
+        },
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "Before running `npx prisma migrate deploy`, start a PostgreSQL instance (e.g. `docker run -d -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16-alpine`) and set DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres."
+    },
+    "log": "started postgres:16-alpine as \"postgres\" on localhost:5432"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 3,
+    "command": "npx prisma migrate deploy",
+    "exitCode": 0,
+    "durationMs": 2771,
+    "logTail": "Prisma schema loaded from src/prisma/schema.prisma\nDatasource \"db\": PostgreSQL database \"postgres\", schema \"public\" at \"localhost:5432\"\n\n4 migrations found in prisma/migrations\n\nApplying migration `20210924225358_initial`\nApplying migration `20211001143221_implicit_tags`\nApplying migration `20211105153605_api_url`\nApplying migration `20211221184529_deprecated_preview`\n\nThe following migrations have been applied:\n\nmigrations/\n  └─ 20210924225358_initial/\n    └─ migration.sql\n  └─ 20211001143221_implicit_tags/\n    └─ migration.sql\n  └─ 20211105153605_api_url/\n    └─ migration.sql\n  └─ 20211221184529_deprecated_preview/\n    └─ migration.sql\n      \nAll migrations have been successfully applied.\n┌─────────────────────────────────────────────────────────┐\n│  Update available 4.16.2 -> 8.0.0-rc.17                 │\n│                                                         │\n│  This is a major update - please follow the guide at    │\n│  https://pris.ly/d/major-version-upgrade                │\n│                                                         │\n│  Run the following to update                            │\n│    npm i --save-dev prisma@latest                       │\n│    npm i @prisma/client@latest                          │\n└─────────────────────────────────────────────────────────┘",
+    "logFile": "logs/S3-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T07:58:01.550Z"
+}

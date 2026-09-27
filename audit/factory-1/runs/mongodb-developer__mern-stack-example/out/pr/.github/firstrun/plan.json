@@ -1,0 +1,47 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:45:26.849Z",
+  "commit": "6a5e9397b1",
+  "image": "buildpack-deps:bookworm",
+  "runtime": {
+    "name": "other",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5173/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "cp mern/server/config.env.example mern/server/config.env",
+      "kind": "env"
+    },
+    {
+      "id": "S5",
+      "command": "cd mern/server",
+      "kind": "other"
+    },
+    {
+      "id": "S6",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S8",
+      "command": "cd mern/client",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "npm run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 5173
+      }
+    }
+  ],
+  "knownFailures": []
+}
