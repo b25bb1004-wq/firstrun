@@ -1,5 +1,5 @@
 // lens/dock-preload.cjs — context-isolated preload for every Dock window.
-// Exposes window.dock = { run, open, cancel, lens, toggle, onState }.
+// Exposes window.dock = { run, open, cancel, lens, toggle, onState, look, lookForBob, … }.
 const { contextBridge, ipcRenderer } = require('electron');
 
 let project = '';
@@ -19,4 +19,6 @@ contextBridge.exposeInMainWorld('dock', {
   onState:   (fn)            => ipcRenderer.on('dock:state', (_e, state) => fn(state)),
   setSecret: (name, value)   => ipcRenderer.send('dock:secret:set', { name, value }),
   answerAsk: (id, answer)    => ipcRenderer.send('dock:ask:answer', { id, answer }),
+  look:      (want)          => ipcRenderer.invoke('spatial:look', want),   // "look at my screen" button (spec 17)
+  lookForBob: ()             => ipcRenderer.invoke('spatial:forBob'),
 });
