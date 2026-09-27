@@ -66,6 +66,18 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
       }
     }
     if (!changed) continue;
+    // A command written as a list item ("- `npm install` to install deps"): edit inside the backticks and add
+    // inserted steps as sibling items, so the list and its prose survive.
+    const item = md.blocks.find((b) => b.inline && b.start === lineIdx);
+    if (item) {
+      const bullet = (origLine.match(/^\s*([-*+]|\d+[.)])/) || [, '-'])[1].replace(/^\d+/, '1');
+      const newCmd = parts.join(' && ');
+      const edited = group.some((s) => s.readmeCommand && s.readmeCommand !== s.command) ? origLine.replace('`' + item.code + '`', '`' + newCmd + '`') : origLine;
+      const notes = out.filter((l) => l.includes('# HUMBLE:')).map((l) => `${indent}  > ${l.trim().replace(/^# /, '')}`);
+      const ins = out.filter((l) => !l.includes('# HUMBLE:')).map((l) => `${indent}${bullet} \`${l.trim().replace(/^[$%]\s+/, '')}\``);
+      replacements.set(lineIdx, { lines: [...ins, edited, ...notes], span: 0 });
+      continue;
+    }
     const span = Math.max(...group.map((s) => s.source.endLine || s.source.line)) - 1 - lineIdx;
     // Keep an unchanged multi-line command as written; rewrite only what changed.
     const cmdLine = `${indent}${prompt}${parts.join(' && ')}`;
