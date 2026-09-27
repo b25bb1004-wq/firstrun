@@ -50,6 +50,7 @@
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       input.value = chip.dataset.repo;
+      updateStoryBar(chip.dataset.repo);
     });
   });
 
@@ -61,7 +62,22 @@
         c.classList.remove('active');
       }
     });
+    updateStoryBar(input.value.trim());
   });
+
+  function updateStoryBar(repo) {
+    const storyBar = document.getElementById('prove-brand-story');
+    if (!storyBar) return;
+    if (repo === 'GeekyAnts/express-typescript') {
+      storyBar.innerHTML = '<span class="story-label">GeekyAnts proof (banner story):</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: npm install peer conflict</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: npm install --legacy-peer-deps</span>';
+    } else if (repo === 'b25bb1004-wq/acme-shop') {
+      storyBar.innerHTML = '<span class="story-label">acme-shop demo:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: node 18/20 engine fail</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: node 20 verified replay</span>';
+    } else if (repo === 'addyosmani/git2txt') {
+      storyBar.innerHTML = '<span class="story-label">addyosmani/git2txt:</span> <span class="story-chip-break">⚡ <span class="crack-text">break diagnosis</span></span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: automated zero replay pass</span>';
+    } else {
+      storyBar.innerHTML = '<span class="story-label">Live prove:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span> for breaks</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span> for verified fixes</span>';
+    }
+  }
 
   function formatTimer(sec) {
     const m = String(Math.floor(sec / 60)).padStart(2, '0');
@@ -69,14 +85,21 @@
     return `${m}:${s}`;
   }
 
-  function addRow(agent, action, isRecorded = false, delayMs = 0) {
+  function addRow(agent, action, isRecorded = false, delayMs = 0, kind = 'info') {
     return new Promise(resolve => {
       setTimeout(() => {
         const row = document.createElement('div');
-        row.className = 'prove-row mono';
+        row.className = `prove-row mono prove-row-${kind}`;
+        row.dataset.kind = kind;
         const agentClass = `agent-${agent.toLowerCase().replace(/[^a-z]/g, '')}`;
         const tag = isRecorded ? '<span class="prove-tag">[recorded run]</span> ' : '';
-        row.innerHTML = `${tag}<span class="prove-agent ${agentClass}">${agent}</span> <span class="prove-action">${escapeHtml(action)}</span>`;
+        let badge = '';
+        if (kind === 'crack') {
+          badge = '<span class="prove-crack-badge">⚡ CRACK</span> ';
+        } else if (kind === 'thread') {
+          badge = '<span class="prove-thread-badge">🧵 BLUE THREAD</span> ';
+        }
+        row.innerHTML = `${tag}${badge}<span class="prove-agent ${agentClass}">${agent}</span> <span class="prove-action">${escapeHtml(action)}</span>`;
         streamRows.appendChild(row);
         consoleBox.scrollTop = consoleBox.scrollHeight;
         resolve();
@@ -106,20 +129,20 @@
       if (ev.type === 'plan' && ev.data) {
         const stepCount = ev.data.steps ? ev.data.steps.length : 0;
         const docs = (ev.data.docsUsed && ev.data.docsUsed.length) ? ev.data.docsUsed.join(', ') : 'README.md';
-        highlights.push({ agent: 'Harvey', action: `read ${docs} · ${stepCount} steps extracted` });
+        highlights.push({ agent: 'Harvey', action: `read ${docs} · ${stepCount} steps extracted`, kind: 'info' });
       } else if (ev.type === 'step.end' && ev.data && ev.data.status === 'failed') {
         const tail = (ev.data.logTail || '').split('\n')[0].slice(0, 48);
-        highlights.push({ agent: 'Mach', action: `${ev.data.command || 'step'}  exit ${ev.data.exitCode || 1} · ${tail}` });
+        highlights.push({ agent: 'Mach', action: `${ev.data.command || 'step'}  exit ${ev.data.exitCode || 1} · ${tail}`, kind: 'crack' });
       } else if (ev.type === 'diagnosis' && ev.data && ev.data.diagnosis) {
         const d = ev.data.diagnosis;
-        highlights.push({ agent: 'DR.BO', action: `diagnosed ${d.class || 'break'} (${d.ruleId || 'rule'})` });
+        highlights.push({ agent: 'DR.BO', action: `diagnosed ${d.class || 'break'} (${d.ruleId || 'rule'})`, kind: 'crack' });
       } else if (ev.type === 'fix' && ev.data && ev.data.fix) {
         const cmd = ev.data.fix.actions?.[0]?.command || ev.data.fix.doc?.text || 'applied repair';
-        highlights.push({ agent: 'Doctor', action: `repair: ${cmd}` });
+        highlights.push({ agent: 'Doctor', action: `repair: ${cmd}`, kind: 'thread' });
       } else if (ev.type === 'phase' && ev.data && ev.data.phase === 'replay') {
-        highlights.push({ agent: 'Verifier', action: 'discarded machine · replaying from zero…' });
+        highlights.push({ agent: 'Verifier', action: 'discarded machine · replaying from zero…', kind: 'info' });
       } else if (ev.type === 'verdict' && ev.data) {
-        highlights.push({ agent: 'Larp', action: `replayed from zero · ${ev.data.verdict || 'VERIFIED'}` });
+        highlights.push({ agent: 'Larp', action: `replayed from zero · ${ev.data.verdict || 'VERIFIED'}`, kind: 'thread' });
       }
     }
 
@@ -158,7 +181,7 @@
           const { rows, passport } = await parseRecordedEvents(text);
           if (rows.length > 0) {
             for (let i = 0; i < rows.length; i++) {
-              await addRow(rows[i].agent, rows[i].action, true, 350);
+              await addRow(rows[i].agent, rows[i].action, true, 350, rows[i].kind || 'info');
               progressBar.style.width = `${Math.round(((i + 1) / rows.length) * 95)}%`;
             }
             progressBar.style.width = '100%';
@@ -209,7 +232,9 @@
               progressBar.style.width = '100%';
               if (statusData.evidence && Array.isArray(statusData.evidence)) {
                 for (const ev of statusData.evidence) {
-                  await addRow('Larp', `${ev.step}: ${ev.command} → ${ev.outcome}`, false, 180);
+                  const outcome = ev.outcome || '';
+                  const kind = outcome.toLowerCase().includes('fail') ? 'crack' : 'thread';
+                  await addRow('Larp', `${ev.step}: ${ev.command} → ${ev.outcome}`, false, 180, kind);
                 }
               }
               finishSuccess(repo, false, `https://github.com/b25bb1004-wq/firstrun/actions/runs/${runId}`, statusData.passport);
@@ -251,7 +276,7 @@
       stats = ' · breaks diagnosed &amp; fixed · replay passed';
     }
 
-    resultLine.innerHTML = `<strong>${escapeHtml(verdict)}</strong>${tag}${stats} &nbsp;<a href="${link}" class="link" target="_blank" rel="noopener">Open evidence →</a>`;
+    resultLine.innerHTML = `<span class="story-chip-fix">🧵 Blue thread proven:</span> <strong>${escapeHtml(verdict)}</strong>${tag}${stats} &nbsp;<a href="${link}" class="link" target="_blank" rel="noopener">Open evidence →</a>`;
     resultLine.style.display = 'block';
   }
 
