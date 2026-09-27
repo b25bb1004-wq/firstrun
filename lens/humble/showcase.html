@@ -329,6 +329,7 @@
         <button class="btn" onclick="testLanternBeam()">Lantern BEAM Cone (§6)</button>
         <button class="btn" onclick="testSpatialTarget()">Spatial Target Box (§17)</button>
         <button class="btn" onclick="testCaptureFlash()">1s Capture Flash (§17)</button>
+        <button class="btn" onclick="testSpatialState()">Spatial State Event (§17)</button>
         <button class="btn" onclick="sim.setState('sleep')">Sleep</button>
         <button class="btn" onclick="sim.setState('think')">Think</button>
         <button class="btn" onclick="sim.setState('talk', { say: 'Explaining repo build steps!' })">Talk</button>
@@ -545,6 +546,27 @@
 
   window.testCaptureFlash = function() {
     sim.triggerCaptureFlash({ x: 20, y: 20, width: window.innerWidth - 40, height: 350 });
+  };
+
+  window.testSpatialState = function() {
+    import('./spatial-bridge.js').then(({ handleSpatialState }) => {
+      handleSpatialState({
+        ok: true,
+        how: 'rule',
+        lookedAt: { app: 'WindowsTerminal', title: 'C:\\Code\\acme-shop' },
+        target: {
+          kind: 'box',
+          id: 'B1',
+          text: 'npm ERR! code EBADENGINE',
+          box: { x: 40, y: 140, width: 360, height: 32 },
+          overlay: { x: 220, y: 156 },
+        },
+      }, {
+        mascot: sim,
+        headerEl: document.querySelector('.header-left'),
+        holdMs: 3000,
+      });
+    });
   };
 </script>
 </body>

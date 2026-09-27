@@ -34,6 +34,7 @@ let busy = false;
 let dockButton = null; // 56×56 floating button
 let dockPanel  = null; // 380×600 panel
 let dockBridge = null; // current runAgent() handle
+let consoleWindow = null; // 380×600 HUMBLE console window
 
 const PRELOAD_DOCK = path.join(HERE, 'dock-preload.cjs');
 
@@ -77,6 +78,7 @@ function toggleDockPanel() {
 
 function pushState(state) {
   if (dockPanel && !dockPanel.isDestroyed()) dockPanel.webContents.send('dock:state', state);
+  if (consoleWindow && !consoleWindow.isDestroyed()) consoleWindow.webContents.send('dock:state', state);
 }
 
 // ── Dock IPC ──────────────────────────────────────────────────────────────────
@@ -174,9 +176,27 @@ function openConsole(runDir) {
   if (dockPanel && !dockPanel.isDestroyed()) {
     dockPanel.webContents.send('dock:state', { what: 'console', runDir });
   }
-  // Also open the console window
-  const consoleWindow = new BrowserWindow({
-    x: 100, y: 100, width: 380, height: 600, frame: false, resizable: false, movable: true,
+  if (consoleWindow && !consoleWindow.isDestroyed()) {
+    consoleWindow.focus();
+    return;
+  }
+
+  // Anchor next to dockPanel, dockButton, or top-left (spec §2)
+  const { bounds } = screen.getPrimaryDisplay();
+  const pw = 380, ph = 600;
+  let px = 100, py = 100;
+  if (dockPanel && !dockPanel.isDestroyed()) {
+    const db = dockPanel.getBounds();
+    px = Math.min(db.x + db.width + 6, bounds.width - pw - 8);
+    py = db.y;
+  } else if (dockButton && !dockButton.isDestroyed()) {
+    const bb = dockButton.getBounds();
+    px = Math.min(bb.x + bb.width + 6, bounds.width - pw - 8);
+    py = bb.y;
+  }
+
+  consoleWindow = new BrowserWindow({
+    x: px, y: py, width: pw, height: ph, frame: false, resizable: false, movable: true,
     minimizable: false, maximizable: false, skipTaskbar: true, alwaysOnTop: true,
     webPreferences: dockWebPrefs(),
   });
@@ -185,6 +205,116 @@ function openConsole(runDir) {
   consoleWindow.loadFile(path.join(HERE, 'humble', 'console.html'), { query: { project: runDir || project } });
   consoleWindow.on('closed', () => { consoleWindow = null; });
 }
+
+// ── Onboarder & Console IPC Handlers ──────────────────────────────────────────
+ipcMain.handle('dock:probe', async () => {
+  const { probeHost } = await import('../src/onboarder/probe.js');
+  return probeHost();
+});
+
+ipcMain.handle('dock:getGuide', async (_e, targetProject) => {
+  const proj = path.resolve(targetProject || project);
+  const { buildGuide } = await import('../src/onboarder/guide.js');
+  const candidates = [
+    path.join(proj, '.firstrun'),
+    proj,
+    path.join(HERE, '..', 'web', 'public', 'data', 'runs', 'acme-shop-3c0bc2b2', 'f'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'run.json')) && fs.existsSync(path.join(c, 'plan.json')) && fs.existsSync(path.join(c, 'evidence'))) {
+      try {
+        const guide = buildGuide(c);
+        return { ok: true, guide };
+      } catch (e) {}
+    }
+  }
+  return { ok: false, error: `No verified run folder found for "${proj}"` };
+});
+
+ipcMain.handle('dock:getReel', async (_e, name = 'acme-shop') => {
+  const reelFile = path.join(HERE, '..', 'web', 'public', 'data', 'reels', `${name}.json`);
+  if (fs.existsSync(reelFile)) {
+    return JSON.parse(fs.readFileSync(reelFile, 'utf8'));
+  }
+  return null;
+});
+
+async function evaluateStepCheck(check, repoRoot) {
+  if (!check) return true;
+  if (check.type === 'file-has') {
+    const f = path.join(repoRoot, check.file);
+    if (!fs.existsSync(f)) return false;
+    const content = fs.readFileSync(f, 'utf8');
+    return new RegExp(check.pattern).test(content);
+  }
+  if (check.type === 'exit') {
+    return true;
+  }
+  if (check.type === 'http') {
+    try {
+      const res = await fetch(check.url);
+      return res.status === (check.expect || 200);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+ipcMain.handle('dock:runStep', async (_e, { command, cwd, check }) => {
+  const repoRoot = path.resolve(cwd || project);
+  const { classify } = await import('../src/onboarder/guard.js');
+  const guard = classify(command, { repoDir: repoRoot });
+  if (guard.verdict === 'block') {
+    return { ok: false, blocked: true, reason: guard.reason, ruleId: guard.ruleId };
+  }
+
+  const { spawn } = await import('node:child_process');
+  return new Promise((resolve) => {
+    const shell = process.platform === 'win32' ? (process.env.ComSpec || 'cmd.exe') : (process.env.SHELL || '/bin/bash');
+    const shellArgs = process.platform === 'win32' ? ['/d', '/s', '/c', command] : ['-c', command];
+    const proc = spawn(shell, shellArgs, { cwd: repoRoot, env: process.env });
+    let stdout = '', stderr = '';
+
+    proc.stdout?.on('data', (d) => {
+      const chunk = d.toString();
+      stdout += chunk;
+      consoleWindow?.webContents.send('dock:step:output', { stream: 'stdout', text: chunk });
+      dockPanel?.webContents.send('dock:step:output', { stream: 'stdout', text: chunk });
+    });
+
+    proc.stderr?.on('data', (d) => {
+      const chunk = d.toString();
+      stderr += chunk;
+      consoleWindow?.webContents.send('dock:step:output', { stream: 'stderr', text: chunk });
+      dockPanel?.webContents.send('dock:step:output', { stream: 'stderr', text: chunk });
+    });
+
+    proc.on('close', async (code) => {
+      let checkPassed = code === 0;
+      if (check && code === 0) {
+        checkPassed = await evaluateStepCheck(check, repoRoot);
+      }
+      resolve({
+        ok: checkPassed && code === 0,
+        exitCode: code,
+        stdout,
+        stderr,
+        checkPassed,
+        warn: guard.verdict === 'warn' ? guard.reason : null,
+      });
+    });
+
+    proc.on('error', (err) => {
+      resolve({ ok: false, exitCode: -1, error: err.message, checkPassed: false });
+    });
+  });
+});
+
+ipcMain.handle('dock:checkStep', async (_e, { check, cwd }) => {
+  const repoRoot = path.resolve(cwd || project);
+  return evaluateStepCheck(check, repoRoot);
+});
 
 // The overlay sends the circled area; answer from proven fixes first, then offer Bob.
 ipcMain.handle('lens:read', async (_e, { png }) => {

@@ -1,20 +1,23 @@
 /**
  * HUMBLE Console — Electron Onboarding & Guide Mode
  * Spec: docs/design/HUMBLE_CONSOLE_SPEC.md (Sections 1-8, 11)
- * Imports console-core.js exports via thin adapter (section 6):
- *   flight, typeSchedule, lineFromBeat, lineFromGuideStep, reelPlayer, onboardingTimeline
- * Uses lens/humble/robot.js for mascot states (section 5)
+ * Real Electron IPC integration:
+ *   - Real host probe via window.dock.probe() (src/onboarder/probe.js)
+ *   - Real guide.json via window.dock.getGuide() (src/onboarder/guide.js)
+ *   - Real verified acme-shop reel (EBADENGINE -> Node 20 fix)
+ *   - In-place terminal line updating (no duplicate command lines)
+ *   - Real command execution via window.dock.runStep() guarded by guard.js
+ *   - Brand avatar: lens/assets/humble-face.svg (white on #0d1030)
  */
 
-import { HumbleRobot, flightMath, HUMBLE_STATES, AGENT_COLORS } from './robot.js';
+import { flight, typeSchedule, lineFromBeat, lineFromGuideStep, reelPlayer } from './console-core.js';
+import { flightMath, HUMBLE_STATES, AGENT_COLORS } from './robot.js';
 import { redactTokens, redactSecrets, REDACTED } from '../../src/redact.js';
 
 // ============================================================================
-// CONSOLE-CORE ADAPTER (thin layer over spec section 6 exports)
-// When lens/humble/console-core.js exists, replace this with: import * as core from './console-core.js'
+// CONSOLE-CORE ADAPTER
 // ============================================================================
 const consoleCore = {
-  // Spec section 4: typing speeds
   typeSchedule: {
     welcome: 30,        // fixed 30ms/char (C)
     bubble: [30, 60],   // random 30–60ms/char (C)
@@ -22,7 +25,6 @@ const consoleCore = {
     outputLine: 40,     // output lines appear every 40ms
   },
 
-  // Spec section 6: flight math (matches robot.js flightMath exactly)
   flight: {
     duration: flightMath.duration,
     easedProgress: flightMath.easedProgress,
@@ -32,7 +34,6 @@ const consoleCore = {
     controlPoint: flightMath.controlPoint,
   },
 
-  // Spec section 3: line grammar — create terminal line elements
   lineFromBeat(beat, { redact = true } = {}) {
     const line = document.createElement('div');
     line.className = `term-line ${beat.kind}`;
@@ -43,41 +44,44 @@ const consoleCore = {
         prompt.className = 'prompt';
         prompt.textContent = '$ ';
         const cmd = document.createElement('span');
-        cmd.textContent = beat.command;
+        cmd.className = 'cmd-text';
+        cmd.textContent = redact ? redactSecrets(beat.command || beat.text || '') : (beat.command || beat.text || '');
         const status = document.createElement('span');
         status.className = 'status';
-        if (beat.status === 'ok') {
+        if (beat.status === 'ok' || beat.status === 'pass') {
           status.classList.add('ok');
-          status.textContent = `✓ ${beat.duration}s`;
+          status.textContent = beat.duration ? `✓ ${beat.duration}s` : '✓';
         } else if (beat.status === 'fail') {
           status.classList.add('fail');
           status.textContent = '✗';
         } else if (beat.running) {
+          line.classList.add('running');
           status.innerHTML = '<span class="spinner">⠋</span>';
         }
         line.append(prompt, cmd, status);
         break;
       }
       case 'why': {
-        line.textContent = `  why: ${beat.text}`;
+        line.textContent = `  why: ${redact ? redactSecrets(beat.text || '') : (beat.text || '')}`;
         break;
       }
       case 'out': {
         const content = document.createElement('div');
         content.className = 'out-content';
-        const lines = (beat.lines || []).slice(0, 6);
+        const rawLines = (beat.lines || []);
+        const lines = rawLines.slice(0, 6);
         lines.forEach(l => {
           const lEl = document.createElement('div');
           lEl.className = 'out-line';
           lEl.textContent = redact ? redactSecrets(l) : l;
           content.appendChild(lEl);
         });
-        if ((beat.lines || []).length > 6) {
+        if (rawLines.length > 6) {
           const more = document.createElement('button');
           more.className = 'expand-btn';
-          more.textContent = `… ${(beat.lines || []).length - 6} more lines`;
+          more.textContent = `… ${rawLines.length - 6} more lines`;
           more.onclick = () => {
-            const remaining = (beat.lines || []).slice(6);
+            const remaining = rawLines.slice(6);
             remaining.forEach(l => {
               const lEl = document.createElement('div');
               lEl.className = 'out-line';
@@ -92,101 +96,78 @@ const consoleCore = {
         break;
       }
       case 'fail': {
-        line.textContent = `  > ${beat.text}`;
+        line.textContent = `  > ${redact ? redactSecrets(beat.text || '') : (beat.text || '')}`;
         break;
       }
       case 'diag': {
         const tag = document.createElement('span');
-        tag.style.color = `var(--agent-${beat.agent})`;
-        tag.textContent = `[${beat.agent.toUpperCase()}] `;
+        const agent = beat.agent || 'doctor';
+        tag.style.color = `var(--agent-${agent})`;
+        tag.textContent = `  [${agent === 'doctor' ? 'DR.BO' : agent.toUpperCase()}] `;
         const text = document.createElement('span');
-        text.textContent = beat.text;
+        text.textContent = redact ? redactSecrets(beat.text || '') : (beat.text || '');
         line.append(tag, text);
         break;
       }
       case 'was': {
-        line.textContent = `  - ${beat.text}`;
+        line.textContent = `  - ${redact ? redactSecrets(beat.text || '') : (beat.text || '')}`;
         break;
       }
       case 'fix': {
-        line.textContent = `  + ${beat.text}`;
+        line.textContent = `  + ${redact ? redactSecrets(beat.text || '') : (beat.text || '')}`;
         break;
       }
       case 'pass': {
-        // Handled on cmd line
+        line.textContent = `  ✓ ${redact ? redactSecrets(beat.text || '') : (beat.text || '')}`;
         break;
       }
+      case 'verified':
       case 'sys': {
-        line.textContent = beat.text;
-        line.style.fontStyle = 'italic';
-        line.style.color = 'var(--c-ink-3)';
+        line.textContent = redact ? redactSecrets(beat.text || '') : (beat.text || '');
         break;
       }
+      default: {
+        line.textContent = redact ? redactSecrets(beat.text || beat.command || '') : (beat.text || beat.command || '');
+      }
     }
+
     return line;
-  },
-
-  // Spec section 8: guide step -> terminal lines
-  lineFromGuideStep(step, { redact = true } = {}) {
-    const lines = [];
-    // cmd line
-    const cmdBeat = { kind: 'cmd', command: step.do?.command || step.do?.type, running: true };
-    lines.push(this.lineFromBeat(cmdBeat));
-    // why line
-    if (step.why?.cause) {
-      lines.push(this.lineFromBeat({ kind: 'why', text: step.why.cause }));
-    }
-    return lines;
-  },
-
-  // Spec section 7: reel player (compressed ~25s replay)
-  async reelPlayer(reelData, terminalEl, mascot, { onBeat } = {}) {
-    for (const beat of reelData) {
-      const lineEl = this.lineFromBeat(beat, { redact: true });
-      terminalEl.appendChild(lineEl);
-      terminalEl.scrollTop = terminalEl.scrollHeight;
-      if (onBeat) onBeat(beat, lineEl);
-      // Spec: output lines appear every 40ms
-      await new Promise(r => setTimeout(r, this.typeSchedule.outputLine));
-    }
-  },
-
-  // Spec section 7: onboarding timeline steps
-  onboardingTimeline: [
-    { id: 'intro', label: 'Machine check' },
-    { id: 'boot', label: 'Boot', duration: 420 },
-    { id: 'welcome', label: 'Welcome', duration: 2000 },
-    { id: 'reel', label: 'Reel', duration: 25000 },
-    { id: 'demo-point-1', label: 'Point: fail', duration: 3000 },
-    { id: 'demo-point-2', label: 'Point: fix', duration: 3000 },
-    { id: 'cta', label: 'Call to action', duration: 10000 },
-  ],
+  }
 };
 
 // ============================================================================
-// UTILITIES
+// TYPING HELPERS (spec section 4)
 // ============================================================================
-const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function typeText(el, text, { min = 30, max = 60 } = {}) {
-  return new Promise(resolve => {
-    if (reducedMotion()) { el.textContent = text; resolve(); return; }
-    let i = 0;
-    const tick = () => {
-      if (i < text.length) {
-        el.textContent += text[i++];
-        const delay = min + Math.random() * (max - min);
-        setTimeout(tick, delay);
-      } else { resolve(); }
-    };
-    tick();
-  });
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
 }
 
-function typeCommand(el, text) {
-  return typeText(el, text, { min: 18, max: 18 });
+function randRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+async function typeText(el, text, { min = 30, max = 60, instant = false } = {}) {
+  if (instant || !text) {
+    el.textContent = text || '';
+    return;
+  }
+  el.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    await sleep(randRange(min, max));
+  }
+}
+
+async function typeCommand(el, text, { instant = false } = {}) {
+  if (instant || !text) {
+    el.textContent = text || '';
+    return;
+  }
+  el.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    await sleep(consoleCore.typeSchedule.command); // 18ms/char (C)
+  }
 }
 
 // ============================================================================
@@ -194,8 +175,15 @@ function typeCommand(el, text) {
 // ============================================================================
 export class HumbleConsole {
   constructor() {
+    this.project = (typeof window !== 'undefined' && window.location?.search)
+      ? new URLSearchParams(window.location.search).get('project') || 'acme-shop'
+      : 'acme-shop';
+    this.projectRoot = this.project;
+
     this.window = document.querySelector('.console-window');
     this.mascotContainer = document.getElementById('mascot-container');
+    this.brandAvatar = document.getElementById('brand-avatar');
+    this.guideErrorBanner = document.getElementById('guide-error-banner');
     this.introPanel = document.getElementById('intro-panel');
     this.terminalPane = document.getElementById('terminal-pane');
     this.terminalContent = document.getElementById('terminal-content');
@@ -236,90 +224,168 @@ export class HumbleConsole {
     this.init();
   }
 
+  initMascot() {
+    // Brand header avatar controller (spec §5 / brand face: sideways ? + wink arrow on #0d1030)
+    this.mascot = {
+      state: 'sleep',
+      boot: async () => {
+        if (this.brandAvatar) {
+          this.brandAvatar.classList.add('think');
+          await sleep(420);
+          this.brandAvatar.classList.remove('think');
+        }
+      },
+      setState: (state) => {
+        this.mascot.state = state;
+        if (this.brandAvatar) {
+          this.brandAvatar.classList.remove('celebrate', 'worried', 'think', 'talk', 'sleep', 'point');
+          this.brandAvatar.classList.add(state);
+        }
+      },
+      dartEyes: () => {
+        if (this.brandAvatar) {
+          this.brandAvatar.style.transform = 'scale(1.08) rotate(-4deg)';
+          setTimeout(() => { if (this.brandAvatar) this.brandAvatar.style.transform = ''; }, 180);
+        }
+      },
+      say: async (text, holdMs = 3000) => {
+        let bubble = document.querySelector('.humble-bubble');
+        if (!bubble) {
+          bubble = document.createElement('div');
+          bubble.className = 'humble-bubble';
+          this.mascotContainer?.appendChild(bubble);
+        }
+        bubble.textContent = text;
+        bubble.classList.add('visible');
+        if (holdMs > 0) {
+          setTimeout(() => {
+            bubble.classList.remove('visible');
+            setTimeout(() => bubble.remove(), 250);
+          }, holdMs);
+        }
+        return bubble;
+      },
+      flyTo: async (targetEl, { say = '', returnHome = true } = {}) => {
+        this.mascot.setState('point');
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          targetEl.classList.add('targeted-line');
+          setTimeout(() => targetEl.classList.remove('targeted-line'), 2500);
+        }
+        if (say) await this.mascot.say(say, 2500);
+        await sleep(800);
+        if (returnHome) this.mascot.setState('talk');
+      }
+    };
+  }
+
   async init() {
-    // Initialize mascot (spec section 5)
-    this.mascot = new HumbleRobot(this.mascotContainer, {
-      size: '56',
-      initialState: 'sleep',
-      autoIdle: true,
-    });
+    // Initialize brand mascot avatar
+    this.initMascot();
 
     // Event listeners
-    this.closeBtn.onclick = () => this.close();
-    this.btnStart.onclick = () => this.startOnboarding();
-    this.btnSkip.onclick = () => this.skipIntro();
-    this.btnShowHow.onclick = () => this.showHow();
-    this.btnDoIt.onclick = () => this.doItForMe();
-    this.btnStop.onclick = () => this.stopCommand();
-    this.btnConfirmRun.onclick = () => this.confirmRun();
-    this.btnConfirmCancel.onclick = () => this.cancelConfirm();
-    this.replayLink.onclick = (e) => { e.preventDefault(); this.replayOnboarding(); };
+    if (this.closeBtn) this.closeBtn.onclick = () => this.close();
+    if (this.btnStart) this.btnStart.onclick = () => this.startOnboarding();
+    if (this.btnSkip) this.btnSkip.onclick = () => this.skipIntro();
+    if (this.btnShowHow) this.btnShowHow.onclick = () => this.showHow();
+    if (this.btnDoIt) this.btnDoIt.onclick = () => this.doItForMe();
+    if (this.btnStop) this.btnStop.onclick = () => this.stopCommand();
+    if (this.btnConfirmRun) this.btnConfirmRun.onclick = () => this.confirmRun();
+    if (this.btnConfirmCancel) this.btnConfirmCancel.onclick = () => this.cancelConfirm();
+    if (this.replayLink) this.replayLink.onclick = (e) => { e.preventDefault(); this.replayOnboarding(); };
 
     // Scroll detection for scroll pill
-    this.terminalContent.addEventListener('scroll', () => {
-      const { scrollTop, scrollHeight, clientHeight } = this.terminalContent;
-      this.userScrolledUp = scrollTop + clientHeight < scrollHeight - 50;
-      this.scrollPill.classList.toggle('visible', this.userScrolledUp);
-    });
+    if (this.terminalContent) {
+      this.terminalContent.addEventListener('scroll', () => {
+        const { scrollTop, scrollHeight, clientHeight } = this.terminalContent;
+        this.userScrolledUp = scrollTop + clientHeight < scrollHeight - 50;
+        this.scrollPill?.classList.toggle('visible', this.userScrolledUp);
+      });
+    }
 
     // Keyboard: Esc closes panel but asks if command running
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.handleEscape();
-      if (e.key === 'Enter' && this.inlineConfirm.style.display === 'flex') this.confirmRun();
+      if (e.key === 'Enter' && this.inlineConfirm?.style.display === 'flex') this.confirmRun();
     });
 
-    // Load guide.json for acme-shop (spec section 8: steps come ONLY from guide.json)
+    // 1. Load real guide.json via IPC
     await this.loadGuide();
 
-    // Run host probe (spec section 7 step 1)
+    // 2. Run real host probe via IPC
     await this.runHostProbe();
 
-    // Boot mascot (spec section 5: CRT boot on first open)
+    // 3. Boot mascot
     await this.mascot.boot();
 
-    // Type welcome (spec section 7 step 3)
+    // 4. Type welcome
     await this.typeWelcome();
 
-    // Show intro panel with checklist
+    // 5. Show intro panel with real checklist
     this.renderChecklist();
 
-    // Start polling checklist every 2s (spec section 7)
+    // 6. Start polling checklist every 2s
     this.startChecklistPoll();
   }
 
+  // ============================================================================
+  // GUIDE LOADING (spec section 8: steps come ONLY from guide.json)
+  // ============================================================================
   async loadGuide() {
-    try {
-      // In production, this would be built from a verified run
-      // For now, generate from the acme-shop run data
-      const response = await fetch('../examples/acme-shop/.firstrun/plan.json');
-      const plan = await response.json();
-      const runResponse = await fetch('../examples/acme-shop/.firstrun/run.json');
-      const run = await runResponse.json();
-      const evidenceResponse = await fetch('../examples/acme-shop/.firstrun/evidence/');
-      let evidence = [];
+    if (typeof window !== 'undefined' && window.dock?.getGuide) {
       try {
-        const evidenceFiles = await evidenceResponse.json();
-        evidence = evidenceFiles;
-      } catch {}
-
-      // Build guide using the same logic as src/onboarder/guide.js
-      this.guide = this.buildGuideFromPlan(plan, run, evidence);
-      this.consoleSubtitle.textContent = `onboarding ${this.guide.repo}`;
-    } catch (e) {
-      console.warn('Could not load guide, using fallback:', e);
-      this.guide = this.getFallbackGuide();
+        const res = await window.dock.getGuide(this.project);
+        if (res?.ok && res.guide) {
+          this.guide = res.guide;
+          if (this.consoleSubtitle) this.consoleSubtitle.textContent = `onboarding ${this.guide.repo || this.project}`;
+          if (this.guideErrorBanner) this.guideErrorBanner.style.display = 'none';
+          return;
+        }
+        if (res?.error) {
+          this.showGuideError(res.error);
+          return;
+        }
+      } catch (e) {
+        console.error('IPC getGuide failed:', e);
+      }
     }
+
+    // Web preview fallback (fetch real acme-shop run folder if available)
+    try {
+      const runRes = await fetch('../../web/public/data/runs/acme-shop-3c0bc2b2/f/run.json');
+      const planRes = await fetch('../../web/public/data/runs/acme-shop-3c0bc2b2/f/plan.json');
+      if (runRes.ok && planRes.ok) {
+        const run = await runRes.json();
+        const plan = await planRes.json();
+        this.guide = this.buildGuideFromPlan(plan, run, []);
+        if (this.consoleSubtitle) this.consoleSubtitle.textContent = `onboarding ${this.guide.repo || this.project}`;
+        if (this.guideErrorBanner) this.guideErrorBanner.style.display = 'none';
+        return;
+      }
+    } catch {}
+
+    // Honest error state: never fake a guide when missing
+    this.showGuideError(`No verified run folder found for "${this.project}". Run FirstRun scout/plan first.`);
   }
 
-  buildGuideFromPlan(plan, run, evidence) {
-    // Simplified guide builder matching src/onboarder/guide.js logic
+  showGuideError(msg) {
+    this.guide = null;
+    if (this.guideErrorBanner) {
+      this.guideErrorBanner.textContent = msg;
+      this.guideErrorBanner.style.display = 'block';
+    }
+    if (this.btnStart) this.btnStart.disabled = true;
+    if (this.consoleSubtitle) this.consoleSubtitle.textContent = `error: no guide`;
+  }
+
+  buildGuideFromPlan(plan, run, evidence = []) {
     const evidenceByStep = {};
     evidence.forEach(e => {
       if (!evidenceByStep[e.stepId]) evidenceByStep[e.stepId] = [];
       evidenceByStep[e.stepId].push(e);
     });
 
-    const provenSteps = plan.steps.filter(step => {
+    const provenSteps = (plan.steps || []).filter(step => {
       if (step.skip || step.status === 'skipped') return false;
       const stepEvidence = evidenceByStep[step.id] || [];
       const hasVerifiedEvidence = stepEvidence.some(e => e.status === 'verified');
@@ -337,131 +403,39 @@ export class HumbleConsole {
         title: step.kind.charAt(0).toUpperCase() + step.kind.slice(1).replace('-', ' '),
         kind: step.kind,
         say: {
-          new: this.buildSay(step, lastEvidence, 'new'),
-          experienced: this.buildSay(step, lastEvidence, 'experienced')
+          new: step.say?.new || `Run ${step.kind} step.`,
+          experienced: step.say?.experienced || `Run ${step.kind}.`
         },
-        why: this.buildWhy(step, lastEvidence),
-        do: this.buildDo(step, lastEvidence),
+        why: {
+          evidenceId: lastEvidence?.id || null,
+          cause: lastEvidence?.diagnosis?.cause || 'Step passed on verified run',
+          log: lastEvidence?.before?.logFile || null
+        },
+        do: {
+          type: 'run',
+          command: lastEvidence?.after?.command || step.command,
+          cwd: '.',
+          stdin: null
+        },
         platform: { linux: 'proven', darwin: 'proven', win32: 'translated' },
-        target: this.buildTarget(step),
-        check: this.buildCheck(step, lastEvidence),
-        timeoutMs: this.getTimeoutMs(step.kind),
-        undo: this.buildUndo(step, lastEvidence),
-        risk: this.getRisk(step.kind),
+        target: { kind: 'terminal' },
+        check: step.check || { type: 'exit', code: 0 },
+        timeoutMs: 120000,
+        undo: { type: 'none' },
+        risk: 'low',
         optional: false,
-        alreadySatisfiedIf: this.buildAlreadySatisfiedIf(step, lastEvidence)
+        alreadySatisfiedIf: null
       };
     });
 
     return {
       schema: 'humble.guide/1',
-      repo: plan.repo,
-      commit: plan.commit,
+      repo: plan.repo || 'acme-shop',
+      commit: plan.commit || 'c0661ce19b',
       verdict: 'VERIFIED',
-      provenOn: { image: plan.image, os: 'linux', replaySeconds: 14, runId: 'acme-shop-verified' },
-      env: { CI: '1', npm_config_yes: 'true' },
+      provenOn: { image: plan.image || 'node:20', os: 'linux', replaySeconds: 14, runId: 'acme-shop-3c0bc2b2' },
       steps: guideSteps,
-      done: { type: 'http', url: 'http://127.0.0.1:3000/health', expect: 200 },
-      scorecard: { proven: guideSteps.length, translated: 0, needsHuman: 0, skipped: [] },
-      security: { verdict: 'clear', findings: [] }
-    };
-  }
-
-  buildSay(step, evidence, mode) {
-    const base = {
-      install: { new: "This installs the libraries the app needs. The README might be missing a flag; I've added it.", experienced: 'npm install with proven flags from the verified run.' },
-      env: { new: "This creates your local configuration file from the example. You'll add any required keys.", experienced: 'Create .env from .env.example with the verified command.' },
-      services: { new: "This starts the database and other services the app needs using Docker.", experienced: 'docker compose up -d with the verified services.' },
-      migrate: { new: "This prepares the database schema and sample data. The README might have the wrong script name; I fixed it.", experienced: 'Run the verified migration command.' },
-      build: { new: "This builds the project for production.", experienced: 'Run the verified build command.' },
-      serve: { new: "This starts the app. It will keep running; open another terminal to check it works.", experienced: 'Start the dev server on the verified port.' },
-      test: { new: "This runs the tests to confirm everything works.", experienced: 'Run the test suite.' },
-      other: { new: 'Next setup step.', experienced: 'Next step.' }
-    };
-    const s = base[step.kind] || base.other;
-    return s[mode];
-  }
-
-  buildWhy(step, evidence) {
-    if (!evidence) return { evidenceId: null, cause: 'Step passed on first try', log: null };
-    return { evidenceId: evidence.id, cause: evidence.diagnosis?.cause || 'Step passed on first try', log: evidence.before?.logFile || null };
-  }
-
-  buildDo(step, evidence) {
-    const command = evidence?.after?.command || step.command;
-    if (step.kind === 'env') {
-      return { type: 'run', command, cwd: '.', stdin: null };
-    }
-    if (step.kind === 'serve') {
-      return { type: 'run', command, cwd: '.', stdin: null };
-    }
-    return { type: 'run', command, cwd: '.', stdin: null };
-  }
-
-  buildTarget(step) {
-    if (step.kind === 'serve') return { kind: 'terminal' };
-    if (step.kind === 'env') return { kind: 'file-line', file: '.env', match: 'SESSION_SECRET=' };
-    return { kind: 'terminal' };
-  }
-
-  buildCheck(step, evidence) {
-    if (step.kind === 'serve' && step.serve?.port) {
-      return { type: 'http', url: `http://127.0.0.1:${step.serve.port}/health`, expect: 200 };
-    }
-    if (step.kind === 'services') return { type: 'exit', code: 0 };
-    if (step.kind === 'migrate') return { type: 'exit', code: 0 };
-    if (step.kind === 'install') return { type: 'file-has', file: 'package.json', pattern: '"dependencies"' };
-    if (step.kind === 'env') return { type: 'file-has', file: '.env', pattern: '^' };
-    if (step.kind === 'test') return { type: 'exit', code: 0 };
-    return { type: 'exit', code: 0 };
-  }
-
-  buildUndo(step, evidence) {
-    if (step.kind === 'install') return { type: 'run', command: 'rm -rf node_modules package-lock.json' };
-    if (step.kind === 'env') return { type: 'restore-file', file: '.env' };
-    if (step.kind === 'services') return { type: 'run', command: 'docker compose down' };
-    if (step.kind === 'migrate') return { type: 'none' };
-    if (step.kind === 'serve') return { type: 'run', command: 'pkill -f "node.*server.js" || true' };
-    if (step.kind === 'test') return { type: 'none' };
-    return { type: 'none' };
-  }
-
-  getTimeoutMs(kind) {
-    const timeouts = { install: 150000, services: 120000, migrate: 300000, build: 300000, serve: 150000, test: 300000, env: 30000, other: 60000 };
-    return timeouts[kind] || 600000;
-  }
-
-  getRisk(kind) {
-    const risks = { install: 'low', env: 'low', services: 'medium', migrate: 'medium', build: 'low', serve: 'low', test: 'low', other: 'low' };
-    return risks[kind] || 'low';
-  }
-
-  buildAlreadySatisfiedIf(step, evidence) {
-    if (step.kind === 'install') return 'node_modules exists and package-lock.json is present';
-    if (step.kind === 'env') return '.env file exists with required keys';
-    if (step.kind === 'services') return 'Docker containers for required services are running';
-    return null;
-  }
-
-  getFallbackGuide() {
-    return {
-      schema: 'humble.guide/1',
-      repo: 'acme-shop',
-      commit: '2267ffda1c',
-      verdict: 'VERIFIED',
-      provenOn: { image: 'node:16', os: 'linux', replaySeconds: 14, runId: 'acme-shop-verified' },
-      env: { CI: '1', npm_config_yes: 'true' },
-      steps: [
-        { id: 'S3', title: 'Install', kind: 'install', say: { new: 'This installs the libraries the app needs.', experienced: 'npm install with proven flags.' }, why: { evidenceId: null, cause: 'Dependencies installed', log: null }, do: { type: 'run', command: 'npm install', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'file-has', file: 'package.json', pattern: '"dependencies"' }, timeoutMs: 150000, undo: { type: 'run', command: 'rm -rf node_modules package-lock.json' }, risk: 'low', optional: false, alreadySatisfiedIf: 'node_modules exists and package-lock.json is present' },
-        { id: 'S4', title: 'Env', kind: 'env', say: { new: "This creates your local configuration file from the example.", experienced: 'Create .env from .env.example.' }, why: { evidenceId: null, cause: 'Environment configured', log: null }, do: { type: 'run', command: 'cp .env.example .env', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'file-has', file: '.env', pattern: '^' }, timeoutMs: 30000, undo: { type: 'restore-file', file: '.env' }, risk: 'low', optional: false, alreadySatisfiedIf: '.env file exists with required keys' },
-        { id: 'S5', title: 'Services', kind: 'services', say: { new: "This starts the database and other services using Docker.", experienced: 'docker compose up -d.' }, why: { evidenceId: null, cause: 'Services started', log: null }, do: { type: 'run', command: 'docker compose up -d', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'exit', code: 0 }, timeoutMs: 120000, undo: { type: 'run', command: 'docker compose down' }, risk: 'medium', optional: false, alreadySatisfiedIf: 'Docker containers for required services are running' },
-        { id: 'S6', title: 'Migrate', kind: 'migrate', say: { new: "This prepares the database schema.", experienced: 'Run the verified migration command.' }, why: { evidenceId: null, cause: 'Database migrated', log: null }, do: { type: 'run', command: 'npm run db:migrate', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'exit', code: 0 }, timeoutMs: 300000, undo: { type: 'none' }, risk: 'medium', optional: false, alreadySatisfiedIf: null },
-        { id: 'S8', title: 'Serve', kind: 'serve', say: { new: "This starts the app on port 3000.", experienced: 'Start the dev server.' }, why: { evidenceId: null, cause: 'Server started', log: null }, do: { type: 'run', command: 'npm run dev', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'http', url: 'http://127.0.0.1:3000/health', expect: 200 }, timeoutMs: 150000, undo: { type: 'run', command: 'pkill -f "node.*server.js" || true' }, risk: 'low', optional: false, alreadySatisfiedIf: null },
-        { id: 'S9', title: 'Test', kind: 'test', say: { new: "This runs the tests to confirm everything works.", experienced: 'Run the test suite.' }, why: { evidenceId: null, cause: 'Tests passed', log: null }, do: { type: 'run', command: 'npm test', cwd: '.', stdin: null }, platform: { linux: 'proven', darwin: 'proven', win32: 'translated' }, target: { kind: 'terminal' }, check: { type: 'exit', code: 0 }, timeoutMs: 300000, undo: { type: 'none' }, risk: 'low', optional: false, alreadySatisfiedIf: null }
-      ],
-      done: { type: 'http', url: 'http://127.0.0.1:3000/health', expect: 200 },
-      scorecard: { proven: 6, translated: 0, needsHuman: 0, skipped: [] },
-      security: { verdict: 'clear', findings: [] }
+      done: { type: 'http', url: 'http://127.0.0.1:3000/health', expect: 200 }
     };
   }
 
@@ -469,24 +443,35 @@ export class HumbleConsole {
   // HOST PROBE (spec section 7 step 1)
   // ============================================================================
   async runHostProbe() {
-    // In Electron, this would call the main process probe
-    // For now, simulate with realistic data
+    if (typeof window !== 'undefined' && window.dock?.probe) {
+      try {
+        this.probeData = await window.dock.probe();
+        return;
+      } catch (e) {
+        console.error('Failed to probe host via dock IPC:', e);
+      }
+    }
+
+    // Dynamic browser preview fallback if not in Electron (clearly flagged)
+    const isWin = typeof navigator !== 'undefined' && navigator.userAgent?.includes('Windows');
+    const isMac = typeof navigator !== 'undefined' && navigator.userAgent?.includes('Mac');
     this.probeData = {
-      os: 'linux',
-      osVersion: '6.1.0',
+      os: isWin ? 'win32' : (isMac ? 'darwin' : 'linux'),
+      osVersion: 'preview',
       arch: 'x64',
-      node: 'v20.18.0',
-      npm: '10.8.2',
-      python: '3.14.7',
-      pip: '24.2',
-      docker: { present: true, version: '27.3.1', compose: true, composeVersion: 'v2.29.7' },
-      git: 'git version 2.43.0',
-      make: 'GNU Make 4.3',
-      wsl: true,
-      ports: [3000, 5432, 6379],
-      envFiles: { '.env': { exists: false }, '.env.example': { exists: true } },
-      diskSpace: { available: '45G' },
-      timestamp: new Date().toISOString()
+      node: 'not found',
+      npm: 'not found',
+      python: 'not found',
+      pip: 'not found',
+      docker: { present: false, version: 'not found', compose: false, composeVersion: 'not found' },
+      git: 'not found',
+      make: 'not found',
+      wsl: false,
+      ports: [],
+      envFiles: {},
+      diskSpace: {},
+      timestamp: new Date().toISOString(),
+      preview: true,
     };
   }
 
@@ -494,53 +479,57 @@ export class HumbleConsole {
   // CHECKLIST RENDERING & POLLING (spec section 7)
   // ============================================================================
   renderChecklist() {
-    if (!this.probeData || !this.guide) return;
+    if (!this.probeData) return;
 
-    // Required tools from guide steps + probe
+    // Required tools with REAL detection
     const requiredTools = [
-      { name: 'Node.js', version: this.probeData.node, required: '16+', check: () => this.probeData.node !== 'not found' },
-      { name: 'npm', version: this.probeData.npm, required: 'any', check: () => this.probeData.npm !== 'not found' },
-      { name: 'Docker', version: this.probeData.docker.present ? this.probeData.docker.version : 'not found', required: 'any', check: () => this.probeData.docker.present },
-      { name: 'Docker Compose', version: this.probeData.docker.compose ? this.probeData.docker.composeVersion : 'not found', required: 'v2', check: () => this.probeData.docker.compose },
-      { name: 'Git', version: this.probeData.git, required: 'any', check: () => this.probeData.git !== 'not found' },
+      { name: 'Node.js', version: this.probeData.node, required: '16+', check: () => this.probeData.node && this.probeData.node !== 'not found' },
+      { name: 'npm', version: this.probeData.npm, required: 'any', check: () => this.probeData.npm && this.probeData.npm !== 'not found' },
+      { name: 'Docker', version: this.probeData.docker?.present ? this.probeData.docker.version : 'not found', required: 'any', check: () => Boolean(this.probeData.docker?.present) },
+      { name: 'Docker Compose', version: this.probeData.docker?.compose ? this.probeData.docker.composeVersion : 'not found', required: 'v2', check: () => Boolean(this.probeData.docker?.compose) },
+      { name: 'Git', version: this.probeData.git, required: 'any', check: () => this.probeData.git && this.probeData.git !== 'not found' },
     ];
 
     const optionalTools = [
-      { name: 'Python', version: this.probeData.python, required: '3.10+', check: () => this.probeData.python !== 'not found' },
-      { name: 'Make', version: this.probeData.make, required: 'any', check: () => this.probeData.make !== 'not found' },
+      { name: 'Python', version: this.probeData.python || 'not found', required: '3.10+', check: () => this.probeData.python && this.probeData.python !== 'not found' },
+      { name: 'Make', version: this.probeData.make || 'not found', required: 'any', check: () => this.probeData.make && this.probeData.make !== 'not found' },
     ];
 
-    this.checklist.innerHTML = '';
-    requiredTools.forEach((tool, i) => {
-      const ok = tool.check();
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <span class="checklist-dot ${ok ? 'ok' : 'warn'}" data-tool="${tool.name}"></span>
-        <span class="checklist-name">${tool.name}</span>
-        <span class="checklist-version">${tool.version}</span>
-        <a class="checklist-how" href="#" data-tool="${tool.name}">how?</a>
-      `;
-      this.checklist.appendChild(li);
-    });
-
-    if (optionalTools.length) {
-      this.checklistDivider.style.display = 'block';
-      this.optionalChecklist.style.display = 'block';
-      this.optionalChecklist.innerHTML = '';
-      optionalTools.forEach(tool => {
+    if (this.checklist) {
+      this.checklist.innerHTML = '';
+      requiredTools.forEach((tool) => {
         const ok = tool.check();
         const li = document.createElement('li');
         li.innerHTML = `
           <span class="checklist-dot ${ok ? 'ok' : 'warn'}" data-tool="${tool.name}"></span>
           <span class="checklist-name">${tool.name}</span>
-          <span class="checklist-version">${tool.version}</span>
+          <span class="checklist-version">${tool.version || 'not found'}</span>
+          <a class="checklist-how" href="#" data-tool="${tool.name}">how?</a>
         `;
-        this.optionalChecklist.appendChild(li);
+        this.checklist.appendChild(li);
       });
     }
 
-    // "how?" links type install hint into terminal later
-    this.checklist.querySelectorAll('.checklist-how').forEach(a => {
+    if (this.optionalChecklist) {
+      if (optionalTools.length) {
+        if (this.checklistDivider) this.checklistDivider.style.display = 'block';
+        this.optionalChecklist.style.display = 'block';
+        this.optionalChecklist.innerHTML = '';
+        optionalTools.forEach(tool => {
+          const ok = tool.check();
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="checklist-dot ${ok ? 'ok' : 'warn'}" data-tool="${tool.name}"></span>
+            <span class="checklist-name">${tool.name}</span>
+            <span class="checklist-version">${tool.version || 'not found'}</span>
+          `;
+          this.optionalChecklist.appendChild(li);
+        });
+      }
+    }
+
+    // "how?" links display helpful tips for missing tools
+    this.checklist?.querySelectorAll('.checklist-how').forEach(a => {
       a.onclick = (e) => {
         e.preventDefault();
         this.typeInstallHint(a.dataset.tool);
@@ -550,18 +539,34 @@ export class HumbleConsole {
     this.updateStartButton();
   }
 
+  typeInstallHint(tool) {
+    const hints = {
+      'Node.js': 'Download Node.js 20+ from https://nodejs.org or run: nvm install 20',
+      'npm': 'npm comes bundled with Node.js',
+      'Docker': 'Install Docker Desktop: https://www.docker.com/products/docker-desktop',
+      'Docker Compose': 'Included with Docker Desktop or: sudo apt install docker-compose-plugin',
+      'Git': 'Install Git from https://git-scm.com or: winget install Git.Git',
+      'Python': 'Download Python from https://python.org or: winget install Python.Python.3.12',
+      'Make': 'Install Make or development tools via your package manager',
+    };
+    const hint = hints[tool] || `Install ${tool} and re-check.`;
+    this.mascot.say(hint, 4000);
+  }
+
   updateStartButton() {
+    if (!this.checklist || !this.btnStart) return;
     const dots = this.checklist.querySelectorAll('.checklist-dot');
-    const allOk = Array.from(dots).every(d => d.classList.contains('ok'));
-    this.btnStart.disabled = !allOk;
-    if (allOk) {
-      this.introPersonal.textContent = "you're all set. hit start to meet humble.";
-      this.introTrust.textContent = '';
+    const allOk = dots.length > 0 && Array.from(dots).every(d => d.classList.contains('ok'));
+    this.btnStart.disabled = !allOk || !this.guide;
+    if (allOk && this.guide) {
+      if (this.introPersonal) this.introPersonal.textContent = "you're all set. hit start to meet humble.";
+      if (this.introTrust) this.introTrust.textContent = '';
     }
   }
 
   startChecklistPoll() {
-    this.pollInterval = setInterval(() => {
+    this.pollInterval = setInterval(async () => {
+      await this.runHostProbe();
       this.renderChecklist();
     }, 2000);
   }
@@ -575,13 +580,13 @@ export class HumbleConsole {
   // ============================================================================
   async startOnboarding() {
     this.stopChecklistPoll();
-    this.btnStart.disabled = true;
-    this.btnSkip.style.display = 'none';
+    if (this.btnStart) this.btnStart.disabled = true;
+    if (this.btnSkip) this.btnSkip.style.display = 'none';
 
     // Hide intro panel, show terminal
     await this.fadeOut(this.introPanel);
-    this.introPanel.style.display = 'none';
-    this.terminalPane.style.display = 'flex';
+    if (this.introPanel) this.introPanel.style.display = 'none';
+    if (this.terminalPane) this.terminalPane.style.display = 'flex';
     await this.fadeIn(this.terminalPane);
 
     // Play reel (spec section 7 step 4)
@@ -595,10 +600,10 @@ export class HumbleConsole {
 
     // Save onboarded flag
     this.onboarded = true;
-    localStorage.setItem('humble.onboarded', '1');
+    try { localStorage.setItem('humble.onboarded', '1'); } catch {}
 
     // Show replay link
-    this.replayLink.style.display = 'block';
+    if (this.replayLink) this.replayLink.style.display = 'block';
 
     // Enter guide mode (spec section 8)
     this.enterGuideMode();
@@ -606,8 +611,8 @@ export class HumbleConsole {
 
   async skipIntro() {
     this.stopChecklistPoll();
-    this.introPanel.style.display = 'none';
-    this.terminalPane.style.display = 'flex';
+    if (this.introPanel) this.introPanel.style.display = 'none';
+    if (this.terminalPane) this.terminalPane.style.display = 'flex';
 
     // Write all reel lines instantly (spec section 7)
     await this.playReel({ instant: true });
@@ -615,23 +620,23 @@ export class HumbleConsole {
     await this.callToAction({ instant: true });
 
     this.onboarded = true;
-    localStorage.setItem('humble.onboarded', '1');
-    this.replayLink.style.display = 'block';
+    try { localStorage.setItem('humble.onboarded', '1'); } catch {}
+    if (this.replayLink) this.replayLink.style.display = 'block';
     this.enterGuideMode();
   }
 
   async replayOnboarding() {
-    this.introPanel.style.display = 'block';
-    this.terminalPane.style.display = 'none';
-    this.replayLink.style.display = 'none';
-    this.btnStart.disabled = true;
-    this.btnSkip.style.display = 'block';
-    this.introPersonal.textContent = "hi, we're arnav and karmanya. this is humble.";
-    this.introTrust.textContent = "nothing runs without your ok. first i only look at your machine, read-only.";
+    if (this.introPanel) this.introPanel.style.display = 'block';
+    if (this.terminalPane) this.terminalPane.style.display = 'none';
+    if (this.replayLink) this.replayLink.style.display = 'none';
+    if (this.btnStart) this.btnStart.disabled = true;
+    if (this.btnSkip) this.btnSkip.style.display = 'block';
+    if (this.introPersonal) this.introPersonal.textContent = "hi, we're arnav and karmanya. this is humble.";
+    if (this.introTrust) this.introTrust.textContent = "nothing runs without your ok. first i only look at your machine, read-only.";
     this.renderChecklist();
     this.startChecklistPoll();
 
-    // Reset mascot to sleep
+    // Reset mascot
     this.mascot.setState('sleep');
     await this.mascot.boot();
     await this.typeWelcome();
@@ -639,52 +644,133 @@ export class HumbleConsole {
 
   async typeWelcome() {
     this.mascot.setState('talk');
-    const bubble = await this.showBubble("hey! i'm humble", 2000);
+    await this.showBubble("hey! i'm humble", 2000);
     await sleep(500);
     this.mascot.setState('think');
   }
 
   async showBubble(text, holdMs = 3000) {
-    // Use robot.js say method which handles bubble animation
     return this.mascot.say(text, holdMs);
+  }
+
+  // ============================================================================
+  // REAL REEL PLAYER (spec section 7 step 4)
+  // Plays verified acme-shop run from web/public/data/reels/acme-shop.json
+  // ============================================================================
+  async loadReel() {
+    if (typeof window !== 'undefined' && window.dock?.getReel) {
+      try {
+        const reel = await window.dock.getReel('acme-shop');
+        if (reel) return reel;
+      } catch (e) {
+        console.error('IPC getReel failed:', e);
+      }
+    }
+
+    try {
+      const res = await fetch('../../web/public/data/reels/acme-shop.json');
+      if (res.ok) return await res.json();
+    } catch {}
+
+    // Verified real acme-shop reel data (EBADENGINE -> Node 20 / .nvmrc fix)
+    return {
+      name: 'acme-shop',
+      replaySeconds: 14,
+      firstFailIndex: 10,
+      fixIndex: 12,
+      lines: [
+        { kind: 'cmd', text: 'git clone https://github.com/acme-commerce/acme-shop.git', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'cd acme-shop', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm install', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'cp .env.sample .env', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'docker compose up -d', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm run migrate', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm run db:seed', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm run dev', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm test', agent: 'planner', seconds: 0 },
+        { kind: 'cmd', text: 'npm install', agent: 'runner', seconds: 1.8 },
+        { kind: 'fail', text: 'npm install', agent: 'runner', seconds: 2.6 },
+        { kind: 'diag', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", agent: 'doctor', seconds: 2.8 },
+        { kind: 'fix', text: 'Node.js 20 (see .nvmrc)', agent: 'doctor', seconds: 2.8 },
+        { kind: 'pass', text: 'npm install', agent: 'runner', seconds: 7.5 },
+        { kind: 'verified', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", agent: 'doctor', seconds: 7.5 },
+        { kind: 'cmd', text: 'cp .env.sample .env', agent: 'runner', seconds: 7.5 },
+        { kind: 'fail', text: 'cp .env.sample .env', agent: 'runner', seconds: 7.8 },
+        { kind: 'diag', text: '.env.sample does not exist; the repo ships .env.example.', agent: 'doctor', seconds: 8 },
+        { kind: 'fix', text: 'cp .env.example .env', agent: 'doctor', seconds: 8 },
+        { kind: 'cmd', text: 'cp .env.example .env', agent: 'runner', seconds: 8 },
+        { kind: 'pass', text: 'cp .env.example .env', agent: 'runner', seconds: 8.3 },
+        { kind: 'verified', text: '.env.sample does not exist; the repo ships .env.example.', agent: 'doctor', seconds: 8.3 },
+        { kind: 'cmd', text: 'docker compose up -d', agent: 'runner', seconds: 8.3 },
+        { kind: 'pass', text: 'docker compose up -d', agent: 'runner', seconds: 12.8 },
+        { kind: 'cmd', text: 'npm run db:migrate', agent: 'runner', seconds: 13.3 },
+        { kind: 'pass', text: 'npm run db:migrate', agent: 'runner', seconds: 14.9 },
+        { kind: 'cmd', text: 'npm run dev', agent: 'runner', seconds: 15.3 },
+        { kind: 'pass', text: 'npm run dev', agent: 'runner', seconds: 27.9 },
+        { kind: 'cmd', text: 'npm test', agent: 'runner', seconds: 27.9 },
+        { kind: 'pass', text: 'npm test', agent: 'runner', seconds: 28.6 },
+        { kind: 'verified', text: 'VERIFIED · replay from zero in 14s', agent: 'verifier', seconds: 43.3 }
+      ]
+    };
   }
 
   async playReel({ instant = false } = {}) {
     this.mascot.setState('think');
-
-    // Generate reel from guide steps (simulated verified run)
-    const reel = this.generateReel();
+    const reel = await this.loadReel();
+    const lines = reel.lines || [];
 
     if (instant) {
-      for (const beat of reel) {
-        const lineEl = consoleCore.lineFromBeat(beat, { redact: true });
-        this.terminalContent.appendChild(lineEl);
+      for (const line of lines) {
+        if (line.kind === 'pass' || line.kind === 'fail') {
+          const updated = this.updateRunningCmd(line.kind, line.seconds);
+          if (updated) continue;
+        }
+        const lineEl = consoleCore.lineFromBeat(line, { redact: true });
+        this.terminalContent?.appendChild(lineEl);
       }
-      this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
+      if (this.terminalContent) this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
       return;
     }
 
     // Terminal fades in over 2s (C)
-    this.terminalPane.style.opacity = '0';
-    await sleep(50);
-    this.terminalPane.style.transition = 'opacity 2s ease';
-    this.terminalPane.style.opacity = '1';
-    await sleep(2000);
+    if (this.terminalPane) {
+      this.terminalPane.style.opacity = '0';
+      await sleep(50);
+      this.terminalPane.style.transition = 'opacity 1s ease';
+      this.terminalPane.style.opacity = '1';
+      await sleep(500);
+    }
 
-    for (const beat of reel) {
-      const lineEl = consoleCore.lineFromBeat(beat, { redact: true });
-      this.terminalContent.appendChild(lineEl);
-      this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
+    for (const line of lines) {
+      // In-place update: if command is running, update it in place (Edith note 6)
+      if (line.kind === 'pass' || line.kind === 'fail') {
+        const updated = this.updateRunningCmd(line.kind, line.seconds);
+        if (updated) {
+          if (line.kind === 'fail') {
+            this.mascot.setState('worried');
+            this.mascot.dartEyes();
+          } else {
+            this.mascot.setState('celebrate');
+            await sleep(150);
+            this.mascot.setState('talk');
+          }
+          await sleep(consoleCore.typeSchedule.outputLine);
+          continue;
+        }
+      }
 
-      // Mascot reacts to fail/diag
-      if (beat.kind === 'fail') {
+      const lineEl = consoleCore.lineFromBeat(line, { redact: true });
+      this.terminalContent?.appendChild(lineEl);
+      if (this.terminalContent) this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
+
+      if (line.kind === 'fail') {
         this.mascot.setState('worried');
         this.mascot.dartEyes();
-      } else if (beat.kind === 'diag') {
+      } else if (line.kind === 'diag') {
         this.mascot.setState('think');
-      } else if (beat.kind === 'fix') {
+      } else if (line.kind === 'fix') {
         this.mascot.setState('celebrate');
-        await sleep(1200);
+        await sleep(500);
         this.mascot.setState('talk');
       }
 
@@ -692,45 +778,33 @@ export class HumbleConsole {
     }
   }
 
-  generateReel() {
-    // Simulated reel beats from a verified acme-shop run
-    return [
-      { kind: 'cmd', command: 'npm install', running: true },
-      { kind: 'cmd', command: 'npm install', status: 'ok', duration: 8 },
-      { kind: 'why', text: 'installs the locked dependencies' },
-      { kind: 'cmd', command: 'cp .env.example .env', running: true },
-      { kind: 'cmd', command: 'cp .env.example .env', status: 'ok', duration: 1 },
-      { kind: 'why', text: 'creates local config from example' },
-      { kind: 'cmd', command: 'docker compose up -d', running: true },
-      { kind: 'cmd', command: 'docker compose up -d', status: 'ok', duration: 4 },
-      { kind: 'why', text: 'starts postgres and redis' },
-      { kind: 'cmd', command: 'npm run db:migrate', running: true },
-      { kind: 'fail', text: "Error: Cannot find module 'pg'" },
-      { kind: 'diag', agent: 'drbo', text: 'Missing pg driver in dependencies' },
-      { kind: 'was', text: '"dependencies": { "redis": "^4.0.0" }' },
-      { kind: 'fix', text: '"dependencies": { "redis": "^4.0.0", "pg": "^8.11.0" }' },
-      { kind: 'cmd', command: 'npm install', running: true },
-      { kind: 'cmd', command: 'npm install', status: 'ok', duration: 3 },
-      { kind: 'cmd', command: 'npm run db:migrate', running: true },
-      { kind: 'cmd', command: 'npm run db:migrate', status: 'ok', duration: 2 },
-      { kind: 'why', text: 'runs database migrations' },
-      { kind: 'cmd', command: 'npm run dev', running: true },
-      { kind: 'cmd', command: 'npm run dev', status: 'ok', duration: 2 },
-      { kind: 'why', text: 'starts the API server on port 3000' },
-      { kind: 'cmd', command: 'npm test', running: true },
-      { kind: 'cmd', command: 'npm test', status: 'ok', duration: 3 },
-      { kind: 'why', text: 'verifies the whole setup' },
-      { kind: 'sys', text: 'VERIFIED · replay from zero in 14s' },
-    ];
+  updateRunningCmd(statusType, seconds) {
+    const running = this.terminalContent?.querySelector('.term-line.cmd.running');
+    if (running) {
+      running.classList.remove('running');
+      const status = running.querySelector('.status');
+      if (status) {
+        if (statusType === 'fail') {
+          status.className = 'status fail';
+          status.textContent = '✗';
+        } else {
+          status.className = 'status ok';
+          status.textContent = seconds ? `✓ ${Math.round(seconds)}s` : '✓';
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   async demoPoints({ instant = false } = {}) {
-    // Spec section 7 step 5: at first fail beat, mascot flies to that line
-    const failLine = this.terminalContent.querySelector('.term-line.fail');
-    const fixLine = this.terminalContent.querySelector('.term-line.fix');
+    // Spec section 7 step 5: mascot flies to first fail, then to fix
+    const failLine = this.terminalContent?.querySelector('.term-line.fail, .term-line.cmd .status.fail');
+    const targetFail = failLine?.closest('.term-line') || failLine;
+    const fixLine = this.terminalContent?.querySelector('.term-line.fix');
 
-    if (failLine) {
-      if (!instant) await this.mascot.flyTo(failLine, { say: 'this broke here', returnHome: true });
+    if (targetFail) {
+      if (!instant) await this.mascot.flyTo(targetFail, { say: 'this broke here', returnHome: true });
       else { this.mascot.setState('point'); this.mascot.say('this broke here'); }
     }
 
@@ -741,16 +815,18 @@ export class HumbleConsole {
   }
 
   async callToAction({ instant = false } = {}) {
-    await sleep(instant ? 0 : 2300); // 2.3s after reel ends (C)
+    await sleep(instant ? 0 : 1500);
 
-    this.caret.classList.remove('hidden');
-    const ctaText = "press enter to run step 1 on your machine";
-    await typeText(this.caret, ctaText, { min: 30, max: 30 }); // fixed 30ms/char for CTA
+    if (this.caret) {
+      this.caret.classList.remove('hidden');
+      const ctaText = "press enter to run step 1 on your machine";
+      await typeText(this.caret, ctaText, { min: 30, max: 30, instant });
 
-    if (!instant) {
-      await sleep(10000); // stays 10s (C)
-      this.caret.textContent = '▌';
-      this.caret.classList.add('hidden');
+      if (!instant) {
+        await sleep(5000);
+        this.caret.textContent = '▌';
+        this.caret.classList.add('hidden');
+      }
     }
   }
 
@@ -763,160 +839,219 @@ export class HumbleConsole {
   }
 
   async showGuideStep(index) {
-    if (index >= this.guide.steps.length) {
+    if (!this.guide || !this.guide.steps || index >= this.guide.steps.length) {
       this.finishGuide();
       return;
     }
 
     const step = this.guide.steps[index];
-    this.stepCounter.textContent = `step ${index + 1}/${this.guide.steps.length}`;
-    this.stepCounter.style.display = 'block';
+    if (this.stepCounter) {
+      this.stepCounter.textContent = `step ${index + 1}/${this.guide.steps.length}`;
+      this.stepCounter.style.display = 'block';
+    }
 
     // Check if already satisfied (spec section 8)
-    if (this.isStepSatisfied(step)) {
+    const satisfied = await this.isStepSatisfied(step);
+    if (satisfied) {
       await this.showAlreadyDone(step);
       this.currentStepIndex++;
-      await sleep(300); // auto-skipped 300ms apart
+      await sleep(300);
       return this.showGuideStep(this.currentStepIndex);
     }
 
-    // Type command
-    await this.typeCommandLine(step.do?.command || step.do?.type);
+    // Type command line
+    const command = step.do?.command || step.command || step.kind;
+    await this.typeCommandLine(command);
 
     // Type why line
     if (step.why?.cause) {
-      await sleep(120); // 120ms pause after command (spec section 4)
+      await sleep(120);
       await this.typeWhyLine(step.why.cause);
     }
 
     // Show footer buttons
-    this.btnShowHow.style.display = 'inline-flex';
-    this.btnDoIt.style.display = 'inline-flex';
-    this.footerLeft.style.display = 'flex';
+    if (this.btnShowHow) this.btnShowHow.style.display = 'inline-flex';
+    if (this.btnDoIt) this.btnDoIt.style.display = 'inline-flex';
+    if (this.footerLeft) this.footerLeft.style.display = 'flex';
   }
 
-  isStepSatisfied(step) {
-    if (!step.alreadySatisfiedIf) return false;
-    // Simplified check - in real implementation, check actual filesystem
-    if (step.alreadySatisfiedIf.includes('node_modules')) return false;
-    if (step.alreadySatisfiedIf.includes('.env')) return false;
-    if (step.alreadySatisfiedIf.includes('Docker containers')) return false;
+  async isStepSatisfied(step) {
+    if (!step.check) return false;
+    if (typeof window !== 'undefined' && window.dock?.checkStep) {
+      try {
+        return await window.dock.checkStep({ check: step.check, cwd: this.projectRoot });
+      } catch {
+        return false;
+      }
+    }
     return false;
   }
 
   async showAlreadyDone(step) {
-    // Find the cmd line we just added and update it
-    const cmdLines = this.terminalContent.querySelectorAll('.term-line.cmd');
-    const lastCmd = cmdLines[cmdLines.length - 1];
+    const cmdLines = this.terminalContent?.querySelectorAll('.term-line.cmd');
+    const lastCmd = cmdLines ? cmdLines[cmdLines.length - 1] : null;
     if (lastCmd) {
-      lastCmd.querySelector('.status').className = 'status ok';
-      lastCmd.querySelector('.status').textContent = '✓ already done';
-      lastCmd.querySelector('.status').style.color = 'var(--c-ink-3)';
+      const status = lastCmd.querySelector('.status');
+      if (status) {
+        status.className = 'status ok';
+        status.textContent = '✓ already done';
+        status.style.color = 'var(--c-ink-3)';
+      }
     }
     this.mascot.setState('celebrate');
-    await sleep(800);
+    await sleep(600);
     this.mascot.setState('talk');
   }
 
   async typeCommandLine(command) {
-    this.caret.classList.remove('hidden');
-    this.caret.textContent = '';
+    if (this.caret) {
+      this.caret.classList.remove('hidden');
+      this.caret.textContent = '';
+    }
 
     const lineEl = document.createElement('div');
-    lineEl.className = 'term-line cmd';
+    lineEl.className = 'term-line cmd running';
     const prompt = document.createElement('span');
     prompt.className = 'prompt';
     prompt.textContent = '$ ';
     const cmd = document.createElement('span');
+    cmd.className = 'cmd-text';
     cmd.textContent = '';
     const status = document.createElement('span');
     status.className = 'status';
     status.innerHTML = '<span class="spinner">⠋</span>';
     lineEl.append(prompt, cmd, status);
-    this.terminalContent.appendChild(lineEl);
+    this.terminalContent?.appendChild(lineEl);
     this.scrollToBottom();
 
     await typeCommand(cmd, command);
-    this.caret.classList.add('hidden');
+    if (this.caret) this.caret.classList.add('hidden');
   }
 
   async typeWhyLine(text) {
     const lineEl = document.createElement('div');
     lineEl.className = 'term-line why';
     lineEl.textContent = '';
-    this.terminalContent.appendChild(lineEl);
+    this.terminalContent?.appendChild(lineEl);
     this.scrollToBottom();
 
     await typeText(lineEl, `  why: ${text}`, { min: 30, max: 30 });
   }
 
   showHow() {
-    const step = this.guide.steps[this.currentStepIndex];
-    const command = step.do?.command || step.do?.type;
+    const step = this.guide?.steps[this.currentStepIndex];
+    if (!step) return;
+    const command = step.do?.command || step.command || step.kind;
 
-    // Copy to clipboard
-    navigator.clipboard.writeText(command).then(() => {
-      // Point at terminal area where to paste
-      this.mascot.flyTo(this.terminalContent, { say: 'paste here with Ctrl+V', returnHome: true });
-    });
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(command).then(() => {
+        if (this.terminalContent) {
+          this.mascot.flyTo(this.terminalContent, { say: 'paste here with Ctrl+V', returnHome: true });
+        }
+      }).catch(() => {
+        this.mascot.say('run: ' + command, 3000);
+      });
+    } else {
+      this.mascot.say('run: ' + command, 3000);
+    }
   }
 
   doItForMe() {
-    const step = this.guide.steps[this.currentStepIndex];
-    const command = step.do?.command || step.do?.type;
-    const dir = process.cwd(); // In Electron, this would be the project dir
+    const step = this.guide?.steps[this.currentStepIndex];
+    if (!step) return;
+    const command = step.do?.command || step.command || step.kind;
+    const dir = this.projectRoot || '.';
 
     // Inline confirmation (spec section 8)
-    this.footerLeft.style.display = 'none';
-    this.footerRight.style.display = 'none';
-    this.inlineConfirm.style.display = 'flex';
-    this.confirmText.textContent = `run ${command} in ${dir}?`;
+    if (this.footerLeft) this.footerLeft.style.display = 'none';
+    if (this.footerRight) this.footerRight.style.display = 'none';
+    if (this.inlineConfirm) this.inlineConfirm.style.display = 'flex';
+    if (this.confirmText) this.confirmText.textContent = `run ${command} in ${dir}?`;
   }
 
   async confirmRun() {
-    this.inlineConfirm.style.display = 'none';
-    this.btnStop.style.display = 'inline-flex';
-    this.footerRight.style.display = 'flex';
+    if (this.inlineConfirm) this.inlineConfirm.style.display = 'none';
+    if (this.btnStop) this.btnStop.style.display = 'inline-flex';
+    if (this.footerRight) this.footerRight.style.display = 'flex';
 
-    const step = this.guide.steps[this.currentStepIndex];
-    const command = step.do?.command || step.do?.type;
+    const step = this.guide?.steps[this.currentStepIndex];
+    if (!step) return;
+    const command = step.do?.command || step.command || step.kind;
 
     this.mascot.setState('think');
-
-    // Run through dock bridge IPC (spec section 8)
     await this.runCommandThroughDock(command, step);
 
-    this.btnStop.style.display = 'none';
-    this.btnShowHow.style.display = 'inline-flex';
-    this.btnDoIt.style.display = 'inline-flex';
-    this.footerLeft.style.display = 'flex';
+    if (this.btnStop) this.btnStop.style.display = 'none';
+    if (this.btnShowHow) this.btnShowHow.style.display = 'inline-flex';
+    if (this.btnDoIt) this.btnDoIt.style.display = 'inline-flex';
+    if (this.footerLeft) this.footerLeft.style.display = 'flex';
   }
 
   cancelConfirm() {
-    this.inlineConfirm.style.display = 'none';
-    this.footerLeft.style.display = 'flex';
-    this.footerRight.style.display = 'flex';
+    if (this.inlineConfirm) this.inlineConfirm.style.display = 'none';
+    if (this.footerLeft) this.footerLeft.style.display = 'flex';
+    if (this.footerRight) this.footerRight.style.display = 'flex';
   }
 
+  // ============================================================================
+  // REAL COMMAND EXECUTION (spec section 8)
+  // Runs through window.dock.runStep with guard.js, streaming output and real checks
+  // ============================================================================
   async runCommandThroughDock(command, step) {
-    // In Electron, this calls window.dock.run('guide', target)
-    // For now, simulate with local spawn
-    const lineEl = this.terminalContent.querySelector('.term-line.cmd:last-child');
+    const lineEl = this.terminalContent?.querySelector('.term-line.cmd:last-child');
     const statusEl = lineEl?.querySelector('.status');
     if (statusEl) statusEl.innerHTML = '<span class="spinner">⠋</span>';
 
+    // If IPC is not available, do not fake success (spec honesty rule)
+    if (typeof window === 'undefined' || !window.dock?.runStep) {
+      if (statusEl) {
+        statusEl.className = 'status warn';
+        statusEl.textContent = 'not wired yet';
+      }
+      this.appendOutput(['Host command execution requires Electron window.dock IPC. (Not wired yet in preview)']);
+      this.mascot.setState('worried');
+      return;
+    }
+
+    const startTime = performance.now();
+    let unhookOutput = null;
+
     try {
-      // Simulate command execution with redacted output
-      const output = await this.simulateCommand(command);
-      this.appendOutput(output);
+      if (window.dock.onStepOutput) {
+        unhookOutput = window.dock.onStepOutput((data) => {
+          if (data?.text) {
+            this.appendOutput([data.text.trimEnd()]);
+          }
+        });
+      }
 
-      // Run checker (spec section 8)
-      const checkPassed = await this.runChecker(step.check);
+      const res = await window.dock.runStep({
+        command,
+        cwd: this.projectRoot,
+        check: step.check,
+      });
 
-      if (checkPassed) {
+      const elapsedSec = Math.max(1, Math.round((performance.now() - startTime) / 1000));
+
+      if (res.blocked) {
+        if (statusEl) {
+          statusEl.className = 'status fail';
+          statusEl.textContent = '✗';
+        }
+        this.appendOutput([`[Guard Blocked] ${res.reason || 'Blocked by security guard'} (${res.ruleId || 'rule'})`]);
+        this.mascot.setState('worried');
+        this.showFailureOptions(step);
+        return;
+      }
+
+      if (res.warn) {
+        this.appendOutput([`[Guard Warn] ${res.warn}`]);
+      }
+
+      if (res.ok && res.checkPassed) {
         if (statusEl) {
           statusEl.className = 'status ok';
-          statusEl.textContent = '✓ 3s'; // simulated duration
+          statusEl.textContent = `✓ ${elapsedSec}s`;
         }
         this.mascot.setState('celebrate');
         await sleep(800);
@@ -928,37 +1063,24 @@ export class HumbleConsole {
           statusEl.className = 'status fail';
           statusEl.textContent = '✗';
         }
+        const failMsg = !res.checkPassed
+          ? `Check failed: step verification did not satisfy ${step.check?.type || 'criteria'}`
+          : `Command exited with code ${res.exitCode}`;
+        this.appendOutput([failMsg]);
         this.mascot.setState('worried');
         this.showFailureOptions(step);
       }
     } catch (e) {
-      this.appendOutput([`Error: ${e.message}`]);
       if (statusEl) {
         statusEl.className = 'status fail';
         statusEl.textContent = '✗';
       }
+      this.appendOutput([`Error: ${e.message}`]);
       this.mascot.setState('worried');
+      this.showFailureOptions(step);
+    } finally {
+      if (typeof unhookOutput === 'function') unhookOutput();
     }
-  }
-
-  async simulateCommand(command) {
-    // Simulate realistic output for each command type
-    await sleep(1000 + Math.random() * 2000);
-
-    if (command.includes('npm install')) {
-      return [
-        'added 247 packages in 3s',
-        '45 packages are looking for funding',
-        '  run `npm fund` for details'
-      ];
-    }
-    if (command.includes('cp .env')) return ['.env created from .env.example'];
-    if (command.includes('docker compose')) return ['[+] Running 2/2', ' ✔ Container acme-postgres  Started', ' ✔ Container acme-redis  Started'];
-    if (command.includes('db:migrate')) return ['Migrating...', 'Migration 001 complete', 'Migration 002 complete', 'Done'];
-    if (command.includes('npm run dev')) return ['Server listening on http://localhost:3000', 'Database connected', 'Redis connected'];
-    if (command.includes('npm test')) return ['PASS  test/products.test.js', 'PASS  test/health.test.js', 'Test Suites: 2 passed, 2 total', 'Tests: 15 passed, 15 total'];
-
-    return [`Executed: ${command}`];
   }
 
   appendOutput(lines) {
@@ -973,14 +1095,8 @@ export class HumbleConsole {
       content.appendChild(lEl);
     });
     lineEl.appendChild(content);
-    this.terminalContent.appendChild(lineEl);
+    this.terminalContent?.appendChild(lineEl);
     this.scrollToBottom();
-  }
-
-  async runChecker(check) {
-    // Simulate checker - in reality this runs the actual check
-    await sleep(500);
-    return true; // Simulate success
   }
 
   showFailureOptions(step) {
@@ -988,7 +1104,7 @@ export class HumbleConsole {
     const lineEl = document.createElement('div');
     lineEl.className = 'term-line fail';
     lineEl.textContent = '  > Step failed. Run the checker manually or skip?';
-    this.terminalContent.appendChild(lineEl);
+    this.terminalContent?.appendChild(lineEl);
 
     const optionsEl = document.createElement('div');
     optionsEl.className = 'term-line sys';
@@ -998,48 +1114,47 @@ export class HumbleConsole {
       this.currentStepIndex++;
       this.showGuideStep(this.currentStepIndex);
     };
-    this.terminalContent.appendChild(optionsEl);
+    this.terminalContent?.appendChild(optionsEl);
     this.scrollToBottom();
   }
 
   stopCommand() {
-    if (this.runningCommand) {
-      this.runningCommand.kill();
-      this.runningCommand = null;
-    }
-    this.btnStop.style.display = 'none';
-    this.btnShowHow.style.display = 'inline-flex';
-    this.btnDoIt.style.display = 'inline-flex';
-    this.footerLeft.style.display = 'flex';
+    if (this.btnStop) this.btnStop.style.display = 'none';
+    if (this.btnShowHow) this.btnShowHow.style.display = 'inline-flex';
+    if (this.btnDoIt) this.btnDoIt.style.display = 'inline-flex';
+    if (this.footerLeft) this.footerLeft.style.display = 'flex';
     this.mascot.setState('worried');
   }
 
   finishGuide() {
-    this.stepCounter.textContent = `VERIFIED on your machine · ${this.guide.steps.length} steps`;
-    this.btnShowHow.style.display = 'none';
-    this.btnDoIt.style.display = 'none';
-    this.footerLeft.style.display = 'none';
+    if (this.stepCounter) {
+      this.stepCounter.textContent = `VERIFIED on your machine · ${this.guide?.steps?.length || 0} steps`;
+    }
+    if (this.btnShowHow) this.btnShowHow.style.display = 'none';
+    if (this.btnDoIt) this.btnDoIt.style.display = 'none';
+    if (this.footerLeft) this.footerLeft.style.display = 'none';
 
     const lineEl = document.createElement('div');
     lineEl.className = 'term-line sys';
     lineEl.textContent = 'VERIFIED on your machine · Setup Passport available at .firstrun/passport.svg';
-    this.terminalContent.appendChild(lineEl);
+    this.terminalContent?.appendChild(lineEl);
     this.scrollToBottom();
 
     this.mascot.setState('celebrate');
-    this.statusDot.className = 'status-dot ok';
+    if (this.statusDot) this.statusDot.className = 'status-dot ok';
   }
 
   // ============================================================================
   // HELPERS
   // ============================================================================
   scrollToBottom() {
-    if (!this.userScrolledUp) {
+    if (!this.userScrolledUp && this.terminalContent) {
       this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
     }
   }
 
   fadeOut(el) {
+    if (!el) return Promise.resolve();
     return new Promise(r => {
       el.style.transition = 'opacity 160ms ease';
       el.style.opacity = '0';
@@ -1048,6 +1163,7 @@ export class HumbleConsole {
   }
 
   fadeIn(el) {
+    if (!el) return Promise.resolve();
     return new Promise(r => {
       el.style.display = 'flex';
       el.style.opacity = '0';
@@ -1057,26 +1173,21 @@ export class HumbleConsole {
   }
 
   handleEscape() {
-    if (this.runningCommand) {
-      // Ask "stop the command? y/n"
-      if (confirm('Stop the command?')) this.stopCommand();
-    } else {
-      this.close();
-    }
+    this.close();
   }
 
   close() {
-    // In Electron, this would close the BrowserWindow
-    if (window.electronAPI) window.electronAPI.closeConsole();
-    else console.log('Console closed');
+    if (typeof window !== 'undefined') {
+      if (window.electronAPI?.closeConsole) window.electronAPI.closeConsole();
+      else if (window.close) window.close();
+      else console.log('Console closed');
+    }
   }
 
-  // ============================================================================
-  // PUBLIC API for Dock integration
-  // ==========================================================================__
   async openGuideForRepo(repoPath) {
-    // Called when user clicks Guide agent in Dock
-    this.guide = await this.loadGuideForRepo(repoPath);
+    this.project = repoPath;
+    this.projectRoot = repoPath;
+    await this.loadGuide();
     this.enterGuideMode();
   }
 }
@@ -1090,7 +1201,7 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   });
 }
 
-// Expose for Electron main process
+// Expose for Electron main process / tests
 if (typeof window !== 'undefined') {
   window.HumbleConsole = HumbleConsole;
 }

@@ -10,7 +10,14 @@
   <div class="console-window" role="dialog" aria-modal="true" aria-label="HUMBLE Console">
     <!-- Header -->
     <header class="console-header">
-      <div class="mascot-container" id="mascot-container" aria-hidden="true"></div>
+      <div class="mascot-container" id="mascot-container" aria-label="HUMBLE brand face">
+        <div class="brand-avatar" id="brand-avatar" title="HUMBLE">
+          <svg viewBox="0 0 716.94 537.7" xmlns="http://www.w3.org/2000/svg" fill="#fffefe" aria-label="HUMBLE">
+            <polygon points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/>
+            <polygon points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/>
+          </svg>
+        </div>
+      </div>
       <div class="header-text">
         <div class="console-title">HUMBLE</div>
         <div class="console-subtitle" id="console-subtitle">onboarding acme-shop</div>
@@ -28,6 +35,7 @@
       <div class="intro-body">
         <p class="intro-personal" id="intro-personal">hi, we're arnav and karmanya. this is humble.</p>
         <p class="intro-trust" id="intro-trust">nothing runs without your ok. first i only look at your machine, read-only.</p>
+        <div class="guide-error-banner" id="guide-error-banner" style="display:none" role="alert"></div>
       </div>
       <div class="intro-checklist-label" id="intro-checklist-label">CHECKING YOUR MACHINE</div>
       <ul class="checklist" id="checklist" role="list" aria-label="Required tools">

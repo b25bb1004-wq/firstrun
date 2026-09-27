@@ -21,4 +21,10 @@ contextBridge.exposeInMainWorld('dock', {
   answerAsk: (id, answer)    => ipcRenderer.send('dock:ask:answer', { id, answer }),
   look:      (want)          => ipcRenderer.invoke('spatial:look', want),   // "look at my screen" button (spec 17)
   lookForBob: ()             => ipcRenderer.invoke('spatial:forBob'),
+  probe:     ()              => ipcRenderer.invoke('dock:probe'),
+  getGuide:  (target)        => ipcRenderer.invoke('dock:getGuide', target),
+  getReel:   (name)          => ipcRenderer.invoke('dock:getReel', name),
+  runStep:   (opts)          => ipcRenderer.invoke('dock:runStep', opts),
+  checkStep: (opts)          => ipcRenderer.invoke('dock:checkStep', opts),
+  onStepOutput: (fn)         => ipcRenderer.on('dock:step:output', (_e, data) => fn(data)),
 });
