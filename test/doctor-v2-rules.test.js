@@ -360,3 +360,105 @@ test('browser-not-downloaded: Playwright browsers missing → install them', () 
   assert.equal(d.fix.actions[0].command, 'npx playwright install --with-deps chromium');
   assert.equal(rule.test({ log: 'npm ERR! missing script', tried: new Set() }), null);
 });
+
+// wagtail (final run): shebang interpreter missing
+test('shebang-interpreter-missing: positive case (./manage.py exit 127) replaces with python manage.py', () => {
+  const rule = RULES.find((r) => r.id === 'shebang-interpreter-missing');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: '/bin/sh: ./manage.py: /usr/bin/python3.12: bad interpreter: No such file or directory\n',
+    step: { command: './manage.py migrate', kind: 'other', source: {} },
+    facts: {
+      files: ['manage.py'],
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+      python: { deps: [], requirementsFiles: [] },
+      envExample: null,
+      compose: null,
+      ports: [3000],
+      loadsDotenv: false,
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'shebang-interpreter-missing');
+  assert.equal(res.class, 'runtime-version');
+  assert.ok(res.fix);
+  assert.equal(res.fix.actions[0].command, 'python manage.py migrate');
+});
+
+test('shebang-interpreter-missing: positive case (exit 127) replaces with python script.py', () => {
+  const rule = RULES.find((r) => r.id === 'shebang-interpreter-missing');
+  const ctx = makeCtx({
+    log: './manage.py: line 1: /usr/bin/python3.12: No such file or directory\n',
+    step: { command: './manage.py migrate --plan', kind: 'other', source: {} },
+    facts: {
+      files: ['manage.py'],
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+      python: { deps: [], requirementsFiles: [] },
+      envExample: null,
+      compose: null,
+      ports: [3000],
+      loadsDotenv: false,
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.fix.actions[0].command, 'python manage.py migrate --plan');
+});
+
+test('shebang-interpreter-missing: negative case (missing file, not shebang) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'shebang-interpreter-missing');
+  const ctx = makeCtx({
+    log: 'bash: ./manage.py: No such file or directory\n',
+    step: { command: './manage.py migrate', kind: 'other', source: {} },
+    facts: {
+      files: ['manage.py'],
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+      python: { deps: [], requirementsFiles: [] },
+      envExample: null,
+      compose: null,
+      ports: [3000],
+      loadsDotenv: false,
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('shebang-interpreter-missing: negative case (no python facts) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'shebang-interpreter-missing');
+  const ctx = makeCtx({
+    log: '/bin/sh: ./manage.py: /usr/bin/python3.12: bad interpreter: No such file or directory\n',
+    step: { command: './manage.py migrate', kind: 'other', source: {} },
+    facts: {
+      files: ['manage.py'],
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+      python: null,
+      envExample: null,
+      compose: null,
+      ports: [3000],
+      loadsDotenv: false,
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('shebang-interpreter-missing: negative case (script not in repo) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'shebang-interpreter-missing');
+  const ctx = makeCtx({
+    log: '/bin/sh: ./manage.py: /usr/bin/python3.12: bad interpreter: No such file or directory\n',
+    step: { command: './manage.py migrate', kind: 'other', source: {} },
+    facts: {
+      files: ['other.py'],
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+      python: { deps: [], requirementsFiles: [] },
+      envExample: null,
+      compose: null,
+      ports: [3000],
+      loadsDotenv: false,
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});

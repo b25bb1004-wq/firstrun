@@ -1070,8 +1070,39 @@ export const RULES = [
     },
   },
   {
-    // full-stack-fastapi: "bash: scripts/prestart.sh: No such file or directory". The file exists, in backend/.
-    id: 'wrong-directory',
+        // wagtail (final run): ./manage.py migrate fails with exit 127 because the shebang points to
+        // a Python version not in the image (e.g. #!/usr/bin/env python3.12 on python:3.11).
+        // Replace ./X.py with python X.py.
+        id: 'shebang-interpreter-missing',
+        test({ log, step, facts }) {
+          // Match ./manage.py, ./X.py, ./script.py etc. (not python X.py)
+          const m = step.command.match(/^\.\/([\w.-]+\.py)\b\s*(.*)/);
+          if (!m) return null;
+          const script = m[1];
+          const args = m[2] || '';
+          // Shebang failure patterns: exit 127, bad interpreter, no such file or directory for the interpreter
+          if (!/exit(?:ed)?\s+127|bad interpreter|python.*No such file or directory|No such file or directory.*python|exec format error|Exec format error/.test(log)) return null;
+          // The file must exist in the repo
+          if (!facts.files?.includes(script)) return null;
+          // Only for Python runtime
+          if (!facts.python) return null;
+          const newCmd = `python ${script} ${args}`.trim();
+          return {
+            ruleId: 'shebang-interpreter-missing',
+            class: 'runtime-version',
+            confidence: 0.9,
+            cause: `The script \`${script}\` has a shebang pointing to a Python interpreter not present in the image (exit 127 / bad interpreter). Running it via \`python ${script}\` uses the sandbox's Python instead.`,
+            fix: {
+              actions: [{ type: 'replace-step', command: newCmd }],
+              patches: [],
+              doc: { kind: 'replace-command', text: newCmd },
+            },
+          };
+        },
+      },
+      {
+        // full-stack-fastapi: "bash: scripts/prestart.sh: No such file or directory". The file exists, in backend/.
+        id: 'wrong-directory',
     test({ log, step, facts }) {
       const m = log.match(/(?:bash|sh|python3?|node): (?:line \d+: |\d+: )?(?:can't open file ['"]?)?(?:\/workspace\/)?([\w.-]+\/[\w./-]+|[\w.-]+\.(?:sh|py|js|ts|mjs|cjs))['"]?:? (?:\[Errno 2\] )?No such file or directory/);
       if (!m) return null;
