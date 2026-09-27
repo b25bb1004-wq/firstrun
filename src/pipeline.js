@@ -154,7 +154,9 @@ export async function verifyRepo(repoDir, opts = {}) {
         rec.state.bobcoins = budget.spent();
         rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', review: true, asked: rv.asked, skipped: rv.skipped.length, bobcoins: rv.bobcoins, ok: rv.ok, taskId: rv.taskId, error: rv.error });
         for (const s of rv.skipped) say('planner', `IBM Bob: skip \`${s.command}\` (${s.reason})`);
-        plan.bobReview = { asked: rv.asked, skipped: rv.skipped, bobcoins: rv.bobcoins, ok: rv.ok };
+        for (const s of plan.steps.filter((x) => x.bobWhy)) say('planner', `IBM Bob: ${s.id} \`${s.command}\`: ${s.bobWhy}`);
+        for (const m of rv.missing || []) { say('planner', `IBM Bob: the docs miss a prerequisite: ${m.what} (${m.evidence})`); plan.conflicts.push({ what: 'prerequisite found by IBM Bob', docs: 'not in the docs', truth: m.what, source: m.evidence }); }
+        plan.bobReview = { asked: rv.asked, reviewed: rv.reviewed || 0, skipped: rv.skipped, missing: rv.missing || [], bobcoins: rv.bobcoins, ok: rv.ok };
       }
     }
     plan.originalImage = plan.image;
@@ -242,7 +244,9 @@ export async function verifyRepo(repoDir, opts = {}) {
         const opts = { onData, timeoutMs, detectServer: ['other', 'build'].includes(step.kind) };
         r = await box.exec(step.command, opts);
         // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
-        const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
+        // Any failing exit: make wraps the shim's 97 as 'make: *** [...] Error 97' with exit 2 (lincolnloop, tko22).
+        // The request file exists only when the shim wrote it, so this cannot misfire on an ordinary failure.
+        const req = r.exitCode !== 0 ? await box.readFile('/firstrun/services.request') : null;
         if (req) {
           const [cwd, asked] = req.trim().split('\n');
           const sr = await runServicesStep(asked.replace(/^docker-compose\b/, 'docker compose'), { sandbox: box, facts, cwd });

@@ -101,5 +101,9 @@ export async function askBob({ mode, request, workspace, maxCost = 1.5, maxTurns
   }
   const text = typeof result.last_message === 'string' ? result.last_message : JSON.stringify(result.last_message);
   const json = extractJson(text);
-  return { ok: !!json, json, text, bobcoins, taskId: result.stats?.task_id, error: json ? null : `Bob replied without the expected JSON: ${tail(text, 4)}`, ms: r.durationMs, errors };
+  // Out of turns: Bob spent every turn reading files and never answered (rest-hapi: 12 turns, 15 tool calls; the
+  // "last message" was a file listing). Say so, instead of "replied without the expected JSON".
+  const turnLimit = !json && errors.some((e) => /maximum of \d+ turns/i.test(String(e)));
+  const error = json ? null : turnLimit ? `Bob used all ${maxTurns} turns investigating and did not answer` : `Bob replied without the expected JSON: ${tail(text, 4)}`;
+  return { ok: !!json, json, text, bobcoins, taskId: result.stats?.task_id, error, turnLimit, ms: r.durationMs, errors };
 }

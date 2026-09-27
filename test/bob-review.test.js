@@ -40,10 +40,27 @@ test("Bob's skips are applied, capped at 0.2 Bobcoins, and he can only skip what
   assert.equal(b.spent(), 0.07);
 });
 
-test('no doubtful lines: Bob is not called at all (0 Bobcoins)', async () => {
+test('no doubtful lines: Bob still reviews the plan (reasons, missing prerequisites) but may skip nothing', async () => {
   const p = plan(); p.steps = p.steps.filter((s) => !['S2', 'S3'].includes(s.id));
-  const r = await bobReviewPlan({ plan: p, facts: {}, budget: budget(1), askBob: async () => { throw new Error('must not be called'); } });
-  assert.equal(r.asked, 0);
+  const target = p.steps.find((s) => !s.skip);
+  const reply = { ok: true, bobcoins: 0.06, json: {
+    decisions: p.steps.map((s) => ({ id: s.id, run: false, reason: 'installs the dependencies' })),
+    missing: [{ what: 'Redis must be running', evidence: 'docker-compose.yml:9' }, { what: 'no evidence given' }],
+  } };
+  const r = await bobReviewPlan({ plan: p, facts: {}, budget: budget(1), askBob: async () => reply });
+  assert.equal(r.asked, 0, 'nothing was doubtful');
+  assert.equal(r.skipped.length, 0, 'Bob cannot skip a step he was not asked about');
+  assert.equal(target.skip ?? false, false);
+  assert.equal(target.bobWhy, undefined, 'a step Bob wanted skipped gets no endorsement as its why');
+  assert.deepEqual(r.missing, [{ what: 'Redis must be running', evidence: 'docker-compose.yml:9' }], 'only prerequisites with file:line evidence');
+});
+
+test('Bob\'s reasons become the why of steps he keeps', async () => {
+  const p = plan(); p.steps = p.steps.filter((s) => !['S2', 'S3'].includes(s.id));
+  const keep = p.steps.find((s) => !s.skip);
+  const r = await bobReviewPlan({ plan: p, facts: {}, budget: budget(1), askBob: async () => ({ ok: true, bobcoins: 0.05, json: { decisions: [{ id: keep.id, run: true, reason: 'installs the backend packages' }] } }) });
+  assert.equal(r.ok, true);
+  assert.equal(keep.bobWhy, 'installs the backend packages');
 });
 
 test('a bad or empty reply changes nothing', async () => {

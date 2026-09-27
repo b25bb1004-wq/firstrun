@@ -202,6 +202,12 @@ export class Sandbox {
   }
 
   wrap(command) {
+    // `cd X && rest` when the shell is already inside X (carried over from an earlier step): stay, don't nest.
+    const m = /^cd\s+([\w./-]+?)\/?\s*&&\s*([\s\S]+)$/.exec(String(command).trim());
+    if (m && !m[1].startsWith('/') && !m[1].includes('..')) {
+      const dir = m[1];
+      command = `if [ ! -d "${dir}" ] && [ "\${PWD%/}" != "\${PWD%/${dir}}" ]; then :; else cd "${dir}" || exit $?; fi && ${m[2]}`;
+    }
     return [
       'source /firstrun/state.env >/dev/null 2>&1',
       'cd "$(cat /firstrun/cwd 2>/dev/null || echo /workspace)"',
