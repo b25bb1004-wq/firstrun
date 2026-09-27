@@ -958,3 +958,24 @@ html.has-fluid .intro-stick { background: transparent; }
 html::after { content: ""; position: fixed; top: 0; bottom: 0; left: 33.333%; right: 33.333%; z-index: 0; pointer-events: none;
   border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
 @media (max-width: 700px) { html::after { left: 50%; right: auto; border-right: 0; } }
+
+/* v22 (Edith): alche-style section headers and the construction-line outro (sections.js). */
+.sec-head { display: grid; gap: 10px; margin: 0 0 18px; }
+.sec-index { margin: 0; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.sec-index span { color: var(--blue); }
+.sec-rule { display: block; height: 1px; background: var(--line); transform: scaleX(0); transform-origin: 0 50%; transition: transform 900ms cubic-bezier(.23, 1, .32, 1); }
+.sec-head.drawn .sec-rule { transform: scaleX(1); }
+.outro { position: relative; padding: clamp(80px, 14vh, 160px) clamp(16px, 4vw, 40px) clamp(48px, 8vh, 96px); text-align: center; overflow: hidden; }
+.outro-guides { position: absolute; left: 0; right: 0; top: clamp(80px, 14vh, 160px); width: 100%; height: clamp(160px, 22vw, 320px); pointer-events: none; }
+.outro-guides .g { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 1400; stroke-dashoffset: 1400; transition: stroke-dashoffset 1400ms cubic-bezier(.23, 1, .32, 1); }
+.outro-guides .v { transition-delay: 150ms; }
+.outro-guides .arc { fill: none; stroke: var(--blue); stroke-width: 1; stroke-dasharray: 2 6; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity 700ms ease 500ms; }
+.outro-guides .a2, .outro-guides .a3 { stroke: var(--pink); transition-delay: 700ms; }
+.outro-word { position: relative; margin: 0; display: flex; justify-content: center; font: 800 clamp(72px, 19vw, 300px)/1 var(--display); letter-spacing: -.04em; color: var(--ink); }
+.outro-word span { display: inline-block; opacity: 0; transform: translateY(18%); filter: blur(8px); transition: opacity 700ms cubic-bezier(.23, 1, .32, 1), transform 900ms cubic-bezier(.23, 1, .32, 1), filter 700ms ease; }
+.outro-word span:nth-child(1) { transition-delay: 900ms; } .outro-word span:nth-child(2) { transition-delay: 980ms; } .outro-word span:nth-child(3) { transition-delay: 1060ms; }
+.outro-word span:nth-child(4) { transition-delay: 1140ms; } .outro-word span:nth-child(5) { transition-delay: 1220ms; } .outro-word span:nth-child(6) { transition-delay: 1300ms; }
+.outro-line { position: relative; margin: 18px 0 0; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 700ms ease 1500ms; }
+.outro.drawn .g { stroke-dashoffset: 0; } .outro.drawn .arc { opacity: .9; }
+.outro.drawn .outro-word span { opacity: 1; transform: none; filter: blur(0); } .outro.drawn .outro-line { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sec-rule { transform: none; } .outro-guides .g { stroke-dashoffset: 0; } .outro-guides .arc, .outro-word span, .outro-line { opacity: 1; transform: none; filter: none; } }
