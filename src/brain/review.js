@@ -40,9 +40,12 @@ concrete reason for each decision (what the line does, and what would break or n
 Full plan (in order):
 ${plan.steps.map((s) => `- ${s.id} ${doubtful.includes(s) ? 'ASK ' : ''}\`${s.command}\` [${s.kind}${s.skip ? `, skipped: ${s.skip}` : ''}] (${s.source?.file || '?'}:${s.source?.line || '?'} § ${s.source?.section || ''})`).join('\n')}
 
-Reply with ONLY one JSON object in a \`\`\`json block, one entry per ASK step:
+Also, for EVERY step (ASK or not), give a one-line reason a newcomer would understand: what the line does for this repo.
+And list prerequisites the docs never mention but the repo needs (a service, an env var, a runtime version), each with the file:line that proves it.
+Reply with ONLY one JSON object in a \`\`\`json block: one entry per step in "decisions" ("run" matters only for ASK steps), plus "missing":
 \`\`\`json
-{ "decisions": [ { "id": "S4", "run": false, "reason": "usage example for users of the published package" } ] }
+{ "decisions": [ { "id": "S4", "run": false, "reason": "usage example for users of the published package" }, { "id": "S5", "run": true, "reason": "installs the backend's Python dependencies" } ],
+  "missing": [ { "what": "PostgreSQL 15 must be running", "evidence": "docker-compose.yml:12" } ] }
 \`\`\`
 `;
 }
@@ -53,7 +56,8 @@ Reply with ONLY one JSON object in a \`\`\`json block, one entry per ASK step:
  */
 export async function bobReviewPlan({ plan, facts, budget, maxCost = 0.2, askBob = realAskBob }) {
   const doubtful = doubtfulSteps(plan);
-  if (!doubtful.length) return { asked: 0, skipped: [], bobcoins: 0, ok: true };
+  // Every repo gets the review now (reasons for all steps, missing prerequisites); only doubtful steps may be skipped.
+  if (!plan.steps.some((s) => !s.skip)) return { asked: 0, skipped: [], bobcoins: 0, ok: true };
   const cap = Math.min(maxCost, budget?.cap?.() ?? maxCost);
   if (cap < 0.05) return { asked: doubtful.length, skipped: [], bobcoins: 0, ok: false, error: 'no Bobcoins left for the plan review' };
   const res = await askBob({ mode: 'firstrun-planner', request: reviewRequest(plan, doubtful), workspace: facts?.root, maxCost: cap, maxTurns: 6, name: 'plan-review' });
@@ -62,6 +66,14 @@ export async function bobReviewPlan({ plan, facts, budget, maxCost = 0.2, askBob
   if (!res.ok || !decisions) return { asked: doubtful.length, skipped: [], bobcoins: res.bobcoins || 0, ok: false, error: res.error || 'no decisions in reply', taskId: res.taskId };
   const ids = new Set(doubtful.map((s) => s.id));
   const skipped = [];
+  // Bob's one-line reasons become each step's "why" (shown in the passport and the onboarder).
+  for (const d of decisions) {
+    const st = d && plan.steps.find((x) => x.id === d.id);
+    if (st && typeof d.reason === 'string' && d.reason.trim() && d.run !== false) st.bobWhy = d.reason.trim().slice(0, 160);
+  }
+  const missing = (Array.isArray(res.json?.missing) ? res.json.missing : [])
+    .filter((m) => m && typeof m.what === 'string' && /\S+:\d+/.test(String(m.evidence || ''))) // only with file:line evidence
+    .slice(0, 5).map((m) => ({ what: String(m.what).slice(0, 160), evidence: String(m.evidence).slice(0, 80) }));
   for (const d of decisions) {
     if (!d || !ids.has(d.id) || d.run !== false) continue; // Bob may only skip steps he was asked about
     const s = plan.steps.find((x) => x.id === d.id);
@@ -71,5 +83,5 @@ export async function bobReviewPlan({ plan, facts, budget, maxCost = 0.2, askBob
     s.skippedBy = 'bob';
     skipped.push({ id: s.id, command: s.command, reason });
   }
-  return { asked: doubtful.length, skipped, bobcoins: res.bobcoins || 0, ok: true, taskId: res.taskId };
+  return { asked: doubtful.length, reviewed: decisions.length, skipped, missing, bobcoins: res.bobcoins || 0, ok: true, taskId: res.taskId };
 }

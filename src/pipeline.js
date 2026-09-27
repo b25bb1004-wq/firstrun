@@ -154,7 +154,9 @@ export async function verifyRepo(repoDir, opts = {}) {
         rec.state.bobcoins = budget.spent();
         rec.emitEvent('planner', 'bob', { mode: 'firstrun-planner', review: true, asked: rv.asked, skipped: rv.skipped.length, bobcoins: rv.bobcoins, ok: rv.ok, taskId: rv.taskId, error: rv.error });
         for (const s of rv.skipped) say('planner', `IBM Bob: skip \`${s.command}\` (${s.reason})`);
-        plan.bobReview = { asked: rv.asked, skipped: rv.skipped, bobcoins: rv.bobcoins, ok: rv.ok };
+        for (const s of plan.steps.filter((x) => x.bobWhy)) say('planner', `IBM Bob: ${s.id} \`${s.command}\`: ${s.bobWhy}`);
+        for (const m of rv.missing || []) { say('planner', `IBM Bob: the docs miss a prerequisite: ${m.what} (${m.evidence})`); plan.conflicts.push({ what: 'prerequisite found by IBM Bob', docs: 'not in the docs', truth: m.what, source: m.evidence }); }
+        plan.bobReview = { asked: rv.asked, reviewed: rv.reviewed || 0, skipped: rv.skipped, missing: rv.missing || [], bobcoins: rv.bobcoins, ok: rv.ok };
       }
     }
     plan.originalImage = plan.image;

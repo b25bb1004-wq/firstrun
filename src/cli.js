@@ -61,7 +61,8 @@ function parseArgs(argv) {
     else if (a.startsWith('--')) {
       const [k, v] = a.slice(2).split('=');
       if (v !== undefined) args[k] = v;
-      else if (argv[i + 1] && !argv[i + 1].startsWith('--')) args[k] = argv[++i];
+      // --root may repeat (ui --root a --root b): collect them instead of keeping only the last one.
+      else if (argv[i + 1] && !argv[i + 1].startsWith('--')) args[k] = k === 'root' && args[k] !== undefined ? [].concat(args[k], argv[++i]) : argv[++i];
       else args[k] = true;
     } else args._.push(a);
   }
