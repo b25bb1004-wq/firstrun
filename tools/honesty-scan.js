@@ -310,53 +310,61 @@ function findViolations(filePath, content) {
   }
 
   // 6. Sample data without badge (in HTML/JSX - only for user-facing components)
-  // Only check index.html and similar user-facing files
-  const userFacingFiles = [
-    'web/public/index.html',
-  ];
-  const isUserFacing = userFacingFiles.some(f => filePath.endsWith(f));
+    // Only check index.html and similar user-facing files
+    const userFacingFiles = [
+      'web/public/index.html',
+    ];
+    const isUserFacing = userFacingFiles.some(f => filePath.endsWith(f));
   
-  if (isUserFacing && ['.html'].includes(extname(filePath))) {
-    // Look for data that looks like sample/demo but lacks badge
-    // Only flag in visible UI text content (between tags), not in attributes/JS
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const lineNum = i + 1;
+    if (isUserFacing && ['.html'].includes(extname(filePath))) {
+      // Look for data that looks like sample/demo but lacks badge
+      // Only flag in visible UI text content (between tags), not in attributes/JS
+      let inCodeBlock = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineNum = i + 1;
       
-      // Only check visible text content (between > and <)
-      const visibleTextMatches = line.match(/>([^<]+)</g) || [];
-      for (const match of visibleTextMatches) {
-        const text = match.slice(1, -1); // remove > and <
+        // Track if we're inside a <pre> or <code> block
+        if (line.includes('<pre') || line.includes('<code')) inCodeBlock = true;
+        if (line.includes('</pre>') || line.includes('</code>')) inCodeBlock = false;
+      
+        // Only check visible text content (between > and <)
+        const visibleTextMatches = line.match(/>([^<]+)</g) || [];
+        for (const match of visibleTextMatches) {
+          // Skip code block content
+          if (inCodeBlock) continue;
         
-        const sampleIndicators = [
-          /acme-shop/i, /demo/i, /example/i, /sample/i, /placeholder/i
-        ];
+          const text = match.slice(1, -1); // remove > and <
         
-        for (const indicator of sampleIndicators) {
-          if (indicator.test(text)) {
-            // Check if there's a badge nearby
-            const contextStart = Math.max(0, i - 3);
-            const contextEnd = Math.min(lines.length, i + 4);
-            const context = lines.slice(contextStart, contextEnd).join('\n');
-            if (context.includes('[recorded run]') || context.includes('[sample data]') ||
-                context.includes('data-badge') || context.includes('badge') ||
-                context.includes('evidenceLink') || context.includes('recorded')) {
-              continue;
-            }
+          const sampleIndicators = [
+            /acme-shop/i, /demo/i, /example/i, /sample/i, /placeholder/i
+          ];
+        
+          for (const indicator of sampleIndicators) {
+            if (indicator.test(text)) {
+              // Check if there's a badge nearby
+              const contextStart = Math.max(0, i - 3);
+              const contextEnd = Math.min(lines.length, i + 4);
+              const context = lines.slice(contextStart, contextEnd).join('\n');
+              if (context.includes('[recorded run]') || context.includes('[sample data]') ||
+                  context.includes('data-badge') || context.includes('badge') ||
+                  context.includes('evidenceLink') || context.includes('recorded')) {
+                continue;
+              }
             
-            violations.push({
-              file: filePath.replace(ROOT + '/', ''),
-              line: lineNum,
-              type: 'missing_sample_badge',
-              message: `Sample/demo data indicator "${indicator.source.replace(/\\\//g, '')}" in visible text lacks visible [recorded run] or [sample data] badge in same component`,
-              snippet: line.trim().slice(0, 120)
-            });
-            break;
+              violations.push({
+                file: filePath.replace(ROOT + '/', ''),
+                line: lineNum,
+                type: 'missing_sample_badge',
+                message: `Sample/demo data indicator "${indicator.source.replace(/\\//g, '')}" in visible text lacks visible [recorded run] or [sample data] badge in same component`,
+                snippet: line.trim().slice(0, 120)
+              });
+              break;
+            }
           }
         }
       }
     }
-  }
 
   return violations;
 }

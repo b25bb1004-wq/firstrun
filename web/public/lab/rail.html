@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide lab · Rail guide</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/lab/lab.css">
+<style>
+  /* The rail: a reserved gutter left of the log. The guide lives here and never covers text. */
+  .rail { position: absolute; left: 12px; top: 0; bottom: 0; width: 22px; pointer-events: none; }
+  .rail::before { content: ""; position: absolute; left: 10.5px; top: 10px; bottom: 10px; width: 1px; background: var(--c-line); }
+  .mark { position: absolute; left: 3px; width: 16px; height: 12px; overflow: visible; }
+  .mark path, .mark line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .mark .crack { stroke: var(--c-crack); stroke-width: 1.8; stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw 260ms var(--ease-out) forwards; }
+  .mark .stitch { stroke: var(--c-thread); stroke-width: 1.6; stroke-dasharray: 8; stroke-dashoffset: 8; animation: draw 160ms var(--ease-out) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .puck { position: absolute; left: 0; top: 0; width: 22px; height: 22px; will-change: transform; z-index: 2; }
+  .puck-body { width: 22px; height: 22px; border-radius: 50%; background: #0d1030; border: 1.5px solid var(--ring, var(--c-core));
+    display: grid; place-items: center; box-shadow: 0 0 10px -3px var(--ring, var(--c-core)); transition: border-color 200ms ease, box-shadow 200ms ease; }
+  .puck-body svg { width: 12px; height: 9px; }
+  @media (prefers-reduced-motion: reduce) { .mark .crack, .mark .stitch { animation: none; stroke-dashoffset: 0; } }
+</style>
+</head>
+<body>
+<main class="lab">
+  <h1>Rail guide</h1>
+  <p class="sub">The guide rides a rail beside the log, like a text caret with a spring. It never covers what it points at.</p>
+
+  <div class="panel" role="region" aria-label="HUMBLE console prototype">
+    <header>
+      <div>
+        <div class="title">HUMBLE</div>
+        <div class="subtitle">onboarding acme-shop</div>
+      </div>
+      <span class="status" id="status">starting</span>
+    </header>
+    <div class="term" id="term">
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <div class="controls"><button type="button" id="again">Play again</button></div>
+  <p class="src">Prototype. Recorded acme-shop run (a demo repo with seeded breaks): every command, failure, diagnosis, fix and duration comes from /data/reels/acme-shop.json. Only the pacing is tuned for reading.</p>
+</main>
+
+<script type="module">
+import { loadReel, toScript, play, spring, el } from '/lab/reel-engine.js';
+
+const MARK = '<svg viewBox="0 0 716.94 537.7" aria-hidden="true"><polygon fill="#fffefe" points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/><polygon fill="#fffefe" points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/></svg>';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const term = document.getElementById('term'), status = document.getElementById('status');
+const speed = Number(new URLSearchParams(location.search).get('speed')) || 1;
+let token = { stop: false };
+
+async function run() {
+  token.stop = true; token = { stop: false };
+  const reel = await loadReel();
+  const script = toScript(reel);
+  const content = document.getElementById('content');
+
+  // The rail and the puck live inside the scrolling content, so they scroll with the rows they point at.
+  const setup = () => {
+    const rail = el('div', 'rail'); const puck = el('div', 'puck'); const body = el('div', 'puck-body');
+    body.innerHTML = MARK; puck.append(body); rail.append(puck);
+    content.append(rail);
+    return { rail, puck, body };
+  };
+  let g;
+  const ring = (c) => g.body.style.setProperty('--ring', c);
+  // Stretch along the motion while gliding, then settle: the only "character" in the motion.
+  let pos;
+  const centerOf = (node) => node.offsetTop + node.offsetHeight / 2 - 11;
+  const glide = (node) => {
+    const y = centerOf(node);
+    return Promise.race([pos.to(y, { instant: reduced }), new Promise((r) => setTimeout(r, 520))]);
+  };
+  const markAt = (node, html, cls) => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'mark ' + cls); svg.setAttribute('viewBox', '0 0 16 12');
+    svg.style.top = (node.offsetTop + node.offsetHeight / 2 - 6) + 'px';
+    svg.innerHTML = html; g.rail.insertBefore(svg, g.puck); return svg;
+  };
+  const anim = (kf, ms) => (reduced || !g.body.animate ? Promise.resolve() : g.body.animate(kf, { duration: ms / speed, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }).finished);
+
+  let lastFail = null;
+  const hooks = {
+    onStart() {
+      content.textContent = '';
+      g = setup();
+      pos = spring((y, v) => {
+        const s = Math.min(0.14, Math.abs(v) / 2600);
+        g.puck.style.transform = `translateY(${y.toFixed(1)}px) scale(${(1 - s * 0.6).toFixed(3)}, ${(1 + s).toFixed(3)})`;
+      }, { value: 10 });
+      pos.to(10, { instant: true });
+      ring('var(--c-core)'); status.textContent = 'following the README';
+    },
+    async onCmd(row) { content.append(g.rail); ring('var(--c-core)'); await glide(row); },
+    async onFail(row) {
+      ring('var(--c-fail)'); status.textContent = 'a step broke';
+      lastFail = markAt(row, '<path class="crack" d="M1 7 L5 3 L8 8 L11 3 L15 6"/>', 'is-crack');
+      await anim([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }], 300);
+    },
+    async onDiag(row, note) {
+      note.classList.add('unfold'); ring('var(--c-bob)'); status.textContent = 'DR.BO is reading the log';
+      await glide(note); // it moves down to read the diagnosis with you
+      await anim([{ transform: 'rotate(0)' }, { transform: 'rotate(-12deg)' }, { transform: 'rotate(0)' }], 520);
+    },
+    async onFix(row, note) {
+      note.classList.add('unfold'); ring('var(--c-thread)'); status.textContent = 'fixing the README';
+      await glide(note);
+      if (lastFail) {
+        lastFail.insertAdjacentHTML('beforeend', '<line class="stitch" x1="3" y1="2" x2="6" y2="10"/>');
+        await new Promise((r) => setTimeout(r, 90));
+        lastFail.insertAdjacentHTML('beforeend', '<line class="stitch" x1="7" y1="2" x2="10" y2="10" style="animation-delay:90ms"/>');
+        lastFail.insertAdjacentHTML('beforeend', '<line class="stitch" x1="11" y1="2" x2="14" y2="10" style="animation-delay:180ms"/>');
+        lastFail = null;
+      }
+    },
+    async onPass(row, ev) {
+      await glide(row);
+      ring('var(--c-ok)');
+      await anim([{ transform: 'scale(1)' }, { transform: 'scale(1.12, .86)' }, { transform: 'scale(1)' }], 260); // a nod
+      if (ev.phase !== 'replay') status.textContent = 'step passed';
+    },
+    async onPhase(banner) { ring('var(--c-muted)'); status.textContent = 'replaying from zero'; await glide(banner); },
+    async onVerdict(stamp) {
+      await glide(stamp);
+      ring('var(--c-ok)'); status.textContent = 'verified';
+      await anim([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-9px) scale(.94, 1.08)', offset: .45 }, { transform: 'translateY(0) scale(1.12, .86)', offset: .8 }, { transform: 'translateY(0) scale(1)' }], 520);
+    },
+  };
+  await play(script, { content, scroller: term, hooks, speed, reduced, token });
+}
+document.getElementById('again').addEventListener('click', run);
+run().catch((e) => { status.textContent = 'could not load the recorded run'; console.error(e); });
+</script>
+</body>
+</html>

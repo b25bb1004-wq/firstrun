@@ -720,49 +720,27 @@ a.agent-live-tag:hover, a.agent-live-tag:focus-visible { text-decoration: underl
 }
 
 /* ==========================================================================
-   PROVE IT LIVE — Hero Verification Panel
+   THREAD GUIDE — Hero Panel
    ========================================================================== */
 
-.prove-live {
+.thread-guide-panel {
   margin: 44px auto 0;
   max-width: 860px;
   width: 100%;
   text-align: left;
 }
 
-.prove-panel {
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  background: var(--surface);
-  position: relative;
-  overflow: hidden;
-  box-shadow: none;
-}
-
-.prove-progress-track {
-  height: 2px;
-  width: 100%;
-  background: var(--line);
-  position: relative;
-}
-
-.prove-progress-bar {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.3s ease;
-}
-
-.prove-panel-header {
+.thread-guide-header {
   padding: 24px 28px 16px;
   border-bottom: 1px solid var(--line);
 }
 
-.prove-panel-header .eyebrow {
+.thread-guide-header .eyebrow {
   margin: 0 0 8px;
   font-size: 11px;
 }
 
-.prove-headline {
+.thread-guide-headline {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: clamp(24px, 3.4vw, 36px);
   font-weight: 700;
@@ -770,53 +748,38 @@ a.agent-live-tag:hover, a.agent-live-tag:focus-visible { text-decoration: underl
   margin: 0 0 6px;
 }
 
-.prove-sub {
+.thread-guide-sub {
   color: var(--muted);
   font-size: 14px;
   margin: 0;
   max-width: 60ch;
 }
 
-.prove-input-block {
-  padding: 20px 28px;
-}
-
-.prove-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.prove-chip {
-  background: none;
-  border: 1px solid var(--line);
+.thread-guide-footer {
+  padding: 12px 28px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
   color: var(--muted);
-  font: 500 12px var(--mono);
-  border-radius: 2px;
-  padding: 5px 12px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  margin: 0;
 }
 
-.prove-chip:hover {
-  color: var(--ink);
-  border-color: var(--muted);
+@media (max-width: 600px) {
+  .thread-guide-header {
+    padding: 18px 16px 14px;
+  }
+  .thread-guide-footer {
+    padding: 10px 16px;
+  }
 }
 
-.prove-chip.active {
-  color: var(--ink);
-  border-color: var(--ink);
-  background: var(--bg);
-}
+/* The thread guide panel inside the hero */
+.hero-full .thread-guide-panel { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+#thread-guide-mount { flex-direction: column; align-items: center; position: relative; gap: 4px; }
+#thread-guide-mount .thread-panel { width: 100%; max-width: 560px; }
 
-.prove-field-row {
-  display: flex;
-  gap: 10px;
-}
-
-.prove-input {
-  flex: 1;
+/* ==========================================================================
+   PROVE IT LIVE — Hero Verification Panel (REMOVED - replaced by thread guide)
+   ========================================================================== */
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 2px;
@@ -854,136 +817,6 @@ a.agent-live-tag:hover, a.agent-live-tag:focus-visible { text-decoration: underl
   cursor: wait;
 }
 
-#humble-console-mount {
-  padding: 16px 28px 24px;
-  display: flex;
-  justify-content: center;
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-}
-
-@media (max-width: 600px) {
-  #humble-console-mount {
-    padding: 12px 14px 18px;
-  }
-}
-
-.prove-console {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-  padding: 20px 28px;
-  min-height: 140px;
-}
-
-.prove-mascot-edge {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 4px;
-}
-
-.prove-mascot-edge img {
-  width: 64px;
-  height: 80px;
-  object-fit: contain;
-}
-
-.prove-stream-wrapper {
-  flex: 1;
-  min-width: 0;
-}
-
-.prove-stream-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.prove-row {
-  font-size: 13px;
-  line-height: 1.5;
-  animation: proveRowReveal 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
-}
-
-@keyframes proveRowReveal {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.prove-agent {
-  font-weight: 600;
-  min-width: 68px;
-  display: inline-block;
-}
-
-.agent-harvey { color: var(--c-scout); }
-.agent-mach { color: var(--c-runner); }
-.agent-drbo { color: var(--c-doctor); }
-.agent-larp { color: var(--c-verifier); }
-.agent-unity { color: var(--c-planner); }
-.agent-echo { color: var(--c-scribe); }
-.agent-vigil { color: var(--robot-core, #ff9a3c); }
-
-.prove-action {
-  color: var(--ink);
-}
-
-.prove-result-line {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font: 600 13px var(--mono);
-  color: var(--c-verifier);
-}
-
-.prove-result-line a {
-  text-decoration: underline;
-  color: var(--accent);
-}
-
-.prove-footer {
-  padding: 12px 28px;
-  border-top: 1px solid var(--line);
-  font-size: 11px;
-  color: var(--muted);
-  margin: 0;
-}
-
-@media (max-width: 600px) {
-  .prove-panel-header {
-    padding: 18px 16px 14px;
-  }
-  .prove-input-block {
-    padding: 16px;
-  }
-  .prove-field-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .prove-btn {
-    width: 100%;
-    text-align: center;
-  }
-  .prove-console {
-    padding: 16px;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .prove-footer {
-    padding: 10px 16px;
-  }
-}
-
 /* Construction-line motifs */
 .construction-corner {
   position: relative;
@@ -1007,94 +840,6 @@ a.agent-live-tag:hover, a.agent-live-tag:focus-visible { text-decoration: underl
 .construction-corner::after {
   bottom: -7px;
   right: -5px;
-}
-
-/* Narrative Brand Story strip */
-.prove-brand-story {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  font-size: 12.5px;
-  color: var(--muted);
-  padding: 8px 12px;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
-  border: 1px dashed var(--line);
-  border-radius: 2px;
-}
-.story-label {
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 11.5px;
-}
-.story-chip-break {
-  color: var(--brand-crack);
-  font-weight: 600;
-}
-.story-chip-fix {
-  color: var(--brand-electric);
-  font-weight: 600;
-}
-.story-thread-arrow {
-  opacity: 0.8;
-}
-
-/* Pink crack for failures / breaks */
-.prove-row-crack,
-.prove-row[data-kind="crack"] {
-  border-left: 2px solid var(--brand-crack) !important;
-  background: color-mix(in srgb, var(--brand-crack) 6%, transparent);
-  padding: 4px 8px;
-  border-radius: 0 2px 2px 0;
-}
-.prove-crack-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 1px 6px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--brand-crack) 15%, transparent);
-  color: var(--brand-crack);
-  border: 1px solid var(--brand-crack);
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-/* Blue thread for repairs / fixes */
-.prove-row-thread,
-.prove-row[data-kind="thread"] {
-  border-left: 2px dashed var(--brand-electric) !important;
-  background: color-mix(in srgb, var(--brand-electric) 6%, transparent);
-  padding: 4px 8px;
-  border-radius: 0 2px 2px 0;
-}
-.prove-thread-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 1px 6px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--brand-electric) 15%, transparent);
-  color: var(--brand-electric);
-  border: 1px solid var(--brand-electric);
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .prove-row {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .prove-progress-bar {
-    transition: none !important;
-  }
 }
 
 /* ===== v13 (Edith): the self-healing opener (#heal, heal.js). The raw layer deliberately looks unstyled
