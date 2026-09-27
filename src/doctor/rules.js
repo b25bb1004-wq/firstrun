@@ -1615,7 +1615,236 @@ export const RULES = [
         };
       },
     },
-  ];
+
+  // ── backlog round 2: unmatched failures from EVAL.md ──────────────────
+  {
+    // Global tools (aws, sls/serverless, nodemon when not in deps, make) assumed installed.
+    // Distinct from missing-tool: these are CLIs the project doesn't depend on but the docs call.
+    id: 'missing-global-tool',
+    test({ log, facts, step }) {
+      // Match both "bash: line 5: aws: command not found" and "/firstrun/step-2.sh: line 5: aws: command not found"
+      const m = log.match(/(?:^|\s)(?:bash|sh|zsh|fish): (?:line \d+: |\d+: )?([\w.-]+): (?:command )?not found/);
+      const m2 = log.match(/^\S+?\.sh: (?:line \d+: |\d+: )?([\w.-]+): (?:command )?not found/);
+      const matched = m || m2;
+      if (!matched) return null;
+      const tool = matched[1];
+      // Tools that are globally assumed but not declared in package.json deps.
+      const globalTools = {
+        aws: 'pip install awscli',           // AWS CLI
+        sls: 'npm install -g serverless',    // Serverless Framework
+        serverless: 'npm install -g serverless',
+        nodemon: 'npm install -g nodemon',   // Only when not in deps (handled by missing-tool's globalNpm)
+        make: 'apt-get update && apt-get install -y make',
+        docker: null,                         // Cannot install in sandbox (needs-docker-daemon)
+        'docker-compose': null,
+        'pip': 'apt-get update && apt-get install -y python3-pip',
+        'python': 'apt-get update && apt-get install -y python3',
+        'node': 'apt-get update && apt-get install -y nodejs npm',
+        'npm': 'apt-get update && apt-get install -y nodejs npm',
+      };
+      // If the tool is in globalTools and NOT in project deps (node or python), claim it.
+      if (!(tool in globalTools)) return null;
+      const installCmd = globalTools[tool];
+      if (installCmd === null) return null; // Cannot auto-install (docker, etc.)
+      // Skip if already a project dependency (missing-tool handles those via globalNpm or installs map)
+      if (facts.node && (facts.node.deps?.includes(tool) || (globalTools[tool] && globalTools[tool].includes('npm install') && facts.node.deps?.some(d => d.includes(tool))))) return null;
+      if (facts.python && facts.python.deps.includes(tool)) return null;
+      // Core tools (npm, node, npx) are handled by missing-tool's installs map
+      if (['npm', 'node', 'npx', 'yarn', 'pnpm', 'bun'].includes(tool)) return null;
+      const human = { aws: 'AWS CLI', sls: 'Serverless Framework', serverless: 'Serverless Framework', nodemon: 'nodemon', make: 'make', pip: 'pip', python: 'Python 3', node: 'Node.js', npm: 'npm' }[tool] || tool;
+      return {
+        ruleId: 'missing-global-tool', class: 'missing-tool', confidence: 0.85,
+        cause: `The scripts call \`${tool}\`, but the project doesn't depend on it: the docs assume it is installed globally.`,
+        fix: { actions: [{ type: 'exec', command: installCmd }], patches: [], doc: { kind: 'prerequisite', text: human, command: installCmd } },
+      };
+    },
+  },
+  {
+    // The npm/yarn/pnpm script "build" (or similar) doesn't exist in package.json.
+    // The docs chain `npm run build` or `npm start` → `npm run build:dev` but no such script.
+    id: 'missing-build-script',
+    test({ log, step, facts }) {
+      if (!facts.node) return null;
+      const m = log.match(/Missing script: "?([\w:.-]+)"?|Command "([\w:.-]+)" not found|ERR_PNPM_NO_SCRIPT[^\n]*?"?([\w:.-]+)"?|None of the selected packages has a "([\w:.-]+)" script|error Command "([\w:.-]+)" not found|error: Script not found "([\w:.-]+)"/);
+      if (!m) return null;
+      const wanted = m.slice(1).find(Boolean);
+      // Only trigger for build-like scripts (build, build:dev, compile, etc.)
+      if (!/^build|compile|dist|bundle/.test(wanted)) return null;
+      const scripts = Object.keys(facts.node.scripts);
+      // If there's a similar script, suggest it (handled by missing-npm-script). Here we only fire when NO build script exists.
+      // Use exact prefix match: "build", "build:", "compile", "dist", "bundle" - not "build:dev"
+      const hasAnyBuild = scripts.some(s => /^(build$|build:|compile$|compile:|dist$|dist:|bundle$|bundle:)/.test(s));
+      if (hasAnyBuild) return null; // missing-npm-script will handle the typo
+      // No build script at all - the project needs to be built but the script is missing.
+      // Common fix: if there's a "start" or "dev" script that builds inline, use that.
+      const startScript = facts.node.scripts.start || facts.node.scripts.dev;
+      if (startScript && /tsc|vite|next build|webpack|rollup|esbuild|tsx|babel|build/.test(startScript)) {
+        const cmd = step.command.replace(new RegExp(`\\b${wanted.replace(/[.*+?^${}()|[\]\\\\]/g, '\\$&')}\\b`), 'start');
+        return {
+          ruleId: 'missing-build-script', class: 'missing-script', confidence: 0.8,
+          cause: `The script "${wanted}" doesn't exist in package.json, but "start" (${startScript}) builds the project inline. The docs chain a separate build step that isn't defined.`,
+          fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+        };
+      }
+      // No build script and no inline build - human must add one.
+      return {
+        ruleId: 'missing-build-script', class: 'missing-script', confidence: 0.7,
+        cause: `The script "${wanted}" doesn't exist in package.json and there's no build script defined. The project needs a build step (e.g., "build": "tsc" or "vite build") that the maintainers must add.`,
+        fix: null, // Human must add the build script
+        ask: { kind: 'edit', file: 'package.json', why: `Add a "${wanted}" script to package.json (e.g., "build": "tsc" or "vite build")` },
+      };
+    },
+  },
+  {
+    // Playwright BASE_URL port mismatch: the test's BASE_URL env var points to a port
+    // different from what the app actually runs on (e.g., BASE_URL=http://localhost:3000 but app on 5173).
+    id: 'playwright-base-url-mismatch',
+    test({ log, facts, sandboxEnv }) {
+      if (!/BASE_URL.*port mismatch|The BASE_URL environment variable and the App have a port mismatch/i.test(log)) return null;
+      const m = log.match(/BASE_URL[=:]\s*https?:\/\/localhost:(\d+)/i);
+      const expectedPort = m ? Number(m[1]) : null;
+      // Find what port the app actually uses (from facts.ports or serve steps)
+      const actualPort = facts.ports?.[0] || sandboxEnv.PORT || 3000;
+      if (expectedPort && expectedPort === actualPort) return null;
+      // The fix should use the ACTUAL port the app runs on, not the mismatched BASE_URL
+      const fixPort = actualPort;
+      return {
+        ruleId: 'playwright-base-url-mismatch', class: 'wrong-order', confidence: 0.85,
+        cause: `Playwright's BASE_URL (${expectedPort || 'unset'}) doesn't match the app's actual port (${actualPort}). The e2e tests need the correct URL.`,
+        fix: {
+          actions: [{ type: 'insert-before', command: `export BASE_URL=http://localhost:${fixPort}`, kind: 'env' }],
+          patches: [],
+          doc: { kind: 'note', text: `Set BASE_URL=http://localhost:${fixPort} before running Playwright tests (the app runs on port ${fixPort}).` },
+        },
+      };
+    },
+  },
+  {
+    // ./manage.py (or any .py script) loses executable bit on clone → Permission denied (exit 126).
+    // Fix: run via `python manage.py` instead of `./manage.py`. Covered by shebang-interpreter-missing but
+    // this rule handles the Permission denied case explicitly.
+    id: 'permission-denied-shebang',
+    test({ log, step, facts }) {
+      const m = step.command.match(/^\.\/([\w.-]+\.py)\b\s*(.*)/);
+      if (!m) return null;
+      const script = m[1];
+      const args = m[2] || '';
+      // Permission denied (exit 126) or bad interpreter (exit 127)
+      if (!/exit(?:ed)?\s+12[67]|\.py: Permission denied|bad interpreter|python.*No such file or directory/.test(log)) return null;
+      if (!facts.files?.includes(script)) return null;
+      if (!facts.python) return null;
+      const newCmd = `python ${script} ${args}`.trim();
+      return {
+        ruleId: 'permission-denied-shebang',
+        class: 'runtime-version',
+        confidence: 0.9,
+        cause: `The script \`${script}\` loses its executable bit on clone (Permission denied) or its shebang points to a missing interpreter. Running via \`python ${script}\` uses the sandbox's Python.`,
+        fix: {
+          actions: [{ type: 'replace-step', command: newCmd }],
+          patches: [],
+          doc: { kind: 'replace-command', text: newCmd },
+        },
+      };
+    },
+  },
+  {
+    // Serverless Framework (sls) commands: `sls dynamodb install`, `sls dynamodb start`
+    // The project uses serverless-offline / serverless-dynamodb-local but sls isn't installed.
+    id: 'serverless-missing',
+    test({ log, step, facts }) {
+      if (!/^npx?\s+sls\b|^sls\b/.test(step.command)) return null;
+      const m = log.match(/sls: (command )?not found|sh: 1: sls: not found|serverless: (command )?not found/);
+      if (!m && !/dynamodb/.test(log)) return null;
+      // Install serverless globally (via corepack/yarn/npm)
+      const installCmd = facts.node?.lockfile === 'yarn.lock' ? 'yarn global add serverless'
+        : facts.node?.lockfile === 'pnpm-lock.yaml' ? 'pnpm add -g serverless'
+        : 'npm install -g serverless';
+      return {
+        ruleId: 'serverless-missing', class: 'missing-tool', confidence: 0.85,
+        cause: `The docs run \`sls\` (Serverless Framework) but it's not installed. The project uses serverless-dynamodb-local for local DynamoDB.`,
+        fix: { actions: [{ type: 'exec', command: installCmd }], patches: [], doc: { kind: 'prerequisite', text: 'Serverless Framework (via `npm install -g serverless`)', command: installCmd } },
+      };
+    },
+  },
+  {
+    // Missing build output directory: `npm run start:prod` expects `dist/src/main` but `dist/` doesn't exist.
+    // The build step (npm run build) was never run or failed silently.
+    id: 'missing-build-output',
+    test({ log, step, facts, plan }) {
+      if (!/Cannot find module '\/workspace\/dist\/|Error: Cannot find module|dist\/src\/main.*not found/.test(log)) return null;
+      if (!facts.node) return null;
+      // Check if there's a build script that should have run
+      const hasBuildScript = facts.node.scripts.build || facts.node.scripts['build:dev'] || facts.node.scripts.compile;
+      if (!hasBuildScript) return null;
+      const buildCmd = facts.node.scripts.build ? 'build' : facts.node.scripts['build:dev'] ? 'build:dev' : 'compile';
+      const pm = facts.node.packageManager || 'npm';
+      const runBuild = pm === 'yarn' ? `yarn ${buildCmd}` : pm === 'pnpm' ? `pnpm ${buildCmd}` : `npm run ${buildCmd}`;
+      // Check if build already ran and passed
+      const buildRan = plan.steps.some(s => s.command === runBuild && ['passed', 'repaired'].includes(s.status));
+      if (buildRan) return null;
+      return {
+        ruleId: 'missing-build-output', class: 'wrong-order', confidence: 0.85,
+        cause: `The production start script expects compiled output in \`dist/\` (or similar), but the build step (\`${runBuild}\`) never ran. The docs skip the build.`,
+        fix: { actions: [{ type: 'insert-before', command: runBuild, kind: 'build' }], patches: [], doc: { kind: 'insert-step', text: runBuild } },
+      };
+    },
+  },
+  {
+    // wrong-directory: enhance to match bash's "No such file or directory" format (without "can't open file")
+    // This extends the existing wrong-directory rule to catch bash's bare error format.
+    // Note: we don't replace wrong-directory; we add a complementary pattern here.
+    id: 'wrong-directory-bash',
+    test({ log, step, facts }) {
+      // Match bash's: "bash: scripts/prestart.sh: No such file or directory"
+      const m = log.match(/^bash: ([\w.-]+\/[\w./-]+|[\w.-]+\.(?:sh|py|js|ts|mjs|cjs)): No such file or directory/);
+      if (!m) return null;
+      const rel = m[1].replace(/^\.\//, '');
+      const hits = (facts.files || []).filter((f) => f === rel || f.endsWith('/' + rel));
+      if (hits.length !== 1 || hits[0] === rel) return null;
+      const dir = hits[0].slice(0, -rel.length - 1);
+      const cmd = `cd ${dir} && ${step.command}`;
+      return {
+        ruleId: 'wrong-directory-bash', class: 'wrong-order', confidence: 0.85,
+        cause: `\`${step.command}\` must run inside \`${dir}/\` (the file is \`${hits[0]}\`), but the docs never say to change into that folder.`,
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
+    // Test configuration issues: ts-jest warning, OAuth2Strategy error in tests
+    // These are test failures, not setup failures - they require human code changes.
+    id: 'test-config-issue',
+    test({ log, step }) {
+      if (step.kind !== 'test') return null;
+      // ts-jest warning: "Got a `.js` file to compile" - usually config mismatch
+      // OAuth2Strategy error: passport strategy not configured
+      if (!/ts-jest\[ts-compiler\] \(WARN\) Got a `\.js` file to compile|OAuth2Strategy|passport.*Strategy.*not found|Unknown authentication strategy/.test(log)) return null;
+      return {
+        ruleId: 'test-config-issue', class: 'failing-tests', confidence: 0.7,
+        cause: `The test suite has a configuration issue (ts-jest warning or missing passport strategy) that requires a code/config fix. This is a project bug, not a setup issue.`,
+        fix: null, // Human must fix the test config or code
+        ask: { kind: 'edit', file: 'jest.config.js or test setup', why: 'Fix ts-jest config to handle .js files or configure passport OAuth2Strategy' },
+      };
+    },
+  },
+  {
+    // Docker service started via `make` or `docker run` directly (not compose).
+    // The docs say "run postgres with docker" but don't provide a compose file.
+    // This is a needs-you: the human must run the service.
+    id: 'docker-service-missing',
+    test({ log, step, facts }) {
+      if (!/docker run.*postgres|docker run.*mysql|docker run.*mongo|docker run.*redis/i.test(step.command)) return null;
+      if (!/docker: command not found|Cannot connect to the Docker daemon|Error 97|is not available on the clean machine/.test(log)) return null;
+      // If Docker daemon missing, needs-docker-daemon handles it.
+      // If docker command not found, missing-global-tool handles it.
+      // This rule is for when Docker IS available but the service isn't started.
+      // Actually, the backlog shows: "make start_dev_db → docker run postgres" - the step IS the docker run.
+      // The failure is that the docker run fails or the service isn't ready.
+      // This is more of a "missing-service" but started via docker run not compose.
+      return null; // Let missing-service or needs-docker-daemon handle
+    },
+  },
+];
 
 // The repo's last commit date (YYYY-MM-DD) for time-travel installs; null when git can't tell.
 function commitDate(facts) {
