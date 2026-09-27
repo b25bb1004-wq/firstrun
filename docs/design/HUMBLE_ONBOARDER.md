@@ -4,7 +4,7 @@
 > the whole setup check in the background, and then either **does the setup for you** or **walks you through it on
 > your own screen**, pointing at exactly where to click and type, and checking each step as you go.
 
-Owner of the idea: Karmanya. Spec: Edith, 27 Sep 2026. Status: design + hackathon MVP scope.
+Owner of the idea: Arnav (boss). Spec: Edith, 27 Sep 2026. Status: design + hackathon MVP scope.
 
 ---
 
@@ -277,7 +277,7 @@ Scope we can build and demo honestly in the time left:
 Explicitly **later** (say so honestly in the pitch): vision-model pointing, accessibility-tree grounding, the VS Code
 extension, voice, the user-machine probe beyond versions, undo-all, debugging mode.
 
-## 8. Open questions for Karmanya
+## 8. Open questions for Arnav (boss)
 1. Robot design: draw our own "Bob-style toy robot", or is there an official IBM Bob mascot asset we are allowed to use?
 2. Autopilot consent: per-step confirm by default, or "approve all" after showing the list?
 3. Should HUMBLE also offer the README fix as a PR at the end (needs GitHub auth in Lens)?
