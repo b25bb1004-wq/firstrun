@@ -88,8 +88,8 @@ if [ $tree_status -eq 0 ]; then
 else
   add_result "Secrets (tree)" "FAIL" "hits found"
 fi
-hist_out=$(bash tools/check-secrets.sh 2>&1 || true)
-hist_status=$?
+hist_status=0
+hist_out=$(bash tools/check-secrets.sh 2>&1) || hist_status=$?
 if [ $hist_status -eq 0 ]; then
   hist_detail="clean"
 else
