@@ -1,0 +1,27 @@
+{
+  "repo": "mdn/express-locallibrary-tutorial",
+  "commit": "b378f3dd48",
+  "verifiedAt": "2026-09-26T22:53:32.870Z",
+  "verdict": "VERIFIED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 37,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

@@ -1,0 +1,580 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -55,6 +55,12 @@ docker --version
+ ```
+ 
+ ## Make
++
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.11` machine at `96f10870e7`.
++
++Prerequisites verified by HUMBLE:
++
++- poetry
+ "Make" is a build automation tool that is primarily used to manage the compilation and building of software projects. It reads a file called a "Makefile" which specifies a set of rules and dependencies for building a project, and then executes the necessary commands to build the project according to those rules. Depending of your OS you will requiere to install it in different ways.
+ 
+ Mac
+@@ -95,7 +101,9 @@ When you are opening python files do this cna help you to vscode detect installe
+ 
+ ```
+ cd backend/app/
++poetry install
+ poetry shell
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ After that you can show the interpreted path. You can copy that path and set as the default for the project in vscode. Press on **Enter interpreter path ..** and past path.
+@@ -298,7 +306,7 @@ The above code starts SonarQube at [localhost:9000](http://localhost:9000/). You
+ sonar.organization=my_organization
+ sonar.projectKey=fastapi-alembic-sqlmodel-async
+ sonar.host.url=http://host.docker.internal:9000
+-sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7
++sonar.login=<redacted-by-firstrun>
+ 
+ # --- optional properties ---
+ 
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,191 @@
++# Setup Passport: vargasjona/fastapi-alembic-sqlmodel-async
++
++❌ **FAILED**: HUMBLE followed this project's setup docs on a clean `python:3.11` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `96f10870e7` |
++| Verified | 2026-09-27 00:11 UTC |
++| Runtime | Python 3.11 (`python:3.11`) |
++| Clone to running, from zero | **n/a** |
++| Steps followed | 12 from the docs, 1 added by HUMBLE |
++| Breaks found / fixed | 3 / 1 |
++| Needs a human | 1 |
++| Done when | `GET http://127.0.0.1:15432/` answers |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `poetry --version` (README.md:90).
++
++## Verified setup
++
++```bash
++sudo apt-get install build-essential
++sudo apt-get -y install make
++make --version
++python --version
++poetry --version
++cd backend/app/
++poetry install
++make init-db
++make add-dev-migration
++make run-test
++make pytest
++make mypy
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing tool <a id="e1"></a>
++
++- **Docs said:** `poetry --version` (README.md:90)
++- **Cause:** `poetry` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** poetry
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-5.sh: line 5: poetry: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++  Downloading more_itertools-11.1.0-py3-none-any.whl (72 kB)
++                                              0.0/72.2 kB ? eta -:--:--     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸ 71.7/72.2 kB 25.3 MB/s eta 0:00:01     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.2/72.2 kB 1.3 MB/s eta 0:00:00
++Collecting backports.tarfile
++  Downloading backports.tarfile-1.2.0-py3-none-any.whl (30 kB)
++Collecting cffi>=2.0.0
++  Downloading cffi-2.1.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (218 kB)
++                                              0.0/218.7 kB ? eta -:--:--     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━         174.1/218.7 kB 6.2 MB/s eta 0:00:01     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  215.0/218.7 kB 5.9 MB/s eta 0:00:01     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 218.7/218.7 kB 2.2 MB/s eta 0:00:00
++Collecting exceptiongroup>=1.0.2
++  Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
++Collecting pycparser
++  Downloading pycparser-3.0-py3-none-any.whl (48 kB)
++                                              0.0/48.2 kB ? eta -:--:--     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━       41.0/48.2 kB 38.8 MB/s eta 0:00:01     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.2/48.2 kB 647.1 kB/s eta 0:00:00
++Installing collected packages: trove-classifiers, distlib, zipp, urllib3, typing_extensions, tomlkit, tomli, shellingham, rapidfuzz, pyproject-hooks, pycparser, poetry-core, platformdirs, pkginfo, pbs-installer, msgpack, more-itertools, jeepney, installer, idna, h11, filelock, fastjsonschema, crashtest, charset_normalizer, certifi, backports.zstd, backports.tarfile, requests, python-discovery, jaraco.functools, jaraco.context, jaraco.classes, importlib_metadata, httpcore, findpython, exceptiongroup, dulwich, cleo, cffi, build, virtualenv, requests-toolbelt, cryptography, cachecontrol, anyio, SecretStorage, httpx, keyring, poetry
++Successfully installed SecretStorage-3.5.0 anyio-4.15.1 backports.tarfile-1.2.0 backports.zstd-1.7.0 build-1.6.1 cachecontrol-0.14.4 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 cleo-2.1.0 crashtest-0.4.1 cryptography-50.0.1 distlib-0.4.3 dulwich-1.2.15 exceptiongroup-1.3.1 fastjsonschema-2.22.2 filelock-4.0.4 findpython-0.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 importlib_metadata-9.0.1 installer-1.0.1 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jeepney-0.9.0 keyring-25.7.0 more-itertools-11.1.0 msgpack-1.2.2 pbs-installer-2026.9.24 pkginfo-1.13 platformdirs-4.12.0 poetry-2.5.1 poetry-core-2.5.0 pycparser-3.0 pyproject-hooks-1.3.3 python-discovery-1.6.1 rapidfuzz-3.14.5 requests-2.34.2 requests-toolbelt-1.0.0 shellingham-1.5.4 tomli-2.4.1 tomlkit-0.15.1 trove-classifiers-2026.9.21.13 typing_extensions-4.16.0 urllib3-2.8.0 virtualenv-21.13.0 zipp-4.1.0
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++Poetry (version 2.5.1)
++```
++</details>
++
++### E2: Missing or out-of-order step <a id="e2"></a>
++
++- **Docs said:** `source "$(poetry env info --path)/bin/activate"` (README.md:98)
++- **Cause:** `source "$(poetry env info --path)/bin/activate"` activates the project's Poetry environment, but none exists yet: the docs never run `poetry install`, so the path is empty.
++- **Diagnosed by:** HUMBLE rule `venv-not-created`, confidence 88%
++- **Doc change:** poetry install
++- **Result:** fix did not work
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-9.sh: line 5: /bin/activate: No such file or directory
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ poetry install → exit 1
++fix not applied: `poetry install` exited 1
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++      774│             # something cached that we can use here. The only case in which
++      775│             # archive is None is if the original archive is not valid for the
++      776│             # current environment.
++    → 777│             raise RuntimeError(
++      778│                 f"Package {link.url} cannot be installed in the current environment"
++      779│                 f" {self._env.marker_env}"
++      780│             )
++      781│ 
++
++Cannot install torch.
++```
++</details>
++
++### E3: Wrong runtime version <a id="e3"></a>
++
++- **Docs said:** `poetry install` (README.md:98)
++- **Cause:** The docs allow Python 3.10, but the lockfile pins cp311-cp311 wheels, which only install on Python 3.11. A newcomer on 3.10 cannot install the dependencies.
++- **Diagnosed by:** HUMBLE rule `wheel-python-mismatch`, confidence 88%
++- **Doc change:** Python 3.11 (the lockfile's wheels are built for CPython 3.11)
++- **Result:** worked: cleared this error, then the step failed on a later problem
++
++<details><summary>Before (failing output)</summary>
++
++```
++  Package https://download.pytorch.org/whl/cpu/torch-2.0.0%2Bcpu-cp311-cp311-linux_x86_64.whl cannot be installed in the current environment {'implementation_name': 'cpython', 'implementation_version': '3.10.21', 'os_name': 'posix', 'platform_machine': 'x86_64', 'platform_release': '6.18.33.2-microsoft-standard-WSL2', 'platform_system': 'Linux', 'platform_version': '#1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026', 'python_full_version': '3.10.21', 'platform_python_implementation': 'CPython', 'python_version': '3.10', 'sys_platform': 'linux', 'version_info': (3, 10, 21, 'final', 0), 'interpreter_name': 'cp', 'interpreter_version': '310', 'sysconfig_platform': 'linux-x86_64', 'free_threading': False}
++
++  at /usr/local/lib/python3.10/site-packages/poetry/installation/executor.py:777 in _download_link
++      773│             # Since we previously downloaded an archive, we now should have
++      774│             # something cached that we can use here. The only case in which
++      775│             # archive is None is if the original archive is not valid for the
++      776│             # current environment.
++    → 777│             raise RuntimeError(
++      778│                 f"Package {link.url} cannot be installed in the current environment"
++      779│                 f" {self._env.marker_env}"
++      780│             )
++      781│ 
++
++Cannot install torch.
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++rebased onto python:3.11
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++/firstrun/step-8.sh: line 5: /bin/activate: No such file or directory
++```
++</details>
++
++### E4: Unrecognised failure <a id="e4"></a>
++
++- **Docs said:** `source "$(poetry env info --path)/bin/activate"` (README.md:98)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-8.sh: line 5: /bin/activate: No such file or directory
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| postgres service | setup never starts it | dependency "asyncpg" | Python requirements |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="165" height="20" role="img" aria-label="HUMBLE: setup broken">
++  <title>HUMBLE: setup broken</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="165" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="95" height="20" fill="#dc2626"/>
++    <rect width="165" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="117.5" y="14">setup broken</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "vargasjona/fastapi-alembic-sqlmodel-async",
++  "commit": "96f10870e7",
++  "verifiedAt": "2026-09-27T00:11:00.951Z",
++  "verdict": "FAILED",
++  "image": "python:3.11",
++  "runtime": "Python 3.11",
++  "stepsTotal": 13,
++  "stepsFromReadme": 12,
++  "breaksFound": 3,
++  "breaksFixed": 1,
++  "needsHuman": 1,
++  "repoBreaks": 3,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 1,
++  "replaySeconds": 0,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:15432/",
++    "fromDocs": true
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,96 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:11:00.951Z",
++  "commit": "96f10870e7",
++  "image": "python:3.11",
++  "runtime": {
++    "name": "python",
++    "version": "3.11",
++    "source": "a locked wheel built only for CPython 3.11"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:15432/",
++    "fromDocs": true
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "sudo apt-get install build-essential",
++      "kind": "prereq"
++    },
++    {
++      "id": "S2",
++      "command": "sudo apt-get -y install make",
++      "kind": "prereq"
++    },
++    {
++      "id": "S3",
++      "command": "make --version",
++      "kind": "other"
++    },
++    {
++      "id": "S4",
++      "command": "python --version",
++      "kind": "other"
++    },
++    {
++      "id": "S5",
++      "command": "poetry --version",
++      "kind": "other",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }"
++        }
++      ]
++    },
++    {
++      "id": "S6",
++      "command": "cd backend/app/",
++      "kind": "other"
++    },
++    {
++      "id": "R1",
++      "command": "poetry install",
++      "kind": "install",
++      "origin": "repair"
++    },
++    {
++      "id": "S10",
++      "command": "make init-db",
++      "kind": "other"
++    },
++    {
++      "id": "S14",
++      "command": "make add-dev-migration",
++      "kind": "migrate"
++    },
++    {
++      "id": "S29",
++      "command": "make run-test",
++      "kind": "serve",
++      "serve": {
++        "port": 15432
++      }
++    },
++    {
++      "id": "S30",
++      "command": "make pytest",
++      "kind": "other"
++    },
++    {
++      "id": "S31",
++      "command": "make mypy",
++      "kind": "other"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "/firstrun/step-5.sh: line 5: poetry: command not found",
++      "cause": "`poetry` is not installed; the docs assume it is.",
++      "fix": "poetry",
++      "evidence": "E1"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,50 @@
++# Verified setup for vargasjona/fastapi-alembic-sqlmodel-async
++
++Verified by HUMBLE on 2026-09-27 at commit `96f10870e7` on a clean `python:3.11` machine. Clone to running took 0s.
++
++Prerequisites: Python 3.11.
++
++## Steps
++
++1. `sudo apt-get install build-essential`
++   - Kind: prereq
++   - Expect: exits with code 0.
++2. `sudo apt-get -y install make`
++   - Kind: prereq
++   - Expect: exits with code 0.
++3. `make --version`
++   - Kind: other
++   - Expect: exits with code 0.
++4. `python --version`
++   - Kind: other
++   - Expect: exits with code 0.
++5. `poetry --version`
++   - Kind: other
++   - Expect: exits with code 0.
++6. `cd backend/app/`
++   - Kind: other
++   - Expect: exits with code 0.
++7. `poetry install`
++   - Kind: install (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++8. `make init-db`
++   - Kind: other
++   - Expect: exits with code 0.
++9. `make add-dev-migration`
++   - Kind: migrate
++   - Expect: exits with code 0.
++10. `make run-test`
++   - Kind: serve
++   - Expect: the app answers at http://127.0.0.1:15432/. Leave it running in its own terminal.
++11. `make pytest`
++   - Kind: other
++   - Expect: exits with code 0.
++12. `make mypy`
++   - Kind: other
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `/firstrun/step-5.sh: line 5: poetry: command not found` | `poetry` is not installed; the docs assume it is. | poetry |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "fastapi-alembic-sqlmodel-async",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "make --version && python --version && poetry --version && poetry install && make init-db && make add-dev-migration && make pytest && make mypy",
++  "forwardPorts": [
++    15432
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "ms-python.python"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,18 @@
++services:
++  app:
++    image: python:3.11
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  redis_server:
++    image: redis:alpine
++    network_mode: service:app
++    restart: unless-stopped
++  minio_server:
++    image: minio/minio:latest
++    network_mode: service:app
++    restart: unless-stopped
++    environment:
++      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
++      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
++      MINIO_BROWSER_REDIRECT_URL: http://stash.localhost
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -141,4 +141,7 @@ sonarqube/extensions
+ sonarqube/data
+ sonarqube/logs
+ 
+-.terraform
+\ No newline at end of file
++.terraform
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

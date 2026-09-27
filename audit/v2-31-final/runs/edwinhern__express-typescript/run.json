@@ -1,0 +1,150 @@
+{
+  "id": "v2-31-final-edwinhern__express-typescript",
+  "repo": "edwinhern/express-typescript",
+  "commit": "983fa04136",
+  "startedAt": "2026-09-27T00:11:17.926Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "repaired",
+      "attempts": 3
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "23 (.tool-versions)",
+      "source": "README.md"
+    },
+    {
+      "what": "Setup path",
+      "docs": "none documented",
+      "truth": "CI runs `pnpm test`",
+      "source": "README.md",
+      "ci": ".github/workflows/ci.yml:43",
+      "from": "ci-reference"
+    }
+  ],
+  "plan": {
+    "repo": "edwinhern/express-typescript",
+    "commit": "983fa04136",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "R1",
+        "command": "pnpm install",
+        "kind": "install",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": ".github/workflows/ci.yml",
+          "line": 43,
+          "section": "CI: test",
+          "insertedBefore": "S1"
+        }
+      },
+      {
+        "id": "S1",
+        "command": "pnpm test",
+        "kind": "test",
+        "workflow": ".github/workflows/ci.yml",
+        "line": 43,
+        "job": "test",
+        "origin": "ci",
+        "source": {
+          "file": ".github/workflows/ci.yml",
+          "line": 43,
+          "section": "CI: test"
+        },
+        "status": "repaired",
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "corepack enable"
+          }
+        ],
+        "evidence": [
+          "E1",
+          "E2"
+        ]
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "23 (.tool-versions)",
+        "source": "README.md"
+      },
+      {
+        "what": "Setup path",
+        "docs": "none documented",
+        "truth": "CI runs `pnpm test`",
+        "source": "README.md",
+        "ci": ".github/workflows/ci.yml:43",
+        "from": "ci-reference"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "pnpm test"
+    },
+    "docsUsed": [],
+    "fromCI": true,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "failed",
+    "durationMs": 2952,
+    "failedStep": "R1"
+  },
+  "passport": {
+    "repo": "edwinhern/express-typescript",
+    "commit": "983fa04136",
+    "verifiedAt": "2026-09-27T00:11:58.285Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 2,
+    "stepsFromReadme": 0,
+    "breaksFound": 2,
+    "breaksFixed": 2,
+    "needsHuman": 0,
+    "repoBreaks": 2,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 3,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "pnpm test"
+    },
+    "fromCI": true,
+    "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+  },
+  "finishedAt": "2026-09-27T00:11:58.870Z"
+}

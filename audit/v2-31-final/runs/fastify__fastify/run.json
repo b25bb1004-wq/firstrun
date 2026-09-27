@@ -1,0 +1,388 @@
+{
+  "id": "v2-31-final-fastify__fastify",
+  "repo": "fastify/fastify",
+  "commit": "f7f73aa7d0",
+  "startedAt": "2026-09-27T00:52:24.491Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S11": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S12": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S13": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S14": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "26 (CI (.github/workflows/ci.yml))",
+      "source": "README.md"
+    },
+    {
+      "what": "npm script \"dev\"",
+      "docs": "npm run dev",
+      "truth": "not in package.json scripts",
+      "source": "README.md:91"
+    },
+    {
+      "what": "env var GITHUB_TOKEN",
+      "docs": "not documented",
+      "truth": "read in scripts/validate-ecosystem-links.js:24",
+      "source": "README"
+    },
+    {
+      "what": "Setup path",
+      "docs": "none documented",
+      "truth": "CI runs `npm install --ignore-scripts`, `npm install --ignore-scripts --no-save pino@${{ matrix.pino-version }}`, `npm run test:types`",
+      "source": "README.md",
+      "ci": ".github/workflows/ci.yml:175",
+      "from": "ci-reference"
+    }
+  ],
+  "plan": {
+    "repo": "fastify/fastify",
+    "commit": "f7f73aa7d0",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "mkdir my-app",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 72,
+          "endLine": 72,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd my-app",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 73,
+          "endLine": 73,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "npm init fastify",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 79,
+          "endLine": 79,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "npm i",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 85,
+          "endLine": 85,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S5",
+        "command": "npm run dev",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 91,
+          "endLine": 91,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S6",
+        "command": "npm start",
+        "kind": "other",
+        "skip": "scaffolds a new app for users; not this repo's setup",
+        "source": {
+          "file": "README.md",
+          "line": 97,
+          "endLine": 97,
+          "section": "Quick start"
+        },
+        "origin": "readme",
+        "status": "skipped"
+      },
+      {
+        "id": "S7",
+        "command": "npm i fastify",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 110,
+          "endLine": 110,
+          "section": "Install"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S8",
+        "command": "npm i fastify",
+        "kind": "other",
+        "source": {
+          "file": "docs/Guides/Getting-Started.md",
+          "line": 18,
+          "endLine": 18,
+          "section": "Getting Started › Install"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S9",
+        "command": "yarn add fastify",
+        "kind": "other",
+        "source": {
+          "file": "docs/Guides/Getting-Started.md",
+          "line": 23,
+          "endLine": 23,
+          "section": "Getting Started › Install"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S10",
+        "command": "npm i fastify-plugin @fastify/mongodb",
+        "kind": "install",
+        "source": {
+          "file": "docs/Guides/Getting-Started.md",
+          "line": 231,
+          "endLine": 231,
+          "section": "Getting Started › Your first plugin"
+        },
+        "origin": "readme",
+        "skip": "user guide for people using this library, not setup of this repo",
+        "status": "skipped"
+      },
+      {
+        "id": "S11",
+        "command": "npm i fastify-cli",
+        "kind": "install",
+        "source": {
+          "file": "docs/Guides/Getting-Started.md",
+          "line": 572,
+          "endLine": 572,
+          "section": "Getting Started › Run your server from CLI"
+        },
+        "origin": "readme",
+        "skip": "user guide for people using this library, not setup of this repo",
+        "status": "skipped"
+      },
+      {
+        "id": "S12",
+        "command": "npm start",
+        "kind": "serve",
+        "source": {
+          "file": "docs/Guides/Getting-Started.md",
+          "line": 600,
+          "endLine": 600,
+          "section": "Getting Started › Run your server from CLI"
+        },
+        "origin": "readme",
+        "skip": "user guide for people using this library, not setup of this repo",
+        "status": "skipped"
+      },
+      {
+        "id": "S13",
+        "command": "yarn",
+        "kind": "install",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "repaired",
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "corepack enable"
+          }
+        ],
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S14",
+        "command": "yarn test",
+        "kind": "test",
+        "source": {
+          "file": "package.json",
+          "line": 0,
+          "section": "scripts.test"
+        },
+        "origin": "package",
+        "synthetic": "the package's own test script",
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "26 (CI (.github/workflows/ci.yml))",
+        "source": "README.md"
+      },
+      {
+        "what": "npm script \"dev\"",
+        "docs": "npm run dev",
+        "truth": "not in package.json scripts",
+        "source": "README.md:91"
+      },
+      {
+        "what": "env var GITHUB_TOKEN",
+        "docs": "not documented",
+        "truth": "read in scripts/validate-ecosystem-links.js:24",
+        "source": "README"
+      },
+      {
+        "what": "Setup path",
+        "docs": "none documented",
+        "truth": "CI runs `npm install --ignore-scripts`, `npm install --ignore-scripts --no-save pino@${{ matrix.pino-version }}`, `npm run test:types`",
+        "source": "README.md",
+        "ci": ".github/workflows/ci.yml:175",
+        "from": "ci-reference"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "yarn test"
+    },
+    "docsUsed": [
+      "docs/Guides/Getting-Started.md"
+    ],
+    "fromCI": true,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 94893
+  },
+  "passport": {
+    "repo": "fastify/fastify",
+    "commit": "f7f73aa7d0",
+    "verifiedAt": "2026-09-27T00:57:06.541Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 2,
+    "stepsFromReadme": 0,
+    "breaksFound": 1,
+    "breaksFixed": 1,
+    "needsHuman": 1,
+    "repoBreaks": 1,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 95,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "yarn test"
+    },
+    "fromCI": true,
+    "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+  },
+  "finishedAt": "2026-09-27T00:57:07.322Z"
+}

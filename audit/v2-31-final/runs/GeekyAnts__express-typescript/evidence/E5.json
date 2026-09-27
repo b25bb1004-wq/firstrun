@@ -1,0 +1,48 @@
+{
+  "id": "E5",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 4,
+    "command": "npm run dev",
+    "exitCode": 1,
+    "durationMs": 2529,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\n[nodemon] 3.1.14\n[nodemon] to restart at any time, enter `rs`\n[nodemon] watching path(s): *.*\n[nodemon] watching extensions: js,mjs,cjs,json\n[nodemon] starting `node dist`\n\u001bc10:48:48 PM - Starting compilation in watch mode...\n\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\n\n[firstrun] GET http://127.0.0.1:4040/ → no response\ncurl: (28) Operation timed out after 10000 milliseconds with 0 bytes received\n000\n\n[firstrun] the server's output after the check:\n    at Socket.emit (node:events:519:28)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23) {\n  ok: 0,\n  errmsg: 'Unsupported OP_QUERY command: insert. The client driver may require an upgrade. For more details see https://dochub.mongodb.org/core/legacy-opcode-removal',\n  code: 352,\n  codeName: 'UnsupportedOpQueryCommand'\n}\n\nNode.js v22.23.3\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\nServer :: Running @ 'http://localhost:4040'\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\n\n/workspace/node_modules/mongodb-core/lib/error.js:31\n    err = new MongoError(options.message || options.errmsg || options.$err || \"n/a\");\n          ^\nError [MongoError]: Unsupported OP_QUERY command: insert. The client driver may require an upgrade. For more details see https://dochub.mongodb.org/core/legacy-opcode-removal\n    at MongoError.create (/workspace/node_modules/mongodb-core/lib/error.js:31:11)\n    at /workspace/node_modules/mongodb-core/lib/connection/pool.js:497:72\n    at authenticateStragglers (/workspace/node_modules/mongodb-core/lib/connection/pool.js:443:16)\n    at Connection.messageHandler (/workspace/node_modules/mongodb-core/lib/connection/pool.js:477:5)\n    at Socket.<anonymous> (/workspace/node_modules/mongodb-core/lib/connection/connection.js:333:22)\n    at Socket.emit (node:events:519:28)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23) {\n  ok: 0,\n  errmsg: 'Unsupported OP_QUERY command: insert. The client driver may require an upgrade. For more details see https://dochub.mongodb.org/core/legacy-opcode-removal',\n  code: 352,\n  codeName: 'UnsupportedOpQueryCommand'\n}\n\nNode.js v22.23.3\nServer :: Running @ 'http://localhost:4040'\n[firstrun] the server process is still running but does not answer",
+    "logFile": "logs/S5-4.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "The app's MongoDB driver uses legacy opcodes that MongoDB 6 and later removed (\"Unsupported OP_QUERY command\"), so it connects but every write fails. The docs don't say which MongoDB to run; the driver needs 4.4 or older.",
+    "by": "rules",
+    "ruleId": "mongo-legacy-driver",
+    "confidence": 0.85
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "mongo",
+        "image": "mongo:4.4",
+        "env": {},
+        "port": 27017
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "MongoDB 4.4 (this project's driver can't talk to MongoDB 6+): docker run -d -p 27017:27017 mongo:4.4"
+    },
+    "log": "started mongo:4.4 as \"mongo\" on localhost:27017"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 5,
+    "command": "npm run dev",
+    "exitCode": 0,
+    "durationMs": 2710,
+    "logTail": "\n> node-server-with-typescript@1.0.0 dev\n> tsc --watch & NODE_ENV=development nodemon dist\n\n[nodemon] 3.1.14\n[nodemon] to restart at any time, enter `rs`\n[nodemon] watching path(s): *.*\n[nodemon] watching extensions: js,mjs,cjs,json\n[nodemon] starting `node dist`\n\u001bc10:50:13 PM - Starting compilation in watch mode...\n\n[ERROR] :: TypeError: OAuth2Strategy requires a clientID option\n\n[firstrun] GET http://127.0.0.1:4040/ → 200\n    <title>Home - Geek Dashboard</title>\n    <meta name=\"description\" content=\"A Web Server built with Express, Typescript, Mongoose, and Pug.\"/>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n    <meta name=\"keyword\" content=\"web-server, typescript-express, typescript, express\"/>\n    <link rel=\"shortcut icon\" href=\"public/favicon.ico\" type=\"image/x-icon\"/>\n    <link href=\"https://fonts.googleapis.com/css?family=Montserrat:400,700\" rel=\"stylesheet\" type",
+    "logFile": "logs/S5-5.log"
+  },
+  "status": "verified",
+  "at": "2026-09-26T22:50:16.863Z"
+}

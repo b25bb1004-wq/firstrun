@@ -1,0 +1,86 @@
+{
+  "repo": "pallets/flask",
+  "commit": "d73fa1cdcb",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "flask run --host=0.0.0.0",
+      "kind": "serve",
+      "source": {
+        "file": "docs/quickstart.rst",
+        "line": 82,
+        "endLine": 82,
+        "section": "Quickstart › A Minimal Application"
+      },
+      "origin": "readme",
+      "skip": "usage example: runs the tool on your own input once it is installed",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "python -c 'import secrets; print(secrets.token_hex())'",
+      "kind": "other",
+      "source": {
+        "file": "docs/quickstart.rst",
+        "line": 770,
+        "endLine": 770,
+        "section": "Quickstart › Sessions"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.10 (pyproject.toml requires-python (\">=3.10\"))",
+      "source": "README.md"
+    },
+    {
+      "what": "env var FLASK_RUN_FROM_CLI",
+      "docs": "not documented",
+      "truth": "read in src/flask/app.py:698",
+      "source": "README"
+    },
+    {
+      "what": "env var FLASK_DEBUG",
+      "docs": "not documented",
+      "truth": "read in src/flask/cli.py:481",
+      "source": "README"
+    },
+    {
+      "what": "env var YOURAPPLICATION_SETTINGS",
+      "docs": "not documented",
+      "truth": "read in src/flask/config.py:107",
+      "source": "README"
+    },
+    {
+      "what": "redis service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"celery\"",
+      "source": "Python requirements"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [
+    "docs/quickstart.rst"
+  ],
+  "fromCI": false,
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

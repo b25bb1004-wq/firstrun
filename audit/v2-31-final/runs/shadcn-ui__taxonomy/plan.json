@@ -1,0 +1,86 @@
+{
+  "repo": "shadcn-ui/taxonomy",
+  "commit": "298a8857c7",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "pnpm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 66,
+        "endLine": 66,
+        "section": "Taxonomy › Running Locally"
+      },
+      "origin": "readme",
+      "status": "needs-human",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ],
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S2",
+      "command": "cp .env.example .env.local",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 72,
+        "endLine": 72,
+        "section": "Taxonomy › Running Locally"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S3",
+      "command": "pnpm dev",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 78,
+        "endLine": 78,
+        "section": "Taxonomy › Running Locally"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "blocked"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "16 (.nvmrc)",
+      "source": "README.md"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:30:02.278Z",
+  "commit": "410fccec23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/auth/facebook/callback",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "docker run -d --name mongo -p 27017:27017 mongo:7",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S4",
+      "command": "npm start",
+      "kind": "serve",
+      "serve": {
+        "port": 8080
+      },
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo:7",
+          "env": {},
+          "port": 27017,
+          "volumes": [],
+          "composeDir": null
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "[cause]: Error: connect ECONNREFUSED 127.0.0.1:27017",
+      "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+      "fix": "docker run -d --name mongo -p 27017:27017 mongo:7",
+      "evidence": "E1"
+    }
+  ]
+}

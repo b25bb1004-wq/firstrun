@@ -1,0 +1,27 @@
+{
+  "repo": "sahat/hackathon-starter",
+  "commit": "410fccec23",
+  "verifiedAt": "2026-09-27T00:30:02.278Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 8,
+  "stepsFromReadme": 7,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 4,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 4,
+  "replaySeconds": 88,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/auth/facebook/callback",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

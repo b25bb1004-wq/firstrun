@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 5594,
+    "logTail": "          at Test.bound [as fail] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test._exit (/workspace/node_modules/tape/lib/test.js:271:14)\n          at Test.bound [as _exit] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n          at process.emit (node:events:531:35)\n          at process.processEmit [as emit] (/workspace/node_modules/signal-exit/index.js:191:37)\n  ...\nnot ok 357 test exited without ending: rest-helper-factory.generateAssociationRemoveOneEndpoint\n  ---\n    operator: fail\n    at: process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n    stack: |-\n      Error: test exited without ending: rest-helper-factory.generateAssociationRemoveOneEndpoint\n          at Test.assert [as _assert] (/workspace/node_modules/tape/lib/test.js:314:54)\n          at Test.bound [as _assert] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test.fail (/workspace/node_modules/tape/lib/test.js:408:10)\n          at Test.bound [as fail] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test._exit (/workspace/node_modules/tape/lib/test.js:271:14)\n          at Test.bound [as _exit] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n          at process.emit (node:events:531:35)\n          at process.processEmit [as emit] (/workspace/node_modules/signal-exit/index.js:191:37)\n  ...\nnot ok 358 test exited without ending: rest-helper-factory.generateAssociationAddManyEndpoint\n  ---\n    operator: fail\n    at: process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n    stack: |-\n      Error: test exited without ending: rest-helper-factory.generateAssociationAddManyEndpoint\n          at Test.assert [as _assert] (/workspace/node_modules/tape/lib/test.js:314:54)\n          at Test.bound [as _assert] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test.fail (/workspace/node_modules/tape/lib/test.js:408:10)\n          at Test.bound [as fail] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test._exit (/workspace/node_modules/tape/lib/test.js:271:14)\n          at Test.bound [as _exit] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n          at process.emit (node:events:531:35)\n          at process.processEmit [as emit] (/workspace/node_modules/signal-exit/index.js:191:37)\n  ...\nnot ok 359 test exited without ending: rest-helper-factory.generateAssociationGetAllEndpoint\n  ---\n    operator: fail\n    at: process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n    stack: |-\n      Error: test exited without ending: rest-helper-factory.generateAssociationGetAllEndpoint\n          at Test.assert [as _assert] (/workspace/node_modules/tape/lib/test.js:314:54)\n          at Test.bound [as _assert] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test.fail (/workspace/node_modules/tape/lib/test.js:408:10)\n          at Test.bound [as fail] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at Test._exit (/workspace/node_modules/tape/lib/test.js:271:14)\n          at Test.bound [as _exit] (/workspace/node_modules/tape/lib/test.js:99:32)\n          at process.<anonymous> (/workspace/node_modules/tape/index.js:95:23)\n          at process.emit (node:events:531:35)\n          at process.processEmit [as emit] (/workspace/node_modules/signal-exit/index.js:191:37)\n  ...\n\n1..359\n# tests 359\n# pass  332\n# fail  27",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T22:58:56.316Z"
+}

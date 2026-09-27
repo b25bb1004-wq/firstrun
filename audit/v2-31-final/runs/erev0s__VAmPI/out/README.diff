@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -40,6 +40,8 @@ For more details you can either run VAmPI and visit `http://127.0.0.1:5000/ui/`
+ 
+ 
+ #### List of Vulnerabilities
++
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `f16052dce8`: clone to running in 3s.
+  - SQLi Injection
+  - Unauthorized Password Change
+  - Broken Object Level Authorization

@@ -1,0 +1,359 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -66,6 +66,12 @@ Check out the [`5.x` branch](https://github.com/fastify/fastify/tree/5.x) for `v
+ 
+ ### Quick start
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `f7f73aa7d0`: clone to running in 1m35s.
++
++Prerequisites verified by HUMBLE:
++
++- Yarn (via `corepack enable`)
++
+ Create a folder and make it your current working directory:
+ 
+ ```sh
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,111 @@
++# Setup Passport: fastify/fastify
++
++🟡 **PARTIAL**: HUMBLE followed this project's setup docs on a clean `node:22` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `f7f73aa7d0` |
++| Verified | 2026-09-27 00:57 UTC |
++| Runtime | Node.js 22 (`node:22`) |
++| Clone to running, from zero | **1m35s** |
++| Steps followed | 0 from the docs, 2 added by HUMBLE |
++| Breaks found / fixed | 1 / 1 |
++| Needs a human | 1 |
++| Done when | `yarn test` passes |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `yarn` (CI:0).
++
++## Verified setup
++
++```bash
++yarn
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing tool <a id="e1"></a>
++
++- **Docs said:** `yarn` (CI:0)
++- **Cause:** `yarn` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** Yarn (via `corepack enable`)
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-1.sh: line 5: yarn: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ corepack enable
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++warning autocannon > hyperid > uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
++warning borp > glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
++warning borp > c8 > test-exclude > glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
++warning eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
++[2/4] Fetching packages...
++warning peowly@1.3.3: The engine "typescript" appears to be invalid.
++[3/4] Linking dependencies...
++[4/4] Building fresh packages...
++success Saved lockfile.
++Done in 106.31s.
++```
++</details>
++
++### E2: Unrecognised failure <a id="e2"></a>
++
++- **Docs said:** `yarn test` (package.json:0)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++      at async TestContext.<anonymous> (/workspace/test/https/custom-https-server.test.js:45:20)
++      at async Test.run (node:internal/test_runner/test:1054:7)
++      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {
++    [cause]: Error: connect ECONNREFUSED 127.0.0.1:39147
++        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1638:16) {
++      errno: -111,
++      code: 'ECONNREFUSED',
++      syscall: 'connect',
++      address: '127.0.0.1',
++      port: 39147
++    }
++  }
++info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
++error Command failed with exit code 1.
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Node.js version | not stated | 26 (CI (.github/workflows/ci.yml)) | README.md |
++| npm script "dev" | npm run dev | not in package.json scripts | README.md:91 |
++| env var GITHUB_TOKEN | not documented | read in scripts/validate-ecosystem-links.js:24 | README |
++| Setup path | none documented | CI runs `npm install --ignore-scripts`, `npm install --ignore-scripts --no-save pino@${{ matrix.pino-version }}`, `npm run test:types` | README.md |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 1/1 fixed">
++  <title>HUMBLE: partly verified · 1/1 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 1/1 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "fastify/fastify",
++  "commit": "f7f73aa7d0",
++  "verifiedAt": "2026-09-27T00:57:06.541Z",
++  "verdict": "PARTIAL",
++  "image": "node:22",
++  "runtime": "Node.js 22",
++  "stepsTotal": 2,
++  "stepsFromReadme": 0,
++  "breaksFound": 1,
++  "breaksFixed": 1,
++  "needsHuman": 1,
++  "repoBreaks": 1,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 1,
++  "replaySeconds": 95,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "command",
++    "target": "yarn test"
++  },
++  "fromCI": true,
++  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,36 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:57:06.541Z",
++  "commit": "f7f73aa7d0",
++  "image": "node:22",
++  "runtime": {
++    "name": "node",
++    "version": "22",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "command",
++    "target": "yarn test"
++  },
++  "steps": [
++    {
++      "id": "S13",
++      "command": "yarn",
++      "kind": "install",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "corepack enable"
++        }
++      ]
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "/firstrun/step-1.sh: line 5: yarn: command not found",
++      "cause": "`yarn` is not installed; the docs assume it is.",
++      "fix": "Yarn (via `corepack enable`)",
++      "evidence": "E1"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,17 @@
++# Verified setup for fastify/fastify
++
++Verified by HUMBLE on 2026-09-27 at commit `f7f73aa7d0` on a clean `node:22` machine. Clone to running took 95s.
++
++Prerequisites: Node.js 22.
++
++## Steps
++
++1. `yarn`
++   - Kind: install
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `/firstrun/step-1.sh: line 5: yarn: command not found` | `yarn` is not installed; the docs assume it is. | Yarn (via `corepack enable`) |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,13 @@
++{
++  "name": "fastify",
++  "image": "node:22",
++  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
++  "postCreateCommand": "yarn",
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -178,3 +178,6 @@ AGENTS.md
+ .agent
+ .claude
+ .pi
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

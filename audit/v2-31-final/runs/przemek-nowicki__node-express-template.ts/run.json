@@ -1,0 +1,198 @@
+{
+  "id": "v2-31-final-przemek-nowicki__node-express-template.ts",
+  "repo": "przemek-nowicki/node-express-template.ts",
+  "commit": "d731e5cef4",
+  "startedAt": "2026-09-26T23:59:14.054Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S3": {
+      "status": "repaired",
+      "attempts": 3
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "R2": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Docker Compose v1",
+      "docs": "docker-compose build",
+      "truth": "retired in 2023; current Docker ships it as `docker compose`",
+      "source": "README.md:33"
+    }
+  ],
+  "plan": {
+    "repo": "przemek-nowicki/node-express-template.ts",
+    "commit": "d731e5cef4",
+    "image": "node:16",
+    "runtime": {
+      "name": "node",
+      "version": "16",
+      "source": "README.md:60 (\"node version 16\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "docker-compose build",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 33,
+          "endLine": 33,
+          "section": "Node Express Template (NET.ts) › Getting started"
+        },
+        "origin": "readme",
+        "skip": "container-based alternative workflow",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "docker-compose up",
+        "kind": "services",
+        "source": {
+          "file": "README.md",
+          "line": 39,
+          "endLine": 39,
+          "section": "Node Express Template (NET.ts) › Getting started"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "R1",
+        "command": "npm install --no-save jest@27",
+        "kind": "install",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Node Express Template (NET.ts) › Testing",
+          "insertedBefore": "S3"
+        }
+      },
+      {
+        "id": "R2",
+        "command": "export NODE_ENV=development",
+        "kind": "env",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Node Express Template (NET.ts) › Testing",
+          "insertedBefore": "S3"
+        }
+      },
+      {
+        "id": "S3",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Node Express Template (NET.ts) › Testing"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "evidence": [
+          "E1",
+          "E2"
+        ]
+      },
+      {
+        "id": "S4",
+        "command": "docker-compose run web npm run test",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 96,
+          "endLine": 96,
+          "section": "Node Express Template (NET.ts) › Testing"
+        },
+        "origin": "readme",
+        "skip": "container-based alternative workflow",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Docker Compose v1",
+        "docs": "docker-compose build",
+        "truth": "retired in 2023; current Docker ships it as `docker compose`",
+        "source": "README.md:33"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:16",
+    "originalRuntime": {
+      "name": "node",
+      "version": "16",
+      "source": "README.md:60 (\"node version 16\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 29589
+  },
+  "passport": {
+    "repo": "przemek-nowicki/node-express-template.ts",
+    "commit": "d731e5cef4",
+    "verifiedAt": "2026-09-27T00:00:39.859Z",
+    "verdict": "VERIFIED",
+    "image": "node:16",
+    "runtime": "Node.js 16",
+    "stepsTotal": 4,
+    "stepsFromReadme": 2,
+    "breaksFound": 2,
+    "breaksFixed": 2,
+    "needsHuman": 0,
+    "repoBreaks": 2,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 30,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T00:00:40.574Z"
+}
