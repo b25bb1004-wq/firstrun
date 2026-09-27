@@ -215,4 +215,25 @@ Every command passes `src/onboarder/guard.js` BEFORE its confirmation is shown. 
 
 UI: a verdict chip on each `cmd` line before running: `ok` hidden, `warn` amber chip (`sudo`), `block` red chip (`blocked: deletes outside repo`). The shield icon in the header pulses once when something is blocked.
 
-Acceptance: guard tests with ≥ 25 real-world commands covering both sides of every rule; the probe side-effect test; a debugger test on the real acme-shop failure (faked host snapshot, real proof) producing the right rule and host-vs-proof diff; a report containing no secret (fake token built at runtime).
+Acceptance (guard): guard tests with ≥ 25 real-world commands covering both sides of every rule; the probe side-effect test; a debugger test on the real acme-shop failure (faked host snapshot, real proof) producing the right rule and host-vs-proof diff; a report containing no secret (fake token built at runtime).
+
+## 15. Debugger concepts borrowed from the best (what HUMBLE's debugger IS)
+
+Each row is a proven idea from a famous debugger, mapped to setup debugging. Build in this order; ✱ = needs Docker (runs in the sandbox, never on the user's machine).
+
+| # | borrowed from | concept | HUMBLE feature | owner |
+|---|---|---|---|---|
+| D1 | **Chrome DevTools / VS Code debugger** | breakpoints, step over / step into / continue, pause on exceptions, call stack | **Step controls** in the console: `F10` run this step, `F5` run to the end, `pause on failure` on by default, a `breakpoint` dot on any step (click the gutter). The "call stack" = the step's parent chain (README section → step → sub-command). | Hermes-1 (UI), Hermes-3 (state machine in console-core) |
+| D2 | **Sentry** | breadcrumbs + error fingerprinting + "seen N times" | **Breadcrumbs**: the last 10 events before the failure (steps, env checks, warnings) above the error. **Fingerprint**: normalize the error (strip paths, versions, hashes, ports) → hash → match against every failure in our real audit runs (`audit/v2-31-final`, `audit/real-16-v2`): `seen in 3 of 31 real repos · fixed by rule node-version-mismatch`. Only real matches; `new failure` if none. | Hermes-2 |
+| D3 | **Andreas Zeller's delta debugging (ddmin)** ✱ | shrink the difference between a passing and a failing input to the minimal cause | **Env bisect**: take the host-vs-proof differences (section 13.2), apply them to the proven sandbox with ddmin until the smallest set that reproduces the failure is found: `minimal cause: node 18 (1 of 4 differences)`. | next free Hermes |
+| D4 | **git bisect** ✱ | binary-search history for the first bad commit | **README bisect**: `firstrun bisect <repo>` walks the README/lockfile history between the last VERIFIED commit and HEAD in the sandbox and names the first commit that broke setup (uses the existing drift module). | next free Hermes |
+| D5 | **rr / Replay.io / WinDbg time-travel** | record once, scrub backwards | **Timeline scrubber**: every step records a snapshot (exit code, duration, files changed via `git status --porcelain`, env facts). A horizontal timeline under the terminal; drag to any step to see the state then. **Rewind** = run the recorded `undo` commands back to that step (through the guard + confirmation). Honest wording: "rewind using undo steps", not magic. | Hermes-1 (UI), Hermes-3 (snapshot model) |
+| D6 | **strace / Process Monitor** ✱ | see which files, sockets and env the process touched | **Syscall lens**: re-run the failing step in the sandbox under `strace -f -e trace=file,network,process`, summarise only the useful parts: `ENOENT .env`, `ECONNREFUSED 127.0.0.1:5432`, `exec: python3.11 not found`. Each becomes evidence for the doctor rules. | next free Hermes |
+| D7 | **pdb post-mortem / core dumps** ✱ | inspect the exact state at the crash | **Post-mortem shell**: `firstrun debug --shell` commits the failed sandbox container and opens a shell in it at the failing step, cwd and env as they were. | next free Hermes |
+| D8 | **`flutter doctor` / `brew doctor`** | one command lists what's wrong with the machine, with fixes | Already = the intro checklist (section 7.1) + `firstrun onboard --doctor` prints it in the terminal with a fix hint per row. | Hermes-1 |
+| D9 | **Wireshark-style watch / VS Code watch expressions** | watch values live | **Watch panel**: pin env facts (a port, a tool version, an env var NAME set/unset); they refresh every 2s and flash when they change. | Luna (web replay) / Hermes-1 |
+
+Rules for all of them: evidence first (every claim links to a log line, snapshot or syscall), redaction everywhere, guard before every command, Docker-only features (✱) never touch the user's machine, and the UI says plainly when a feature needs the sandbox.
+
+Acceptance (debugger concepts): D1 keyboard shortcuts work and pause-on-failure stops before the next step; D2 fingerprint test on real audit failures (two different repos with the same root cause hash equal; different causes differ); D3 ddmin unit test with a fake sandbox runner (4 differences, 1 culprit found in ≤ 6 runs); D5 rewind only uses recorded undo steps; D6 strace summariser tested on a recorded strace log.
+
