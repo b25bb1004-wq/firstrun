@@ -156,7 +156,7 @@ function walkDir(dir, fileList = []) {
     } else if (['.js', '.ts', '.jsx', '.tsx', '.html', '.json', '.css', '.md'].includes(extname(file))) {
       // Check if this path should be skipped
       const relPath = fullPath.replace(ROOT + '/', '');
-      const shouldSkip = SKIP_PATHS.some(skipPath => relPath.includes(skipPath));
+      const shouldSkip = SKIP_PATHS.some(skipPath => ('/' + relPath.split(String.fromCharCode(92)).join('/')).includes(skipPath));
       if (!shouldSkip) {
         fileList.push(fullPath);
       }
