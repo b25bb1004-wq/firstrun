@@ -6,7 +6,6 @@
 
 import { typeSchedule, lineFromBeat, reelPlayer, onboardingTimeline } from './core.js';
 import { GuideThread } from './thread.js';
-import { HumbleRobot, HUMBLE_STATES, AGENT_COLORS, flightMath } from './robot.js';
 
 // ============================================================================
 // CSS Token Definitions (mirroring HUMBLE_CONSOLE_SPEC.md Section 2)

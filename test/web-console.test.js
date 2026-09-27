@@ -30,10 +30,10 @@ function gzipSize(text) {
 const coreModule = await import('file://' + resolve(CONSOLE_DIR, 'core.js'));
 const { flight, typeSchedule, lineFromBeat, lineFromGuideStep, reelPlayer, onboardingTimeline } = coreModule;
 
-// robot.js doesn't exist in lens/humble, it's in the zeus/humble-robot branch
-// So we just test the web copy exists and exports correctly
-const robotModule = await import('file://' + resolve(CONSOLE_DIR, 'robot.js'));
-const { HumbleRobot, HUMBLE_STATES, AGENT_COLORS, flightMath } = robotModule;
+// The website console no longer flies a robot over the log (the guide thread replaced it, #204), so the web copy of
+// robot.js is gone; the guide is thread.js.
+const threadModule = await import('file://' + resolve(CONSOLE_DIR, 'thread.js'));
+const { GuideThread } = threadModule;
 
 // ============================================================================
 // Test: Copies identical to lens sources
@@ -59,11 +59,18 @@ describe('Core module copies match lens/humble/console-core.js', () => {
     assert.ok(webCore.includes('8 + (scale - 1) * 20'), 'glow formula missing');
   });
 
-  it('robot.js exports all required symbols', () => {
-    assert.ok(typeof HumbleRobot === 'function', 'HumbleRobot not exported');
-    assert.ok(Array.isArray(HUMBLE_STATES), 'HUMBLE_STATES not exported');
-    assert.ok(typeof AGENT_COLORS === 'object', 'AGENT_COLORS not exported');
-    assert.ok(typeof flightMath === 'object', 'flightMath not exported');
+  it('thread.js exports the guide thread', () => {
+    assert.ok(typeof GuideThread === 'function', 'GuideThread not exported');
+    for (const m of ['step', 'crack', 'stitch', 'pass', 'pulse', 'knot', 'rebuild', 'mark']) {
+      assert.ok(typeof GuideThread.prototype[m] === 'function', `GuideThread.${m} missing`);
+    }
+  });
+
+  it('the console no longer flies the mascot over the log', () => {
+    const src = loadText(resolve(CONSOLE_DIR, 'console.js'));
+    assert.ok(!src.includes('animateFlight'), 'animateFlight should be gone');
+    assert.ok(!src.includes('demoPoints'), 'demoPoints (the second round of flights) should be gone');
+    assert.ok(src.includes('this.thread.mark'), 'typed lines should mark the thread');
   });
 });
 
@@ -500,13 +507,13 @@ describe('Demo machine data', () => {
 // Test: Total JS size <= 25 KB gzip
 // ============================================================================
 describe('Bundle size budget', () => {
-  it('console.js + core.js + robot.js <= 25 KB gzip', () => {
+  it('console.js + core.js + thread.js <= 25 KB gzip', () => {
     const consoleJS = loadText(resolve(CONSOLE_DIR, 'console.js'));
     const coreJS = loadText(resolve(CONSOLE_DIR, 'core.js'));
-    const robotJS = loadText(resolve(CONSOLE_DIR, 'robot.js'));
+    const threadJS = loadText(resolve(CONSOLE_DIR, 'thread.js'));
     const autoloadJS = loadText(resolve(CONSOLE_DIR, 'autoload.js'));
     
-    const combined = consoleJS + '\n' + coreJS + '\n' + robotJS + '\n' + autoloadJS;
+    const combined = consoleJS + '\n' + coreJS + '\n' + threadJS + '\n' + autoloadJS;
     const gzipped = gzipSize(combined);
     const sizeKB = gzipped / 1024;
     

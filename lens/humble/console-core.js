@@ -160,7 +160,8 @@ function lineFromBeat(beat) {
       lines.push({ kind: 'fix', text: applyRedaction(beat.text), prefix: '  + ', color: '--c-ok' });
       break;
     case 'verified':
-      lines.push({ kind: 'pass', text: `VERIFIED · replay from zero in ${beat.text}s`, rightAlign: true, color: '--c-ok' });
+      // A doctor 'verified' beat proves ONE fix (its text is the diagnosis, not seconds). The run's VERIFIED line comes at the end.
+      lines.push({ kind: 'pass', proven: true, text: `fix proven on a clean machine${beat.evidenceId ? ' · evidence ' + beat.evidenceId : ''}`, rightAlign: true, color: '--c-ok' });
       break;
     default:
       lines.push({ kind: 'sys', text: applyRedaction(beat.text), ...LINE_KINDS.sys });
