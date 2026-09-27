@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { run, must, sleep, shortId, shq, tail } from './util.js';
 
 /**
@@ -408,13 +409,14 @@ export class Sandbox {
   /** HTTP probe from inside the container (the app listens on its own localhost). */
   async probe(url, { timeoutMs = 30_000 } = {}) {
     const started = Date.now();
+    const tmpBody = path.join(os.tmpdir(), 'fr-body');
     let last;
     while (Date.now() - started < timeoutMs) {
       last = await run('docker', ['exec', this.name, 'bash', '-c',
-        `if command -v curl >/dev/null; then curl -sS -o /tmp/fr-body -w '%{http_code}' --max-time 10 ${shq(url)}; else python3 -c "import urllib.request,sys;r=urllib.request.urlopen(sys.argv[1],timeout=10);open('/tmp/fr-body','wb').write(r.read());print(r.status,end='')" ${shq(url)}; fi`]);
+        `if command -v curl >/dev/null; then curl -sS -o ${shq(tmpBody)} -w '%{http_code}' --max-time 10 ${shq(url)}; else python3 -c "import urllib.request,sys;r=urllib.request.urlopen(sys.argv[1],timeout=10);open('${tmpBody}','wb').write(r.read());print(r.status,end='')" ${shq(url)}; fi`]);
       const code = Number(last.out.trim().slice(-3));
       if (code >= 200 && code < 400) {
-        const body = (await run('docker', ['exec', this.name, 'head', '-c', '600', '/tmp/fr-body'])).out;
+        const body = (await run('docker', ['exec', this.name, 'head', '-c', '600', tmpBody])).out;
         return { ok: true, status: code, body, durationMs: Date.now() - started };
       }
       await sleep(1500);

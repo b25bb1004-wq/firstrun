@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { bold, dim, green, red, yellow, cyan } from '../terminal.js';
-import { readJson } from '../util.js';
+import { readJson, run } from '../util.js';
 import { buildGuide } from './guide.js';
 import { probeHost } from './probe.js';
 import { buildReport } from './report.js';
@@ -215,39 +215,21 @@ async function runGuide(guide, report) {
 }
 
 function runStep(shell, step, cwd) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     const command = step.do?.command;
     if (!command) {
       resolve({ code: 0, output: 'No command to run' });
       return;
     }
 
-    const child = spawn(shell, ['-c', command], { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
-    let output = '';
-
-    const onData = (d) => {
-      const s = d.toString();
-      output += s;
-      process.stdout.write(dim(s.replace(/^/gm, '     ')));
-    };
-
-    child.stdout.on('data', onData);
-    child.stderr.on('data', onData);
-
-    const timeout = setTimeout(() => {
-      child.kill('SIGKILL');
-      resolve({ code: 124, output: output + '\n[TIMEOUT]' });
-    }, step.timeoutMs || 600000);
-
-    child.on('close', (code) => {
-      clearTimeout(timeout);
-      resolve({ code: code ?? 1, output });
-    });
-
-    child.on('error', (e) => {
-      clearTimeout(timeout);
+    // Use run() for consistent Windows handling
+    const isWin32 = process.platform === 'win32';
+    try {
+      const r = await run(shell, ['-c', command], { cwd, stdio: ['inherit', 'pipe', 'pipe'], shell: isWin32 });
+      resolve({ code: r.code, output: r.out });
+    } catch (e) {
       resolve({ code: 127, output: e.message });
-    });
+    }
   });
 }
 

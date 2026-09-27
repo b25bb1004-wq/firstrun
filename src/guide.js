@@ -1,9 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import readline from 'node:readline/promises';
 import { spawn } from 'node:child_process';
-import { readJson, tail } from './util.js';
+import { readJson, tail, run } from './util.js';
 import { bold, dim, green, red, yellow, cyan } from './terminal.js';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * The newcomer's side of HUMBLE: walk through the verified setup on your own
@@ -73,13 +76,14 @@ export function signatureOf(logTail = '') {
 }
 
 function runLive(shell, command, cwd) {
+  // Use run() which handles Windows shell for npm/npx/yarn/pnpm
+  const isShell = process.platform === 'win32';
   return new Promise((resolve) => {
-    const child = spawn(shell, ['-c', command], { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
-    let out = '';
-    const onData = (d) => { out += d; process.stdout.write(dim(String(d).replace(/^/gm, '     '))); };
-    child.stdout.on('data', onData);
-    child.stderr.on('data', onData);
-    child.on('close', (code) => resolve({ code, out }));
-    child.on('error', (e) => resolve({ code: 127, out: e.message }));
+    // Use run() for consistent Windows handling
+    run(shell, ['-c', command], { cwd, stdio: ['inherit', 'pipe', 'pipe'], shell: isShell }).then((r) => {
+      resolve({ code: r.code, out: r.out });
+    }).catch((e) => {
+      resolve({ code: 127, out: e.message });
+    });
   });
 }

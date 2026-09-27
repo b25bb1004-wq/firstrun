@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { run } from '../util.js';
 
 /**
  * READ-ONLY host probe (node/python versions, docker present, OS, missing tools vs the plan).
@@ -36,19 +37,8 @@ export async function probeHost() {
 }
 
 async function runCmd(cmd, args, timeoutMs = 5000) {
-  return new Promise((resolve) => {
-    const child = spawn(cmd, args, { timeout: timeoutMs, windowsHide: true });
-    let stdout = '';
-    let stderr = '';
-    child.stdout.on('data', d => { stdout += d; });
-    child.stderr.on('data', d => { stderr += d; });
-    child.on('close', code => {
-      resolve({ code: code ?? -1, stdout, stderr });
-    });
-    child.on('error', err => {
-      resolve({ code: -1, stdout: '', stderr: err.message });
-    });
-  });
+  const r = await run(cmd, args, { timeoutMs, windowsHide: true });
+  return { code: r.code, stdout: r.out, stderr: '' };
 }
 
 async function getNodeVersion() {

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
 import { TOOLBOX } from './toolbox.js';
@@ -490,7 +491,8 @@ export const RULES = [
       const sets = Object.entries(values);
       if (!sets.length) return null;
       const missing = names.filter((n) => !values[n]);
-      const actions = [{ type: 'exec', command: `touch .env && { grep -v -E '^(${sets.map(([k]) => k).join('|')})=' .env; ${sets.map(([k, v]) => `printf '%s=%s\\n' ${shq(k)} ${shq(v.value)}`).join('; ')}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` }];
+      const tmpEnv = path.join(os.tmpdir(), 'firstrun.env');
+      const actions = [{ type: 'exec', command: `touch .env && { grep -v -E '^(${sets.map(([k]) => k).join('|')})=' .env; ${sets.map(([k, v]) => `printf '%s=%s\\n' ${shq(k)} ${shq(v.value)}`).join('; ')}; } > ${shq(tmpEnv)} && mv ${shq(tmpEnv)} .env` }];
       const patches = envFile ? sets.filter(([, v]) => v.kind !== 'fake').map(([k, v]) => ({ path: envFile, op: 'set-env', key: k, value: v.value })) : [];
       const fakes = sets.filter(([, v]) => v.kind === 'fake').map(([k]) => k);
       const shown = sets.length > 4 ? `${sets.slice(0, 4).map(([k]) => k).join(', ')} and ${sets.length - 4} more` : sets.map(([k]) => k).join(', ');
@@ -552,7 +554,8 @@ export const RULES = [
           mailActions.push({ type: 'insert-before', command: mailDoc.text, kind: 'services', silent: true });
         }
       }
-      const actions = [...sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env` })), ...mailActions];
+      const tmpEnv = path.join(os.tmpdir(), 'firstrun.env');
+      const actions = [...sets.map((s) => ({ type: 'exec', command: `touch .env && { grep -v '^${s.k}=' .env; printf '%s=%s\\n' ${shq(s.k)} ${shq(s.value)}; } > ${shq(tmpEnv)} && mv ${shq(tmpEnv)} .env` })), ...mailActions];
       const patches = [...(envFile ? sets.map((s) => ({ path: envFile, op: 'set-env', key: s.k, value: s.value })) : []), ...mailPatches];
       const hitSets = sets.filter((s) => hit.some(([k]) => k === s.k));
       const envNote = `\`${envFile || '.env'}\` now has a working local value for ${sets.map((s) => `\`${s.k}\``).join(', ')} instead of a placeholder.`;

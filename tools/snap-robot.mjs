@@ -4,10 +4,15 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HUMBLE_DIR = path.join(ROOT, 'lens', 'humble');
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.platform === 'darwin'
+  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  : process.platform === 'win32'
+    ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+    : 'google-chrome';
 const PORT = 4399;
 const CDP_PORT = 9226;
 
@@ -35,7 +40,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, async () => {
   console.log(`Server listening on http://localhost:${PORT}`);
-  const userDataDir = `/tmp/chrome-snap-robot-${Date.now()}`;
+  const userDataDir = path.join(os.tmpdir(), `chrome-snap-robot-${Date.now()}`);
   const chrome = spawn(CHROME, [
     '--headless=new',
     '--disable-gpu',

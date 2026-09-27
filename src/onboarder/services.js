@@ -1,5 +1,6 @@
 import { createConnection } from 'node:net';
 import { SERVICE_CATALOG, PORT_TO_SERVICE, serviceKind, serviceFor, credsFromUrl, dockerRunLine } from '../doctor/services.js';
+import { run } from '../util.js';
 
 /**
  * Service definitions based on the proven acme-shop run.
@@ -226,15 +227,9 @@ export async function checkDockerAvailable() {
 }
 
 function runCmd(cmd, args, timeoutMs = 5000) {
-  return new Promise((resolve) => {
-    const { spawn } = require('node:child_process');
-    const child = spawn(cmd, args, { timeout: timeoutMs, windowsHide: true });
-    let stdout = '';
-    let stderr = '';
-    child.stdout.on('data', d => { stdout += d; });
-    child.stderr.on('data', d => { stderr += d; });
-    child.on('close', code => resolve({ code: code ?? -1, stdout, stderr }));
-    child.on('error', err => resolve({ code: -1, stdout: '', stderr: err.message }));
+  return new Promise(async (resolve) => {
+    const r = await run(cmd, args, { timeoutMs, windowsHide: true });
+    resolve({ code: r.code, stdout: r.out, stderr: '' });
   });
 }
 
