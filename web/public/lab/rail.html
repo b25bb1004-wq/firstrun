@@ -74,7 +74,7 @@ async function run() {
   const centerOf = (node) => node.offsetTop + node.offsetHeight / 2 - 11;
   const glide = (node) => {
     const y = centerOf(node);
-    return Promise.race([pos.to(y, { instant: reduced }), new Promise((r) => setTimeout(r, 520))]);
+    return Promise.race([pos.to(y, { instant: reduced }), new Promise((r) => setTimeout(r, 300 / speed))]); // the spring keeps settling; the script need not wait for it
   };
   const markAt = (node, html, cls) => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
