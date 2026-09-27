@@ -9,7 +9,7 @@
 <style>
   :root{
     --ink:#413333; --ink2:#6e5c58; --blue:#315B8C; --electric:#315B8C; --crack:#F2765E;
-    --paper:#F5EBDD; --paper2:#ECDFCC; --line:#CDB9A3;
+    --blue2:#3b59a8; --paper:#F5EBDD; --paper2:#ECDFCC; --line:#CDB9A3;
     --sans:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
     --display:"Bricolage Grotesque",Futura,"Jost",sans-serif;
     --label:Futura,"Futura PT","Jost","Century Gothic",sans-serif;
@@ -17,16 +17,16 @@
   }
   @page{size:1920px 1080px;margin:0}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html,body{letter-spacing:.012em;word-spacing:.04em;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .slide{width:1920px;height:1080px;position:relative;overflow:hidden;page-break-after:always;break-after:page;background:var(--paper);padding:120px 140px}
   .slide:last-child{page-break-after:auto;break-after:auto}
   .kicker{font-family:var(--label);font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:36px}
   .kicker .n{color:var(--line);margin-right:18px}
   h1,h2,.big,.nums .v,.stats .v,.stats b{font-family:var(--display)}
-  h1{font-size:96px;line-height:1.02;font-weight:700;letter-spacing:-.02em}
-  h2{font-size:76px;line-height:1.05;font-weight:700;letter-spacing:-.02em;max-width:1500px}
-  p.lead{font-size:38px;line-height:1.4;color:var(--ink2);max-width:1400px;margin-top:36px}
-  .fix{color:var(--electric)} .brk{color:var(--crack)} .blue{color:var(--blue)}
+  h1{font-size:96px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
+  h2{font-size:76px;line-height:1.1;font-weight:700;letter-spacing:-.01em;max-width:1500px}
+  p.lead{font-size:38px;line-height:1.55;letter-spacing:.01em;color:var(--ink2);max-width:1400px;margin-top:36px}
+  .fix{color:var(--electric)} .brk{color:var(--crack)} .blue{color:var(--blue2)}
   .mono{font-family:var(--mono)}
   .foot{position:absolute;left:140px;right:140px;bottom:56px;display:flex;justify-content:space-between;font-family:var(--label);font-size:18px;color:var(--ink2)}
   .foot img{height:30px}
@@ -48,7 +48,7 @@
   .flow .st{flex:1;border-top:6px solid var(--ink);padding:28px 22px 0 0}
   .flow .st.b{border-color:var(--crack)} .flow .st.f{border-color:var(--electric)}
   .flow .st .t{font-size:36px;font-weight:700}
-  .flow .st .d{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.35}
+  .flow .st .d{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.5}
   .outs{display:flex;gap:28px;margin-top:80px}
   .outs div{border:2px solid var(--ink);padding:22px 30px;font-size:30px;font-weight:600}
   .outs div.v{background:var(--ink);color:var(--paper)}
@@ -64,7 +64,7 @@
   /* 5 numbers */
   .nums{display:grid;grid-template-columns:repeat(5,1fr);gap:30px;margin-top:90px}
   .nums .v{font-size:150px;font-weight:700;letter-spacing:-.04em;line-height:1}
-  .nums .l{font-size:26px;color:var(--ink2);margin-top:14px;line-height:1.3}
+  .nums .l{font-size:26px;color:var(--ink2);margin-top:14px;line-height:1.5}
   .bar{display:flex;height:72px;margin-top:130px;border-radius:4px;overflow:hidden}
   .bar div{display:flex;align-items:center;padding-left:18px;font-family:var(--label);font-size:22px;font-weight:600;color:#fff;white-space:nowrap}
   .legend{display:flex;gap:44px;margin-top:22px;font-size:24px;color:var(--ink2)}
@@ -76,21 +76,21 @@
   .crew>div{padding:40px 40px 40px 0;border-bottom:2px solid rgba(13,16,48,.15)}
   .crew .nm{font-family:var(--label);font-size:44px;font-weight:600}
   .crew .rl{font-size:26px;color:var(--blue);margin-top:6px;font-weight:600}
-  .crew .ds{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.35}
+  .crew .ds{font-size:24px;color:var(--ink2);margin-top:12px;line-height:1.5}
 
   /* 7 engine */
   .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:60px}
   .layer{border-top:6px solid var(--ink);padding-top:26px}
   .layer.bob{border-color:var(--blue)} .layer.ver{border-color:var(--electric)}
   .layer .t{font-size:42px;font-weight:700}
-  .layer .d{font-size:25px;color:var(--ink2);margin-top:14px;line-height:1.4}
+  .layer .d{font-size:25px;color:var(--ink2);margin-top:14px;line-height:1.55}
   .bobres{display:flex;align-items:baseline;gap:40px;margin-top:70px;padding-top:40px;border-top:2px solid rgba(13,16,48,.12)}
   .bobres .v{font-size:120px;font-weight:700;letter-spacing:-.03em;line-height:1}
-  .bobres .l{font-size:28px;color:var(--ink2);line-height:1.35}
+  .bobres .l{font-size:28px;color:var(--ink2);line-height:1.5}
 
   /* 8 desktop */
   .desk{display:grid;grid-template-columns:760px 1fr;gap:80px;margin-top:50px}
-  .feat{font-size:28px;line-height:1.3;padding:18px 0;border-bottom:2px solid rgba(13,16,48,.1)}
+  .feat{font-size:28px;line-height:1.5;padding:18px 0;border-bottom:2px solid rgba(13,16,48,.1)}
   .feat b{display:block;font-size:32px;color:var(--ink)}
   .feat span{color:var(--ink2);font-size:24px}
   .shot{border:2px solid rgba(13,16,48,.15);border-radius:8px;overflow:hidden;background:#fff}
@@ -324,6 +324,7 @@
 
 <!-- 12 · Close -->
 <section class="slide close">
+  <img class="bg" src="../../../web/public/brand/gradient-bg-1920.jpg" alt="">
   <div class="inner">
     <img src="../../../web/public/brand/humble-logo.svg" alt="HUMBLE" style="height:150px">
     <h1 style="margin-top:70px">The README,<br>that <span class="blue">fixes itself.</span></h1>
