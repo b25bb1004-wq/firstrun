@@ -27,7 +27,7 @@
 Setup instructions are the only code in a repository that nobody tests. They get written once; then versions move, environment variables get added, scripts get renamed, and services creep in. Nothing notices until a new person follows the README and gets stuck. Finding information is developers' #1 friction point (Atlassian DevEx 2025, 3,500 devs). 72% of engineering leaders say new hires need more than a month to ship their first three meaningful PRs (Cortex 2024). 75% of developers keep answering questions they have answered before (Stack Overflow 2024). The newcomer loses days, a senior engineer gets interrupted, and the fix lands in a chat thread instead of the README. The next hire hits the same wall.
 
 **Solution**  
-HUMBLE treats a repository's README as an executable procedure. It runs six agents in sequence: **Scout** reads the README, CONTRIBUTING, docs, manifests, lockfiles, `.nvmrc`, compose files, `.env.example`, CI workflows, and the source that reads env vars. **Planner** turns the setup sections into an ordered plan of shell steps, flags docs-vs-code conflicts in seconds without Docker. **Runner** executes each step in a clean container with real terminal memory (cwd, exports, activated venvs persist); databases and caches start as sidecars on localhost. **Doctor** diagnoses failures — deterministic rules first (free, instant, reproducible): wrong runtime, renamed script, stale file, undocumented env var, missing Postgres/Redis/Mongo, missing migration, npm peer conflicts, missing tools. Failures the rules don't recognise go to **IBM Bob**, which reads the repo and returns a structured fix. **Verifier** replays the entire repaired plan in a brand-new container; nothing counts as fixed until it passes from zero. **Scribe** writes the smallest README diff, patches `.env.example`/`docker-compose.yml`, and adds a Setup Passport badge, an evidence report (`FIRSTRUN.md`), a devcontainer matching the verified machine, a CI drift guard, and a Bob guide mode for newcomers.
+HUMBLE treats a repository's README as an executable procedure. Six agents run in sequence: **Scout** reads docs, manifests, lockfiles, `.nvmrc`, compose files, `.env.example`, CI workflows, and source that reads env vars. **Planner** turns setup sections into ordered shell steps, flags docs-vs-code conflicts in seconds without Docker. **Runner** executes each step in a clean container with real terminal memory (cwd, exports, venvs persist); databases and caches start as sidecars on localhost. **Doctor** diagnoses failures — deterministic rules first (free, instant, reproducible): wrong runtime, renamed script, stale file, undocumented env var, missing Postgres/Redis/Mongo, missing migration, npm peer conflicts, missing tools. Failures the rules don't recognise go to **IBM Bob**, which reads the repo and returns a structured fix. **Verifier** replays the entire repaired plan in a brand-new container; nothing counts as fixed until it passes from zero. **Scribe** writes the smallest README diff, patches `.env.example`/`docker-compose.yml`, and adds a Setup Passport badge, an evidence report (`FIRSTRUN.md`), a devcontainer matching the verified machine, a CI drift guard, and a Bob guide mode for newcomers.
 
 **Others check or plan your setup; HUMBLE fixes the README itself, proves the fix by replaying from zero on a clean machine, then walks your own machine through it with a debugger and a security guard.**
 
@@ -39,7 +39,7 @@ HUMBLE treats a repository's README as an executable procedure. It runs six agen
 
 **Audit proof** — our 31-repo audit (PR #154, `audit/v2-31-final/`) keeps every verdict: 11 VERIFIED, 11 PARTIAL, 4 INCONCLUSIVE, 1 CI-ONLY, 2 FAILED, 2 NO-SETUP-DOCS. 18 of 31 READMEs broke on a clean machine; 34 breaks found; 28 fixed; 14 repaired automatically. All runs used rules-only brain (0 Bobcoins); the Bob pass is pending.
 
-**Word count: 486**
+**Word count: 497**
 
 ---
 
@@ -65,7 +65,7 @@ HUMBLE is built with IBM Bob at every layer. Bob is the reasoning engine, the ho
 
 **Task-session exports:** `bob_sessions/arnav/` and `bob_sessions/karmanya/` contain the Bob IDE sessions used to build HUMBLE (screenshots required by hackathon).
 
-**Word count: 497**
+**Word count: 465**
 
 ---
 
@@ -90,6 +90,6 @@ HUMBLE is built with IBM Bob at every layer. Bob is the reasoning engine, the ho
 - All numbers trace to source files (HTML comments after each number)
 - No credential-shaped strings written as literals
 
-**PR link:** (to be added after push)
-**Long description word count:** 486
-**Bob usage statement word count:** 497
+**PR link:** https://github.com/b25bb1004-wq/firstrun/pull/new/hermes4/submission-kit
+**Long description word count:** 497
+**Bob usage statement word count:** 465
