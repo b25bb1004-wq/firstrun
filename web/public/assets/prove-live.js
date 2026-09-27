@@ -98,7 +98,11 @@
     }
 
     const highlights = [];
+    let passport = null;
     for (const ev of events) {
+      if ((ev.type === 'passport' || ev.type === 'done') && ev.data) {
+        passport = ev.data.passport || ev.data;
+      }
       if (ev.type === 'plan' && ev.data) {
         const stepCount = ev.data.steps ? ev.data.steps.length : 0;
         const docs = (ev.data.docsUsed && ev.data.docsUsed.length) ? ev.data.docsUsed.join(', ') : 'README.md';
@@ -119,8 +123,7 @@
       }
     }
 
-    // Deduplicate / ensure compact stream
-    return highlights.slice(0, 6);
+    return { rows: highlights.slice(0, 6), passport };
   }
 
   async function runProve() {
@@ -152,14 +155,14 @@
         const resp = await fetch(recorded.path);
         if (resp.ok) {
           const text = await resp.text();
-          const rows = await parseRecordedEvents(text);
+          const { rows, passport } = await parseRecordedEvents(text);
           if (rows.length > 0) {
             for (let i = 0; i < rows.length; i++) {
               await addRow(rows[i].agent, rows[i].action, true, 350);
               progressBar.style.width = `${Math.round(((i + 1) / rows.length) * 95)}%`;
             }
             progressBar.style.width = '100%';
-            finishSuccess(repo, true, recorded.evidenceLink);
+            finishSuccess(repo, true, recorded.evidenceLink, passport);
             return;
           }
         }
@@ -209,7 +212,7 @@
                   await addRow('Larp', `${ev.step}: ${ev.command} → ${ev.outcome}`, false, 180);
                 }
               }
-              finishSuccess(repo, false, `https://github.com/b25bb1004-wq/firstrun/actions/runs/${runId}`);
+              finishSuccess(repo, false, `https://github.com/b25bb1004-wq/firstrun/actions/runs/${runId}`, statusData.passport);
               return;
             } else {
               throw new Error('GitHub Actions run finished with conclusion: ' + statusData.conclusion);
@@ -227,15 +230,28 @@
     }
   }
 
-  function finishSuccess(repo, isRecorded, link) {
+  function finishSuccess(repo, isRecorded, link, passport) {
     clearInterval(timerInterval);
     btn.disabled = false;
     btn.textContent = 'Prove it';
     isRunning = false;
 
-    mascotImg.src = '/assets/mascot/celebrate.svg';
+    const verdict = passport?.verdict || 'VERIFIED';
+    mascotImg.src = verdict === 'VERIFIED' ? '/assets/mascot/celebrate.svg' : '/assets/mascot/think.svg';
     const tag = isRecorded ? ' (recorded run)' : '';
-    resultLine.innerHTML = `VERIFIED${tag} · breaks diagnosed &amp; fixed · replay passed &nbsp;<a href="${link}" class="link" target="_blank" rel="noopener">Open the evidence →</a>`;
+
+    let stats = '';
+    if (passport) {
+      const parts = [];
+      if (passport.stepsTotal) parts.push(`${passport.stepsTotal} steps`);
+      if (passport.breaksFixed !== undefined && passport.breaksFixed > 0) parts.push(`${passport.breaksFixed} fixed`);
+      if (passport.replaySeconds) parts.push(`replay in ${passport.replaySeconds}s`);
+      if (parts.length > 0) stats = ` · ${parts.join(' · ')}`;
+    } else {
+      stats = ' · breaks diagnosed &amp; fixed · replay passed';
+    }
+
+    resultLine.innerHTML = `<strong>${escapeHtml(verdict)}</strong>${tag}${stats} &nbsp;<a href="${link}" class="link" target="_blank" rel="noopener">Open evidence →</a>`;
     resultLine.style.display = 'block';
   }
 
