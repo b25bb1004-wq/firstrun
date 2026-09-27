@@ -744,6 +744,7 @@ export const RULES = [
         // CLIs READMEs assume are installed (rule factory: django-project-template runs django-admin before any pip install).
         'django-admin': 'pip install django', alembic: 'pip install alembic', celery: 'pip install celery', black: 'pip install black',
         cookiecutter: 'pip install cookiecutter', virtualenv: 'pip install virtualenv', pipx: 'pip install pipx',
+        'pre-commit': 'pip install pre-commit', tox: 'pip install tox', invoke: 'pip install invoke', nox: 'pip install nox',
         'docker-compose': null, docker: null,
       };
       // CLIs that READMEs assume are installed globally but the project doesn't depend on.

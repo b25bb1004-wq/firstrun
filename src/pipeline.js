@@ -200,6 +200,16 @@ export async function verifyRepo(repoDir, opts = {}) {
       if (step.kind === 'services') { const t = Date.now(); r = await runServicesStep(step.command, { sandbox: box, facts }); r.durationMs = Date.now() - t; }
       else if (step.kind === 'serve') {
         r = await box.serve(step.command, { port: step.serve?.port, onData, timeoutMs: 150_000 });
+        // A server script that starts Docker services first (lincolnloop's `make run`: "Error 97"): start them as
+        // sidecars through the shim, then start the server once more.
+        const sreq = r.exitCode !== 0 ? await box.readFile('/firstrun/services.request') : null;
+        if (sreq) {
+          const [scwd, asked] = sreq.trim().split('\n');
+          const sr = await runServicesStep(asked.replace(/^docker-compose\b/, 'docker compose'), { sandbox: box, facts, cwd: scwd });
+          await box.sh(`printf '%s\\n' ${shq(asked)} >> /firstrun/services.done; rm -f /firstrun/services.request`);
+          onData?.(`[firstrun] \`${asked}\` ran inside the server script: started its services as sidecars, then started the server again\n${sr.out}`);
+          if (sr.exitCode === 0) r = await box.serve(step.command, { port: step.serve?.port, onData, timeoutMs: 150_000 });
+        }
         if (r.exitCode === 0 && r.port && r.port !== step.serve?.port) {
           const was = step.serve?.port;
           step.serve = { ...(step.serve || {}), port: r.port };
