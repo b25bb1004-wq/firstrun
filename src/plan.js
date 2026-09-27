@@ -365,7 +365,9 @@ function lowerMajor(a, b) {
 //  • runs npx create-* / npx express-generator / yarn create / pnpm create / cookiecutter / degit
 //  • globally installs a *-generator or create-* package (npm/yarn/pnpm -g)
 // NOT a scaffolder: `npm init -y` / `npm init --yes` (no package name → just writes package.json)
-const SCAFFOLDER_RE = /^(?:npx\s+(?:create-\S+|express-generator\b)|yarn\s+create\b|pnpm\s+create\b|cookiecutter\b|degit\b|(?:npm\s+(?:install|i)\s+(?:-g\s+|--global\s+)|npm\s+i\s+-g\s+|yarn\s+global\s+add\s+|pnpm\s+add\s+-g\s+)(?:@[\w.-]+\/)?(?:[\w.-]+-generator\b|create-[\w.-]+\b))/i;
+// Also a project *template* used via `django-admin startproject --template` (rule factory: jpadilla/django-project-template):
+// that creates a NEW project; it is not this repo's own setup.
+const SCAFFOLDER_RE = /^(?:npx\s+(?:create-\S+|express-generator\b)|yarn\s+create\b|pnpm\s+create\b|cookiecutter\b|degit\b|django-admin(?:\.py)?\s+start(?:project|app)\b[^\n]*--template\b|(?:npm\s+(?:install|i)\s+(?:-g\s+|--global\s+)|npm\s+i\s+-g\s+|yarn\s+global\s+add\s+|pnpm\s+add\s+-g\s+)(?:@[\w.-]+\/)?(?:[\w.-]+-generator\b|create-[\w.-]+\b))/i;
 // npm init <name> (scaffolds) but NOT npm init -y / --yes (just writes package.json)
 const NPM_INIT_SCAFFOLDER_RE = /^npm\s+init\s+(?!-y\b|--yes\b)(\S)/i;
 

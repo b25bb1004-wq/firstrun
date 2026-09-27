@@ -744,6 +744,7 @@ export const RULES = [
         // CLIs READMEs assume are installed (rule factory: django-project-template runs django-admin before any pip install).
         'django-admin': 'pip install django', alembic: 'pip install alembic', celery: 'pip install celery', black: 'pip install black',
         cookiecutter: 'pip install cookiecutter', virtualenv: 'pip install virtualenv', pipx: 'pip install pipx',
+        'pre-commit': 'pip install pre-commit', tox: 'pip install tox', invoke: 'pip install invoke', nox: 'pip install nox',
         'docker-compose': null, docker: null,
       };
       // CLIs that READMEs assume are installed globally but the project doesn't depend on.
@@ -1346,7 +1347,9 @@ export const RULES = [
         const date = commitDate(facts);
         const req = facts.python?.requirementsFiles?.[0];
         if (!date || !req) return null;
-        const cmd = `pip install uv && uv pip install --system --exclude-newer ${date} -r ${req}`;
+        // The date cutoff must not apply to build tools (realpython: setuptools<=38 under a 2018 cutoff vs >=40.8 needed
+        // to build): current setuptools/wheel first, then the project's own requirements as of the date, no build isolation.
+        const cmd = `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${date} -r ${req}`;
         if ([...(tried || [])].some((t) => String(t).includes('--exclude-newer'))) return null;
         return {
           ruleId: 'python-dependency-drift', class: 'missing-dependency', confidence: 0.8,
@@ -1392,18 +1395,34 @@ export const RULES = [
       // ["No matching distribution found" / "Could not build wheels for X": exact pins from years ago have no wheel
       // for today's Python.] General fix: the Python that was current when the repo was last committed.
       id: 'python-era-runtime',
-      test({ log, plan, facts }) {
+      async test({ log, plan, facts }) {
         if (plan.runtime.name !== 'python') return null;
-        if (!/No matching distribution found for [\w.-]+==|Could not build wheels for [\w.-]+|Failed building wheel for [\w.-]+/.test(log)) return null;
+        if (!/No matching distribution found for [\w.-]+==|Could not build wheels for [\w.-]+|Failed building wheel for [\w.-]+|metadata-generation-failed|Preparing metadata \(pyproject\.toml\): finished with status 'error'/.test(log)) return null;
+        const cur = String(plan.runtime.version || '');
+        const older = (v) => cur && Number(v.split('.')[1]) < Number(cur.split('.')[1]);
+        // Best evidence: the failing pin's own wheels on PyPI (numpy==1.17.0 ships cp35..cp37 wheels -> Python 3.7).
+        // General for any package and version; the last "Collecting X==V" before the error is the one that failed.
+        const pins = [...log.matchAll(/Collecting ([\w.-]+)==([\w.!+-]+)/g)];
+        const pin = pins.at(-1);
+        if (pin) {
+          const wheelPy = await newestWheelPython(pin[1], pin[2]);
+          if (wheelPy && older(wheelPy)) {
+            return {
+              ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.85,
+              cause: `\`${pin[1]}==${pin[2]}\` is pinned, and PyPI only has builds of it up to Python ${wheelPy}; on Python ${cur} it tries to compile from source and fails. The docs don't say which Python to use.`,
+              fix: { actions: [{ type: 'rebase', image: imageFor('python', wheelPy), runtime: { name: 'python', version: wheelPy, source: `newest Python with a ${pin[1]}==${pin[2]} wheel on PyPI` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${wheelPy} (the pinned ${pin[1]}==${pin[2]} has no build for newer Python)`, runtime: { name: 'python', version: wheelPy } } },
+            };
+          }
+        }
+        // Fallback: the Python that was current when the repo was last committed.
         const date = commitDate(facts);
         if (!date) return null;
         const y = Number(date.slice(0, 4));
         const era = y <= 2017 ? '3.6' : y === 2018 ? '3.7' : y <= 2020 ? '3.8' : y === 2021 ? '3.9' : y === 2022 ? '3.10' : y === 2023 ? '3.11' : '3.12';
-        const cur = String(plan.runtime.version || '');
-        if (!cur || cur === era || Number(cur.split('.')[1]) <= Number(era.split('.')[1])) return null; // already that old
+        if (!older(era)) return null;
         return {
-          ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.75,
-          cause: `The requirements pin packages from ${y} that have no build for Python ${cur}; the docs don't say which Python to use. Python ${era} was current when the repo was last committed (${date}).`,
+          ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.7,
+          cause: `The requirements pin packages that have no build for Python ${cur}; the docs don't say which Python to use. Python ${era} was current when the repo was last committed (${date}).`,
           fix: { actions: [{ type: 'rebase', image: imageFor('python', era), runtime: { name: 'python', version: era, source: `the repo's last commit (${date})` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${era} (the pinned packages predate newer Python releases)`, runtime: { name: 'python', version: era } } },
         };
       },
@@ -1446,4 +1465,16 @@ function commitDate(facts) {
 
 function label(kind) {
   return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;
+}
+
+// Newest CPython "3.x" that has a wheel for pkg==version on PyPI (from its cpXY wheel tags); null when unknown.
+async function newestWheelPython(pkg, version) {
+  try {
+    const res = await fetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const minors = (j.urls || []).filter((u) => u.packagetype === 'bdist_wheel')
+      .map((u) => (u.filename.match(/-cp3(\d+)-/) || [])[1]).filter(Boolean).map(Number);
+    return minors.length ? `3.${Math.max(...minors)}` : null;
+  } catch { return null; }
 }

@@ -52,7 +52,8 @@ test('collections ABC aliases removed in 3.10: Python 3.9, whatever newer versio
 test('dependency drift (markupsafe, werkzeug, wtforms …): one general fix, install as of the commit date', () => {
   for (const log of ["ImportError: cannot import name 'soft_unicode' from 'markupsafe'", "ImportError: cannot import name 'url_quote' from 'werkzeug.urls'", "ImportError: cannot import name 'TextField' from 'wtforms'"]) {
     const r = rule('python-dependency-drift').test({ log, plan: py(), facts: pyFacts, step: { command: 'python app.py' }, tried: new Set() });
-    assert.match(r.fix.actions[0].command, /uv pip install --system --exclude-newer \d{4}-\d\d-\d\d -r requirements\.txt/);
+    assert.match(r.fix.actions[0].command, /uv pip install --system --no-build-isolation --exclude-newer \d{4}-\d\d-\d\d -r requirements\.txt/);
+    assert.match(r.fix.actions[0].command, /^pip install uv setuptools wheel && /, 'build tools stay current');
   }
   const own = rule('python-dependency-drift').test({ log: "ImportError: cannot import name 'x' from 'app'", plan: py(), facts: pyFacts, step: { command: 'python app.py' }, tried: new Set() });
   assert.equal(own, null, "the project's own module is not drift");
@@ -74,8 +75,8 @@ test('npm ci on a stale lockfile falls back to npm install; yarn frozen lockfile
   assert.equal(rule('yarn-frozen-lockfile').test({ log: 'error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.', step: { command: 'yarn install --frozen-lockfile' } }).fix.actions[0].command, 'yarn install');
 });
 
-test('old pins without wheels: the Python that was current at the commit date', () => {
-  const r = rule('python-era-runtime').test({ log: 'ERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects', plan: py('3.12'), facts: pyFacts });
+test('old pins without wheels: the Python that was current at the commit date', async () => {
+  const r = await rule('python-era-runtime').test({ log: 'ERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects', plan: py('3.12'), facts: pyFacts });
   // this repo's last commit is 2026, so no older era applies here; the rule must then stay silent
   assert.equal(r, null);
 });
