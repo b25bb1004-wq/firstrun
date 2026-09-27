@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('dock', {
   cancel:    ()              => ipcRenderer.send('dock:cancel',  {}),
   lens:      ()              => ipcRenderer.send('dock:lens',    {}),
   toggle:    ()              => ipcRenderer.send('dock:toggle',  {}),
+  console:   (runDir)        => ipcRenderer.send('dock:console', { runDir }),
   onState:   (fn)            => ipcRenderer.on('dock:state', (_e, state) => fn(state)),
   setSecret: (name, value)   => ipcRenderer.send('dock:secret:set', { name, value }),
   answerAsk: (id, answer)    => ipcRenderer.send('dock:ask:answer', { id, answer }),
