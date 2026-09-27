@@ -326,10 +326,12 @@
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <button class="btn" onclick="sim.boot()">Boot CRT (420ms)</button>
         <button class="btn" onclick="sim.peek()">Peek (Eyestalk)</button>
+        <button class="btn" onclick="testLanternBeam()">Lantern BEAM Cone (§6)</button>
+        <button class="btn" onclick="testSpatialTarget()">Spatial Target Box (§17)</button>
+        <button class="btn" onclick="testCaptureFlash()">1s Capture Flash (§17)</button>
         <button class="btn" onclick="sim.setState('sleep')">Sleep</button>
         <button class="btn" onclick="sim.setState('think')">Think</button>
         <button class="btn" onclick="sim.setState('talk', { say: 'Explaining repo build steps!' })">Talk</button>
-        <button class="btn" onclick="sim.setState('point')">Point (Beam)</button>
         <button class="btn" onclick="sim.setState('celebrate')">Celebrate</button>
         <button class="btn" onclick="sim.setState('worried')">Worried</button>
       </div>
@@ -522,6 +524,28 @@
       }
     }));
   }
+
+  window.testLanternBeam = function() {
+    const hint = document.getElementById('hint');
+    if (hint) {
+      hint.style.display = 'block';
+      hint.textContent = 'this broke here: npm install exit 1';
+      sim.pointAt(hint, { say: 'this broke here' });
+    }
+  };
+
+  window.testSpatialTarget = function() {
+    const hint = document.getElementById('hint');
+    if (hint) {
+      const r = hint.getBoundingClientRect();
+      sim.showSpatialTarget(r);
+      setTimeout(() => sim.hideSpatialTarget(), 3000);
+    }
+  };
+
+  window.testCaptureFlash = function() {
+    sim.triggerCaptureFlash({ x: 20, y: 20, width: window.innerWidth - 40, height: 350 });
+  };
 </script>
 </body>
 </html>
