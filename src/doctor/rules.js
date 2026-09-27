@@ -1347,7 +1347,9 @@ export const RULES = [
         const date = commitDate(facts);
         const req = facts.python?.requirementsFiles?.[0];
         if (!date || !req) return null;
-        const cmd = `pip install uv && uv pip install --system --exclude-newer ${date} -r ${req}`;
+        // The date cutoff must not apply to build tools (realpython: setuptools<=38 under a 2018 cutoff vs >=40.8 needed
+        // to build): current setuptools/wheel first, then the project's own requirements as of the date, no build isolation.
+        const cmd = `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${date} -r ${req}`;
         if ([...(tried || [])].some((t) => String(t).includes('--exclude-newer'))) return null;
         return {
           ruleId: 'python-dependency-drift', class: 'missing-dependency', confidence: 0.8,
