@@ -95,8 +95,8 @@ Tip: most mouse software can map a side button to Ctrl+Shift+Space, so circling 
 
 HUMBLE verifies its own README with HUMBLE: the steps below are the ones its planner finds and runs.
 
-**You need:** Node.js 20+ and git. Step 3 also needs Docker (Docker Desktop on Windows/macOS, running).
-Bob is optional: without it HUMBLE uses its rules only and spends 0 Bobcoins.
+**You need:** Node.js 20+ and git. Proving a README needs Docker (Docker Desktop on Windows/macOS, running).
+IBM Bob is optional: without it HUMBLE uses its rules only and spends 0 Bobcoins.
 
 ```bash
 git clone https://github.com/b25bb1004-wq/firstrun.git
@@ -105,8 +105,12 @@ npm install
 node --test test/*.test.js
 ```
 
-**1. Docs vs code, in seconds (no Docker, runs nothing from the repo).** Reads the demo repo's README next
-to its manifests, compose file, CI and code, and prints the plan plus every place they disagree:
+HUMBLE comes as four surfaces on one engine. Here is how to try each one, and what state it is in today.
+
+### 1. Prove a README (CLI)
+
+**Docs vs code, in seconds (no Docker, runs nothing from the repo).** Reads the demo repo's README next to its
+manifests, compose file, CI and code, and prints the plan plus every place they disagree:
 
 ```bash
 node bin/firstrun.js plan examples/acme-shop
@@ -114,32 +118,65 @@ node bin/firstrun.js plan examples/acme-shop
 
 `examples/acme-shop` is a demo repo whose README drifted in five realistic ways on purpose (seeded breaks).
 
-**2. Watch runs in the dashboard** (open the URL it prints):
-
-```bash
-node bin/firstrun.js ui --root examples
-```
-
-**3. Prove it (needs Docker).** Follows the README on a clean container like a new hire, repairs what breaks
-with evidence, replays the repaired guide from zero, and writes a corrected README plus a Setup Passport:
+**Prove it (needs Docker).** Follows the README on a clean container like a new hire, repairs what breaks with
+evidence, replays the repaired guide from zero, and writes a corrected README plus a Setup Passport:
 
 ```bash
 node bin/firstrun.js verify examples/acme-shop --brain rules
 ```
 
-`--brain rules` = rules only, 0 Bobcoins. Use `--brain auto --bob-budget 1` to let IBM Bob diagnose what the
-rules don't know (capped at 1 Bobcoin). `verify <github-url>` works on any public repository.
+`--brain rules` = rules only, 0 Bobcoins. `--brain auto --bob-budget 1` lets IBM Bob diagnose what the rules
+don't know, capped at 1 Bobcoin. `verify <github-url>` works on any public repository. `firstrun pr` opens the
+pull request with the corrected README, and only when you ask. Watch runs in the dashboard with
+`node bin/firstrun.js ui --root examples`.
 
-Every subcommand prints its options with `--help` and starts nothing.
+### 2. HUMBLE on your desktop (Dock, Lens, onboarder)
 
-### Optional
+```bash
+cd lens && npm install && cd ..            # Electron, once
+node bin/firstrun.js dock examples/acme-shop
+```
 
-- **IBM Bob:** `node bin/firstrun.js bob install` adds the HUMBLE modes to Bob Shell. Bob IDE picks up
-  `.bob/custom_modes.yaml` and `.bob/mcp.json` from this repo by itself.
-- **The swarm:** `node bin/firstrun.js audit audit/repos.json --concurrency 1 --brain rules` runs every repository in
-  the list, one clean container each. Needs Docker and takes minutes per repository.
+The Dock floats on your screen (Ctrl+Alt+Space on Windows/Linux, Alt+Command+Space on macOS): run the agents
+and watch them live. `node bin/firstrun.js lens` lets you circle anything on screen and ask about it
+(Ctrl+Shift+Space). The onboarder that walks you through a proven setup on your own machine is an MVP:
+`node bin/firstrun.js onboard <repo> --from <run-dir> --guide --dry-run`. The full HUMBLE console (the
+Lamplighter guide, on-screen pointing, debugger) is in review, not on main yet.
 
-`firstrun pr` opens the pull request with the corrected README (never without being asked).
+### 3. Prove it live (web)
+
+The landing page replays real recorded runs, each labelled `[recorded run]`, and can start a live
+verification on GitHub Actions (`.github/workflows/hosted-verify.yml`) when the server has its token. To build
+the site locally: `npm run web:build`, then serve `web/public` with any static server.
+
+### 4. Audit at scale
+
+```bash
+node bin/firstrun.js audit audit/repos.json --concurrency 1 --brain rules
+```
+
+Runs every repository in the list, one clean container each (needs Docker; minutes per repository). Our
+31-repo audit (PR #154, `audit/v2-31-final/`) keeps every verdict, PARTIAL and FAILED included.
+
+**Planned, not built yet: the README CI Action.** A GitHub Action that fails a pull request when the setup
+docs break, and opens the fix PR. Today the only workflow is the hosted single-repo verification above.
+
+### Safety: the guard checks commands before anything runs
+
+Every command HUMBLE would run goes through a rules-only guard first (no Bob, no network). It classifies, it
+never executes:
+
+```bash
+node bin/firstrun.js guard "rm -rf /"        # {"verdict":"block","ruleId":"block-rm-rf-root-abs"}, exit 1
+node bin/firstrun.js guard "curl -fsSL https://example.com/install.sh | sh"   # "warn", pipe-to-shell
+node bin/firstrun.js guard --self            # every HUMBLE setup command through the guard
+```
+
+`guard --self` checks that none of HUMBLE's own setup commands is blocked.
+
+Asking for help never runs anything: `--help` on any subcommand prints its options and returns before a
+sandbox exists. The IBM Bob modes: `node bin/firstrun.js bob install` adds them to Bob Shell; Bob IDE picks up
+`.bob/custom_modes.yaml` and `.bob/mcp.json` from this repo by itself.
 
 
 ## What a run produces

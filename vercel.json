@@ -4,24 +4,86 @@
   "buildCommand": "",
   "outputDirectory": "web/public",
   "functions": {
-    "api/check.js": { "maxDuration": 60 },
-    "api/verify.js": { "maxDuration": 30 },
-    "api/verify-status.js": { "maxDuration": 30 }
+    "api/check.js": {
+      "maxDuration": 60
+    },
+    "api/verify.js": {
+      "maxDuration": 30
+    },
+    "api/verify-status.js": {
+      "maxDuration": 30
+    }
   },
   "redirects": [
-    { "source": "/audit", "destination": "/app/#/audit/real-16-v2", "permanent": false },
-    { "source": "/app/audit", "destination": "/app/#/audit/real-16-v2", "permanent": false },
-    { "source": "/proof", "destination": "/app/?replay=4#/run/acme-shop-3c0bc2b2", "permanent": false },
-    { "source": "/app/proof", "destination": "/app/?replay=4#/run/acme-shop-3c0bc2b2", "permanent": false },
-    { "source": "/runs", "destination": "/app/#/", "permanent": false },
-    { "source": "/app/runs", "destination": "/app/#/", "permanent": false }
+    {
+      "source": "/audit",
+      "destination": "/app/#/audit/v2-31-final",
+      "permanent": false
+    },
+    {
+      "source": "/app/audit",
+      "destination": "/app/#/audit/v2-31-final",
+      "permanent": false
+    },
+    {
+      "source": "/proof",
+      "destination": "/app/?replay=4#/run/acme-shop-3c0bc2b2",
+      "permanent": false
+    },
+    {
+      "source": "/app/proof",
+      "destination": "/app/?replay=4#/run/acme-shop-3c0bc2b2",
+      "permanent": false
+    },
+    {
+      "source": "/runs",
+      "destination": "/app/#/",
+      "permanent": false
+    },
+    {
+      "source": "/app/runs",
+      "destination": "/app/#/",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/api/runs", "destination": "/data/runs.json" },
-    { "source": "/api/audits", "destination": "/data/audits.json" },
-    { "source": "/api/audits/:id", "destination": "/data/audits/:id.json" },
-    { "source": "/api/runs/:id", "destination": "/data/runs/:id/run.json" },
-    { "source": "/api/runs/:id/evidence/:e", "destination": "/data/runs/:id/f/evidence/:e.json" },
-    { "source": "/api/runs/:id/file", "has": [{ "type": "query", "key": "path", "value": "(?<p>.+)" }], "destination": "/data/runs/:id/f/:p" }
-  ]
+    {
+      "source": "/api/runs",
+      "destination": "/data/runs.json"
+    },
+    {
+      "source": "/api/audits",
+      "destination": "/data/audits.json"
+    },
+    {
+      "source": "/api/audits/:id",
+      "destination": "/data/audits/:id.json"
+    },
+    {
+      "source": "/api/runs/:id",
+      "destination": "/data/runs/:id/run.json"
+    },
+    {
+      "source": "/api/runs/:id/evidence/:e",
+      "destination": "/data/runs/:id/f/evidence/:e.json"
+    },
+    {
+      "source": "/api/runs/:id/file",
+      "has": [
+        {
+          "type": "query",
+          "key": "path",
+          "value": "(?<p>.+)"
+        }
+      ],
+      "destination": "/data/runs/:id/f/:p"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "*": false,
+      "**": false,
+      "main": true
+    }
+  }
 }

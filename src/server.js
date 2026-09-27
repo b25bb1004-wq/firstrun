@@ -349,7 +349,7 @@ export function startServer({ port = 4173, host = '127.0.0.1', roots = [process.
               id, startedAt: a.startedAt || null, dir, repos: repos.length,
               done: repos.filter(r => r.status === 'done' || r.verdict).length,
               verdicts: repos.reduce((acc, r) => { if (r.verdict) acc[r.verdict] = (acc[r.verdict] || 0) + 1; return acc; }, {}),
-              broke: repos.filter(r => (r.passport?.breaksFound || r.run?.breaks || 0) > 0).length,
+              broke: repos.filter(r => (r.passport ? r.passport.breaksFound || 0 : r.run?.breaks || 0) > 0).length,
             };
           }).sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
           return send(res, 200, list);

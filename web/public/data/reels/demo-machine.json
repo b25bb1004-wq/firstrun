@@ -1,0 +1,38 @@
+{
+  "label": "demo machine",
+  "date": "2026-09-24",
+  "probe": {
+    "stack": "node",
+    "docs": ["README.md", "CONTRIBUTING.md"],
+    "node": {
+      "version": "20",
+      "source": ".nvmrc",
+      "packageManager": "npm",
+      "scripts": ["dev", "start", "db:migrate", "db:seed", "test"],
+      "engineStrict": true
+    },
+    "python": null,
+    "compose": {
+      "file": "docker-compose.yml",
+      "services": ["postgres"]
+    },
+    "envExample": {
+      "file": ".env.example",
+      "keys": ["DATABASE_URL", "PORT"]
+    },
+    "envVarsInCode": ["PORT", "REDIS_URL", "CACHE_TTL_SECONDS", "DATABASE_URL", "SESSION_SECRET"],
+    "ciServices": [],
+    "ports": [3000]
+  },
+  "runtime": {
+    "name": "node",
+    "version": "20",
+    "source": ".nvmrc"
+  },
+  "verdict": "VERIFIED",
+  "replaySeconds": 14,
+  "stepsTotal": 9,
+  "stepsFromReadme": 6,
+  "breaksFound": 4,
+  "breaksFixed": 4
+}

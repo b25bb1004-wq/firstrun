@@ -1,0 +1,26 @@
+{
+  "repo": "GeekyAnts/express-typescript",
+  "commit": "6b9bb70e23",
+  "verifiedAt": "2026-09-26T22:52:18.328Z",
+  "verdict": "VERIFIED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 7,
+  "stepsFromReadme": 4,
+  "breaksFound": 5,
+  "breaksFixed": 5,
+  "needsHuman": 0,
+  "repoBreaks": 5,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 113,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:4040/"
+  },
+  "fromCI": false
+}

@@ -1,0 +1,27 @@
+{
+  "repo": "koajs/koa",
+  "commit": "824c1cf8de",
+  "verifiedAt": "2026-09-27T00:35:42.827Z",
+  "verdict": "CI-ONLY",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 2,
+  "stepsFromReadme": 1,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 0,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 14,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}

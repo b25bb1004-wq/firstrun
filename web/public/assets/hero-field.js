@@ -12,7 +12,7 @@
   var ctx = canvas.getContext('2d', { alpha: false });
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var AGENTS = ['#4f8cff', '#9b7bff', '#ff8a3d', '#ff5c7a', '#2fbf85', '#f5c542'];
+  var AGENTS = ['#2440ff', '#1b2bb8', '#ff2d87', '#ff5fa8'];   // palette only
   var RED = [255, 92, 122], GREEN = [47, 191, 133];
   var W, H, dpr, P = [], lines = [], fixLine = -1, t0 = performance.now(), bg = '#111315', ink = [233, 231, 226];
   var mouse = { x: -1e4, y: -1e4 }, visible = true, raf = 0;
@@ -21,7 +21,8 @@
   function readTheme() {
     var cs = getComputedStyle(document.body);
     bg = cs.backgroundColor || bg;
-    var m = cs.color.match(/\d+/g); if (m) ink = m.slice(0, 3).map(Number);
+    // Settled particles: toasted oat #a38a64 on the light theme, pale oat on dark.
+    ink = document.documentElement.dataset.theme === 'dark' ? [239, 231, 218] : [163, 138, 100];
   }
 
   // The README page the particles assemble into: ragged lines like real prose, in two columns on wide screens,
@@ -54,7 +55,7 @@
       }
     });
     // The broken line: nearest the vertical middle of the left column.
-    var best = 1e9; lines.forEach(function (l) { var d = Math.abs(l.y - H * 0.55) + l.x0 * 0.2; if (d < best) { best = d; fixLine = l.idx; } });
+    fixLine = -1;   // no highlighted line (removed 26 Sep: it read as a stray stroke)
 
     var n = Math.min(targets.length, W < 700 ? 1400 : 4200);
     // Spread targets evenly if we have fewer particles than points.
@@ -106,7 +107,7 @@
       } else { p.x = p.tx; p.y = p.ty; p.px = p.x - 1.4; p.py = p.y; }
 
       // Colour: agent colours in the chaos, calm ink on the page, red → green on the broken line.
-      var col = mix(p.c, ink, order * 0.85), alpha = 0.55 - order * 0.33;
+      var col = mix(p.c, ink, order * 0.95), alpha = 0.6 + order * 0.25;
       if (p.line === fixLine && order > 0.5) {
         col = alarm > 0 ? mix(col, RED, alarm) : mix(col, GREEN, fixed);
         alpha = 0.3 + Math.max(alarm, fixed) * 0.55;

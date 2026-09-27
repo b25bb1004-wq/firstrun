@@ -1,0 +1,18 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:59:22.832Z",
+  "commit": "192b12197e",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  },
+  "steps": [],
+  "knownFailures": []
+}

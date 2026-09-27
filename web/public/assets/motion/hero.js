@@ -8,9 +8,9 @@ export function init(container, { reduced = false } = {}) {
   if (!container) return;
 
   const steps = [
-    { num: '01', agent: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
-    { num: '02', agent: 'Doctor', shape: '+', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
-    { num: '03', agent: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
+    { num: '01', agent: 'Harvey', role: 'Scout', shape: '●', color: 'var(--c-scout, #4f8cff)', cmd: 'git clone https://github.com/GeekyAnts/express-typescript.git' },
+    { num: '02', agent: 'DR.BO', role: 'Doctor', shape: '+', color: 'var(--c-doctor, #ff5c7a)', failCmd: 'npm install', fixCmd: 'npm install --legacy-peer-deps' },
+    { num: '03', agent: 'Larp', role: 'Verifier', shape: '◯', color: 'var(--c-verifier, #2fbf85)', cmd: 'npm run dev' }
   ];
 
   container.innerHTML = `
@@ -31,7 +31,7 @@ export function init(container, { reduced = false } = {}) {
               <span>${s.num}</span>
             </span>
             <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line); transition: background-color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));"></span>
-            <code class="h-step-cmd" style="flex: 1; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
+            <code class="h-step-cmd" style="flex: 1; min-width: 0; overflow-wrap: break-word; word-break: break-all; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
             <span class="h-step-msg" style="font-size: 12px; color: var(--muted); transition: color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">queued</span>
           </div>
         `).join('')}
@@ -44,7 +44,7 @@ export function init(container, { reduced = false } = {}) {
 
       <div class="h-caption" style="font-size: 12px; color: var(--muted); padding-top: 4px; display: flex; justify-content: space-between; align-items: center;">
         <span>Illustration of a real run pattern · see <a href="/proof" class="link" style="color: var(--ink); text-decoration: underline;">/proof</a> for a recording</span>
-        <span class="h-time-indicator" style="font-size: 11px;">53s replay from zero</span>
+        <span class="h-time-indicator" style="font-size: 11px;" data-run="v2-31-final-GeekyAnts__express-typescript">audited run: 1 m 53 s replay from zero</span>
       </div>
     </div>
   `;
@@ -100,7 +100,7 @@ export function init(container, { reduced = false } = {}) {
   // Reduced motion: directly show the final verified zero-break state statically
   if (reduced) {
     statusText.textContent = 'Proven from zero: all setup steps passed';
-    envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+    envBadge.textContent = 'Clean Sandbox #2 · Larp (Verifier ◯)';
     envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
     envBadge.style.color = 'var(--c-verifier, #2fbf85)';
     setStep(0, 'pass', 'done', steps[0].cmd);
@@ -140,13 +140,13 @@ export function init(container, { reduced = false } = {}) {
         activeTimer = setTimeout(() => {
           if (heroOrb) heroOrb.setState('solving');
           setStep(1, 'fail', 'exit 1 (ERESOLVE)');
-          diag.textContent = "Doctor +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
+          diag.textContent = "DR.BO +: npm refuses the project's conflicting peer dependencies. Fix: --legacy-peer-deps";
           verdict.textContent = 'FAILED';
           verdict.style.color = 'var(--c-doctor, #ff5c7a)';
 
           // Discard machine
           activeTimer = setTimeout(() => {
-            statusText.textContent = 'Doctor repair applied. Discarding machine...';
+            statusText.textContent = 'DR.BO repair applied. Discarding machine...';
             envBadge.textContent = 'Resetting environment';
             diag.textContent = 'Throwing sandbox away. Re-verifying from zero...';
 
@@ -154,7 +154,7 @@ export function init(container, { reduced = false } = {}) {
               // Replay from zero in Sandbox #2
               if (heroOrb) heroOrb.setState('listening');
               statusText.textContent = 'Replay: verifying full guide from zero';
-              envBadge.textContent = 'Clean Sandbox #2 · Verifier ◯';
+              envBadge.textContent = 'Clean Sandbox #2 · Larp (Verifier ◯)';
               envBadge.style.borderColor = 'var(--c-verifier, #2fbf85)';
               envBadge.style.color = 'var(--c-verifier, #2fbf85)';
               verdict.textContent = 'RUNNING';

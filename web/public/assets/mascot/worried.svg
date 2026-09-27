@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-worried" aria-label="HUMBLE Robot: Worried">
+  <defs>
+    <filter id="blur-worry" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="bloom-worry" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="lines-worry" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1.2" fill="#ff2d87" opacity="0.14"/>
+    </pattern>
+    <clipPath id="scr-worry"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
+  </defs>
+  <style>
+    :root {
+      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
+      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+    }
+    .halo { filter: url(#blur-worry); opacity: 0.38; }
+    .bot-worried-shiver {
+      animation: hb-nervous-shiver 0.16s linear infinite;
+    }
+    .antenna-pink-pulse {
+      animation: hb-pink-pulse 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes hb-nervous-shiver {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-2px, 1px); }
+      50% { transform: translate(2px, -1px); }
+      75% { transform: translate(-1px, -1px); }
+      100% { transform: translate(1px, 1px); }
+    }
+    @keyframes hb-pink-pulse {
+      0% { fill: var(--pink, #ff2d87); filter: drop-shadow(0 0 3px var(--pink, #ff2d87)); }
+      100% { fill: #ff65a5; filter: drop-shadow(0 0 8px #ff65a5); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bot-worried-shiver, .antenna-pink-pulse { animation: none !important; }
+    }
+  </style>
+  <g class="bot-worried-shiver">
+    <!-- Amber halo glow with slight pink tint -->
+    <g class="halo" fill="var(--core, #ff9a3c)">
+      <rect x="32" y="20" width="136" height="108" rx="30"/>
+      <ellipse cx="100" cy="170" rx="44" ry="40"/>
+    </g>
+    <!-- Legs (rubber hose) -->
+    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round">
+      <path d="M86 196 Q84 214 80 228"/>
+      <path d="M114 196 Q116 214 120 228"/>
+    </g>
+    <g fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
+      <ellipse cx="76" cy="231" rx="13" ry="7"/>
+      <ellipse cx="124" cy="231" rx="13" ry="7"/>
+    </g>
+    <!-- Body & chest light -->
+    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+    <circle cx="100" cy="168" r="7" fill="var(--pink, #ff2d87)" filter="url(#bloom-worry)"/>
+    <!-- Hands clutching cheeks in distress -->
+    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round">
+      <path d="M66 158 Q48 140 54 118"/>
+      <path d="M134 158 Q152 140 146 118"/>
+    </g>
+    <g fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
+      <circle cx="54" cy="114" r="9"/>
+      <circle cx="146" cy="114" r="9"/>
+    </g>
+    <!-- Neck -->
+    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    <!-- Head: CRT screen -->
+    <g id="head">
+      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
+      <g clip-path="url(#scr-worry)">
+        <!-- Face tinted hot pink #ff2d87 -->
+        <g filter="url(#bloom-worry)" stroke-linecap="round" fill="none">
+          <!-- Worried eyebrows -->
+          <g stroke="var(--pink, #ff2d87)" stroke-width="3.5">
+            <path d="M70 52 L88 56"/>
+            <path d="M130 52 L112 56"/>
+          </g>
+          <!-- Worried wide eyes -->
+          <g fill="var(--pink, #ff2d87)">
+            <ellipse cx="80" cy="70" rx="9" ry="12"/>
+            <ellipse cx="120" cy="70" rx="9" ry="12"/>
+          </g>
+          <!-- Wavy distressed mouth -->
+          <path d="M84 98 Q92 92 100 98 Q108 104 116 98" stroke="var(--pink, #ff2d87)" stroke-width="4"/>
+        </g>
+        <rect x="46" y="34" width="108" height="80" fill="url(#lines-worry)"/>
+      </g>
+      <!-- Glass glare -->
+      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
+    </g>
+    <!-- Antenna glowing hot pink -->
+    <g id="ant">
+      <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
+      <circle class="antenna-pink-pulse hb-antenna-ball" cx="93" cy="2" r="8" fill="var(--pink, #ff2d87)" stroke="var(--out, #3a1c0a)" stroke-width="3" filter="url(#bloom-worry)"/>
+    </g>
+  </g>
+</svg>

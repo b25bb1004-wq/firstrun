@@ -2,8 +2,13 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.platform === 'darwin' 
+  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  : process.platform === 'win32'
+    ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+    : 'google-chrome';
 const PORT = 9223;
 
 async function sleep(ms) {
@@ -11,7 +16,7 @@ async function sleep(ms) {
 }
 
 async function run() {
-  const userDataDir = `/tmp/chrome-snap-${Date.now()}`;
+  const userDataDir = path.join(os.tmpdir(), `chrome-snap-${Date.now()}`);
   const chrome = spawn(CHROME, [
     '--headless=new',
     '--disable-gpu',
@@ -20,7 +25,7 @@ async function run() {
     '--no-default-browser-check',
     `--remote-debugging-port=${PORT}`,
     '--window-size=1280,900',
-    'http://localhost:4321',
+    process.env.SNAP_URL || 'http://localhost:4390',
   ], { stdio: 'inherit' });
 
   try {
@@ -30,7 +35,7 @@ async function run() {
       try {
         const res = await fetch(`http://127.0.0.1:${PORT}/json/list`);
         const list = await res.json();
-        const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl && t.url.includes('localhost:4321'));
+        const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl && (t.url.includes('4390') || t.url.includes('4321')));
         if (page) {
           wsUrl = page.webSocketDebuggerUrl;
           break;
@@ -78,6 +83,18 @@ async function run() {
     const heroShot = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync('web/public/assets/img/snap_01_hero.png', Buffer.from(heroShot.data, 'base64'));
     console.log('Captured: snap_01_hero.png');
+
+    // 1a. Scroll to Swapped Hero (Section 2)
+    await send('Runtime.evaluate', {
+      expression: `
+        var target = document.querySelector('.hero-full');
+        if (target) target.scrollIntoView({ block: 'start' });
+      `
+    });
+    await sleep(700);
+    const figuresShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_01a_hero_figures.png', Buffer.from(figuresShot.data, 'base64'));
+    console.log('Captured: snap_01a_hero_figures.png');
 
     // 1b. Scroll to Hero Agents Console
     await send('Runtime.evaluate', {
@@ -127,6 +144,18 @@ async function run() {
     fs.writeFileSync('web/public/assets/img/snap_03_scrub.png', Buffer.from(scrubShot.data, 'base64'));
     console.log('Captured: snap_03_scrub.png');
 
+    // 3b. Scroll to Wall
+    await send('Runtime.evaluate', {
+      expression: `
+        var el = document.querySelector('#wall');
+        if (el) el.scrollIntoView({ block: 'center' });
+      `
+    });
+    await sleep(600);
+    const wallShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('web/public/assets/img/snap_03b_wall.png', Buffer.from(wallShot.data, 'base64'));
+    console.log('Captured: snap_03b_wall.png');
+
     // 4. Scroll to Proof & Slider
     await send('Runtime.evaluate', {
       expression: `
@@ -162,7 +191,8 @@ async function run() {
 
     ws.close();
   } finally {
-    chrome.kill('SIGKILL');
+    try { chrome.kill('SIGKILL'); } catch {}
+    process.exit(0);
   }
 }
 

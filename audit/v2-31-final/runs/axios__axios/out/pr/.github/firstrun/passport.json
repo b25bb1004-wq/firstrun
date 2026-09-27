@@ -1,0 +1,26 @@
+{
+  "repo": "axios/axios",
+  "commit": "961241f6c1",
+  "verifiedAt": "2026-09-27T00:51:42.420Z",
+  "verdict": "PARTIAL",
+  "image": "node:24",
+  "runtime": "Node.js 24",
+  "stepsTotal": 3,
+  "stepsFromReadme": 2,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 22,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "fromCI": false
+}

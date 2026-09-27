@@ -1,0 +1,18 @@
+1201  execve("/usr/local/bin/npm", ["npm", "run", "dev"], 0x7ffd3c2a1e48 /* 18 vars */) = 0
+1201  openat(AT_FDCWD, "/workspace/package.json", O_RDONLY|O_CLOEXEC) = 3
+1201  access("/workspace/package-lock.json", F_OK) = -1 ENOENT (No such file or directory)
+[pid  1207] execve("/workspace/node_modules/.bin/tsc", ["tsc", "--watch"], 0x55d1c0 /* 18 vars */) = -1 ENOENT (No such file or directory)
+[pid  1207] execve("/usr/local/bin/tsc", ["tsc", "--watch"], 0x55d1c0 /* 18 vars */) = -1 ENOENT (No such file or directory)
+[pid  1207] execve("/usr/bin/tsc", ["tsc", "--watch"], 0x55d1c0 /* 18 vars */) = -1 ENOENT (No such file or directory)
+1210  stat("/workspace/.venv", 0x7ffc12345678) = -1 ENOENT (No such file or directory)
+1210  stat("/workspace/.venv", 0x7ffc12345678) = -1 ENOENT (No such file or directory)
+1210  execve("/usr/bin/python3.11", ["python3.11", "-m", "venv", ".venv"], 0x7ffe91 /* 18 vars */) = -1 ENOENT (No such file or directory)
+1212  openat(AT_FDCWD, "/workspace/config/production.yaml", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+1212  openat(AT_FDCWD, "/workspace/config/default.yaml", O_RDONLY|O_CLOEXEC) = 4
+1215  socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = 5
+1215  connect(5, {sa_family=AF_INET, sin_port=htons(5432), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 ECONNREFUSED (Connection refused)
+1215  connect(5, {sa_family=AF_INET, sin_port=htons(5432), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 ECONNREFUSED (Connection refused)
+1216  connect(6, {sa_family=AF_INET, sin_port=htons(6379), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 ECONNREFUSED (Connection refused)
+1220  execve("/usr/bin/docker", ["docker", "compose", "up", "-d"], 0x7ffd11 /* 18 vars */) = -1 ENOENT (No such file or directory)
+1222  execve("/usr/bin/psql", ["psql", "-c", "select 1"], 0x7ffd22 /* 18 vars */) = -1 ENOENT (No such file or directory)
+1201  exit_group(1)                     = ?

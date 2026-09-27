@@ -10,7 +10,8 @@ export function init(container, { reduced = false } = {}) {
   const agents = [
     {
       id: '01',
-      name: 'Scout',
+      name: 'Harvey',
+      role: 'Scout · reads the repo',
       color: 'var(--c-scout, #4f8cff)',
       shapeName: 'circle',
       shapeSvg: '<circle cx="32" cy="32" r="22" fill="currentColor"/>',
@@ -29,7 +30,8 @@ export function init(container, { reduced = false } = {}) {
     },
     {
       id: '02',
-      name: 'Planner',
+      name: 'Unity',
+      role: 'Planner · sequences the run',
       color: 'var(--c-planner, #1b2bb8)',
       shapeName: 'square',
       shapeSvg: '<rect x="12" y="12" width="40" height="40" rx="4" fill="currentColor"/>',
@@ -46,7 +48,8 @@ export function init(container, { reduced = false } = {}) {
     },
     {
       id: '03',
-      name: 'Runner',
+      name: 'Mach',
+      role: 'Runner · runs on a clean machine',
       color: 'var(--c-runner, #ff8a3d)',
       shapeName: 'triangle',
       shapeSvg: '<polygon points="32,10 54,48 10,48" fill="currentColor"/>',
@@ -61,7 +64,8 @@ export function init(container, { reduced = false } = {}) {
     },
     {
       id: '04',
-      name: 'Doctor',
+      name: 'DR.BO',
+      role: 'Doctor · diagnoses and fixes',
       color: 'var(--c-doctor, #ff5c7a)',
       shapeName: 'plus',
       shapeSvg: '<path d="M26 10h12v16h16v12h-16v16h-12v-16h-16v-12h16z" fill="currentColor"/>',
@@ -81,7 +85,8 @@ export function init(container, { reduced = false } = {}) {
     },
     {
       id: '05',
-      name: 'Verifier',
+      name: 'Larp',
+      role: 'Verifier · proves from zero',
       color: 'var(--c-verifier, #2fbf85)',
       shapeName: 'ring',
       shapeSvg: '<circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="7"/>',
@@ -100,7 +105,8 @@ export function init(container, { reduced = false } = {}) {
     },
     {
       id: '06',
-      name: 'Scribe',
+      name: 'Echo',
+      role: 'Scribe · rewrites the README',
       color: 'var(--c-scribe, #f5c542)',
       shapeName: 'diamond',
       shapeSvg: '<polygon points="32,8 54,32 32,56 10,32" fill="currentColor"/>',
@@ -144,6 +150,7 @@ export function init(container, { reduced = false } = {}) {
                 </div>
                 <span style="font-family: var(--mono); font-size: 12px; color: var(--muted);">${a.id}</span>
               </div>
+              <div style="font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: -4px;">${a.role}</div>
               <div style="font-size: 13px; font-weight: 500; color: ${a.color};">${a.tagline}</div>
               <div style="font-size: 13px; color: var(--muted); line-height: 1.5;">${a.desc}</div>
               <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink); display: flex; justify-content: space-between;">
@@ -209,7 +216,8 @@ export function init(container, { reduced = false } = {}) {
                   <span class="c-agent-idx mono" style="font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 2px; background: rgba(79, 140, 255, 0.12); color: var(--c-scout, #4f8cff);">AGENT 01</span>
                   <span class="c-agent-shape-label mono" style="font-size: 12px; color: var(--muted);">● circle</span>
                 </div>
-                <div class="c-agent-name" style="font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.025em;">Scout</div>
+                <div class="c-agent-name" style="font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.025em;">Harvey</div>
+                <div class="c-agent-role mono" style="font-size: 12px; color: var(--muted); letter-spacing: 0.02em;">Scout · reads the repo</div>
               </div>
             </div>
 
@@ -268,6 +276,7 @@ export function init(container, { reduced = false } = {}) {
   const agentIdx = container.querySelector('.c-agent-idx');
   const agentShapeLabel = container.querySelector('.c-agent-shape-label');
   const agentName = container.querySelector('.c-agent-name');
+  const agentRole = container.querySelector('.c-agent-role');
   const agentTagline = container.querySelector('.c-agent-tagline');
   const agentDesc = container.querySelector('.c-agent-desc');
 
@@ -341,6 +350,7 @@ export function init(container, { reduced = false } = {}) {
 
     agentShapeLabel.textContent = `${a.shapeName}`;
     agentName.textContent = a.name;
+    if (agentRole) agentRole.textContent = a.role;
     agentTagline.textContent = a.tagline;
     agentTagline.style.color = a.color;
     agentDesc.textContent = a.desc;

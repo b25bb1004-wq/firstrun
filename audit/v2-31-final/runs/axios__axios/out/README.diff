@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -2842,6 +2842,8 @@ You can use Gitpod, a free online IDE for open source projects, to contribute or
+ 
+ ## Contributing
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:24` machine at `961241f6c1`: clone to running in 22s.
++
+ ### Local setup
+ 
+ As a supply-chain hardening measure, this repository ships a project-level `.npmrc` that sets `ignore-scripts=true`. This blocks npm lifecycle scripts (`preinstall`, `install`, `postinstall`, `prepare`) from any direct or transitive dependency when you run `npm install` or `npm ci` inside the repo. See [THREATMODEL.md](./THREATMODEL.md) (threat T-S2) for the rationale.

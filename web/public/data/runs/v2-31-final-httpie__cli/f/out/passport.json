@@ -1,0 +1,27 @@
+{
+  "repo": "httpie/cli",
+  "commit": "5b604c37c6",
+  "verifiedAt": "2026-09-27T00:46:07.228Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.7",
+  "runtime": "Python 3.7",
+  "stepsTotal": 2,
+  "stepsFromReadme": 0,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 0,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 79,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "make test"
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}

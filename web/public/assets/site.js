@@ -22,6 +22,16 @@
     counters.forEach(function (c) { io.observe(c); });
   }
 
+  window.humbleUpdateCounter = function (el, to, suffix) {
+    el.dataset.count = to;
+    if (suffix !== undefined) el.dataset.suffix = suffix;
+    if (reduced || !('IntersectionObserver' in window)) {
+      el.textContent = to + (el.dataset.suffix || '');
+    } else {
+      run(el);
+    }
+  };
+
   // Gallery: the buttons page one card at a time; touch and trackpad scroll natively (scroll-snap).
   var g = document.getElementById('gallery');
   document.querySelectorAll('.gallery-nav button').forEach(function (b) {
