@@ -1,0 +1,526 @@
+/**
+ * HUMBLE Web Console Styles
+ * Spec: docs/design/HUMBLE_CONSOLE_SPEC.md Section 2
+ * Web variant tokens match Electron console
+ */
+
+/* ============================================================================
+   Console CSS Custom Properties (mirroring HUMBLE_CONSOLE_SPEC.md Section 2)
+   ============================================================================ */
+:root {
+  --c-bg: #16120e;
+  --c-surface: #1c1712;
+  --c-term: #120e0a;
+  --c-line: #342c24;
+  --c-ink: #efe7da;
+  --c-ink-2: #b8ab98;
+  --c-ink-3: #7a6e5f;
+  --c-core: #ff9a3c;
+  --c-hi: #ffc47a;
+  --c-deep: #e0701c;
+  --c-ok: #3dd68c;
+  --c-fail: #ff5c7a;
+  --c-warn: #ffb224;
+  --c-bob: #5E9EFF;
+  --hb-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --hb-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================================================
+   Panel
+   ============================================================================ */
+.humble-panel {
+  width: 100%;
+  max-width: 560px;
+  border-radius: 12px;
+  border: 1px solid var(--c-line);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  background: var(--c-surface);
+  overflow: hidden;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.humble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  height: 64px;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-surface);
+}
+
+.humble-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.humble-mascot-container {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+}
+
+.humble-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.humble-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.humble-subtitle {
+  font-size: 11px;
+  color: var(--c-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.humble-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.humble-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-warn);
+  box-shadow: 0 0 8px var(--c-warn);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+}
+
+.humble-close {
+  background: none;
+  border: none;
+  color: var(--c-ink-3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.humble-close:hover {
+  color: var(--c-ink);
+  background: var(--c-term);
+}
+
+.humble-divider {
+  height: 1px;
+  background: var(--c-line);
+  border: none;
+  margin: 0;
+}
+
+/* ============================================================================
+   Terminal
+   ============================================================================ */
+.humble-terminal {
+  min-height: 240px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: var(--c-term);
+  font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--c-ink);
+}
+
+.humble-terminal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.humble-terminal::-webkit-scrollbar-track {
+  background: var(--c-term);
+}
+
+.humble-terminal::-webkit-scrollbar-thumb {
+  background: var(--c-line);
+  border-radius: 3px;
+}
+
+.humble-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 2px 8px;
+  color: var(--c-ink);
+}
+
+.humble-line-prefix {
+  color: var(--c-core);
+  white-space: pre;
+  flex-shrink: 0;
+}
+
+.humble-line-text {
+  color: var(--c-ink);
+  word-break: break-word;
+}
+
+.humble-line-status {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.humble-line-why .humble-line-prefix,
+.humble-line-why .humble-line-text {
+  color: var(--c-ink-2);
+}
+
+.humble-line-fail .humble-line-prefix,
+.humble-line-fail .humble-line-text {
+  color: var(--c-fail);
+}
+
+.humble-line-diag .humble-line-text {
+  color: var(--c-ink);
+}
+
+.humble-line-fix .humble-line-prefix,
+.humble-line-fix .humble-line-text {
+  color: var(--c-ok);
+}
+
+.humble-line-pass {
+  justify-content: flex-end;
+}
+
+.humble-line-pass .humble-line-text {
+  color: var(--c-ok);
+}
+
+.humble-line-was .humble-line-text {
+  color: var(--c-fail);
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.humble-line-sys .humble-line-text {
+  color: var(--c-ink-3);
+  font-style: italic;
+}
+
+.humble-caret-line .humble-caret {
+  color: var(--c-core);
+  animation: caretBlink 1.06s steps(2) infinite;
+}
+
+@keyframes caretBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+.humble-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--c-line);
+  background: var(--c-surface);
+}
+
+.humble-footer-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.humble-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font: 500 12px Inter, system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.humble-btn:active {
+  transform: translateY(1px);
+}
+
+.humble-btn-primary {
+  background: var(--c-core);
+  color: #1a0e04;
+  border-color: var(--c-core);
+}
+
+.humble-btn-primary:hover:not(:disabled) {
+  background: var(--c-hi);
+  border-color: var(--c-hi);
+}
+
+.humble-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.humble-btn-secondary {
+  background: transparent;
+  color: var(--c-ink);
+  border-color: var(--c-line);
+}
+
+.humble-btn-secondary:hover:not(:disabled) {
+  background: var(--c-term);
+  border-color: var(--c-ink-3);
+}
+
+.humble-step-counter {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-3);
+}
+
+.humble-step-counter .current-step {
+  color: var(--c-core);
+}
+
+/* ============================================================================
+   Intro Panel (Onboarding Step 1)
+   ============================================================================ */
+.humble-intro {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.humble-personal {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-ink);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.humble-trust {
+  font-size: 12px;
+  color: var(--c-ink-2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.humble-checklist-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-3);
+}
+
+.humble-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.humble-checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.humble-checklist-row:hover {
+  border-color: var(--c-ink-3);
+}
+
+.humble-checklist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--hb-ease-bounce), background 0.2s ease;
+}
+
+.humble-checklist-dot.ok {
+  background: var(--c-ok);
+  box-shadow: 0 0 8px var(--c-ok);
+}
+
+.humble-checklist-dot.warn {
+  background: var(--c-warn);
+  box-shadow: 0 0 8px var(--c-warn);
+}
+
+.humble-checklist-name {
+  font-size: 12px;
+  color: var(--c-ink);
+  flex: 1;
+}
+
+.humble-checklist-version {
+  font-size: 11px;
+  color: var(--c-ink-2);
+  font-family: ui-monospace, monospace;
+}
+
+.optional-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-ink-3);
+  margin-left: 6px;
+  padding: 1px 4px;
+  background: var(--c-term);
+  border-radius: 4px;
+}
+
+.humble-checklist-divider {
+  height: 1px;
+  background: var(--c-line);
+  margin: 4px 0;
+}
+
+.humble-intro-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.humble-start-btn {
+  min-width: 160px;
+}
+
+/* ============================================================================
+   Watch Again Link
+   ============================================================================ */
+.humble-watch-again {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 11px;
+  color: var(--c-ink-3);
+  text-decoration: underline;
+  text-decoration-color: var(--c-line);
+  text-underline-offset: 2px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.humble-watch-again:hover {
+  color: var(--c-core);
+  text-decoration-color: var(--c-core);
+}
+
+/* ============================================================================
+   Skip Intro Button
+   ============================================================================ */
+.humble-skip-intro {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background: none;
+  border: none;
+  color: var(--c-ink-3);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.humble-skip-intro:hover {
+  color: var(--c-core);
+  background: var(--c-term);
+}
+
+/* ============================================================================
+   Bubble
+   ============================================================================ */
+.humble-bubble {
+  position: absolute;
+  background: var(--c-core);
+  color: #1a0e04;
+  font: 500 11px/1.4 system-ui;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(255, 154, 60, 0.5);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .humble-panel {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  
+  .humble-checklist-row {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .humble-caret {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  
+  .humble-bubble {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  
+  .humble-line-status {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  
+  .humble-status-dot {
+    animation: none !important;
+  }
+  
+  @keyframes panelOpen { to { opacity: 1; } }
+  @keyframes panelClose { to { opacity: 0; } }
+}
+
+/* ============================================================================
+   Focus Visible
+   ============================================================================ */
+.humble-btn:focus-visible,
+.humble-close:focus-visible,
+.humble-skip-intro:focus-visible,
+.humble-watch-again:focus-visible {
+  outline: 2px solid var(--c-core);
+  outline-offset: 2px;
+}
