@@ -125,7 +125,9 @@ describe('Honesty Gate - Data Traceability', () => {
     const content = readFileSync(indexHtml, 'utf-8');
     
     // The headline stats must carry data-count and equal the published audit's own summary
-    const audit = JSON.parse(readFileSync(resolve(ROOT, 'audit/v2-31-final/audit.json'), 'utf-8'));
+    // The site publishes v2-31-final combined with the IBM Bob pass (tools/combine-audits.js).
+    const published = existsSync(resolve(ROOT, 'audit/v2-31-final-combined/audit.json')) ? 'audit/v2-31-final-combined' : 'audit/v2-31-final';
+    const audit = JSON.parse(readFileSync(resolve(ROOT, published, 'audit.json'), 'utf-8'));
     const s = audit.summary;
     // Team wording (Karmanya, 27 Sep): "18 of 31 READMEs broke on a clean machine", i.e. out of every audited repo
     assert.ok(content.includes(`data-count="${s.total}" data-stat="total"`), `repos audited stat should be data-count="${s.total}"`);
