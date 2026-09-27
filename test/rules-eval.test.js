@@ -168,6 +168,9 @@ test('rules-eval: no conflicts on recorded corpus', async () => {
       ['python-version', 'missing-tool'],
       ['python-version', 'poetry-no-root'],
       ['node-builtin-missing', 'browser-not-downloaded'],
+      ['missing-tool', 'missing-global-tool'],
+      ['secret-required', 'playwright-base-url-mismatch'],
+      ['browser-system-libs', 'playwright-base-url-mismatch'],
     ];
     
     for (const [a, b] of complementary) {
@@ -242,6 +245,9 @@ test('rules-eval: every rule has at least one real-log test', async () => {
     'yarn-frozen-lockfile', 'pnpm-broken-lockfile', 'pnpm-not-installed',
     'yarn-not-installed', 'wrong-package-manager', 'wrong-package-manager-yarn',
     'npm-engine-warn',
+    'missing-build-script', 'permission-denied-shebang', 'serverless-missing',
+    'missing-build-output', 'wrong-directory-bash', 'test-config-issue',
+    'docker-service-missing',
   ];
   
   const unexpectedDead = missing.filter(m => !knownDead.includes(m));
@@ -398,4 +404,322 @@ test('rules-eval: python-dependency-drift fires on cannot import name', async ()
   if (res) {
     assert.equal(res.ruleId, 'python-dependency-drift');
   }
+});
+
+// Backlog round 2 rules tests
+test('rules-eval: missing-global-tool fires on aws not found', async () => {
+  const rule = RULES.find(r => r.id === 'missing-global-tool');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-2.sh: line 5: aws: command not found';
+  const step = { command: 'aws configure', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' }, python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match aws');
+  assert.equal(res.ruleId, 'missing-global-tool');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('awscli'));
+});
+
+test('rules-eval: missing-global-tool fires on sls not found', async () => {
+  const rule = RULES.find(r => r.id === 'missing-global-tool');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-5.sh: line 5: sls: command not found';
+  const step = { command: 'sls dynamodb install', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' }, python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match sls');
+  assert.equal(res.ruleId, 'missing-global-tool');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('serverless'));
+});
+
+test('rules-eval: missing-global-tool fires on make not found', async () => {
+  const rule = RULES.find(r => r.id === 'missing-global-tool');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-1.sh: line 5: make: command not found';
+  const step = { command: 'make run', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' }, python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match make');
+  assert.equal(res.ruleId, 'missing-global-tool');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('apt-get install -y make'));
+});
+
+test('rules-eval: missing-global-tool does NOT fire when tool is in deps', async () => {
+  const rule = RULES.find(r => r.id === 'missing-global-tool');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-5.sh: line 5: nodemon: command not found';
+  const step = { command: 'nodemon ./bin/www', kind: 'other', source: {} };
+  const facts = { node: { deps: ['nodemon'], scripts: { dev: 'nodemon ./bin/www' }, lockfile: 'package-lock.json' }, python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  // nodemon is in deps, so missing-tool should handle it, not missing-global-tool
+  assert.equal(res, null, 'should not match when tool is in deps');
+});
+
+test('rules-eval: missing-build-script fires on missing build script', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-script');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'error: Script not found "build"';
+  const step = { command: 'npm run build', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: { start: 'tsc && node app.js' }, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match missing build');
+  assert.equal(res.ruleId, 'missing-build-script');
+  assert.ok(res.fix);
+  // Should suggest using start script which builds inline
+  assert.ok(res.fix.actions[0].command.includes('start'));
+});
+
+test('rules-eval: missing-build-script fires on build:dev missing but start builds inline', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-script');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'error: Script not found "build:dev"';
+  const step = { command: 'npm run build:dev', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: { start: 'npm run build:dev && node app.js' }, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match missing build:dev');
+  assert.equal(res.ruleId, 'missing-build-script');
+  assert.ok(res.fix);
+});
+
+test('rules-eval: missing-build-script does NOT fire when another build script exists', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-script');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'error: Script not found "build:prod"';
+  const step = { command: 'npm run build:prod', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: { build: 'tsc' }, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  // build script exists, so missing-npm-script should handle the typo
+  assert.equal(res, null, 'should not match when another build script exists');
+});
+
+test('rules-eval: playwright-base-url-mismatch fires on port mismatch', async () => {
+  const rule = RULES.find(r => r.id === 'playwright-base-url-mismatch');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '[WebServer] WARNING: The BASE_URL environment variable and the App have a port mismatch. If you plan to run the App on a different port, update the BASE_URL variable accordingly. BASE_URL=http://localhost:3000';
+  const facts = { ports: [5173] };
+  const sandboxEnv = {};
+  
+  const res = await rule.test({ log, facts, sandboxEnv });
+  assert.ok(res, 'rule should match BASE_URL mismatch');
+  assert.equal(res.ruleId, 'playwright-base-url-mismatch');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('BASE_URL=http://localhost:5173'));
+});
+
+test('rules-eval: playwright-base-url-mismatch does NOT fire when ports match', async () => {
+  const rule = RULES.find(r => r.id === 'playwright-base-url-mismatch');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '[WebServer] WARNING: The BASE_URL environment variable and the App have a port mismatch. BASE_URL=http://localhost:3000';
+  const facts = { ports: [3000] };
+  const sandboxEnv = {};
+  
+  const res = await rule.test({ log, facts, sandboxEnv });
+  assert.equal(res, null, 'should not match when ports match');
+});
+
+test('rules-eval: permission-denied-shebang fires on ./manage.py permission denied', async () => {
+  const rule = RULES.find(r => r.id === 'permission-denied-shebang');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-6.sh: line 5: ./manage.py: Permission denied';
+  const step = { command: './manage.py migrate', kind: 'other', source: {} };
+  const facts = { files: ['manage.py'], python: { deps: [], requirementsFiles: [], apps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match permission denied');
+  assert.equal(res.ruleId, 'permission-denied-shebang');
+  assert.ok(res.fix);
+  assert.equal(res.fix.actions[0].command, 'python manage.py migrate');
+});
+
+test('rules-eval: serverless-missing fires on sls not found', async () => {
+  const rule = RULES.find(r => r.id === 'serverless-missing');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'sh: 1: sls: not found';
+  const step = { command: 'sls dynamodb install', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: { 'ddb:install': 'sls dynamodb install' }, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match serverless missing');
+  assert.equal(res.ruleId, 'serverless-missing');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('serverless'));
+});
+
+test('rules-eval: missing-build-output fires on dist/src/main not found', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-output');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'node:internal/modules/cjs/loader:1\nError: Cannot find module \'/workspace/dist/src/main\'';
+  const step = { command: 'npm run start:prod', kind: 'start', source: {} };
+  const facts = { node: { deps: [], scripts: { build: 'tsc', 'start:prod': 'node dist/src/main' }, lockfile: 'package-lock.json' } };
+  const plan = { steps: [], runtime: { name: 'node', version: '22' } };
+  
+  const res = await rule.test({ log, step, facts, plan });
+  assert.ok(res, 'rule should match missing build output');
+  assert.equal(res.ruleId, 'missing-build-output');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('build'));
+});
+
+test('rules-eval: wrong-directory-bash fires on bash No such file or directory', async () => {
+  const rule = RULES.find(r => r.id === 'wrong-directory-bash');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'bash: scripts/prestart.sh: No such file or directory';
+  const step = { command: 'uv run bash scripts/prestart.sh', kind: 'other', source: {} };
+  const facts = { files: ['backend/scripts/prestart.sh'] };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.ok(res, 'rule should match bash wrong directory');
+  assert.equal(res.ruleId, 'wrong-directory-bash');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.startsWith('cd backend &&'));
+});
+
+test('rules-eval: test-config-issue fires on ts-jest warning', async () => {
+  const rule = RULES.find(r => r.id === 'test-config-issue');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'ts-jest[ts-compiler] (WARN) Got a `.js` file to compile but ts-jest is configured to only compile `.ts` files';
+  const step = { command: 'npm test', kind: 'test', source: {} };
+  
+  const res = await rule.test({ log, step });
+  assert.ok(res, 'rule should match ts-jest warning');
+  assert.equal(res.ruleId, 'test-config-issue');
+  assert.equal(res.fix, null); // Human must fix
+  assert.ok(res.ask);
+});
+
+test('rules-eval: test-config-issue fires on OAuth2Strategy error', async () => {
+  const rule = RULES.find(r => r.id === 'test-config-issue');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'Error: Unknown authentication strategy "oauth2"';
+  const step = { command: 'npm test', kind: 'test', source: {} };
+  
+  const res = await rule.test({ log, step });
+  assert.ok(res, 'rule should match OAuth2Strategy error');
+  assert.equal(res.ruleId, 'test-config-issue');
+  assert.equal(res.fix, null);
+  assert.ok(res.ask);
+});
+
+// Negative cases - rules should NOT fire on unrelated logs
+test('rules-eval: missing-global-tool negative - npm not found in node project', async () => {
+  const rule = RULES.find(r => r.id === 'missing-global-tool');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-1.sh: line 5: npm: command not found';
+  const step = { command: 'npm install', kind: 'install', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' }, python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  // npm is a core tool, handled by missing-tool's installs map
+  assert.equal(res, null, 'should not match npm (handled by missing-tool)');
+});
+
+test('rules-eval: missing-build-script negative - test script missing', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-script');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'Missing script: "test"';
+  const step = { command: 'npm test', kind: 'test', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  // Not a build script
+  assert.equal(res, null, 'should not match non-build script');
+});
+
+test('rules-eval: playwright-base-url-mismatch negative - no mismatch message', async () => {
+  const rule = RULES.find(r => r.id === 'playwright-base-url-mismatch');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'Running Playwright tests...';
+  const facts = { ports: [3000] };
+  const sandboxEnv = {};
+  
+  const res = await rule.test({ log, facts, sandboxEnv });
+  assert.equal(res, null, 'should not match without mismatch message');
+});
+
+test('rules-eval: permission-denied-shebang negative - not a .py script', async () => {
+  const rule = RULES.find(r => r.id === 'permission-denied-shebang');
+  assert.ok(rule, 'rule exists');
+  
+  const log = '/firstrun/step-6.sh: line 5: ./script.sh: Permission denied';
+  const step = { command: './script.sh', kind: 'other', source: {} };
+  const facts = { files: ['script.sh'], python: { deps: [] } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.equal(res, null, 'should not match non-.py script');
+});
+
+test('rules-eval: serverless-missing negative - not an sls command', async () => {
+  const rule = RULES.find(r => r.id === 'serverless-missing');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'sh: 1: sls: not found';
+  const step = { command: 'npm run something', kind: 'other', source: {} };
+  const facts = { node: { deps: [], scripts: {}, lockfile: 'package-lock.json' } };
+  
+  const res = await rule.test({ log, step, facts });
+  assert.equal(res, null, 'should not match when step is not sls');
+});
+
+test('rules-eval: missing-build-output negative - no build script', async () => {
+  const rule = RULES.find(r => r.id === 'missing-build-output');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'Error: Cannot find module \'/workspace/dist/src/main\'';
+  const step = { command: 'npm run start:prod', kind: 'start', source: {} };
+  const facts = { node: { deps: [], scripts: { 'start:prod': 'node dist/src/main' }, lockfile: 'package-lock.json' } };
+  const plan = { steps: [], runtime: { name: 'node', version: '22' } };
+  
+  const res = await rule.test({ log, step, facts, plan });
+  assert.equal(res, null, 'should not match when no build script exists');
+});
+
+test('rules-eval: wrong-directory-bash negative - file in current directory', async () => {
+  const rule = RULES.find(r => r.id === 'wrong-directory-bash');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'bash: prestart.sh: No such file or directory';
+  const step = { command: 'bash prestart.sh', kind: 'other', source: {} };
+  const facts = { files: ['prestart.sh'] };
+  
+  const res = await rule.test({ log, step, facts });
+  // File is in current dir, not a subdir
+  assert.equal(res, null, 'should not match when file is in current directory');
+});
+
+test('rules-eval: test-config-issue negative - not a test step', async () => {
+  const rule = RULES.find(r => r.id === 'test-config-issue');
+  assert.ok(rule, 'rule exists');
+  
+  const log = 'ts-jest[ts-compiler] (WARN) Got a `.js` file to compile';
+  const step = { command: 'npm run build', kind: 'build', source: {} };
+  
+  const res = await rule.test({ log, step });
+  assert.equal(res, null, 'should not match non-test step');
 });

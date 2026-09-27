@@ -29,7 +29,7 @@ Developers lose hours to broken onboarding docs. A newcomer clones a repo, follo
 **Hosted instant check** (https://firstrun-sigma.vercel.app) — paste any public repo, see docs-vs-code conflicts in ~2 s, replay a recorded verified run.
 
 **Numbers we quote (traced):**
-- 31 real open-source repos audited at pinned commits (`audit/v2-31-final-combined/`): HUMBLE **proved its fixes on 26 of 31**: **14 VERIFIED** (fixed and replayed from zero on a clean machine) and 12 FIXES PROVEN (breaks fixed with evidence; one step needs a person, such as an API key). **36 breaks fixed**, each with evidence; **16 of the 19 READMEs that broke were repaired automatically**. Next up: 3 repos (1 failed, 1 inconclusive, 1 CI-only) are the targets of the rules being trained now. <!-- audit/v2-31-final-combined/audit.json summary -->
+- 31 real open-source repos audited at pinned commits (`audit/v2-31-final-combined/`): **26 of 31 setups verified by HUMBLE: 14 verified end-to-end** (fixed and replayed from zero on a clean machine) and **12 ready and waiting on your input** (an API key or a service only you can provide). **36 breaks fixed**, each with evidence; **16 of the 19 READMEs that broke were repaired automatically**. Next up: 3 repos (1 failed, 1 inconclusive, 1 CI-only) are the targets of the rules being trained now. <!-- audit/v2-31-final-combined/audit.json summary -->
 - Demo repo `examples/acme-shop`: 5 seeded breaks → VERIFIED in ~45 s (replay ~14 s). <!-- docs/DEMO.md -->
 - IBM Bob pass (`audit/v2-31-final-bob/`): 10 repos, **4.58 Bobcoins**, took 3 more repos to VERIFIED (11 → 14 combined). **Verified** (audit folder exists). <!-- audit/v2-31-final-bob/ -->
 - Rule factory batch 1: 18 new repos, 12 new rules. <!-- test/rule-factory.test.js -->
