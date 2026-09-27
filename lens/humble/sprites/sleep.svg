@@ -1,74 +1,99 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-sleep" aria-label="HUMBLE Robot: Sleeping">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-sleep" aria-label="HUMBLE Robot: Sleeping">
   <defs>
-    <style>
-      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-      .hb-body { fill: #eae4d7; }
-      .hb-plate { fill: #dfd7c8; }
-      .hb-accent-blue { fill: #0f62fe; }
-      .hb-accent-pink { fill: #f06292; }
-      .hb-muted { stroke: #8c867a; fill: #8c867a; }
-      .hb-sleep-bob { transform-origin: 40px 50px; animation: humble-sleep-breath 3s ease-in-out infinite; }
-      .hb-z1 { animation: humble-z-float 2.8s ease-in-out infinite; }
-      .hb-z2 { animation: humble-z-float 2.8s ease-in-out infinite 0.9s; }
-      @keyframes humble-sleep-breath {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(1.5px); }
-      }
-      @keyframes humble-z-float {
-        0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
-        50% { opacity: 0.8; }
-        100% { opacity: 0; transform: translate(8px, -12px) scale(1.1); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hb-sleep-bob, .hb-z1, .hb-z2 { animation: none; }
-      }
-    </style>
+    <filter id="blur-sleep" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="bloom-sleep" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="lines-sleep" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1.2" fill="#ffc47a" opacity="0.09"/>
+    </pattern>
+    <clipPath id="scr-sleep"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
   </defs>
-  
-  <!-- Floating Sleep ZZZ -->
-  <g class="hb-z-group" fill="#8c867a" font-family="'IBM Plex Mono', monospace" font-weight="600">
-    <text x="56" y="14" font-size="8" class="hb-z1">z</text>
-    <text x="63" y="8" font-size="10" class="hb-z2">Z</text>
-  </g>
-
-  <g class="hb-sleep-bob">
-    <!-- Antenna -->
-    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
-    <circle cx="40" cy="5" r="4" class="hb-ink" fill="#cec4b2" />
-
-    <!-- Feet -->
-    <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
-    <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
-
-    <!-- Torso -->
-    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
-    <!-- Chest Plate / Dots -->
-    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
-    <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
-    <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
-
-    <!-- Arms Rested -->
-    <path d="M 25 46 Q 20 52 23 58" class="hb-ink" fill="none" />
-    <circle cx="23" cy="58" r="2.5" class="hb-ink hb-body" />
-    <path d="M 55 46 Q 60 52 57 58" class="hb-ink" fill="none" />
-    <circle cx="57" cy="58" r="2.5" class="hb-ink hb-body" />
-
+  <style>
+    :root {
+      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
+      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+    }
+    .halo { filter: url(#blur-sleep); opacity: 0.28; }
+    .bot-body { transform-origin: 100px 238px; animation: hb-sleep-bob 3.2s ease-in-out infinite; }
+    .scan { animation: hb-scan-faint 6s linear infinite; }
+    .zzz-1 { animation: hb-zzz 3s ease-out infinite; }
+    .zzz-2 { animation: hb-zzz 3s ease-out infinite 1s; }
+    @keyframes hb-sleep-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+    @keyframes hb-scan-faint {
+      0% { opacity: 0.4; } 50% { opacity: 0.7; } 100% { opacity: 0.4; }
+    }
+    @keyframes hb-zzz {
+      0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+      40% { opacity: 0.8; }
+      100% { opacity: 0; transform: translate(14px, -24px) scale(1.1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bot-body, .scan, .zzz-1, .zzz-2 { animation: none !important; }
+      .zzz-1, .zzz-2 { display: none; }
+    }
+  </style>
+  <g class="bot-body">
+    <!-- Amber halo glow -->
+    <g class="halo" fill="var(--core, #ff9a3c)">
+      <rect x="32" y="20" width="136" height="108" rx="30"/>
+      <ellipse cx="100" cy="170" rx="44" ry="40"/>
+    </g>
+    <!-- Legs (rubber hose) -->
+    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round">
+      <path d="M86 196 Q84 214 80 228"/>
+      <path d="M114 196 Q116 214 120 228"/>
+    </g>
+    <g fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
+      <ellipse cx="76" cy="231" rx="13" ry="7"/>
+      <ellipse cx="124" cy="231" rx="13" ry="7"/>
+    </g>
+    <!-- Body & chest light -->
+    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+    <circle cx="100" cy="168" r="6" fill="var(--hi, #ffc47a)" opacity="0.6" filter="url(#bloom-sleep)"/>
+    <!-- Arms resting -->
+    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round">
+      <path d="M66 158 Q48 170 46 188"/>
+      <path d="M134 158 Q152 170 154 188"/>
+    </g>
+    <g fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
+      <circle cx="46" cy="192" r="9"/>
+      <circle cx="154" cy="192" r="9"/>
+    </g>
     <!-- Neck -->
-    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
-
-    <!-- Head & Ears -->
-    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
-
-    <!-- Visor -->
-    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
-
-    <!-- Sleepy Eyes (closed curved slits) -->
-    <path d="M 28 26 Q 33 28 37 26" class="hb-ink" fill="none" />
-    <path d="M 43 26 Q 47 28 52 26" class="hb-ink" fill="none" />
-
-    <!-- Sleepy Mouth (gentle soft line) -->
-    <path d="M 38 30 Q 40 31 42 30" class="hb-ink" stroke-width="1.5" fill="none" />
+    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    <!-- Head: CRT screen -->
+    <g id="head">
+      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
+      <g clip-path="url(#scr-sleep)">
+        <g filter="url(#bloom-sleep)" stroke-linecap="round" fill="none">
+          <!-- Asleep closed eyes -->
+          <g fill="var(--hi, #ffc47a)" opacity="0.75">
+            <ellipse cx="80" cy="74" rx="9" ry="2"/>
+            <ellipse cx="120" cy="74" rx="9" ry="2"/>
+          </g>
+          <!-- Flat resting mouth -->
+          <path d="M88 96 L112 96" stroke="var(--hi, #ffc47a)" stroke-width="3.5" opacity="0.75"/>
+        </g>
+        <rect class="scan" x="46" y="34" width="108" height="80" fill="url(#lines-sleep)"/>
+      </g>
+      <!-- Glass glare -->
+      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
+    </g>
+    <!-- Antenna with dim ball -->
+    <g id="ant">
+      <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="93" cy="2" r="8" fill="var(--hi, #ffc47a)" stroke="var(--out, #3a1c0a)" stroke-width="3" opacity="0.45" filter="url(#bloom-sleep)"/>
+    </g>
+  </g>
+  <!-- Rising ZZZ particles -->
+  <g fill="var(--hi, #ffc47a)" font-family="monospace" font-weight="700">
+    <text class="zzz-1" x="145" y="45" font-size="13">z</text>
+    <text class="zzz-2" x="160" y="32" font-size="16">Z</text>
   </g>
 </svg>

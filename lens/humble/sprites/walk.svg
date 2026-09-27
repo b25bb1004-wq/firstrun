@@ -1,93 +1,102 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-walk" aria-label="HUMBLE Robot: Walking">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-walk" aria-label="HUMBLE Robot: Walking">
   <defs>
-    <style>
-      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-      .hb-body { fill: #eae4d7; }
-      .hb-plate { fill: #dfd7c8; }
-      .hb-accent-blue { fill: #0f62fe; }
-      .hb-accent-pink { fill: #f06292; }
-      .hb-walk-body { transform-origin: 40px 65px; animation: humble-walk-bob 0.8s ease-in-out infinite; }
-      .hb-walk-left-arm { transform-origin: 25px 45px; animation: humble-walk-arm-left 0.8s ease-in-out infinite; }
-      .hb-walk-right-arm { transform-origin: 55px 45px; animation: humble-walk-arm-right 0.8s ease-in-out infinite; }
-      .hb-walk-left-leg { transform-origin: 32px 64px; animation: humble-walk-leg-left 0.8s ease-in-out infinite; }
-      .hb-walk-right-leg { transform-origin: 48px 64px; animation: humble-walk-leg-right 0.8s ease-in-out infinite; }
-      @keyframes humble-walk-bob {
-        0%, 100% { transform: translateY(0) rotate(1deg); }
-        50% { transform: translateY(-3px) rotate(-1deg); }
-      }
-      @keyframes humble-walk-arm-left {
-        0%, 100% { transform: rotate(18deg); }
-        50% { transform: rotate(-20deg); }
-      }
-      @keyframes humble-walk-arm-right {
-        0%, 100% { transform: rotate(-22deg); }
-        50% { transform: rotate(18deg); }
-      }
-      @keyframes humble-walk-leg-left {
-        0%, 100% { transform: translate(-3px, -1px); }
-        50% { transform: translate(3px, 1px); }
-      }
-      @keyframes humble-walk-leg-right {
-        0%, 100% { transform: translate(3px, 1px); }
-        50% { transform: translate(-3px, -1px); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hb-walk-body, .hb-walk-left-arm, .hb-walk-right-arm, .hb-walk-left-leg, .hb-walk-right-leg { animation: none; }
-      }
-    </style>
+    <filter id="blur-walk" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="bloom-walk" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="lines-walk" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1.2" fill="#ffc47a" opacity="0.09"/>
+    </pattern>
+    <clipPath id="scr-walk"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
   </defs>
-
-  <!-- Left Leg (stepping back) -->
-  <g class="hb-walk-left-leg">
-    <rect x="25" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
-  </g>
-  <!-- Right Leg (stepping forward) -->
-  <g class="hb-walk-right-leg">
-    <rect x="45" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
-  </g>
-
-  <!-- Bobbing Body & Head -->
-  <g class="hb-walk-body">
-    <!-- Antenna -->
-    <line x1="40" y1="13" x2="43" y2="6" class="hb-ink" />
-    <circle cx="43" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
-
-    <!-- Torso -->
-    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
-    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
-    <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
-    <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
-
-    <!-- Left Arm (swinging) -->
-    <g class="hb-walk-left-arm">
-      <path d="M 25 46 Q 18 52 17 59" class="hb-ink" fill="none" />
-      <circle cx="17" cy="59" r="2.5" class="hb-ink hb-body" />
+  <style>
+    :root {
+      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
+      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+    }
+    .halo { filter: url(#blur-walk); opacity: 0.38; }
+    .walk-stride { animation: hb-walk-bob 0.5s ease-in-out infinite alternate; }
+    .walk-leg-l { animation: hb-leg-l 0.5s ease-in-out infinite alternate; }
+    .walk-leg-r { animation: hb-leg-r 0.5s ease-in-out infinite alternate; }
+    .walk-arm-l { animation: hb-arm-l 0.5s ease-in-out infinite alternate; }
+    .walk-arm-r { animation: hb-arm-r 0.5s ease-in-out infinite alternate; }
+    @keyframes hb-walk-bob {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(5px); }
+    }
+    @keyframes hb-leg-l {
+      0% { transform: rotate(-8deg); transform-origin: 86px 196px; }
+      100% { transform: rotate(10deg); transform-origin: 86px 196px; }
+    }
+    @keyframes hb-leg-r {
+      0% { transform: rotate(10deg); transform-origin: 114px 196px; }
+      100% { transform: rotate(-8deg); transform-origin: 114px 196px; }
+    }
+    @keyframes hb-arm-l {
+      0% { transform: rotate(-12deg); transform-origin: 66px 158px; }
+      100% { transform: rotate(12deg); transform-origin: 66px 158px; }
+    }
+    @keyframes hb-arm-r {
+      0% { transform: rotate(12deg); transform-origin: 134px 158px; }
+      100% { transform: rotate(-12deg); transform-origin: 134px 158px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .walk-stride, .walk-leg-l, .walk-leg-r, .walk-arm-l, .walk-arm-r { animation: none !important; }
+    }
+  </style>
+  <g class="walk-stride">
+    <!-- Amber halo glow -->
+    <g class="halo" fill="var(--core, #ff9a3c)">
+      <rect x="32" y="20" width="136" height="108" rx="30"/>
+      <ellipse cx="100" cy="170" rx="44" ry="40"/>
     </g>
-
-    <!-- Right Arm (swinging forward) -->
-    <g class="hb-walk-right-arm">
-      <path d="M 55 46 Q 62 52 64 59" class="hb-ink" fill="none" />
-      <circle cx="64" cy="59" r="2.5" class="hb-ink hb-body" />
+    <!-- Legs (rubber hose walk stance) -->
+    <g class="walk-leg-l">
+      <path d="M86 196 Q78 214 70 226" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round"/>
+      <ellipse cx="66" cy="229" rx="13" ry="7" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
     </g>
-
+    <g class="walk-leg-r">
+      <path d="M114 196 Q122 214 130 226" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round"/>
+      <ellipse cx="134" cy="229" rx="13" ry="7" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    </g>
+    <!-- Body & chest light -->
+    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+    <circle cx="100" cy="168" r="7" fill="var(--hi, #ffc47a)" filter="url(#bloom-walk)"/>
+    <!-- Swinging arms -->
+    <g class="walk-arm-l">
+      <path d="M66 158 Q44 146 36 138" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="34" cy="136" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    </g>
+    <g class="walk-arm-r">
+      <path d="M134 158 Q162 170 170 184" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="172" cy="186" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    </g>
     <!-- Neck -->
-    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
-
-    <!-- Head & Ears -->
-    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
-
-    <!-- Visor -->
-    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
-
-    <!-- Determined Forward Gaze -->
-    <circle cx="34" cy="25" r="3" class="hb-ink" fill="#16181b" />
-    <circle cx="35" cy="24" r="1" fill="#eae4d7" />
-    <circle cx="48" cy="25" r="3" class="hb-ink" fill="#16181b" />
-    <circle cx="49" cy="24" r="1" fill="#eae4d7" />
-
-    <!-- Confident Focus Mouth -->
-    <path d="M 37 30 L 43 30" class="hb-ink" stroke-width="1.8" />
+    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    <!-- Head: CRT screen -->
+    <g id="head">
+      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
+      <g clip-path="url(#scr-walk)">
+        <g filter="url(#bloom-walk)" stroke-linecap="round" fill="none">
+          <!-- Determined cheerful eyes -->
+          <g fill="var(--hi, #ffc47a)">
+            <ellipse cx="80" cy="70" rx="9" ry="12"/>
+            <ellipse cx="120" cy="70" rx="9" ry="12"/>
+          </g>
+          <!-- Confident smile -->
+          <path d="M84 94 Q100 104 116 94" stroke="var(--hi, #ffc47a)" stroke-width="4"/>
+        </g>
+        <rect x="46" y="34" width="108" height="80" fill="url(#lines-walk)"/>
+      </g>
+      <!-- Glass glare -->
+      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
+    </g>
+    <!-- Antenna with ball -->
+    <g id="ant">
+      <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="93" cy="2" r="8" fill="var(--hi, #ffc47a)" stroke="var(--out, #3a1c0a)" stroke-width="3" filter="url(#bloom-walk)"/>
+    </g>
   </g>
 </svg>

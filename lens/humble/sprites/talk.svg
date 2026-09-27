@@ -1,81 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-talk" aria-label="HUMBLE Robot: Talking">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-talk" aria-label="HUMBLE Robot: Talking">
   <defs>
-    <style>
-      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-      .hb-body { fill: #eae4d7; }
-      .hb-plate { fill: #dfd7c8; }
-      .hb-accent-blue { fill: #0f62fe; }
-      .hb-accent-pink { fill: #f06292; }
-      .hb-talk-mouth { animation: humble-mouth-talk 0.8s ease-in-out infinite alternate; }
-      .hb-talk-hand { transform-origin: 55px 46px; animation: humble-hand-gesture 1.6s ease-in-out infinite; }
-      .hb-talk-head { transform-origin: 40px 38px; animation: humble-head-nod 1.6s ease-in-out infinite; }
-      @keyframes humble-mouth-talk {
-        0% { transform: scaleY(0.5); }
-        50% { transform: scaleY(1.3); }
-        100% { transform: scaleY(0.8); }
-      }
-      @keyframes humble-hand-gesture {
-        0%, 100% { transform: rotate(0deg); }
-        50% { transform: rotate(-12deg); }
-      }
-      @keyframes humble-head-nod {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-1px); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hb-talk-mouth, .hb-talk-hand, .hb-talk-head { animation: none; }
-      }
-    </style>
+    <filter id="blur-talk" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="bloom-talk" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="lines-talk" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1.2" fill="#ffc47a" opacity="0.09"/>
+    </pattern>
+    <clipPath id="scr-talk"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
   </defs>
-
-  <!-- Feet -->
-  <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
-  <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
-
-  <!-- Torso -->
-  <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
-  <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
-  <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
-  <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
-
-  <!-- Left Arm (supportive gesture) -->
-  <path d="M 25 46 Q 17 50 19 56" class="hb-ink" fill="none" />
-  <circle cx="19" cy="56" r="2.5" class="hb-ink hb-body" />
-
-  <!-- Right Arm (gesturing / explaining) -->
-  <g class="hb-talk-hand">
-    <path d="M 55 46 Q 64 48 68 53" class="hb-ink" fill="none" />
-    <circle cx="68" cy="53" r="3" class="hb-ink hb-body" />
-    <!-- Friendly open hand cup -->
-    <path d="M 68 51 Q 72 53 70 56" class="hb-ink" stroke-width="2" fill="none" />
-  </g>
-
-  <!-- Head Group (slight speech nod) -->
-  <g class="hb-talk-head">
+  <style>
+    :root {
+      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
+      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+    }
+    .halo { filter: url(#blur-talk); opacity: 0.38; }
+    .bot-head-nod { transform-origin: 100px 124px; animation: hb-talk-nod 0.9s ease-in-out infinite alternate; }
+    .arm-gesture { transform-origin: 66px 158px; animation: hb-talk-gesture 1.2s ease-in-out infinite alternate; }
+    .talk-mouth { animation: hb-talk-viseme 0.44s ease-in-out infinite alternate; }
+    @keyframes hb-talk-nod {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(3deg); }
+    }
+    @keyframes hb-talk-gesture {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-8deg); }
+    }
+    @keyframes hb-talk-viseme {
+      0% { transform: scaleY(1); }
+      50% { transform: scaleY(1.4) translateY(-1px); }
+      100% { transform: scaleY(0.8) translateY(1px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bot-head-nod, .arm-gesture, .talk-mouth { animation: none !important; }
+    }
+  </style>
+  <g class="bot-body">
+    <!-- Amber halo glow -->
+    <g class="halo" fill="var(--core, #ff9a3c)">
+      <rect x="32" y="20" width="136" height="108" rx="30"/>
+      <ellipse cx="100" cy="170" rx="44" ry="40"/>
+    </g>
+    <!-- Legs (rubber hose) -->
+    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round">
+      <path d="M86 196 Q84 214 80 228"/>
+      <path d="M114 196 Q116 214 120 228"/>
+    </g>
+    <g fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
+      <ellipse cx="76" cy="231" rx="13" ry="7"/>
+      <ellipse cx="124" cy="231" rx="13" ry="7"/>
+    </g>
+    <!-- Body & chest light -->
+    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+    <circle cx="100" cy="168" r="7" fill="var(--hi, #ffc47a)" filter="url(#bloom-talk)"/>
+    <!-- Gesturing left arm + resting right arm -->
+    <g class="arm-gesture">
+      <path d="M66 158 Q46 150 48 134" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="48" cy="130" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    </g>
+    <path d="M134 158 Q152 170 154 188" fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="154" cy="192" r="9" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
     <!-- Neck -->
-    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
-
-    <!-- Antenna -->
-    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
-    <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
-
-    <!-- Head & Ears -->
-    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
-    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
-
-    <!-- Visor -->
-    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
-
-    <!-- Attentive Wide Eyes -->
-    <circle cx="34" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
-    <circle cx="35" cy="23" r="1.1" fill="#eae4d7" />
-    <circle cx="47" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
-    <circle cx="48" cy="23" r="1.1" fill="#eae4d7" />
-
-    <!-- Expressive Talking Mouth -->
-    <g transform="translate(0, 0)">
-      <ellipse cx="40.5" cy="29.5" rx="3.5" ry="2.2" class="hb-ink hb-talk-mouth" fill="#16181b" />
+    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
+    <!-- Head: CRT screen with nod animation -->
+    <g class="bot-head-nod">
+      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
+      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
+      <g clip-path="url(#scr-talk)">
+        <g filter="url(#bloom-talk)" stroke-linecap="round" fill="none">
+          <!-- Expressive eyes -->
+          <g fill="var(--hi, #ffc47a)">
+            <ellipse cx="80" cy="70" rx="9" ry="12"/>
+            <ellipse cx="120" cy="70" rx="9" ry="12"/>
+          </g>
+          <!-- Articulated speaking mouth -->
+          <g class="talk-mouth" style="transform-origin: 100px 96px;">
+            <path d="M84 94 Q100 110 116 94" stroke="var(--hi, #ffc47a)" stroke-width="4"/>
+          </g>
+        </g>
+        <rect x="46" y="34" width="108" height="80" fill="url(#lines-talk)"/>
+      </g>
+      <!-- Glass glare -->
+      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
+      <!-- Antenna with ball -->
+      <g id="ant">
+        <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="93" cy="2" r="8" fill="var(--hi, #ffc47a)" stroke="var(--out, #3a1c0a)" stroke-width="3" filter="url(#bloom-talk)"/>
+      </g>
     </g>
   </g>
 </svg>

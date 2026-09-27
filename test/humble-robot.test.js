@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { HUMBLE_STATES, AGENT_COLORS } from '../lens/humble/robot.js';
+import { HUMBLE_STATES, AGENT_COLORS, HUMBLE_SIZES, HumbleRobot } from '../lens/humble/robot.js';
 
 const ROOT = path.resolve('.');
 const SPRITES_DIR = path.join(ROOT, 'lens', 'humble', 'sprites');
@@ -29,13 +29,20 @@ test('HUMBLE Robot: defines all 7 crew/pipeline agent colors', () => {
   }
 });
 
-test('HUMBLE Robot: all 7 standalone SVG sprite files exist and contain valid SVG markup', () => {
+test('HUMBLE Robot: exports 24/56/96/256 px size variants', () => {
+  assert.ok(HUMBLE_SIZES.includes('24'));
+  assert.ok(HUMBLE_SIZES.includes('56'));
+  assert.ok(HUMBLE_SIZES.includes('96'));
+  assert.ok(HUMBLE_SIZES.includes('256'));
+});
+
+test('HUMBLE Robot: all 7 standalone SVG sprite files exist and contain valid CRT mascot markup', () => {
   for (const state of HUMBLE_STATES) {
     const file = path.join(SPRITES_DIR, `${state}.svg`);
     assert.ok(fs.existsSync(file), `Missing SVG file: ${file}`);
     const content = fs.readFileSync(file, 'utf8');
     assert.ok(content.startsWith('<svg'), `${state}.svg does not start with <svg`);
-    assert.ok(content.includes('viewBox="0 0 80 80"'), `${state}.svg missing viewBox`);
+    assert.ok(content.includes('viewBox="0 0 200 250"'), `${state}.svg missing viewBox="0 0 200 250"`);
     assert.ok(content.includes(`humble-robot-${state}`), `${state}.svg missing class humble-robot-${state}`);
   }
 });
@@ -49,12 +56,20 @@ test('HUMBLE Robot: master sprite sheet contains all 7 symbol IDs', () => {
   }
 });
 
-test('HUMBLE Robot: CSS includes tokens, reduced-motion overrides, and animations for all states', () => {
+test('HUMBLE Robot: CSS includes tokens, reduced-motion overrides, sizes, and state animations', () => {
   assert.ok(fs.existsSync(CSS_FILE), 'robot.css missing');
   const css = fs.readFileSync(CSS_FILE, 'utf8');
-  assert.ok(css.includes('--robot-body: #eae4d7'), 'Missing oat parchment token');
-  assert.ok(css.includes('--robot-ink: #16181b'), 'Missing ink line token');
+  assert.ok(css.includes('--robot-core: #ff9a3c'), 'Missing amber core light token');
+  assert.ok(css.includes('--robot-hi: #ffc47a'), 'Missing amber highlight token');
+  assert.ok(css.includes('--robot-screen: #2a1406'), 'Missing dark CRT screen token');
+  assert.ok(css.includes('--robot-blue: #2440ff'), 'Missing celebrate flash blue token');
+  assert.ok(css.includes('--robot-pink: #ff2d87'), 'Missing worried pink token');
   assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'Missing reduced motion media query');
+
+  // Verify size classes
+  ['24', '56', '96', '256'].forEach(sz => {
+    assert.ok(css.includes(`.humble-robot-${sz}`), `Missing size class for ${sz}px`);
+  });
 
   for (const state of HUMBLE_STATES) {
     assert.ok(css.includes(`.humble-robot-${state}`), `Missing CSS class for state: ${state}`);
