@@ -17,12 +17,12 @@
   "redirects": [
     {
       "source": "/audit",
-      "destination": "/app/#/audit/real-16-v2",
+      "destination": "/app/#/audit/v2-31-final",
       "permanent": false
     },
     {
       "source": "/app/audit",
-      "destination": "/app/#/audit/real-16-v2",
+      "destination": "/app/#/audit/v2-31-final",
       "permanent": false
     },
     {

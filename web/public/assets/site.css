@@ -1468,3 +1468,18 @@ section .sub, section .prose { max-width: 46ch; }
 }
 
 
+
+/* ── v24: one alignment grid ─────────────────────────────────────────────────────────────────────────────
+   The hero now carries the proof panel and the agents row, so it shares the site's centred --wrap column
+   instead of hanging off the one-third rule (it ran from 472 to 1481 of a 1521 px window). */
+.hero-full .inner { max-width: var(--wrap); margin-left: auto; margin-right: auto; padding-left: var(--gutter); padding-right: var(--gutter); }
+.hero-full .prove-live { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+/* The HUMBLE console lives inside the hero: the hero's giant h1 rule must not reach its 14 px title, and the
+   mount stacks panel, "watch onboarding again" and "skip intro" instead of laying them out in a row. */
+#humble-console-mount { flex-direction: column; align-items: center; position: relative; gap: 4px; }
+#humble-console-mount .humble-panel { width: 100%; max-width: 560px; }
+.hero-full #humble-console-mount h1.humble-title { font-size: 14px; line-height: 1.2; letter-spacing: -0.01em; margin: 0; font-weight: 600; font-variation-settings: normal; text-shadow: none; white-space: nowrap; }
+/* The self-healing opener used its own 1240 px box (140-1380 px at 1536 wide); it now sits on the same column. */
+.heal-stick { max-width: var(--wrap); padding-left: var(--gutter); padding-right: var(--gutter); }
+/* The proof gallery snapped its first card to the gallery edge (200 px) instead of the column (248 px). */
+#proof .gallery { scroll-padding-left: var(--gutter); scroll-padding-right: var(--gutter); }
