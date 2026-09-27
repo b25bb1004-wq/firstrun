@@ -288,7 +288,7 @@ export async function scout(root) {
   for (const name of ['start', 'dev', 'serve']) {
     const m = String(facts.node?.scripts?.[name] || '').match(/(?:^|\s)PORT=(\d{2,5})\b|--port[= ](\d{2,5})\b|\s-p\s+(\d{2,5})\b/);
     const p = m && Number(m[1] || m[2] || m[3]);
-    if (p) { facts.ports = [p, ...facts.ports.filter((x) => Number(x) !== p)]; break; }
+    if (p) { facts.ports = [p, ...facts.ports.filter((x) => Number(x) !== p)]; facts.scriptPort = p; break; }
   }
 
   // No manifest at the root, but exactly one project folder below it (backend/app/pyproject.toml):

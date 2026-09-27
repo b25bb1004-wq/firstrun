@@ -973,7 +973,9 @@ export function buildPlan(facts, { repo, commit } = {}) {
   const serve = steps.find((s) => s.kind === 'serve' && !s.skip);
   let verify = { kind: 'exit', target: 'all steps exit 0' };
   if (serve) {
-    const port = url ? Number(url[1]) : facts.ports[0] || defaultPort(serve.command);
+    // A port pinned in the start script beats a README URL: gothinkster's README names its backend API
+    // (localhost:3000/api) while `cross-env PORT=4100` serves this app on 4100.
+    const port = facts.scriptPort || (url ? Number(url[1]) : facts.ports[0] || defaultPort(serve.command));
     serve.serve = { port };
     verify = { kind: 'http', target: `http://127.0.0.1:${port}${url?.[2] && url[1] === String(port) ? url[2] : '/'}`, ...(url && url[1] === String(port) ? { fromDocs: true } : {}) };
   } else if (steps.some((s) => s.kind === 'test' && !s.skip)) {
