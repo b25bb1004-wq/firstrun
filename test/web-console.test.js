@@ -387,14 +387,18 @@ describe('Line grammar (Section 3)', () => {
     assert.strictEqual(lines[0].prefix, '  + ');
   });
 
-  it('lineFromBeat maps verified to pass kind with replaySeconds', () => {
-    const beat = { kind: 'verified', text: '14' };
+  it('lineFromBeat maps a verified beat (one proven fix) to a pass line, not a fake replay time', () => {
+    // Real recorded beats carry the diagnosis as text (see web/public/data/reels/acme-shop.json), not seconds; it
+    // used to render as "VERIFIED · replay from zero in The README's Node.js 16 ...s".
+    const beat = { kind: 'verified', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", evidenceId: 'E1' };
     const lines = lineFromBeat(beat);
-    
+
     assert.strictEqual(lines.length, 1);
     assert.strictEqual(lines[0].kind, 'pass');
-    assert.ok(lines[0].text.includes('VERIFIED'));
-    assert.ok(lines[0].text.includes('14s'));
+    assert.strictEqual(lines[0].proven, true);
+    assert.ok(lines[0].text.includes('fix proven'));
+    assert.ok(lines[0].text.includes('E1'));
+    assert.ok(!lines[0].text.includes('replay from zero in The'), 'must not paste the diagnosis in as seconds');
     assert.strictEqual(lines[0].rightAlign, true);
   });
 

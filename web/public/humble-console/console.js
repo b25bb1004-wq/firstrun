@@ -4,7 +4,8 @@
  * Lazy-mounted when hero enters viewport, total added JS <= 25 KB gzip
  */
 
-import { flight, typeSchedule, lineFromBeat, reelPlayer, onboardingTimeline } from './core.js';
+import { typeSchedule, lineFromBeat, reelPlayer, onboardingTimeline } from './core.js';
+import { GuideThread } from './thread.js';
 import { HumbleRobot, HUMBLE_STATES, AGENT_COLORS, flightMath } from './robot.js';
 
 // ============================================================================
@@ -163,6 +164,7 @@ export class HumbleWebConsole {
             </div>
           </div>
           <div class="humble-header-right">
+            <span class="humble-say" aria-live="polite"></span>
             <span class="humble-status-dot" aria-hidden="true"></span>
             <button class="humble-close" aria-label="Close console" type="button">x</button>
           </div>
@@ -190,6 +192,8 @@ export class HumbleWebConsole {
     this.mascotContainer = $('#humble-mascot-container', this.container);
     this.skipIntroBtn = $('.humble-skip-intro', this.container);
     this.watchAgainLink = $('.humble-watch-again', this.container);
+    this.sayEl = $('.humble-say', this.container);
+    this.thread = new GuideThread(this.terminal, { reduced: isReducedMotion() });
     
     // Apply initial panel styles
     this.panel.style.cssText = `
@@ -376,8 +380,16 @@ export class HumbleWebConsole {
     await this.playReel();
     if (this.skipped) return this.finishOnboarding();
     
-    // Step 6: Demo points - fly to first fail and fix
-    await this.demoPoints();
+    // Step 6: the machine is thrown away and the fixed guide replays from zero: a light runs down the thread,
+    // then the verdict ties the knot.
+    if (this.finalLine) {
+      this.renderMascotInline('think');
+      this.say('replaying from zero');
+      await this.thread.pulse();
+      await this.typeLine({ ...this.finalLine, verdict: true });
+      this.renderMascotInline('celebrate');
+      this.say('verified');
+    }
     if (this.skipped) return this.finishOnboarding();
     
     // Step 7: CTA
@@ -635,127 +647,57 @@ export class HumbleWebConsole {
         statusSpan.style.animation = 'shake 180ms steps(3)';
       }
     }
+    await this.thread.mark(el, line);
+  }
+
+  /** Fill a line's text and status at once (used where lines appear without typing). */
+  fillLine(el, line) {
+    const text = el.querySelector('.humble-line-text');
+    if (text) text.textContent = line.text;
+    const prefix = el.querySelector('.humble-line-prefix');
+    if (prefix) prefix.style.opacity = '1';
+    const status = el.querySelector('.humble-line-status');
+    if (status) status.style.opacity = '1';
+  }
+
+  /** The docked mascot's words, in the header beside it (nothing floats over the log). */
+  say(text) {
+    if (!this.sayEl) return;
+    this.sayEl.style.opacity = '0';
+    clearTimeout(this.sayTimer);
+    this.sayTimer = setTimeout(() => { this.sayEl.textContent = text || ''; this.sayEl.style.opacity = text ? '1' : '0'; }, isReducedMotion() ? 0 : 140);
   }
 
   async shakeLine(line) {
     const el = this.createLineElement(line);
+    this.fillLine(el, line);
     this.terminal.appendChild(el);
     this.lines.push({ element: el, line });
-    
-    // Add shake animation
-    el.style.animation = 'shake 180ms steps(3)';
-    await this.sleep(180);
-    el.style.animation = '';
-    
     this.autoScroll();
+    this.renderMascotInline('worried');
+    this.say('this broke here');
+
+    el.style.animation = 'shake 180ms steps(3)';
+    await Promise.all([this.sleep(180), this.thread.crack(el)]);
+    el.style.animation = '';
   }
 
   async pointAtLine(line, bubbleText) {
-    // First type the line
+    // The guide no longer flies to the line (it used to land on top of it). It stays docked in the header and says
+    // why; the thread in the gutter does the pointing (typeLine hands the fix line to the thread, which stitches it).
+    this.renderMascotInline(line.kind === 'fix' ? 'point' : 'think');
+    this.say(bubbleText);
     await this.typeLine(line);
-    
-    // Then fly mascot to it and show bubble
-    const lineEl = this.lines[this.lines.length - 1]?.element;
-    if (!lineEl) return;
-    
-    // Find mascot position and target position
-    const mascotRect = this.mascotContainer.getBoundingClientRect();
-    const lineRect = lineEl.getBoundingClientRect();
-    const panelRect = this.panel.getBoundingClientRect();
-    
-    const startX = mascotRect.left - panelRect.left + mascotRect.width / 2;
-    const startY = mascotRect.top - panelRect.top + mascotRect.height / 2;
-    const targetX = lineRect.left - panelRect.left - 20;
-    const targetY = lineRect.top - panelRect.top + lineRect.height / 2;
-    
-    // Fly to line
-    this.renderMascotInline('point');
-    await this.animateFlight(startX, startY, targetX, targetY);
-    
-    // Show bubble
-    await this.showBubble(bubbleText, targetX, targetY);
-    
-    // Fly back
-    await this.animateFlight(targetX, targetY, startX, startY);
-    this.renderMascotInline('talk');
-  }
-
-  async animateFlight(startX, startY, targetX, targetY) {
-    if (isReducedMotion()) return;
-    
-    const { duration, at } = flight({ x: startX, y: startY }, { x: targetX, y: targetY });
-    const startTime = performance.now();
-    const durMs = duration * 1000;
-    
-    return new Promise(resolve => {
-      const step = (now) => {
-        const elapsed = now - startTime;
-        const u = Math.min(1, Math.max(0, elapsed / durMs));
-        const pos = at(u);
-        
-        this.mascotContainer.style.transform = 'translate(' + pos.x + 'px, ' + pos.y + 'px) rotate(' + pos.rotation + 'deg) scale(' + pos.scale + ')';
-        this.mascotContainer.style.filter = 'drop-shadow(0 0 ' + pos.glow + 'px var(--c-core))';
-        
-        if (u < 1) {
-          requestAnimationFrame(step);
-        } else {
-          resolve();
-        }
-      };
-      requestAnimationFrame(step);
-    });
-  }
-
-  async showBubble(text, x, y) {
-    const bubble = document.createElement('div');
-    bubble.className = 'humble-bubble';
-    bubble.style.cssText = `
-      position: absolute;
-      left: ${x + 10}px;
-      top: ${y + 18}px;
-      transform: translateX(-50%) scale(0.5);
-      background: var(--c-core);
-      color: #1a0e04;
-      font: 500 11px/1.4 system-ui;
-      padding: 4px 8px;
-      border-radius: 6px;
-      box-shadow: 0 0 6px rgba(255,154,60,.5);
-      white-space: nowrap;
-      opacity: 0;
-      transition: transform 400ms var(--hb-ease-bounce), opacity 200ms ease;
-      z-index: 10;
-      pointer-events: none;
-    `;
-    this.panel.appendChild(bubble);
-    
-    // Spring entry
-    await this.sleep(50);
-    bubble.style.opacity = '1';
-    bubble.style.transform = 'translateX(-50%) scale(1)';
-    
-    // Type text
-    const schedule = typeSchedule(text, 'bubble', { reducedMotion: isReducedMotion() });
-    for (let i = 0; i < text.length; i++) {
-      if (this.skipped) break;
-      bubble.textContent = text.slice(0, i + 1);
-      await this.sleep(schedule.delays[i]);
-    }
-    
-    // Hold 3s
-    await this.sleep(3000);
-    if (this.skipped) return;
-    
-    // Fade out
-    bubble.style.opacity = '0';
-    await this.sleep(500);
-    bubble.remove();
+    this.autoScroll();
   }
 
   async celebrateLine(line) {
     const el = this.createLineElement(line);
+    this.fillLine(el, line);
     this.terminal.appendChild(el);
     this.lines.push({ element: el, line });
-    
+    await this.thread.mark(el, line);
+
     this.renderMascotInline('celebrate');
     await this.sleep(1200);
     this.renderMascotInline('talk');
@@ -790,9 +732,9 @@ export class HumbleWebConsole {
     }
     
     if (line.status === 'pass') {
-      html += '<span class="humble-line-status" style="color: var(--c-ok); opacity: 0; margin-left: auto;">check</span>';
+      html += '<span class="humble-line-status" style="color: var(--c-ok); opacity: 0; margin-left: auto;">✓</span>';
     } else if (line.status === 'fail') {
-      html += '<span class="humble-line-status" style="color: var(--c-fail); opacity: 0; margin-left: auto;">close</span>';
+      html += '<span class="humble-line-status" style="color: var(--c-fail); opacity: 0; margin-left: auto;">✗</span>';
     }
     
     if (line.strikethrough) {
@@ -804,22 +746,6 @@ export class HumbleWebConsole {
     
     el.innerHTML = html;
     return el;
-  }
-
-  async demoPoints() {
-    // Find first fail line and fix line in the rendered lines
-    const failIdx = this.lines.findIndex(l => l.line.kind === 'fail' || l.line.status === 'fail');
-    const fixIdx = this.lines.findIndex(l => l.line.kind === 'fix');
-    
-    if (failIdx >= 0) {
-      const failLine = this.lines[failIdx].element;
-      await this.pointAtLine(this.lines[failIdx].line, 'this broke here');
-    }
-    
-    if (fixIdx >= 0) {
-      const fixLine = this.lines[fixIdx].element;
-      await this.pointAtLine(this.lines[fixIdx].line, 'so i fixed the readme');
-    }
   }
 
   async showCTA() {
@@ -887,9 +813,10 @@ export class HumbleWebConsole {
     this.playing = true;
     this.skipped = false;
     
-    // Clear terminal
+    // Clear terminal (and the thread that lived in it)
     this.terminal.innerHTML = '';
     this.lines = [];
+    this.thread.reset();
     
     // Skip intro - jump to terminal fade in
     await this.fadeInTerminal();
@@ -902,9 +829,11 @@ export class HumbleWebConsole {
     
     this.reelPlayer.skip(); // Jump to end instantly
     
+    await this.thread.rebuild(this.lines);
+
     // Show final line
     if (this.finalLine) {
-      await this.typeLine(this.finalLine);
+      await this.typeLine({ ...this.finalLine, verdict: true });
     }
     
     // Show CTA
@@ -915,18 +844,26 @@ export class HumbleWebConsole {
 
   async handleReelActionInstant(action) {
     switch (action.type) {
+      case 'end':
+        // The verdict is typed once by replayOnboarding (with the knot), not appended here as well.
+        this.finalLine = action.line;
+        break;
       case 'type':
       case 'shake':
       case 'celebrate':
-      case 'end':
         // Instant - just create element
         const el = this.createLineElement(action.line);
+        this.fillLine(el, action.line);
         this.terminal.appendChild(el);
         this.lines.push({ element: el, line: action.line });
         break;
-      case 'point':
-        // Skip flight in reduced motion / replay
+      case 'point': {
+        const pe = this.createLineElement(action.line);
+        this.fillLine(pe, action.line);
+        this.terminal.appendChild(pe);
+        this.lines.push({ element: pe, line: action.line });
         break;
+      }
     }
   }
 

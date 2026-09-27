@@ -22,6 +22,8 @@
   --c-fail: #ff5c7a;
   --c-warn: #ffb224;
   --c-bob: #5E9EFF;
+  --c-thread: #6f8cff; /* the guide thread (brand blue thread, lifted for the dark console) */
+  --c-crack: #ff2d87;  /* brand pink crack */
   --hb-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --hb-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -523,4 +525,33 @@
 .humble-watch-again:focus-visible {
   outline: 2px solid var(--c-core);
   outline-offset: 2px;
+}
+/* ============================================================================
+   The guide thread (thread.js): a reserved gutter left of the log where a blue thread is drawn step to step.
+   A break is a pink crack, the fix stitches it, VERIFIED ties a knot. Nothing moves over the text.
+   ============================================================================ */
+.humble-terminal { position: relative; padding-left: 34px; }
+.humble-thread { position: absolute; left: 8px; top: 0; width: 22px; overflow: visible; pointer-events: none; }
+.humble-thread .hb-seg { stroke: var(--c-thread, #6f8cff); stroke-width: 1.8; stroke-linecap: round; fill: none; }
+.humble-thread .hb-node { fill: var(--c-term); stroke: var(--c-thread, #6f8cff); stroke-width: 1.6; }
+.humble-thread .hb-node.hb-fixed, .humble-thread .hb-node.hb-pass { fill: var(--c-thread, #6f8cff); }
+.humble-thread .hb-crack { stroke: var(--c-crack, #ff2d87); stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.humble-thread .hb-stitch { stroke: var(--c-thread, #6f8cff); stroke-width: 1.7; stroke-linecap: round; }
+.humble-thread .hb-pulse { fill: #cfd8ff; filter: drop-shadow(0 0 5px #9fb2ff); }
+.humble-thread .hb-knot { fill: none; stroke: var(--c-ok); stroke-width: 1.8; }
+.humble-thread .hb-draw { animation: hbDraw var(--hb-draw, 280ms) var(--hb-ease-out) forwards; }
+@keyframes hbDraw { to { stroke-dashoffset: 0; } }
+
+/* What the docked mascot says, beside it in the header (it used to fly out with a speech bubble). */
+.humble-say { font: 500 11px/1.3 ui-monospace, "JetBrains Mono", Menlo, monospace; color: var(--c-ink-2); letter-spacing: .02em;
+  max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0; transition: opacity 180ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .humble-thread .hb-draw { animation: none; stroke-dashoffset: 0 !important; }
+  .humble-say { transition: none; }
+}
+@media (max-width: 480px) {
+  .humble-terminal { padding-left: 28px; }
+  .humble-thread { left: 4px; }
+  .humble-say { max-width: 14ch; }
 }
