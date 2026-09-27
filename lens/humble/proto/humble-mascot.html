@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUMBLE mascot prototype</title>
+<style>
+  /* Original character: a CRT-screen guide made of warm amber light (style after 1960s industrial-film cartoons).
+     Mascot-only exception to the anti-vibecode list: the soft glow and the amber. */
+  :root { --bg: #efe7da; --ink: #15163a; --line: #d2c6b1; --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
+          --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87; }
+  :root[data-theme="dark"] { --bg: #16120e; --ink: #efe7da; --line: #342c24; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Jost", system-ui, sans-serif; }
+  header { padding: 20px 28px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--line); }
+  header b { font-size: 18px; margin-right: 12px; }
+  button { font: 500 13px ui-monospace, monospace; background: none; color: var(--ink); border: 1px solid var(--line);
+           border-radius: 2px; padding: 6px 12px; cursor: pointer; }
+  button:active { transform: scale(0.97); }
+  #stage { position: relative; height: calc(100vh - 70px); overflow: hidden; cursor: crosshair; }
+  #stage p { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; margin: 0; font: 12px ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; opacity: .55; }
+  #bot { position: absolute; left: 0; top: 0; width: 150px; height: 188px; will-change: transform; transform-origin: 50% 100%; }
+  #bot svg { width: 100%; height: 100%; overflow: visible; }
+  .halo { filter: url(#blur); opacity: .38; }
+  :root[data-theme="dark"] .halo { opacity: .55; }
+  #tip { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--hi); box-shadow: none; opacity: 0; pointer-events: none;
+         outline: 1px solid var(--core); outline-offset: 6px; }
+  @media (prefers-reduced-motion: reduce) { .scan { animation: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <b>HUMBLE</b>
+  <button data-s="wake">wake</button><button data-s="sleep">sleep</button><button data-s="think">think</button>
+  <button data-s="talk">talk</button><button data-s="celebrate">celebrate</button><button data-s="worried">worried</button>
+  <button data-s="walk">walk across</button><button id="theme">theme</button>
+</header>
+<div id="stage">
+  <div id="bot" aria-label="HUMBLE, the onboarder" role="img">
+    <svg viewBox="0 0 200 250">
+      <defs>
+        <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+        <filter id="bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <pattern id="lines" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.2" fill="#ffc47a" opacity=".09"/></pattern>
+        <clipPath id="scr"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
+      </defs>
+      <g id="all">
+        <!-- the soft light around it (centred, no offset: light, not a shadow) -->
+        <g class="halo" fill="var(--core)"><rect x="32" y="20" width="136" height="108" rx="30"/><ellipse cx="100" cy="170" rx="44" ry="40"/></g>
+        <!-- legs (rubber hose) -->
+        <g id="legs" fill="none" stroke="var(--out)" stroke-width="9" stroke-linecap="round">
+          <path id="legL" d="M86 196 Q84 214 80 228"/><path id="legR" d="M114 196 Q116 214 120 228"/>
+        </g>
+        <g fill="var(--deep)" stroke="var(--out)" stroke-width="3"><ellipse id="footL" cx="76" cy="231" rx="13" ry="7"/><ellipse id="footR" cx="124" cy="231" rx="13" ry="7"/></g>
+        <!-- body (bean) + chest light -->
+        <g id="body"><path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core)" stroke="var(--out)" stroke-width="3.5"/>
+          <circle id="chest" cx="100" cy="168" r="7" fill="var(--hi)" filter="url(#bloom)"/></g>
+        <!-- arms (rubber hose) + mittens -->
+        <g id="arms" fill="none" stroke="var(--out)" stroke-width="8" stroke-linecap="round">
+          <path id="armL" d="M66 158 Q48 170 46 188"/><path id="armR" d="M134 158 Q152 170 154 188"/>
+        </g>
+        <g fill="var(--core)" stroke="var(--out)" stroke-width="3"><circle id="handL" cx="46" cy="192" r="9"/><circle id="handR" cx="154" cy="192" r="9"/></g>
+        <!-- neck -->
+        <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep)" stroke="var(--out)" stroke-width="3"/>
+        <!-- head: CRT screen -->
+        <g id="head">
+          <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep)" stroke="var(--out)" stroke-width="3.5"/>
+          <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen)"/>
+          <g clip-path="url(#scr)">
+            <g id="face" filter="url(#bloom)" stroke-linecap="round" fill="none">
+              <g id="eyes" fill="var(--hi)"><ellipse id="eyeL" cx="80" cy="70" rx="9" ry="13"/><ellipse id="eyeR" cx="120" cy="70" rx="9" ry="13"/></g>
+              <path id="mouth" d="M84 94 Q100 104 116 94" stroke="var(--hi)" stroke-width="4"/>
+              <g id="brows" stroke="var(--hi)" stroke-width="3.5" opacity="0"><path d="M70 52 L88 56"/><path d="M130 52 L112 56"/></g>
+            </g>
+            <rect class="scan" x="46" y="34" width="108" height="80" fill="url(#lines)"/>
+            <rect id="flash" x="46" y="34" width="108" height="80" fill="var(--blue)" opacity="0"/>
+          </g>
+          <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity=".08"/>
+        </g>
+        <!-- antenna (lags behind the head) -->
+        <g id="ant"><path d="M100 24 L94 4" stroke="var(--out)" stroke-width="4" stroke-linecap="round"/>
+          <circle id="ball" cx="93" cy="2" r="8" fill="var(--hi)" stroke="var(--out)" stroke-width="3" filter="url(#bloom)"/></g>
+      </g>
+    </svg>
+  </div>
+  <div id="tip"></div>
+  <p>click anywhere: HUMBLE flies there and points</p>
+</div>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const bot = $('#bot'), all = $('#all'), head = $('#head'), ant = $('#ant'), eyes = [$('#eyeL'), $('#eyeR')], mouth = $('#mouth'),
+        brows = $('#brows'), flash = $('#flash'), ball = $('#ball'), armR = $('#armR'), handR = $('#handR'), tip = $('#tip'), stage = $('#stage');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)', BOUNCE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+  const MOUTH = { smile: 'M84 94 Q100 104 116 94', flat: 'M86 96 L114 96', o: 'M94 96 Q100 104 106 96 Q100 90 94 96', wide: 'M84 92 Q100 110 116 92', wavy: 'M84 98 Q92 92 100 98 Q108 104 116 98' };
+  let x = 80, y = 0, loops = [], face = 'neutral';
+  const place = () => { bot.style.transform = `translate(${x}px, ${y}px)`; };
+  const ground = () => stage.clientHeight - 200;
+  y = ground(); place();
+  const anim = (el, kf, o) => reduced ? el.animate(kf.slice(-1), { duration: 1, fill: 'forwards' }) : el.animate(kf, Object.assign({ fill: 'forwards' }, o));
+  const stop = () => { loops.forEach((a) => a.cancel()); loops = []; };
+  const setMouth = (k) => mouth.setAttribute('d', MOUTH[k]);
+  const tint = (c) => { eyes.forEach((e) => e.setAttribute('fill', c)); mouth.setAttribute('stroke', c); brows.setAttribute('stroke', c); };
+  const setFace = (f) => {
+    face = f; tint('var(--hi)'); brows.setAttribute('opacity', 0); eyes.forEach((e) => { e.setAttribute('ry', 13); e.setAttribute('rx', 9); });
+    if (f === 'asleep') { eyes.forEach((e) => e.setAttribute('ry', 1.8)); setMouth('flat'); }
+    if (f === 'neutral') setMouth('smile');
+    if (f === 'happy') { eyes.forEach((e) => e.setAttribute('ry', 6)); setMouth('wide'); }
+    if (f === 'focused') { eyes.forEach((e) => e.setAttribute('ry', 9)); setMouth('flat'); }
+    if (f === 'worried') { tint('var(--pink)'); brows.setAttribute('opacity', 1); setMouth('wavy'); }
+  };
+  // Overlapping action: the antenna lags the head and settles with a wobble.
+  const wobble = () => anim(ant, [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-10deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(-2deg)' }, { transform: 'rotate(0deg)' }], { duration: 600, delay: 60, easing: OUT });
+  ant.style.transformOrigin = '100px 24px'; head.style.transformOrigin = '100px 124px'; all.style.transformOrigin = '100px 238px';
+  // Blink every 4-7 s.
+  (function blink() { setTimeout(() => { if (face !== 'asleep') eyes.forEach((e) => anim(e, [{ transform: 'scaleY(1)' }, { transform: 'scaleY(.1)' }, { transform: 'scaleY(1)' }], { duration: 140 })); blink(); }, 4000 + Math.random() * 3000); })();
+  eyes.forEach((e) => { e.style.transformBox = 'fill-box'; e.style.transformOrigin = 'center'; });
+
+  const S = {
+    sleep() { stop(); setFace('asleep'); ball.setAttribute('opacity', .4);
+      loops.push(anim(all, [{ transform: 'translateY(0)' }, { transform: 'translateY(3px)' }, { transform: 'translateY(0)' }], { duration: 3000, iterations: Infinity, easing: 'ease-in-out' })); },
+    wake() { stop(); ball.setAttribute('opacity', 1);
+      // the screen flickers on: two quick flashes, then steady
+      anim($('#face'), [{ opacity: 0 }, { opacity: 1 }, { opacity: .2 }, { opacity: 1 }, { opacity: .5 }, { opacity: 1 }], { duration: 520 });
+      setFace('neutral');
+      anim(all, [{ transform: 'translateY(0) scale(1,1)' }, { transform: 'translateY(4px) scale(1.08,.9)', offset: .25 }, { transform: 'translateY(-14px) scale(.94,1.08)', offset: .55 }, { transform: 'translateY(0) scale(1.06,.94)', offset: .82 }, { transform: 'translateY(0) scale(1,1)' }], { duration: 700, easing: OUT });
+      wobble(); },
+    think() { stop(); setFace('focused');
+      eyes.forEach((e) => anim(e, [{ transform: 'translate(0,0)' }, { transform: 'translate(-4px,-4px)' }], { duration: 300, easing: OUT }));
+      loops.push(anim(head, [{ transform: 'rotate(-5deg)' }, { transform: 'rotate(5deg)' }, { transform: 'rotate(-5deg)' }], { duration: 1600, iterations: Infinity, easing: 'ease-in-out' }));
+      loops.push(anim(ball, [{ fill: 'var(--hi)' }, { fill: 'var(--blue)' }, { fill: 'var(--hi)' }], { duration: 1200, iterations: Infinity })); },
+    talk() { stop(); setFace('neutral'); const shapes = ['smile', 'o', 'wide', 'o', 'flat', 'wide']; let i = 0;
+      const t = setInterval(() => setMouth(shapes[i++ % shapes.length]), 110); loops.push({ cancel: () => { clearInterval(t); setMouth('smile'); } });
+      loops.push(anim(head, [{ transform: 'rotate(0deg)' }, { transform: 'rotate(3deg)' }, { transform: 'rotate(0deg)' }], { duration: 900, iterations: Infinity, easing: 'ease-in-out' })); },
+    celebrate() { stop(); setFace('happy');
+      anim(all, [{ transform: 'translateY(0) scale(1,1)' }, { transform: 'translateY(6px) scale(1.12,.86)', offset: .2 }, { transform: 'translateY(-34px) scale(.9,1.12)', offset: .5 }, { transform: 'translateY(0) scale(1.1,.9)', offset: .8 }, { transform: 'translateY(0) scale(1,1)' }], { duration: 640, easing: OUT });
+      anim(flash, [{ opacity: 0 }, { opacity: .55 }, { opacity: 0 }], { duration: 260, delay: 280 });
+      anim(armR, [{ d: 'path("M134 158 Q152 170 154 188")' }, { d: 'path("M134 158 Q160 140 162 112")' }], { duration: 200, easing: OUT });
+      anim(handR, [{ transform: 'translate(0,0)' }, { transform: 'translate(8px,-80px)' }], { duration: 200, easing: OUT });
+      wobble(); setTimeout(() => { if (face === 'happy') S.rest(); }, 1400); },
+    worried() { stop(); setFace('worried');
+      anim(all, [{ transform: 'translateX(0)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(0)' }], { duration: 360, delay: 200 }); },
+    rest() { stop(); setFace('neutral');
+      anim(armR, [{ d: 'path("M134 158 Q152 170 154 188")' }], { duration: 250, easing: OUT });
+      anim(handR, [{ transform: 'translate(0,0)' }], { duration: 250, easing: OUT });
+      anim(head, [{ transform: 'rotate(0deg)' }], { duration: 250 }); },
+    walk() { stop(); setFace('neutral'); const dir = x < stage.clientWidth / 2 ? 1 : -1; const to = dir > 0 ? stage.clientWidth - 230 : 80;
+      bot.style.scale = dir > 0 ? '1 1' : '-1 1';
+      const legL = $('#legL'), legR = $('#legR');
+      const A = 'path("M86 196 Q78 214 70 226")', B = 'path("M86 196 Q92 214 96 228")', C = 'path("M114 196 Q108 214 104 228")', D = 'path("M114 196 Q122 214 130 226")';
+      loops.push(anim(legL, [{ d: A }, { d: B }, { d: A }], { duration: 560, iterations: Infinity }));
+      loops.push(anim(legR, [{ d: C }, { d: D }, { d: C }], { duration: 560, iterations: Infinity }));
+      loops.push(anim(all, [{ transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(0)' }], { duration: 280, iterations: Infinity }));
+      const dist = Math.abs(to - x), dur = dist * 4;
+      anim(bot, [{ transform: `translate(${x}px, ${y}px)` }, { transform: `translate(${to}px, ${y}px)` }], { duration: dur, easing: 'linear' })
+        .onfinish = () => { x = to; place(); bot.style.scale = '1 1'; S.rest(); };
+    },
+  };
+  // Fly on an arc to a clicked spot, land beside it, point at it.
+  async function flyTo(tx, ty) {
+    stop(); setFace('focused');
+    const sx = x, sy = y, ex = Math.max(10, Math.min(stage.clientWidth - 160, tx - 190)), ey = Math.max(10, Math.min(ground(), ty - 120));
+    await anim(all, [{ transform: 'scale(1,1)' }, { transform: 'translateY(6px) scale(1.1,.88)' }], { duration: 140, easing: OUT }).finished; // anticipation
+    const mid = { x: (sx + ex) / 2, y: Math.min(sy, ey) - 120 }, dist = Math.hypot(ex - sx, ey - sy), dur = Math.min(900, 420 + dist * .6);
+    anim(all, [{ transform: 'translateY(6px) scale(1.1,.88)' }, { transform: 'scale(.9,1.14)', offset: .2 }, { transform: 'scale(1.06,1.06)', offset: .5 }, { transform: 'scale(1,1)', offset: .9 }, { transform: 'scale(1,1)' }], { duration: dur });
+    const kf = []; for (let i = 0; i <= 12; i++) { const t = i / 12, u = 1 - t; const px = u * u * sx + 2 * u * t * mid.x + t * t * ex, py = u * u * sy + 2 * u * t * mid.y + t * t * ey; kf.push({ transform: `translate(${px}px, ${py}px)` }); }
+    await anim(bot, kf, { duration: dur, easing: 'cubic-bezier(0.45, 0, 0.2, 1)' }).finished;
+    x = ex; y = ey; place();
+    anim(all, [{ transform: 'scale(1.1,.9)' }, { transform: 'scale(1,1)' }], { duration: 260, easing: BOUNCE }); wobble(); // landing squash
+    // point: the near arm extends toward the target
+    anim(armR, [{ d: 'path("M134 158 Q152 170 154 188")' }, { d: 'path("M134 158 Q168 150 196 146")' }], { duration: 220, easing: OUT });
+    anim(handR, [{ transform: 'translate(0,0)' }, { transform: 'translate(46px,-44px)' }], { duration: 220, easing: OUT });
+    tip.style.left = (tx - 5) + 'px'; tip.style.top = (ty - 5) + 'px';
+    anim(tip, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 240, delay: 180, easing: OUT });
+    setFace('neutral');
+  }
+  document.querySelectorAll('button[data-s]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); tip.style.opacity = 0; S[b.dataset.s](); }));
+  $('#theme').addEventListener('click', (e) => { e.stopPropagation(); const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? '' : 'dark'; });
+  stage.addEventListener('click', (e) => { const r = stage.getBoundingClientRect(); flyTo(e.clientX - r.left, e.clientY - r.top); });
+  S.sleep(); setTimeout(() => S.wake(), 900);
+})();
+</script>
+</body>
+</html>
