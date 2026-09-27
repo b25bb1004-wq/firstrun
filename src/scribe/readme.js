@@ -72,7 +72,8 @@ export function rewriteDoc({ root, docFile, plan, evidence, passport }) {
     if (item) {
       const bullet = (origLine.match(/^\s*([-*+]|\d+[.)])/) || [, '-'])[1].replace(/^\d+/, '1');
       const newCmd = parts.join(' && ');
-      const edited = group.some((s) => s.readmeCommand && s.readmeCommand !== s.command) ? origLine.replace('`' + item.code + '`', '`' + newCmd + '`') : origLine;
+      const changedCmd = group.some((s) => s.readmeCommand && s.readmeCommand !== s.command);
+      const edited = !changedCmd ? origLine : item.plain ? origLine.replace(item.code.trim(), newCmd) : origLine.replace('`' + item.code + '`', '`' + newCmd + '`');
       const notes = out.filter((l) => l.includes('# HUMBLE:')).map((l) => `${indent}  > ${l.trim().replace(/^# /, '')}`);
       const ins = out.filter((l) => !l.includes('# HUMBLE:')).map((l) => `${indent}${bullet} \`${l.trim().replace(/^[$%]\s+/, '')}\``);
       replacements.set(lineIdx, { lines: [...ins, edited, ...notes], span: 0 });

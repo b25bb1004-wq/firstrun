@@ -8,6 +8,11 @@ const CMD_START = /^(\$ |> )?(npm|npx|yarn|pnpm|bun|node|python3?|pip3?|poetry|u
 // A setup step written as a list item: "- `npm install` to install deps", "2. Run `npm start`".
 const LIST_ITEM = /^(\s*)(?:[-*+]|\d+[.)])\s+(?:(?:then\s+)?(?:run|execute|type|use)\s*:?\s+)?`([^`]+)`/i;
 
+const PLAIN_ITEM = /^(\s*)(?:[-*+]|\d+[.)])\s+([^`\s][^`]*?)\s*$/;
+const CODE_LINE = /^(\s*)`([^`]+)`\s*$/;
+// The whole text is one command: words, flags, paths, urls; no sentence words ("npm install to get deps" is prose).
+const COMMAND_ONLY = /^(?!.*\s(to|the|and|then|for|with|if|you|your|will|should)\s)[\w$.\/@:=+~"'<>{}\[\]-]+(\s+[\w$.\/@:=+~"'<>{}\[\]&|;-]+){0,10}$/i;
+
 const SHELL_LANGS = new Set(['', 'bash', 'sh', 'shell', 'zsh', 'console', 'shell-session', 'shellsession', 'terminal', 'cli', 'text', 'fish']);
 
 export function parseMarkdown(text) {
@@ -36,6 +41,13 @@ export function parseMarkdown(text) {
     if (li && CMD_START.test(li[2].trim())) {
       // One-line pseudo block; the scribe edits inside the backticks so the list item keeps its prose.
       blocks.push({ start: i, end: i, lang: 'inline', inline: true, indent: li[1].length, code: li[2], lines: [{ text: li[2].trim(), line: i }] });
+      continue;
+    }
+    // Rule factory (27 Sep): the same step with no backticks at all ("2. npm install", webpack-express-boilerplate), or a
+    // line that is only a code span ("`git clone …`"). Only when the whole item is a command, never prose.
+    const plain = line.match(PLAIN_ITEM) || line.match(CODE_LINE);
+    if (plain && CMD_START.test(plain[2].trim()) && COMMAND_ONLY.test(plain[2].trim())) {
+      blocks.push({ start: i, end: i, lang: 'inline', inline: true, plain: !line.includes('`'), indent: plain[1].length, code: plain[2], lines: [{ text: plain[2].trim(), line: i }] });
       continue;
     }
     const hm = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
