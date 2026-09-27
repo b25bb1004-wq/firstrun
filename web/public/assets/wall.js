@@ -59,7 +59,7 @@
     });
 
     document.querySelectorAll('[data-stat="broke"]').forEach(function (el) {
-      var suffix = ' of ' + followable;
+      var suffix = ' of ' + total; // the team's wording: '18 of 31 READMEs broke on a clean machine' (Karmanya, 27 Sep)
       if (window.humbleUpdateCounter) {
         window.humbleUpdateCounter(el, broke, suffix);
       } else {
