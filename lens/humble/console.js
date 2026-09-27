@@ -845,9 +845,11 @@ export class HumbleConsole {
       return this.showGuideStep(this.currentStepIndex);
     }
 
-    // Type command line
+    // Type command line, and keep a handle on THIS step's line: status updates must land on it, not on whatever
+    // line is last (the "why:" and output lines follow it, so ':last-child' found nothing and the spinner never stopped).
     const command = step.do?.command || step.command || step.kind;
     await this.typeCommandLine(command);
+    this.currentCmdLine = [...(this.terminalContent?.querySelectorAll('.term-line.cmd') || [])].pop() || null;
 
     // Type why line
     if (step.why?.cause) {
@@ -877,22 +879,14 @@ export class HumbleConsole {
     // Find the command line for this specific step (not the last one)
     // We need to create a new line or find the one matching this step's command
     const command = step.do?.command || step.command || step.kind;
+    // Give the step its own line: matching by command text found the reel's earlier line for the same command
+    // (the recorded run also ran `npm install`), so the mark landed there.
+    await this.typeCommandLine(command);
     const cmdLines = this.terminalContent?.querySelectorAll('.term-line.cmd');
     let targetLine = null;
-    
+
     if (cmdLines && cmdLines.length > 0) {
-      // Look for a command line that matches this step's command (might be the last one if we just ran it)
-      for (const line of cmdLines) {
-        const cmdText = line.querySelector('.cmd-text');
-        if (cmdText && cmdText.textContent.includes(command)) {
-          targetLine = line;
-          break;
-        }
-      }
-      // Fallback to last command line if no match
-      if (!targetLine) {
-        targetLine = cmdLines[cmdLines.length - 1];
-      }
+      targetLine = cmdLines[cmdLines.length - 1];
     }
     
     if (targetLine) {
@@ -1092,7 +1086,7 @@ export class HumbleConsole {
   // Runs through window.dock.runStep with guard.js, streaming output and real checks
   // ============================================================================
   async runCommandThroughDock(command, step) {
-    const lineEl = this.terminalContent?.querySelector('.term-line.cmd:last-child');
+    const lineEl = this.currentCmdLine || [...(this.terminalContent?.querySelectorAll('.term-line.cmd') || [])].pop();
     const statusEl = lineEl?.querySelector('.status');
     if (statusEl) statusEl.innerHTML = '<span class="spinner">⠋</span>';
 
