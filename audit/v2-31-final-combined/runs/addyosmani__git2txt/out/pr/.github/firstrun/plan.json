@@ -1,0 +1,33 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:16:11.983Z",
+  "commit": "e8db771b97",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "node ./index.js --help"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install -g git2txt",
+      "kind": "install"
+    },
+    {
+      "id": "S14",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S15",
+      "command": "node ./index.js --help",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

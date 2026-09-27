@@ -1,0 +1,26 @@
+{
+  "repo": "zhanymkanov/fastapi_production_template",
+  "commit": "8e82353ff3",
+  "verifiedAt": "2026-09-27T07:30:25.788Z",
+  "verdict": "VERIFIED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 7,
+  "stepsFromReadme": 7,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 0,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 140,
+  "packageCache": false,
+  "bobcoins": 0.84,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/"
+  },
+  "fromCI": false
+}

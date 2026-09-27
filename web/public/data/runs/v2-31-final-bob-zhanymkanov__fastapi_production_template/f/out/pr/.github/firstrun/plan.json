@@ -1,0 +1,63 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T07:30:25.788Z",
+  "commit": "8e82353ff3",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "apt install just",
+      "kind": "prereq"
+    },
+    {
+      "id": "S3",
+      "command": "pip install poetry",
+      "kind": "install"
+    },
+    {
+      "id": "S4",
+      "command": "just up",
+      "kind": "other"
+    },
+    {
+      "id": "S5",
+      "command": "cp .env.example .env",
+      "kind": "env"
+    },
+    {
+      "id": "S6",
+      "command": "poetry install --no-root",
+      "kind": "install"
+    },
+    {
+      "id": "S8",
+      "command": "just run --log-config logging.ini",
+      "kind": "serve",
+      "serve": {
+        "port": 8000
+      }
+    },
+    {
+      "id": "S11",
+      "command": "just migrate",
+      "kind": "migrate"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "Error: The current project could not be installed: No file/folder found for package fastapi-template",
+      "cause": "The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.",
+      "fix": "poetry install --no-root",
+      "evidence": "E1"
+    }
+  ]
+}

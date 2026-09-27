@@ -9,7 +9,7 @@ Target: ~400 words (140 wpm × 2.8 min). Every number sourced; source path as HT
 | Time | Screen | Words |
 |------|--------|-------|
 | 0:00–0:05 | Terminal: `npm install` fails with `ERESOLVE unable to resolve dependency tree` (GeekyAnts/express-typescript README) | "Every repo has a Getting Started section. It's the one part nobody tests." |
-| 0:05–0:15 | Dashboard banner: **18 of 31 READMEs broke on a clean machine** · *source: HUMBLE audit v2-31-final, 27 Sep 2026, pre-Bob* | "We ran 31 popular READMEs on a clean machine. Eighteen broke. <!-- source: audit/v2-31-final/audit.json:1186 -->" |
+| 0:05–0:15 | Dashboard banner: **19 of 31 READMEs broke on a clean machine** · *source: HUMBLE audit v2-31-final with the IBM Bob pass, 27 Sep 2026* | "We ran 31 popular READMEs on a clean machine. Nineteen broke. <!-- source: audit/v2-31-final-combined/audit.json summary.brokeOnCleanMachine -->" |
 | 0:15–0:20 | Crack banner (2 s) | "A new hire follows the docs. The machine says no. HUMBLE fixes that." |
 
 ---
@@ -42,7 +42,7 @@ Target: ~400 words (140 wpm × 2.8 min). Every number sourced; source path as HT
 |------|--------|-------|
 | 2:10–2:20 | Bob diagnosis on unknown failure; evidence IDs, redacted text, cost line | "Rules handle the known breaks for free. What they can't place goes to IBM Bob, with evidence attached and a hard budget. <!-- source: docs/pitch/BOB_PASS_DRYRUN.md:6 (budget 4.5 shared, cap 1.5 per call) -->" |
 | 2:20–2:30 | Three layers card: **rules first · Bob judges · verify always** | "Bob's fix only counts if the replay passes. The budget is capped. Bob can only tighten security, never weaken it. <!-- source: docs/pitch/BOB_PASS_DRYRUN.md:6 (shared budget stops at 0.05 left) -->" |
-| 2:30–2:40 | Custom modes in `.bob/`, `bob_sessions/`; real Bobcoin cost from run report | "Custom modes, capped Bobcoins. The real cost shows on screen." |
+| 2:30–2:40 | Custom modes in `.bob/`, `bob_sessions/`; real Bobcoin cost from run report | "Custom modes, capped Bobcoins. One Bob pass took three more repos to verified, for under five Bobcoins." <!-- source: audit/v2-31-final-bob (VERIFIED 11 -> 14 combined; 4.58 Bobcoins per PR 200 report) --> |
 
 ---
 
@@ -57,7 +57,7 @@ Target: ~400 words (140 wpm × 2.8 min). Every number sourced; source path as HT
 
 ## Word Count
 
-Total: **388 words** (within 400-word budget for ~2:50 at 140 wpm).
+Total: **about 395 words** (within 400-word budget for ~2:50 at 140 wpm).
 
 ---
 

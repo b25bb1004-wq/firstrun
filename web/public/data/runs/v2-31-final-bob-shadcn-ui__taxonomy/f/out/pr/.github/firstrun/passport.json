@@ -1,0 +1,26 @@
+{
+  "repo": "shadcn-ui/taxonomy",
+  "commit": "298a8857c7",
+  "verifiedAt": "2026-09-27T08:52:20.757Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 3,
+  "breaksFixed": 2,
+  "needsHuman": 1,
+  "repoBreaks": 3,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 56,
+  "packageCache": false,
+  "bobcoins": 0.67,
+  "diagnosedByBob": 2,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

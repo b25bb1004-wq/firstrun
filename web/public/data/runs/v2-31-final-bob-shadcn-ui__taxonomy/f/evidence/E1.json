@@ -1,0 +1,47 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "pnpm install",
+    "exitCode": 127,
+    "durationMs": 163,
+    "logTail": "/firstrun/step-1.sh: line 5: pnpm: command not found",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`pnpm` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "corepack enable"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "pnpm (via `corepack enable`)",
+      "command": "corepack enable"
+    },
+    "log": "$ corepack enable\n"
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 3,
+    "command": "pnpm install",
+    "exitCode": 0,
+    "durationMs": 41212,
+    "logTail": "+ postmark 3.0.15\n+ prop-types 15.8.1\n+ react 18.2.0\n+ react-day-picker 8.7.1\n+ react-dom 18.2.0\n+ react-editor-js 2.1.0\n+ react-hook-form 7.43.9\n+ react-textarea-autosize 8.4.1\n+ sharp 0.31.3\n+ shiki 0.11.1\n+ stripe 11.18.0\n+ tailwind-merge 1.12.0\n+ tailwindcss-animate 1.0.5\n+ zod 3.21.4\n\ndevDependencies:\n+ @commitlint/cli 17.6.1\n+ @commitlint/config-conventional 17.6.1\n+ @ianvs/prettier-plugin-sort-imports 3.7.2\n+ @tailwindcss/line-clamp 0.4.4\n+ @tailwindcss/typography 0.5.9\n+ @types/node 18.16.0\n+ @types/react 18.0.15\n+ @types/react-dom 18.0.6\n+ autoprefixer 10.4.14\n+ eslint 8.39.0\n+ eslint-config-next 13.0.0\n+ eslint-config-prettier 8.8.0\n+ eslint-plugin-react 7.32.2\n+ eslint-plugin-tailwindcss 3.11.0\n+ husky 8.0.3\n+ mdast-util-toc 6.1.1\n+ postcss 8.4.23\n+ prettier 2.8.8\n+ prettier-plugin-tailwindcss 0.1.13\n+ pretty-quick 3.1.3\n+ prisma 4.13.0\n+ rehype 12.0.1\n+ rehype-autolink-headings 6.1.1\n+ rehype-pretty-code 0.9.5\n+ rehype-slug 5.1.0\n+ remark 14.0.2\n+ remark-gfm 3.0.1\n+ tailwindcss 3.3.1\n+ typescript 4.7.4\n+ unist-util-visit 4.1.2\n\n\n> taxonomy@0.2.0 postinstall /workspace\n> prisma generate\n\nPrisma schema loaded from prisma/schema.prisma\n\n✔ Generated Prisma Client (4.13.0 | library) to ./node_modules/.pnpm/@prisma+client@4.13.0_prisma@4.13.0/node_modules/@prisma/client in 97ms\nYou can now start using Prisma Client in your code. Reference: https://pris.ly/d/client\n```\nimport { PrismaClient } from '@prisma/client'\nconst prisma = new PrismaClient()\n```\nDone in 38.8s",
+    "logFile": "logs/S1-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T08:48:49.979Z",
+  "revealed": "E2"
+}

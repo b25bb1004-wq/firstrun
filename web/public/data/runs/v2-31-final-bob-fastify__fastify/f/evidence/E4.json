@@ -1,0 +1,47 @@
+{
+  "id": "E4",
+  "stepId": "S14",
+  "before": {
+    "stepId": "S14",
+    "n": 2,
+    "command": "corepack enable",
+    "exitCode": 127,
+    "durationMs": 137,
+    "logTail": "/firstrun/step-4.sh: line 5: corepack: command not found"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "Node.js 26 no longer ships corepack, so `corepack enable` (the prior repair) fails with exit 127; the correct way to install yarn is shown in `.github/workflows/package-manager-ci.yml` lines 72–73: `curl -o- -L https://yarnpkg.com/install.sh | bash`.",
+    "confidence": 0.93,
+    "by": "bob",
+    "bobcoins": 0.157556,
+    "taskId": "b8aded8813548c3c615a39279e032c9c"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "curl -o- -L https://yarnpkg.com/install.sh | bash && export PATH=\"$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH\"",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Before running `yarn` or `yarn test`, install Yarn via its classic installer (corepack is not available in Node.js 26): `curl -o- -L https://yarnpkg.com/install.sh | bash && export PATH=\"$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH\"`"
+    },
+    "log": "$ curl -o- -L https://yarnpkg.com/install.sh | bash && export PATH=\"$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH\"\ngpg: Signature made Fri May 24 21:16:26 2024 UTC\ngpg:                using RSA key 72ECF46A56B4AD39C907BBB71646B01B86E50310\ngpg: Good signature from \"Yarn Packaging <yarn@dan.cx>\" [unknown]\ngpg: WARNING: This key is not certified with a trusted signature!\ngpg:          There is no indication that the signature belongs to the owner.\nPrimary key fingerprint: 72EC F46A 56B4 AD39 C907  BBB7 1646 B01B 86E5 0310\n> GPG signature looks good\n> Extracting to ~/.yarn...\n> Adding to $PATH...\n> We've added the following to your /root/.bashrc\n> If this isn't the profile of your current shell then please add the following to your correct profile:\n   \nexport PATH=\"$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH\"\n\n> Successfully installed Yarn 1.22.22! Please open another terminal where the `yarn` command will now be available."
+  },
+  "after": {
+    "stepId": "S14",
+    "n": 3,
+    "command": "yarn test",
+    "exitCode": 127,
+    "durationMs": 671,
+    "logTail": "yarn run v1.22.22\n(node:330) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n$ npm run lint && npm run unit && npm run test:types\nnpm warn Unknown env config \"version-commit-hooks\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-tag-prefix\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-git-message\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"argv\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-git-tag\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\n\n> fastify@6.0.0-alpha.4 lint\n> npm run lint:eslint\n\nnpm warn Unknown env config \"version-commit-hooks\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-tag-prefix\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-git-message\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"argv\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"version-git-tag\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\n\n> fastify@6.0.0-alpha.4 lint:eslint\n> eslint\n\nsh: 1: eslint: not found\ninfo Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.\nerror Command failed with exit code 127.",
+    "logFile": "logs/S14-3.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-27T08:53:22.099Z",
+  "revealed": "E5"
+}

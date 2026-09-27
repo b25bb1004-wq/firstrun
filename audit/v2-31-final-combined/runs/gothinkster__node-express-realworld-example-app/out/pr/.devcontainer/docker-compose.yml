@@ -1,0 +1,14 @@
+services:
+  app:
+    image: node:22
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  postgres:
+    image: postgres:16-alpine
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres

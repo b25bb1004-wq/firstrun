@@ -1,0 +1,27 @@
+{
+  "repo": "fastify/fastify",
+  "commit": "f7f73aa7d0",
+  "verifiedAt": "2026-09-27T09:00:57.809Z",
+  "verdict": "PARTIAL",
+  "image": "node:26",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 0,
+  "breaksFound": 5,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "repoBreaks": 5,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 3,
+  "packageCache": false,
+  "bobcoins": 2.42,
+  "diagnosedByBob": 3,
+  "verify": {
+    "kind": "command",
+    "target": "yarn test"
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}

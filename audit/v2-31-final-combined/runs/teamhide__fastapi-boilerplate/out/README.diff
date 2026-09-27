@@ -1,0 +1,39 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,13 @@
+ 
+ ## Run
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `python:3.11.7` machine at `df4e6d4f81`: clone to running in 2m10s.
++
++Prerequisites verified by HUMBLE:
++
++- Python 3.11.7 (see pyproject.toml poetry python ("3.11.7"))
++- poetry
++
+ ### Launch docker
+ ```shell
+ > docker-compose -f docker/docker-compose.yml up
+@@ -19,11 +26,12 @@
+ ### Install dependency
+ ```shell
+ > poetry shell
+-> poetry install
++poetry install --no-root
+ ```
+ 
+ ### Apply alembic revision
+ ```shell
++docker compose -f docker/docker-compose.yml up -d mysql
+ > alembic upgrade head
+ ```
+ 
+@@ -35,6 +43,7 @@
+ ### Run test codes
+ ```shell
+ > make test
++# HUMBLE: this step still fails on a clean machine: The test suite runs, but 5 of 54 tests fail on a clean setup. The failures are timeouts, which usually means a service the tests call is not running.
+ ```
+ 
+ ### Make coverage report
