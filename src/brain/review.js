@@ -32,6 +32,11 @@ usage example for the published package, a user install of the package itself, a
 planned step, macOS/Windows-only, output or config shown in the docs, or an editor/IDE/deploy instruction.
 Answer "run" otherwise. Do not modify files. Do not run commands.
 
+Reason about the shell the steps share before you decide: the steps run one after another in ONE terminal, so a
+\`cd\`, an \`export\` or an activated environment changes every later step. A line that looks like a tip can still be
+what makes the next lines work: \`cd backend/app\` before \`poetry install\` is required, not an editor tip. Give the
+concrete reason for each decision (what the line does, and what would break or not if it were skipped).
+
 Full plan (in order):
 ${plan.steps.map((s) => `- ${s.id} ${doubtful.includes(s) ? 'ASK ' : ''}\`${s.command}\` [${s.kind}${s.skip ? `, skipped: ${s.skip}` : ''}] (${s.source?.file || '?'}:${s.source?.line || '?'} § ${s.source?.section || ''})`).join('\n')}
 
@@ -60,6 +65,7 @@ export async function bobReviewPlan({ plan, facts, budget, maxCost = 0.2, askBob
   for (const d of decisions) {
     if (!d || !ids.has(d.id) || d.run !== false) continue; // Bob may only skip steps he was asked about
     const s = plan.steps.find((x) => x.id === d.id);
+    if (/^cd\s+[^&|;]+$/.test(String(s.command).trim())) continue;
     const reason = String(d.reason || 'not part of the Linux contributor setup').slice(0, 160);
     s.skip = `IBM Bob: ${reason}`;
     s.skippedBy = 'bob';
