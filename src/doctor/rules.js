@@ -1413,11 +1413,29 @@ export const RULES = [
         // the repo's commit date and the target Python's own era-end: the commit date alone can be
         // misleadingly recent when only unrelated files (docs, CI) were touched after the pins went
         // stale, which would still resolve a build toolchain too new for the old pin (this exact bug).
+        // replace-step, not insert-before: S1 itself IS the install being diagnosed, and
+        // insert-before combined with rebase in the same fix never actually runs (rebase sets
+        // `restart`, which insert-before's own immediate-run path skips; the spliced-in step
+        // then sits at 0 attempts and the original command gets retried unchanged - confirmed by
+        // running this exact repo: R1 stayed "blocked", S1's attempt 2 was still the bare
+        // `pip install -r requirements.txt`, same Cython failure). Replacing the step's command
+        // directly makes the era-pinned install what actually runs on the retry.
         const eraInstall = (targetPy) => {
+          if (!req) return null;
+          const [maj, min] = targetPy.split('.').map(Number);
+          if (maj === 3 && min < 8) {
+            // uv itself has no distribution for Python < 3.8 ("Could not find a version that
+            // satisfies the requirement uv" / "No matching distribution found for uv", confirmed
+            // by rebasing this exact repo to 3.7 and watching `pip install uv` fail outright).
+            // Pin the build toolchain by hand instead: Cython 3 can't build an sdist written for
+            // the Cython 2 era (pandas 0.25.0: "Cython-generated file ... not found"), so cap
+            // Cython below 3 alongside an era-appropriate setuptools.
+            return { type: 'replace-step', command: `pip install "cython<3.0" "setuptools<58" wheel && pip install --no-build-isolation -r ${req}` };
+          }
           const cutoffs = [date, PY_ERA_END[targetPy]].filter(Boolean);
-          if (!cutoffs.length || !req) return null;
+          if (!cutoffs.length) return null;
           const cutoff = cutoffs.sort()[0];
-          return { type: 'insert-before', kind: 'install', command: `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${cutoff} -r ${req}` };
+          return { type: 'replace-step', command: `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${cutoff} -r ${req}` };
         };
         // Best evidence: the failing pin's own wheels on PyPI (numpy==1.17.0 ships cp35..cp37 wheels -> Python 3.7).
         // General for any package and version; the last "Collecting X==V" before the error is the one that failed.

@@ -89,11 +89,14 @@ test('era-runtime rebase also era-pins the install (apryor6/flask_api_example: n
   assert.equal(r.fix.actions[0].runtime.version, '3.7');
   // rebasing the interpreter alone still lets `pip install` pull today's setuptools/Cython as
   // build deps, which can't build an old sdist either (this exact failure) - the fix must also
-  // era-pin the rest of the install, the same way python-dependency-drift does.
-  assert.equal(r.fix.actions[1].type, 'insert-before');
-  // The cutoff must be Python 3.7's OWN era-end (2019-10-14), not this test repo's real commit
-  // date (2026): a recent commit date is not evidence the pinned toolchain is recent too (the repo
-  // can be touched long after its dependency pins went stale), and pinning to the wrong date is
-  // exactly what let this failure through undetected before.
-  assert.equal(r.fix.actions[1].command, 'pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer 2019-10-14 -r requirements.txt');
+  // era-pin the rest of the install, the same way python-dependency-drift does. replace-step, not
+  // insert-before: S1 itself is the install being diagnosed, and insert-before combined with
+  // rebase in the same fix never actually ran on retry (confirmed against the real repo).
+  assert.equal(r.fix.actions[1].type, 'replace-step');
+  // Target is Python 3.7 (< 3.8): `uv` itself has no distribution there ("No matching
+  // distribution found for uv", confirmed by actually rebasing this repo to 3.7 and watching
+  // `pip install uv` fail outright) - so the era-pin must fall back to a plain pip install with
+  // Cython capped below 3 (Cython 3 can't build pandas 0.25.0's sdist: "Cython-generated file
+  // ... not found"), not python-dependency-drift's usual `uv --exclude-newer`.
+  assert.equal(r.fix.actions[1].command, 'pip install "cython<3.0" "setuptools<58" wheel && pip install --no-build-isolation -r requirements.txt');
 });
