@@ -10,6 +10,10 @@ Source: logo SVGs and banner from Avtansh Singh Brar (27 Sep 2026). Files in `we
 | `humble-mark-white.svg` | white mark (716×537) for dark backgrounds, video end card |
 | `banner-1920.jpg` | hero / submission cover (1920×1080, from the 3840×2160 original) |
 | `og-1200.jpg` | Open Graph / social card (1200×675) |
+| `cover-1920.jpg` | **lablab submission cover** (Banner 2: gradient, logo, tagline, "Powered by IBM BOB 2.0"); 3840×2160 original kept outside the repo |
+| `gradient-bg-1920.jpg` | the soft teal-navy gradient behind Banner 2, for deck slides and section backgrounds |
+
+Two looks, one identity: **Banner 1** (blueprint paper, pink crack, blue thread) tells the story; **Banner 2** (gradient + dashed orbit arcs) is the clean cover. Both use the same logo, tagline and agent row.
 
 The logo SVGs have no fill (they render in `currentColor`-like black by default); set `fill` from the tokens below. The white mark already fills `#fffefe`.
 
