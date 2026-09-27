@@ -148,6 +148,7 @@
       <!-- THREAD GUIDE Hero Panel -->
       <div class="thread-guide-panel" id="thread-guide-panel" aria-labelledby="h-thread-guide">
         <div class="thread-guide-header">
+          <div class="thread-emo" id="thread-emo" aria-hidden="true"></div>
           <p class="eyebrow mono">Recorded run · <span class="prove-tag">[recorded run]</span> acme-shop demo · no sign-in</p>
           <h2 id="h-thread-guide" class="thread-guide-headline">Watch a README get proven.</h2>
           <p class="thread-guide-sub">A blue thread stitches every step. Pink crack = break. Blue stitch = fix. Taut replay = verified. Every command, failure, diagnosis, fix and duration comes from the real recorded run.</p>
@@ -546,5 +547,19 @@
 <script src="/assets/wall.js" defer></script>
 <script src="/assets/diff-slider.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
+<script type="module">
+  import { EmoBot } from '/humble-console/emo-bot.js';
+  const el = document.getElementById('thread-emo');
+  if (el) {
+    const bot = new EmoBot(el, { size: 132 });
+    const mood = { step: 'think', fail: 'worried', fix: 'point', verdict: 'celebrate' };
+    let calm;
+    document.addEventListener('humble:beat', (e) => {
+      const s = mood[e.detail.type]; if (!s) return;
+      bot.setState(s); clearTimeout(calm);
+      calm = setTimeout(() => bot.setState('idle'), e.detail.type === 'verdict' ? 4000 : 2200);
+    });
+  }
+</script>
 </body>
 </html>

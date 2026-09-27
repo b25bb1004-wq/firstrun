@@ -6,6 +6,7 @@
 
 import { flight, typeSchedule, lineFromBeat, reelPlayer, onboardingTimeline } from './core.js';
 import { HumbleRobot, HUMBLE_STATES, AGENT_COLORS, flightMath } from './robot.js';
+import { EmoBot } from './emo-bot.js';
 
 // ============================================================================
 // CSS Token Definitions (mirroring HUMBLE_CONSOLE_SPEC.md Section 2)
@@ -232,6 +233,13 @@ export class HumbleWebConsole {
   }
 
   renderMascotInline(state) {
+    // The EMO bot (3D body, LED face) replaces the flat badge; it falls back to its own flat face.
+    const box = this.container.querySelector('#humble-mascot-container');
+    if (box) {
+      if (!this.emo) this.emo = new EmoBot(box, { size: 56, interactive: false });
+      this.emo.setState(state);
+      return;
+    }
     const borderColors = {
       sleep: 'rgba(255, 255, 255, 0.18)',
       think: 'var(--c-core, #ff9a3c)',

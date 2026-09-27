@@ -313,3 +313,10 @@
   outline: 2px solid var(--c-core, #ff9a3c);
   outline-offset: 2px;
 }
+/* HUMBLE mascot beside the guide headline (web/public/humble-console/emo-bot.js) */
+.thread-guide-header { position: relative; padding-left: 148px; min-height: 132px; }
+.thread-emo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 132px; height: 132px; }
+@media (max-width: 560px) {
+  .thread-guide-header { padding-left: 0; padding-top: 120px; }
+  .thread-emo { top: 0; left: 50%; transform: translateX(-50%); width: 112px; height: 112px; }
+}

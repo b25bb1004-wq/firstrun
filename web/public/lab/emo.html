@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUMBLE mascot lab</title>
+<style>
+  :root { --paper: #f4ede3; --ink: #0d1030; --rule: #ddd0bf; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.5 system-ui, sans-serif;
+    background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size: 24px 24px; }
+  main { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+  h1 { font-size: 20px; letter-spacing: .06em; margin: 0 0 4px; }
+  p { margin: 0 0 20px; color: #454663; }
+  .stage { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+  .hero { width: 260px; height: 260px; }
+  .states { display: flex; flex-wrap: wrap; gap: 8px; }
+  button { font: 600 12px ui-monospace, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase;
+    padding: 8px 12px; border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 4px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .row { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .row figure { margin: 0; text-align: center; font: 11px ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HUMBLE · mascot lab</h1>
+  <p>3D body, EMO-style LED face. Move your cursor: it looks at you. Pick a state.</p>
+  <div class="stage">
+    <div class="hero" id="hero"></div>
+    <div class="states" id="states"></div>
+  </div>
+  <div class="row" id="row"></div>
+</main>
+<script type="module">
+  import { EmoBot } from '/humble-console/emo-bot.js';
+  const STATES = ['idle', 'think', 'talk', 'point', 'celebrate', 'worried', 'sleep'];
+  const hero = new EmoBot(document.getElementById('hero'), { size: 260 });
+  const bar = document.getElementById('states');
+  for (const s of STATES) {
+    const b = document.createElement('button');
+    b.textContent = s; b.setAttribute('aria-pressed', s === 'idle');
+    b.onclick = () => { hero.setState(s); bar.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); };
+    bar.appendChild(b);
+  }
+  const row = document.getElementById('row');
+  for (const s of STATES) {
+    const f = document.createElement('figure');
+    const d = document.createElement('div'); f.appendChild(d);
+    const c = document.createElement('figcaption'); c.textContent = s; f.appendChild(c);
+    row.appendChild(f);
+    new EmoBot(d, { size: 104, interactive: false }).setState(s);
+  }
+</script>
+</body>
+</html>

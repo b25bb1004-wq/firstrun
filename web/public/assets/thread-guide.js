@@ -312,6 +312,7 @@ export class ThreadGuide {
       this.script = toScript(reel);
       
       for (const ev of this.script) {
+        document.dispatchEvent(new CustomEvent('humble:beat', { detail: { type: ev.type } }));
         if (this.token.stop) break;
         
         const replay = ev.phase === 'replay';
