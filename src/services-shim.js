@@ -72,7 +72,9 @@ export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
   let ok = true;
   const composeDir = file ? path.dirname(file.replace(/^\/workspace\/?/, '')) : null;
   for (const [svcName, svc] of services) {
-    if (!svc.image) { say(`skipping "${svcName}": built from source (the app itself runs natively in this walkthrough)`); continue; }
+    // `build:` means the project builds this image itself (full-stack-fastapi: image: backend:latest + build:), so
+    // there is nothing to pull: the app runs natively in the walkthrough.
+    if (!svc.image || svc.build) { say(`skipping "${svcName}": built from source (the app itself runs natively in this walkthrough)`); continue; }
     const kind = serviceKind(svc.image, svcName);
     const env = Array.isArray(svc.environment)
       ? Object.fromEntries(svc.environment.map((e) => String(e).split(/=(.*)/s).slice(0, 2)))
@@ -87,7 +89,10 @@ export async function runServicesStep(command, { sandbox, facts, cwd = null }) {
       if (host && target && host !== target) say(`note: ${svcName} publishes ${host}->${target}; the app will reach it on localhost:${target} in the sandbox`);
     }
     const volumes = (svc.volumes || []).map((v) => typeof v === 'object' ? `${v.source || ''}:${v.target || ''}` : String(v));
-    const res = await sandbox.addService({ name: svcName, image: svc.image, env, port, volumes, composeDir: composeDir === '.' ? null : composeDir });
+    // A service that cannot start (image not pullable, bad config) fails this step; it must not abort the whole run.
+    let res;
+    try { res = await sandbox.addService({ name: svcName, image: svc.image, env, port, volumes, composeDir: composeDir === '.' ? null : composeDir }); }
+    catch (e) { ok = false; say(`could not start ${svcName}: ${String(e.message).split('\n')[0]}`); continue; }
     say(`${res.already ? 'already running' : 'started'} ${svcName} (${svc.image})${port ? ` on localhost:${port}` : ''}`);
     if (res.ready === false) { ok = false; say(`${svcName} did not become ready`); }
   }
