@@ -621,7 +621,7 @@ test('guide: services step undo only removes HUMBLE-labelled containers', async 
   assert.ok(servicesStep.undo.command.includes('docker rm'));
 });
 
-test('guide: services step do command includes humble.started label', async () => {
+test('guide: services step do command does NOT include label (labels belong in compose file)', async () => {
   const { buildGuide } = await import('../src/onboarder/guide.js');
   const runsDir = path.join(here, '..', 'web', 'public', 'data', 'runs');
   const acmeRunDir = path.join(runsDir, 'acme-shop-3c0bc2b2', 'f');
@@ -631,6 +631,7 @@ test('guide: services step do command includes humble.started label', async () =
   const servicesStep = guide.steps.find(s => s.kind === 'services');
   assert.ok(servicesStep);
   
-  // Do command should have the label
-  assert.ok(servicesStep.do.command.includes('humble.started=true'));
+  // Do command should NOT have the label - labels belong in the compose file
+  // The proven acme-shop run used plain 'docker compose up -d'
+  assert.ok(!servicesStep.do.command.includes('humble.started=true'), 'services command should not include label');
 });

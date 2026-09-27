@@ -293,12 +293,10 @@ function buildDo(step, evidence) {
 
   if (step.kind === 'services') {
     // Add label to docker compose so we know which containers HUMBLE started
-    // The command should be: docker compose --label humble.started=true up -d
-    let labeledCommand = command;
-    if (command.includes('docker compose up')) {
-      labeledCommand = command.replace('docker compose up', 'docker compose --label humble.started=true up');
-    }
-    return { type: 'run', command: labeledCommand, cwd: '.', stdin: null };
+    // Labels belong in the compose file (docker-compose.yml) under each service's 'labels' section,
+    // not as a flag to 'docker compose up'. The proven acme-shop run used plain 'docker compose up -d'.
+    // We return the command as-is; labels are added by the proven compose file.
+    return { type: 'run', command, cwd: '.', stdin: null };
   }
 
   return { type: 'run', command, cwd: '.', stdin: null };
