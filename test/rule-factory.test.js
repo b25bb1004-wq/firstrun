@@ -74,8 +74,8 @@ test('npm ci on a stale lockfile falls back to npm install; yarn frozen lockfile
   assert.equal(rule('yarn-frozen-lockfile').test({ log: 'error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.', step: { command: 'yarn install --frozen-lockfile' } }).fix.actions[0].command, 'yarn install');
 });
 
-test('old pins without wheels: the Python that was current at the commit date', () => {
-  const r = rule('python-era-runtime').test({ log: 'ERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects', plan: py('3.12'), facts: pyFacts });
+test('old pins without wheels: the Python that was current at the commit date', async () => {
+  const r = await rule('python-era-runtime').test({ log: 'ERROR: Could not build wheels for numpy, which is required to install pyproject.toml-based projects', plan: py('3.12'), facts: pyFacts });
   // this repo's last commit is 2026, so no older era applies here; the rule must then stay silent
   assert.equal(r, null);
 });
