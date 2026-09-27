@@ -1386,6 +1386,26 @@ export const RULES = [
       },
     },
     {
+      // ["No matching distribution found" / "Could not build wheels for X": exact pins from years ago have no wheel
+      // for today's Python.] General fix: the Python that was current when the repo was last committed.
+      id: 'python-era-runtime',
+      test({ log, plan, facts }) {
+        if (plan.runtime.name !== 'python') return null;
+        if (!/No matching distribution found for [\w.-]+==|Could not build wheels for [\w.-]+|Failed building wheel for [\w.-]+/.test(log)) return null;
+        const date = commitDate(facts);
+        if (!date) return null;
+        const y = Number(date.slice(0, 4));
+        const era = y <= 2017 ? '3.6' : y === 2018 ? '3.7' : y <= 2020 ? '3.8' : y === 2021 ? '3.9' : y === 2022 ? '3.10' : y === 2023 ? '3.11' : '3.12';
+        const cur = String(plan.runtime.version || '');
+        if (!cur || cur === era || Number(cur.split('.')[1]) <= Number(era.split('.')[1])) return null; // already that old
+        return {
+          ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.75,
+          cause: `The requirements pin packages from ${y} that have no build for Python ${cur}; the docs don't say which Python to use. Python ${era} was current when the repo was last committed (${date}).`,
+          fix: { actions: [{ type: 'rebase', image: imageFor('python', era), runtime: { name: 'python', version: era, source: `the repo's last commit (${date})` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${era} (the pinned packages predate newer Python releases)`, runtime: { name: 'python', version: era } } },
+        };
+      },
+    },
+    {
       // [~2.2k "npm ci can only install packages when your package.json and package-lock.json … are in sync"]
       id: 'npm-ci-lock-mismatch',
       test({ log, step }) {
