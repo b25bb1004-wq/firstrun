@@ -358,8 +358,8 @@
   <div class="demo-section" style="margin-top: 36px;">
     <div class="demo-header">
       <div>
-        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Debugger Sub-panel &amp; Security Guard UI (Spec §13 &amp; §14)</h2>
-        <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Real step failure capture, host-vs-proof diffs, doctor rule matching with lantern beam, and security guard shield &amp; verdict chips.</p>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Debugger Sub-panel &amp; Security Guard UI (Spec §13 &amp; §14) <span style="font-size: 12px; font-weight: 500; color: var(--muted); font-family: var(--mono);">· sample data (component preview)</span></h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Step failure capture, host-vs-proof diffs, doctor rule matching with lantern beam, and security guard shield &amp; verdict chips.</p>
       </div>
       <div id="guard-badge-container"></div>
     </div>
@@ -462,7 +462,7 @@
     }));
   }
 
-  // Mount Debugger Sub-panel with real acme-shop EBADENGINE failure
+  // Mount Debugger Sub-panel sample preview
   const dbgContainer = document.getElementById('debugger-container');
   if (dbgContainer) {
     dbgContainer.appendChild(createDebuggerPanel({
