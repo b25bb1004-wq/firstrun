@@ -4,6 +4,8 @@ Owner map: **Hermes-1** = Electron console (`lens/humble/console.*`, opened from
 
 Reference: heyclicky (source: github.com/farzaa/clicky: `OverlayWindow.swift`, `CompanionManager.swift`, `CompanionPanelView.swift`, `DesignSystem.swift`). Numbers marked (C) are copied from Clicky's source; the rest are ours.
 
+Design freedom (Karmanya): the anti-vibecode list is suspended; Clicky-style dot grid, window frames, glows and purple/sparkles are allowed where they look best. Honesty and security rules are NOT relaxed.
+
 Hard rules: no invented text in the terminal (every line comes from a real run event, the guide, or the probe); no new dependencies (CSS + `requestAnimationFrame`); never echo secrets (all displayed output goes through `src/redact.js`); every Run asks first; `prefers-reduced-motion` = no motion, same content.
 
 ---
@@ -88,22 +90,25 @@ Each line has a kind; the kind picks color and prefix. Nothing else may appear.
 - Reduced motion or hidden tab: full text instantly.
 - Any key or click finishes the current line instantly (never skips a confirmation).
 
-## 5. The mascot (Zeus's robot, `lens/humble/robot.*`)
+## 5. The mascot: LAMPLIGHTER (approved by Karmanya; Zeus's `lens/humble/robot.*`, turnaround sheet `lens/humble/lamplighter-turnaround.jpg`)
 
 States in robot.js: `sleep think talk point celebrate worried`.
 
 | moment | state |
 |---|---|
-| panel closed / idle > 60s | `sleep` |
-| probing, loading guide, command running | `think` |
+| panel closed / idle > 60s | `sleep` (iris half closed, lantern dim) |
+| probing, loading guide, command running | `think` (lantern pulses slowly, visor lenses scan) |
 | typing welcome, why lines, bubbles | `talk` |
-| flying to / pointing at a line | `point` |
-| checker passes | `celebrate` 1.2s, then `talk` |
-| checker fails / command errors | `worried` until the next action |
+| flying to / pointing at a line | `point` (lantern BEAM onto the target) |
+| checker passes | `celebrate` 1.2s (sparkles allowed), then `talk` |
+| checker fails / command errors | `worried` until the next action (lantern flickers) |
 
-- Boot (first open only): CRT flicker, opacity 0 → .8 → .2 → 1 over 420ms (steps), a 1px scanline sweeps top to bottom in 300ms, eyes open last with one blink.
-- Idle life: blink every 3–6s (random); eyes dart toward each new terminal line (150ms).
-- Glow: `drop-shadow(0 0 8px var(--c-core))` at rest; in flight radius = 8 + (scale − 1) × 20 px (C).
+- **Boot** (first open only): IRIS-SHUTTER boot, 5 blades open over 420ms (steps), while the belly lantern warms from 0 to full glow over the same 420ms. Lenses focus last.
+- **Blink**: a quick iris close/open every 3–6s (random), 120ms.
+- **Eye-dart**: the visor lenses swivel toward each new terminal line, 150ms.
+- **Peek** (signature move): the eyestalk telescopes up and leans toward something new (a checklist row flipping, the first fail line) before the flight starts, 280ms out, 200ms back.
+- **Cartridges**: in the agent colours (`--agent-*` tokens); the one for the active agent glows when that agent's line prints.
+- **Glow**: lantern + hover-disc glow; at rest `drop-shadow(0 0 8px var(--c-core))`, in flight radius = 8 + (scale − 1) × 20 px (C).
 
 ## 6. Flight (mascot points at a line or page element)
 
@@ -114,6 +119,8 @@ Port Clicky's math 1:1 (C):
 - rotation = atan2(B'(t)) + 90°, with B'(t) = 2(1−t)(P1−P0) + 2t(P2−P1); settle at −35° on arrival
 - scale = 1 + sin(u·π) × 0.3 (1.3x mid-flight)
 - driven by `requestAnimationFrame`, never CSS transitions.
+
+Pointing = the lantern BEAM: a soft cone (linear-gradient, 18% `--c-hi` to transparent) from the lantern to the target line, fading in over 180ms on arrival and out with the bubble; the target line gets a 2px `--c-core` left bar while lit.
 
 On arrival: bubble at (target.x + 10, target.y + 18) (C); on the FIRST character scale .5 → 1 with a spring (`--hb-ease-bounce` 400ms); glow radius starts 22 and settles to 6 ("materializing", C); text types 30–60ms random; hold 3s; fade 0.5s; fly back.
 Mouse moves > 100px during the RETURN flight → cancel and snap home (C). The forward flight is never interrupted.
@@ -130,7 +137,7 @@ Bubble: bg `--c-core`, text `#1a0e04`, 11px medium, padding 4px 8px, radius 6, s
    - optional tools listed after a divider, marked `optional`, never block Start.
    - all required rows ok → footer types "you're all set. hit start to meet humble." and Start fades in. Start: full width, 36 high, bg `--c-core`, dark text, radius 8, hover `--c-hi`, press `--c-deep` + translateY 1px.
    - Web: the checklist shows the RECORDED probe of the demo machine, labelled `demo machine`. Never pretend it is the visitor's machine.
-2. **Boot**: CRT boot (section 5), 420ms.
+2. **Boot**: iris-shutter boot + lantern warm-up (section 5), 420ms.
 3. **Welcome**: bubble fades in 0.4s, types "hey! i'm humble" at 30ms/char, holds 2s, fades 0.5s (C).
 4. **Reel**: terminal fades in over 2s (C), then plays the real reel (Hermes-2's JSON) compressed to ~25s: step lines type, fail lines shake, diagnosis appears, the README `-`/`+` pair appears, replay lines run, and it ends with `VERIFIED · replay from zero in Ns` (N = real `replaySeconds`).
 5. **Demo point**: at the first `fail` beat the mascot flies to that line: "this broke here"; then to the `+` line: "so i fixed the readme". Section 6 timings.
@@ -168,7 +175,7 @@ Clicky plays music and fades it over 3s at 90s (C). Ours: a soft key-tick per ty
 - Everything reachable by Tab; focus ring 2px `--c-core`, offset 2px.
 - Contrast ≥ 4.5:1 for all text (verify `--c-ink-2` on `--c-term`).
 - Web: lazy-mount when the hero enters the viewport; reserve height (no layout shift); added JS ≤ 25 KB gzip; Lighthouse mobile stays ≥ 90.
-- Reduced motion: no flight (bubble appears beside the line), no typing, no shake, no flicker.
+- Reduced motion: no flight (bubble appears beside the line), no typing, no shake, no iris animation (static open), no beam sweep (the beam appears instantly).
 
 ## 12. Acceptance checklist (paste into each PR with ticks)
 
