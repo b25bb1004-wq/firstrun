@@ -180,6 +180,7 @@
           const text = await resp.text();
           const { rows, passport } = await parseRecordedEvents(text);
           if (rows.length > 0) {
+            mascotImg.src = '/assets/mascot/walk.svg';
             for (let i = 0; i < rows.length; i++) {
               await addRow(rows[i].agent, rows[i].action, true, 350, rows[i].kind || 'info');
               progressBar.style.width = `${Math.round(((i + 1) / rows.length) * 95)}%`;
@@ -285,6 +286,7 @@
     btn.disabled = false;
     btn.textContent = 'Prove it';
     isRunning = false;
+    if (mascotImg) mascotImg.src = '/assets/mascot/worried.svg';
   }
 
   btn.addEventListener('click', runProve);

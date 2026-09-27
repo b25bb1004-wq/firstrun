@@ -147,7 +147,47 @@ async function runGuide(guide, report) {
   console.log(bold('GUIDE MODE - Walk through each step'));
   console.log(dim('Press Enter to run each step, "s" to skip, "q" to quit\n'));
 
-  let rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  let rl;
+  let closed = false;
+
+  function closeRl() {
+    if (!closed && rl) {
+      closed = true;
+      rl.close();
+    }
+  }
+
+  // Handle Ctrl+C (SIGINT) gracefully
+  let sigintHandler;
+  if (process.platform !== 'win32') {
+    sigintHandler = () => {
+      console.log(dim('\nQuitting...'));
+      closeRl();
+      for (const srv of servers) stopProcess(srv.child);
+      process.exit(0);
+    };
+    process.on('SIGINT', sigintHandler);
+  }
+
+  // Check if stdin is a TTY (interactive) or piped input
+  const isTty = process.stdin.isTTY;
+
+  rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: '',
+  });
+
+  // Handle EOF on piped input
+  rl.on('close', () => {
+    if (!closed) {
+      closed = true;
+      console.log(dim('\nQuitting...'));
+      for (const srv of servers) stopProcess(srv.child);
+      process.exit(0);
+    }
+  });
+
   const shell = process.platform === 'win32' ? 'powershell.exe' : '/bin/bash';
   const servers = [];
   const sessionEnv = {};
@@ -179,7 +219,7 @@ async function runGuide(guide, report) {
       if (stepReport?.status === 'needs-human') {
         console.log(`   ${yellow('! Requires human input:')} ${stepReport.reason}`);
         if (step.do?.type === 'secret') {
-          rl.close();
+          closeRl();
           try {
             const result = await runEnvWizard({ projectDir: process.cwd() });
             console.log(`   ${green('Saved locally to .env.')} ${result.keysWritten} field(s) written; values were not displayed or transmitted.`);
@@ -204,7 +244,10 @@ async function runGuide(guide, report) {
 
       if (stepReport?.status === 'manual' || step.kind === 'manual') {
         const answer = await rl.question(dim('   Complete the manual step, then press Enter to check it (q=quit): '));
-        if (answer.trim().toLowerCase() === 'q') return 0;
+        if (answer.trim().toLowerCase() === 'q') {
+          closeRl();
+          return 0;
+        }
         const checked = await runManualChecker(stepReport?.manual?.checker || step.checker, { cwd: process.cwd() });
         if (checked.passed) console.log(`   ${green('Done.')} ${checked.message}\n`);
         else {
@@ -214,11 +257,20 @@ async function runGuide(guide, report) {
         continue;
       }
 
-      const answer = await rl.question(dim('   › Press Enter to run, s=skip, q=quit: '));
+      // For piped input, read without prompting
+      let answer;
+      if (isTty) {
+        answer = await rl.question(dim('   \u203A Press Enter to run, s=skip, q=quit: '));
+      } else {
+        const line = await new Promise(resolve => rl.once('line', resolve));
+        answer = line;
+        console.log(dim('   \u203A Press Enter to run, s=skip, q=quit: '));
+      }
       const a = answer.trim().toLowerCase();
 
       if (a === 'q') {
         console.log(dim('Quitting...'));
+        closeRl();
         return 0;
       }
 
@@ -241,12 +293,15 @@ async function runGuide(guide, report) {
           continue;
         }
         stopProcess(srv.child);
-        console.log(`   ${red('✗ not answering')} ${dim(up.message)}`);
+        console.log(`   ${red('\u2717 not answering')} ${dim(up.message)}`);
         console.log(dim('   Last output:'));
         console.log(srv.output().split('\n').slice(-6).map(l => '     ' + l).join('\n'));
         runtimeHint(report);
         const again = (await rl.question(dim('   retry (r), continue (c), or quit (q)? '))).trim().toLowerCase();
-        if (again === 'q') return 1;
+        if (again === 'q') {
+          closeRl();
+          return 0; // user quit = 0
+        }
         if (again === 'r') i--;
         continue;
       }
@@ -260,9 +315,9 @@ async function runGuide(guide, report) {
       if (result.code === 0 && check.passed) {
         if (step.kind === 'install' && !hadNodeModules && fs.existsSync(nodeModules)) await recordNodeModules(nodeModules, step.id);
         await recordAppliedStep(step.id, step.kind, step.undo);
-        console.log(`   ${green('✓ done')} ${dim(check.message)}\n`);
+        console.log(`   ${green('\u2713 done')} ${dim(check.message)}\n`);
       } else {
-        console.log(`   ${red(result.code === 0 ? '✗ check failed: ' + check.message : '✗ exit ' + result.code)}`);
+        console.log(`   ${red(result.code === 0 ? '\u2717 check failed: ' + check.message : '\u2717 exit ' + result.code)}`);
         console.log(dim('   Last output:'));
         console.log(result.output.split('\n').slice(-6).map(l => '     ' + l).join('\n'));
         runtimeHint(report);
@@ -270,7 +325,10 @@ async function runGuide(guide, report) {
 
         const retry = await rl.question(dim('   retry (r), continue (c), or quit (q)? '));
         const r = retry.trim().toLowerCase();
-        if (r === 'q') return 1;
+        if (r === 'q') {
+          closeRl();
+          return 0; // user quit = 0
+        }
         if (r === 'r') {
           i--; // retry same step
           continue;
@@ -287,10 +345,18 @@ async function runGuide(guide, report) {
       console.log(red('Verification failed:'), doneResult.message);
     }
     if (servers.length) await rl.question(dim('   The app is running. Press Enter to stop it and exit. '));
+    closeRl();
     return doneResult.success ? 0 : 1;
+  } catch (err) {
+    // Never show stack trace to user
+    console.error(red('Error:'), err.message);
+    closeRl();
+    return 1;
   } finally {
-    for (const srv of servers) stopProcess(srv.child);
-    rl.close();
+    if (sigintHandler) {
+      process.off('SIGINT', sigintHandler);
+    }
+    closeRl();
   }
 }
 
@@ -448,8 +514,48 @@ function runtimeHint(report) {
  * Debug mode: run steps and diagnose failures with the debugger
  */
 async function runDebug(guide, report, plan, runDir) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  let rl;
+  let closed = false;
+
+  function closeRl() {
+    if (!closed && rl) {
+      closed = true;
+      rl.close();
+    }
+  }
+
+  // Handle Ctrl+C (SIGINT) and EOF (Ctrl+D) gracefully
+  let sigintHandler;
+  if (process.platform !== 'win32') {
+    sigintHandler = () => {
+      console.log(dim('\nQuitting...'));
+      closeRl();
+      process.exit(0);
+    };
+    process.on('SIGINT', sigintHandler);
+  }
+
   try {
+    // Check if stdin is a TTY (interactive) or piped input
+    const isTty = process.stdin.isTTY;
+
+    rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      // For piped input, don't wait for prompt - just read lines
+      prompt: '',
+    });
+
+    // Handle EOF on piped input
+    rl.on('close', () => {
+      if (!closed) {
+        closed = true;
+        // If we're here via EOF (not our explicit close), exit cleanly
+        console.log(dim('\nQuitting...'));
+        process.exit(0);
+      }
+    });
+
     console.log(bold('DEBUG MODE - Run steps with diagnostics on failure'));
     console.log(dim('Run each step; on failure, show capture, diff, rule match, proposed fix, re-check\n'));
 
@@ -561,8 +667,20 @@ async function runDebug(guide, report, plan, runDir) {
         console.log(`     ${red('✗ Still failing (exit ' + reResult.code + ')')}\n`);
       }
 
-      const retry = await rl.question(dim('   continue (c), quit (q)? '));
-      if (retry.trim().toLowerCase() === 'q') return 1;
+      // For piped input, read without prompting
+      let answer;
+      if (isTty) {
+        answer = await rl.question(dim('   continue (c), quit (q)? '));
+      } else {
+        // In piped mode, read a line without prompt
+        const line = await new Promise(resolve => rl.once('line', resolve));
+        answer = line;
+        console.log(dim('   continue (c), quit (q)? '));
+      }
+      if (answer.trim().toLowerCase() === 'q') {
+        closeRl();
+        return 0; // User quit = exit 0
+      }
       console.log();
     }
 
@@ -575,9 +693,18 @@ async function runDebug(guide, report, plan, runDir) {
       console.log(red('Verification failed:'), doneResult.message);
     }
 
+    closeRl();
     return doneResult.success ? 0 : 1;
+  } catch (err) {
+    // Never show stack trace to user
+    console.error(red('Error:'), err.message);
+    closeRl();
+    return 1;
   } finally {
-    rl.close();
+    if (sigintHandler) {
+      process.off('SIGINT', sigintHandler);
+    }
+    closeRl();
   }
 }
 

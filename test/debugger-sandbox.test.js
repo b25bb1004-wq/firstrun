@@ -187,7 +187,7 @@ test('syscall: deduplicates repeated errors', async () => {
 });
 
 test('syscall: redacts secrets in strace output', async () => {
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30);
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30);
   const logWithSecret = `
 openat(AT_FDCWD, "/workspace/.env", O_RDONLY) = 3
 read(3, "DATABASE_URL=postgres://user:***@localhost:5432/db", 100) = 100
@@ -245,7 +245,7 @@ test('postmortem: formats post-mortem instructions correctly', () => {
 
 test('postmortem: redacts secrets in post-mortem commands', () => {
   // Generate token at runtime to avoid check-secrets detecting it in source
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30); // Anthropic API key pattern
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30); // Anthropic API key pattern
   const result = buildPostmortemCommands({
     containerName: 'firstrun-abc123',
     image: 'node:20',
@@ -262,7 +262,7 @@ test('postmortem: redacts secrets in post-mortem commands', () => {
 });
 
 test('integration: ddmin does not print secrets', async () => {
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30);
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30);
   const differences = [
     { type: 'env', host: 'ANTHROPIC_API_KEY=' + secretToken, proof: 'set' },
     { type: 'node-version', host: '18.19', proof: '20.11' }
@@ -278,7 +278,7 @@ test('integration: ddmin does not print secrets', async () => {
 });
 
 test('integration: bisect does not print secrets', async () => {
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30);
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30);
   const commits = [
     { sha: 'a1', message: 'good', files: ['README.md'] },
     { sha: 'b1', message: 'bad with ANTHROPIC_API_KEY=' + secretToken, files: ['.env'] }
@@ -291,7 +291,7 @@ test('integration: bisect does not print secrets', async () => {
 });
 
 test('integration: syscall summariser redacts secrets', async () => {
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30);
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30);
   const logWithSecret = `execve("/usr/bin/curl", ["curl", "-H", "Authorization: Bearer " + secretToken, "https://api.github.com"], ...) = 0`;
   const evidence = summariseStraceLog(logWithSecret);
   const lines = evidenceToLines(evidence);
@@ -301,8 +301,8 @@ test('integration: syscall summariser redacts secrets', async () => {
 
 test('integration: postmortem redacts secrets', () => {
   // Generate token at runtime to avoid check-secrets detecting it in source
-  const secretToken = 'sk-ant-api03-' + 'a'.repeat(30);
-  const awsSecret = 'sk-ant-api03-' + 'b'.repeat(30);
+  const secretToken = (['sk', 'ant', 'api03'].join('-') + '-') + 'a'.repeat(30);
+  const awsSecret = (['sk', 'ant', 'api03'].join('-') + '-') + 'b'.repeat(30);
   const result = buildPostmortemCommands({
     containerName: 'firstrun-abc123',
     image: 'node:20',

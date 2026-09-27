@@ -1,33 +1,39 @@
 @import url('../../ui/theme.css');
 
+/* Brand tokens (docs/design/BRAND.md). Literal values on purpose: the old
+   `--ink: var(--ink, …)` form was a self-reference, which CSS treats as invalid,
+   so every colour in the Dock silently failed and the panel rendered murky. */
 :root {
-  --bg: var(--ground, #0E1726);
-  --panel: var(--panel, #132035);
-  --panel-2: var(--panel-2, #192A43);
-  --panel-3: var(--raise, #213551);
-  --rule: var(--rule, #22354F);
-  --rule-2: var(--rule-2, #2F4667);
-  --ink: var(--ink, #E6ECF5);
-  --ink-2: var(--ink-2, #A3B4CB);
-  --ink-3: var(--ink-3, #6D819D);
-  --pass: var(--pass, #3DD68C);
-  --pass-t: var(--pass-t, rgba(61,214,140,.11));
-  --pass-glow: rgba(61,214,140,.35);
-  --bob: var(--bob, #5E9EFF);
-  --bob-t: var(--bob-t, rgba(94,158,255,.13));
-  --bob-glow: rgba(94,158,255,.35);
-  --fail: var(--fail, #FF6167);
-  --fail-t: var(--fail-t, rgba(255,97,103,.11));
-  --repair: var(--repair, #FFB224);
-  --repair-t: var(--repair-t, rgba(255,178,36,.10));
+  /* Banner 1 palette: drafting paper, ink, blue = the fix, pink = the break. */
+  --bg: #F4EDE3;           /* paper */
+  --panel: #FBF7F1;        /* lighter sheet */
+  --panel-2: #EFE6DA;
+  --panel-3: #E7DCCD;
+  --rule: #DDD0BF;         /* blueprint construction line */
+  --rule-2: #CBBBA7;
+  --ink: #0D1030;          /* brand ink */
+  --ink-2: #454663;
+  --ink-3: #7C7A8C;
+  --pass: #1E8C5A;         /* verified: deep green that reads on paper */
+  --pass-t: rgba(30,140,90,.10);
+  --pass-glow: rgba(30,140,90,.25);
+  --bob: #1F3BFF;
+  --bob-t: rgba(31,59,255,.08);
+  --bob-glow: rgba(31,59,255,.25);
+  --electric: #1F3BFF;
+  --crack: #E0236D;
+  --fail: #E0236D;
+  --fail-t: rgba(224,35,109,.09);
+  --repair: #B86E00;       /* amber darkened for contrast on paper */
+  --repair-t: rgba(184,110,0,.10);
 
-  --agent-scout: #10B981;
-  --agent-planner: #06B6D4;
-  --agent-runner: #F59E0B;
-  --agent-doctor: #EF4444;
-  --agent-verifier: #3DD68C;
-  --agent-scribe: #8B5CF6;
-  --agent-guide: #5E9EFF;
+  --agent-scout: #0F7A5A;
+  --agent-planner: #0B6E8A;
+  --agent-runner: #B86E00;
+  --agent-doctor: #E0236D;
+  --agent-verifier: #1E8C5A;
+  --agent-scribe: #5B3FC4;
+  --agent-guide: #1F3BFF;
 }
 
 * { box-sizing: border-box; }
@@ -55,8 +61,11 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 14px;
-  background: linear-gradient(180deg, #101B2E 0%, #0B1220 100%);
+  padding: 16px;
+  background: var(--bg);
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
 }
 
 /* Header & Bob Brand */
@@ -83,10 +92,10 @@ html, body {
 .bob-avatar-btn {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #1A365D, #2B6CB0);
-  border: 1px solid var(--bob);
-  box-shadow: 0 0 12px var(--bob-glow);
+  border-radius: 6px;
+  background: var(--electric);
+  border: 0;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,25 +103,22 @@ html, body {
   transition: transform .15s, box-shadow .15s;
   flex: none;
 }
-.bob-avatar-btn:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 16px var(--bob);
-}
-.bob-avatar-btn svg { width: 22px; height: 17px; fill: var(--bob); } /* HUMBLE face is 4:3 */
+.bob-avatar-btn:hover { background: #3552FF; }
+.bob-avatar-btn svg { width: 21px; height: 16px; fill: #FFFFFF; } /* HUMBLE face is 4:3 */
 
 .dock-title-wrap { flex: 1; min-width: 0; }
 .dock-title {
   font-weight: 700;
-  font-size: 14.5px;
-  letter-spacing: .02em;
+  font-size: 15px;
+  letter-spacing: .08em;
   color: var(--ink);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .dock-subtitle {
-  font-size: 11.5px;
-  color: var(--ink-3);
+  font-size: 12px;
+  color: var(--ink-2);
   margin-top: 1px;
 }
 
@@ -141,10 +147,10 @@ html, body {
 
 /* Target Repo Input Box */
 .repo-box {
-  background: var(--panel);
+  background: transparent;
   border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 6px;
+  padding: 12px;
   margin-bottom: 12px;
 }
 .repo-label {
@@ -165,7 +171,7 @@ html, body {
 .repo-input {
   flex: 1;
   min-width: 0;
-  background: rgba(0,0,0,.35);
+  background: var(--panel);
   border: 1px solid var(--rule);
   border-radius: 7px;
   padding: 7px 10px;
@@ -219,13 +225,15 @@ html, body {
   border-color: var(--bob);
 }
 .btn-prove {
-  background: var(--pass);
-  color: #04140D;
+  background: var(--electric);
+  color: #FFFFFF;
+  border-color: var(--electric);
 }
 .btn-prove:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 0 12px var(--pass-glow);
+  background: #3552FF;
+  border-color: #3552FF;
 }
+.btn-action:focus-visible { outline: 2px solid var(--bob); outline-offset: 2px; }
 
 /* Agent Characters Grid */
 .agents-section {
@@ -247,7 +255,8 @@ html, body {
 .agents-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  border-top: 1px solid var(--rule);
 }
 
 /* Agent Card Row */
@@ -255,19 +264,17 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--panel);
-  border: 1px solid var(--rule-2);
-  border-radius: 9px;
-  padding: 7px 10px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 9px 2px;
   cursor: pointer;
   transition: all .18s ease;
   position: relative;
   overflow: hidden;
 }
-.agent-row:hover {
-  background: var(--panel-2);
-  border-color: var(--rule);
-}
+.agent-row:hover { background: rgba(13,16,48,.035); }
 .agent-row.selected {
   border-color: var(--agent-color, var(--rule-2)) !important;
   background: var(--panel-3) !important;
@@ -293,12 +300,12 @@ html, body {
 .agent-avatar {
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  background: rgba(255,255,255,.04);
+  background: transparent;
   border: 1px solid var(--rule);
   transition: all .2s;
 }
@@ -319,14 +326,21 @@ html, body {
   gap: 6px;
 }
 .agent-name {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: .08em;
   color: var(--ink);
 }
+.agent-role {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
 .agent-cmd {
+  display: none; /* CLI names live in the row tooltip; the list reads as a crew, not a man page */
   font: 11px Consolas, "IBM Plex Mono", monospace;
   color: var(--ink-3);
-  background: rgba(0,0,0,.25);
+  background: var(--panel-2);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -344,20 +358,21 @@ html, body {
   font: 600 10.5px "IBM Plex Mono", monospace;
   text-transform: uppercase;
   letter-spacing: .06em;
-  padding: 2px 7px;
-  border-radius: 999px;
+  padding: 2px 6px;
+  border-radius: 3px;
   flex: none;
 }
 
 /* States per DOCK_CONTRACT.md: idle · working · done · needs_you */
 /* 1. Idle */
-.state-idle .agent-avatar { opacity: .55; }
-.state-idle .agent-state-badge { color: var(--ink-3); background: rgba(255,255,255,.04); }
+.state-idle .agent-avatar { opacity: .85; }
+.state-idle .agent-avatar svg { color: var(--agent-color, var(--ink-2)); }
+.state-idle .agent-state-badge { color: var(--ink-3); background: rgba(13,16,48,.04); }
 
 /* 2. Working (Pulse & Glow) */
 .state-working {
   border-color: var(--agent-color, var(--bob));
-  box-shadow: 0 0 10px rgba(94,158,255,.15);
+  box-shadow: none;
 }
 .state-working .agent-avatar {
   background: var(--agent-glow, rgba(94,158,255,.2));
@@ -402,8 +417,8 @@ html, body {
 }
 
 @keyframes agentPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 4px var(--agent-glow, rgba(94,158,255,.2)); }
-  50% { transform: scale(1.05); box-shadow: 0 0 14px var(--agent-glow, rgba(94,158,255,.4)); }
+  0%, 100% { transform: scale(1); box-shadow: none; opacity: 1; }
+  50% { transform: scale(1); box-shadow: none; opacity: .6; }
 }
 @keyframes agentShake {
   0%, 85%, 100% { transform: rotate(0deg); }

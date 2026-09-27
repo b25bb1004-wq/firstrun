@@ -310,7 +310,7 @@
   // Action Buttons
   btnPlan?.addEventListener('click', () => {
     const target = getTarget();
-    bobPrompt.textContent = `I'll send the Scout and Planner to check ${target} statically…`;
+    bobPrompt.textContent = `HARVEY and UNITY are reading ${target}: a quick static check, no containers…`;
     if (!callDockRun('planner', target)) {
       simulatePlan(target);
     }
@@ -318,7 +318,7 @@
 
   btnVerify?.addEventListener('click', () => {
     const target = getTarget();
-    bobPrompt.textContent = `I'm running the full proof on ${target}: dispatching all agents in clean containers…`;
+    bobPrompt.textContent = `Proving ${target}: the whole crew runs it on a clean machine, fixes what breaks, and replays from zero…`;
     if (!callDockRun('all', target)) {
       simulateVerify(target);
     }
