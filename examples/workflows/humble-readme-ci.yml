@@ -1,0 +1,69 @@
+name: HUMBLE README CI
+
+on:
+  pull_request:
+    paths:
+      - 'README*'
+      - 'docs/**'
+      - 'package.json'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile*'
+      - '.nvmrc'
+      - '.tool-versions'
+      - '.github/firstrun/**'
+      - 'action.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'README*'
+      - 'docs/**'
+      - 'package.json'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile*'
+      - '.nvmrc'
+      - '.tool-versions'
+      - '.github/firstrun/**'
+      - 'action.yml'
+
+jobs:
+  humble-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: HUMBLE README CI
+        uses: ./
+        with:
+          mode: verify
+          fail-on: 'FAILED'
+          time-limit: '20'
+          # bob-key: ${{ secrets.BOB_API_KEY }}  # uncomment if you have a Bob key
+
+  humble-fix:
+    needs: humble-verify
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: HUMBLE README CI (fix mode)
+        uses: ./
+        with:
+          mode: fix
+          fail-on: 'FAILED'
+          time-limit: '25'
+          # bob-key: ${{ secrets.BOB_API_KEY }}  # uncomment if you have a Bob key
