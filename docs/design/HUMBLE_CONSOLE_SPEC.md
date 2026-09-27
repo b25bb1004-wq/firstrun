@@ -189,3 +189,30 @@ Clicky plays music and fades it over 3s at 90s (C). Ours: a soft key-tick per ty
 - [ ] light and dark theme
 - [ ] `node --test test/*.test.js` green, `bash tools/check-secrets.sh` clean
 - [ ] 10–20s screen recording or GIF of the sequence in the PR body
+- [ ] (debugger/guard PRs) the section 13–14 acceptance items below
+
+## 13. Built-in debugger (when a step fails on the user's machine)
+
+Opens inline in the terminal when a checker fails or a command exits non-zero; also `firstrun onboard --debug` and a `debug` button on any failed line. Mascot `think` while analysing; the lantern beam lands on the evidence line.
+
+1. **Capture** (local only, redacted): exit code, last 200 lines of output, command, cwd, duration, and a host snapshot from `probe.js`: versions, OS, tool names on PATH, which ports in the plan are already in use, which env var NAMES the guide needs and whether they are set. Names only, never values.
+2. **Compare with the proof**: diff the host snapshot against the VERIFIED sandbox run for the same step (`run.json` + evidence), e.g. `node 18.19 here · 20.11 in the proven run`, `port 5432 already in use`, `DATABASE_URL not set`. Each difference is a `diag` line tagged `[DEBUG]` in `--c-ink`.
+3. **Diagnose**: run the SAME doctor rules (`src/doctor/rules.js`) on the capture; show the matched rule id and the exact output line it matched (the beam points at it). No match → `[ ask Bob ]` only if Bob is configured, showing the budget (e.g. `≤ 0.2 Bobcoins`), sending only the redacted capture.
+4. **Fix**: each proposed fix is a normal guide step (command, why, checker, undo) and goes through the same inline confirmation (section 8) and the guard (section 14). Afterwards the ORIGINAL failing step's checker runs again; only a pass counts as fixed.
+5. **Report**: `copy debug report` puts redacted Markdown on the clipboard (capture, host-vs-proof diff, rule, fix tried, result), ready to paste into an issue. Nothing is uploaded.
+
+Layout: a sub-panel inside the terminal, indented 12px, left border 2px `--c-fail` while open, turning `--c-ok` when the fix verifies. Header line `DEBUG · step 3 · <command>` (10px caps). Collapsible sections: `what happened`, `different from the proven run`, `likely cause`, `fix`; the first three open by default.
+
+## 14. Built-in security guard (always on; no UI switch to turn it off)
+
+Every command passes `src/onboarder/guard.js` BEFORE its confirmation is shown. Verdicts: `ok`; `warn` (the confirmation shows the reason in `--c-warn` and needs a second click); `block` (never runnable from HUMBLE; the user may copy it and run it themselves).
+
+- **Block**: deleting outside the repo (`rm -rf` on `/`, `~`, `..` or absolute paths outside the repo; `Remove-Item -Recurse` likewise), disk/format tools, recursive `chmod 777` on home or root, writing to shell profiles or SSH keys, fork bombs, disabling security tools, reading credential stores (`~/.ssh`, `~/.aws`, browser profiles, keychains), any step whose cwd resolves outside the repo.
+- **Warn**: `sudo` / admin elevation; pipe-to-shell (`curl … | sh`, `iwr … | iex`; show the domain); global installs (`npm i -g`, `pip install` outside a venv); commands that did not appear in the proven run; downloads from domains not seen in the proven run.
+- **Secrets**: all output and every report go through `src/redact.js`. `.env` files are created from `.env.example` with empty values or placeholders; HUMBLE never prints, logs or uploads an `.env` value. A secret pasted into the console input is masked immediately.
+- **Audit log**: every command HUMBLE ran or the user refused is appended to `.firstrun/onboard-log.jsonl` in the repo (time, command, verdict, exit code, duration; no output, no env values). A `security` tab in the header shows it, with a summary line: `12 commands run · 0 blocked · 1 warned · 0 secrets shown`.
+- **Read-only promise is enforced**: the probe uses an allow-list of read-only commands (version flags, `which`/`where`, port checks), and a test proves it writes nothing outside a temp dir.
+
+UI: a verdict chip on each `cmd` line before running: `ok` hidden, `warn` amber chip (`sudo`), `block` red chip (`blocked: deletes outside repo`). The shield icon in the header pulses once when something is blocked.
+
+Acceptance: guard tests with ≥ 25 real-world commands covering both sides of every rule; the probe side-effect test; a debugger test on the real acme-shop failure (faked host snapshot, real proof) producing the right rule and host-vs-proof diff; a report containing no secret (fake token built at runtime).
