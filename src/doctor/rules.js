@@ -1400,6 +1400,43 @@ export const RULES = [
         if (!/No matching distribution found for [\w.-]+==|Could not build wheels for [\w.-]+|Failed building wheel for [\w.-]+|metadata-generation-failed|Preparing metadata \(pyproject\.toml\): finished with status 'error'/.test(log)) return null;
         const cur = String(plan.runtime.version || '');
         const older = (v) => cur && Number(v.split('.')[1]) < Number(cur.split('.')[1]);
+        const date = commitDate(facts);
+        const req = facts.python?.requirementsFiles?.[0];
+        // The last date each Python version was the newest release (inverse of the era table below):
+        // used to cap the build toolchain (setuptools/Cython) to what that Python's era actually had.
+        const PY_ERA_END = { '3.6': '2018-12-24', '3.7': '2019-10-14', '3.8': '2020-10-05', '3.9': '2021-10-04', '3.10': '2022-10-03', '3.11': '2023-10-02' };
+        // Rebasing the interpreter alone isn't enough: a plain `pip install` on the older Python
+        // still pulls TODAY's setuptools/Cython as build deps, and those can't build an old sdist
+        // either (apryor6/flask_api_example: numpy==1.17.0 needed Python 3.7, but pandas==0.25.0
+        // then failed with "Cython-generated file ... not found" against a current Cython). Era-pin
+        // the install too, the same way python-dependency-drift does. The cutoff is the EARLIER of
+        // the repo's commit date and the target Python's own era-end: the commit date alone can be
+        // misleadingly recent when only unrelated files (docs, CI) were touched after the pins went
+        // stale, which would still resolve a build toolchain too new for the old pin (this exact bug).
+        // replace-step, not insert-before: S1 itself IS the install being diagnosed, and
+        // insert-before combined with rebase in the same fix never actually runs (rebase sets
+        // `restart`, which insert-before's own immediate-run path skips; the spliced-in step
+        // then sits at 0 attempts and the original command gets retried unchanged - confirmed by
+        // running this exact repo: R1 stayed "blocked", S1's attempt 2 was still the bare
+        // `pip install -r requirements.txt`, same Cython failure). Replacing the step's command
+        // directly makes the era-pinned install what actually runs on the retry.
+        const eraInstall = (targetPy) => {
+          if (!req) return null;
+          const [maj, min] = targetPy.split('.').map(Number);
+          if (maj === 3 && min < 8) {
+            // uv itself has no distribution for Python < 3.8 ("Could not find a version that
+            // satisfies the requirement uv" / "No matching distribution found for uv", confirmed
+            // by rebasing this exact repo to 3.7 and watching `pip install uv` fail outright).
+            // Pin the build toolchain by hand instead: Cython 3 can't build an sdist written for
+            // the Cython 2 era (pandas 0.25.0: "Cython-generated file ... not found"), so cap
+            // Cython below 3 alongside an era-appropriate setuptools.
+            return { type: 'replace-step', command: `pip install "cython<3.0" "setuptools<58" wheel && pip install --no-build-isolation -r ${req}` };
+          }
+          const cutoffs = [date, PY_ERA_END[targetPy]].filter(Boolean);
+          if (!cutoffs.length) return null;
+          const cutoff = cutoffs.sort()[0];
+          return { type: 'replace-step', command: `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${cutoff} -r ${req}` };
+        };
         // Best evidence: the failing pin's own wheels on PyPI (numpy==1.17.0 ships cp35..cp37 wheels -> Python 3.7).
         // General for any package and version; the last "Collecting X==V" before the error is the one that failed.
         const pins = [...log.matchAll(/Collecting ([\w.-]+)==([\w.!+-]+)/g)];
@@ -1407,23 +1444,28 @@ export const RULES = [
         if (pin) {
           const wheelPy = await newestWheelPython(pin[1], pin[2]);
           if (wheelPy && older(wheelPy)) {
+            const actions = [{ type: 'rebase', image: imageFor('python', wheelPy), runtime: { name: 'python', version: wheelPy, source: `newest Python with a ${pin[1]}==${pin[2]} wheel on PyPI` } }];
+            const install = eraInstall(wheelPy);
+            if (install) actions.push(install);
             return {
               ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.85,
-              cause: `\`${pin[1]}==${pin[2]}\` is pinned, and PyPI only has builds of it up to Python ${wheelPy}; on Python ${cur} it tries to compile from source and fails. The docs don't say which Python to use.`,
-              fix: { actions: [{ type: 'rebase', image: imageFor('python', wheelPy), runtime: { name: 'python', version: wheelPy, source: `newest Python with a ${pin[1]}==${pin[2]} wheel on PyPI` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${wheelPy} (the pinned ${pin[1]}==${pin[2]} has no build for newer Python)`, runtime: { name: 'python', version: wheelPy } } },
+              cause: `\`${pin[1]}==${pin[2]}\` is pinned, and PyPI only has builds of it up to Python ${wheelPy}; on Python ${cur} it tries to compile from source and fails. The docs don't say which Python to use.${install ? ` Pinning the rest of the install to Python ${wheelPy}'s own era too, so the build toolchain (setuptools/Cython) matches instead of today's.` : ''}`,
+              fix: { actions, patches: [], doc: { kind: 'prerequisite', text: `Python ${wheelPy} (the pinned ${pin[1]}==${pin[2]} has no build for newer Python)`, runtime: { name: 'python', version: wheelPy } } },
             };
           }
         }
         // Fallback: the Python that was current when the repo was last committed.
-        const date = commitDate(facts);
         if (!date) return null;
         const y = Number(date.slice(0, 4));
         const era = y <= 2017 ? '3.6' : y === 2018 ? '3.7' : y <= 2020 ? '3.8' : y === 2021 ? '3.9' : y === 2022 ? '3.10' : y === 2023 ? '3.11' : '3.12';
         if (!older(era)) return null;
+        const actions = [{ type: 'rebase', image: imageFor('python', era), runtime: { name: 'python', version: era, source: `the repo's last commit (${date})` } }];
+        const install = eraInstall(era);
+        if (install) actions.push(install);
         return {
           ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.7,
           cause: `The requirements pin packages that have no build for Python ${cur}; the docs don't say which Python to use. Python ${era} was current when the repo was last committed (${date}).`,
-          fix: { actions: [{ type: 'rebase', image: imageFor('python', era), runtime: { name: 'python', version: era, source: `the repo's last commit (${date})` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${era} (the pinned packages predate newer Python releases)`, runtime: { name: 'python', version: era } } },
+          fix: { actions, patches: [], doc: { kind: 'prerequisite', text: `Python ${era} (the pinned packages predate newer Python releases)`, runtime: { name: 'python', version: era } } },
         };
       },
     },
