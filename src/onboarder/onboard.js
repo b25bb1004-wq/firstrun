@@ -94,6 +94,11 @@ export async function onboard(args) {
     console.log();
   }
 
+  // Handle --debug: run steps with debug diagnostics on failure
+  if (args.debug) {
+    return runDebug(guide, report, plan, resolvedRunDir);
+  }
+
   // Handle --dry-run: print all steps and exit
   if (isDryRun) {
     console.log(bold('DRY RUN - All steps:'));
@@ -270,6 +275,143 @@ async function runDoneCheck(done, cwd) {
   }
 
   return { success: false, message: `Unknown done check type: ${done.type}` };
+}
+
+/**
+ * Debug mode: run steps and diagnose failures with the debugger
+ */
+async function runDebug(guide, report, plan, runDir) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    console.log(bold('DEBUG MODE - Run steps with diagnostics on failure'));
+    console.log(dim('Run each step; on failure, show capture, diff, rule match, proposed fix, re-check\n'));
+
+    const { capture, diffAgainstProof, runDoctorRules, diagnose, debugReport } = await import('./debug.js');
+    const { probeHost } = await import('./probe.js');
+    const shell = process.platform === 'win32' ? 'bash' : '/bin/bash';
+
+    for (let i = 0; i < guide.steps.length; i++) {
+      const step = guide.steps[i];
+      const stepReport = report.steps[i];
+
+      console.log(`${bold(`${i + 1}/${guide.steps.length}`)} ${step.say.new}`);
+      console.log(`   ${cyan('$')} ${step.do?.command || step.do?.type}`);
+      console.log(`   ${dim('Why:')} ${step.why?.cause || 'Verified step from clean machine run'}`);
+
+      if (stepReport?.status === 'satisfied') {
+        console.log(`   ${green('✓ Already satisfied on this machine')}\n`);
+        continue;
+      }
+
+      if (stepReport?.status === 'needs-human') {
+        console.log(`   ${yellow('! Requires human input:')} ${stepReport.reason}\n`);
+        continue;
+      }
+
+      if (stepReport?.status === 'gap') {
+        console.log(`   ${yellow('⚠ Platform gap:')} ${stepReport.reason}\n`);
+        continue;
+      }
+
+      // Run the step
+      console.log(dim('   Running...'));
+      const result = await runStep(shell, step, process.cwd());
+
+      if (result.code === 0) {
+        console.log(`   ${green('✓ done')}\n`);
+        continue;
+      }
+
+      // FAILURE - run debugger
+      console.log(`   ${red('✗ exit ' + result.code)}`);
+      console.log(dim('   Last output:'));
+      console.log(result.output.split('\n').slice(-6).map(l => '     ' + l).join('\n'));
+      console.log();
+
+      // Capture failure
+      const hostSnapshot = await probeHost();
+      const captured = capture({
+        exitCode: result.code,
+        output: result.output,
+        command: step.do?.command || '',
+        cwd: process.cwd(),
+        duration: 0,
+        hostSnapshot,
+        stepId: step.id,
+        envVarNames: step.do?.key ? [step.do.key] : []
+      });
+
+      console.log(bold('   CAPTURE (redacted, last 200 lines):'));
+      console.log(captured.output.split('\n').map(l => '     ' + l).join('\n'));
+      console.log();
+
+      // Host vs Proof diff
+      console.log(bold('   HOST vs PROVEN RUN DIFF:'));
+      const diff = diffAgainstProof(hostSnapshot, runDir, step.id);
+      if (diff.diffs.length > 0) {
+        for (const d of diff.diffs) {
+          console.log(`     ${yellow('▸')} ${d.message}  [${d.type}]`);
+        }
+      } else {
+        console.log(`     ${green('No significant differences found.')}`);
+      }
+      console.log();
+
+      // Doctor rules
+      console.log(bold('   DOCTOR RULE MATCHES:'));
+      const ctx = { runDir, step };
+      const doctorResults = await runDoctorRules(captured, ctx);
+      if (doctorResults.length > 0) {
+        for (const r of doctorResults) {
+          console.log(`     ${r.ruleId}: ${r.cause} (confidence ${r.confidence})`);
+          if (r.fix) {
+            console.log(`       ${green('→ Fix:')} ${r.fix.actions?.[0]?.command || r.fix.doc?.text || 'see evidence'}`);
+          }
+        }
+      } else {
+        console.log(`     ${dim('No rules matched')}`);
+      }
+      console.log();
+
+      // Full diagnosis
+      console.log(bold('   DIAGNOSIS:'));
+      const diagnosis = await diagnose(captured, ctx, { askBob: async () => ({ ok: false }), maxCost: 0 });
+      console.log(`     ${diagnosis.cause}  *(${diagnosis.attributedTo})*`);
+      if (diagnosis.fix) {
+        console.log(`     ${green('Fix:')} ${diagnosis.fix.command}`);
+        console.log(`     ${dim('Why:')} ${diagnosis.fix.why}`);
+        console.log(`     ${dim('Checker:')} ${JSON.stringify(diagnosis.fix.checker)}`);
+        console.log(`     ${dim('Undo:')} ${JSON.stringify(diagnosis.fix.undo)}`);
+      }
+      console.log();
+
+      // Re-check
+      console.log(bold('   RE-CHECK:'));
+      const reResult = await runStep(shell, step, process.cwd());
+      if (reResult.code === 0) {
+        console.log(`     ${green('✓ Step now passes after fix')}\n`);
+      } else {
+        console.log(`     ${red('✗ Still failing (exit ' + reResult.code + ')')}\n`);
+      }
+
+      const retry = await rl.question(dim('   continue (c), quit (q)? '));
+      if (retry.trim().toLowerCase() === 'q') return 1;
+      console.log();
+    }
+
+    // Run done check
+    console.log(bold('Final verification...'));
+    const doneResult = await runDoneCheck(guide.done, process.cwd());
+    if (doneResult.success) {
+      console.log(green(bold('You are set up. Welcome aboard.')));
+    } else {
+      console.log(red('Verification failed:'), doneResult.message);
+    }
+
+    return doneResult.success ? 0 : 1;
+  } finally {
+    rl.close();
+  }
 }
 
 import { spawn } from 'node:child_process';
