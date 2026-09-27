@@ -25,7 +25,8 @@ function bobCommand() {
 function runBob(args, opts = {}) {
   const [cmd, pre] = bobCommand();
   // Inside Electron (HUMBLE Lens), execPath is Electron itself: make it run bob.js as plain Node.
-  const env = process.versions.electron && cmd === process.execPath ? { ...opts.env, ELECTRON_RUN_AS_NODE: '1' } : opts.env;
+  // Keep the real environment (BOB_API_KEY, PATH, APPDATA): spreading only opts.env dropped it, so Bob looked signed out.
+  const env = process.versions.electron && cmd === process.execPath ? { ...process.env, ...opts.env, ELECTRON_RUN_AS_NODE: '1' } : opts.env;
   return run(cmd, [...pre, ...args], { ...opts, env });
 }
 
