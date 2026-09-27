@@ -57,26 +57,6 @@
   --terminal-max-h: 420px;
 }
 
-/* Dark theme (opt-in only, spec section 11) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --c-bg: #16120e;
-    --c-surface: #1c1712;
-    --c-term: #120e0a;
-    --c-line: #342c24;
-    --c-ink: #efe7da;
-    --c-ink-2: #b8ab98;
-    --c-ink-3: #7a6e5f;
-    --c-core: #ff9a3c;
-    --c-hi: #ffc47a;
-    --c-deep: #e0701c;
-    --c-ok: #3dd68c;
-    --c-fail: #ff5c7a;
-    --c-warn: #ffb224;
-    --c-bob: #5E9EFF;
-  }
-}
-
 /* Reduced motion (spec section 11) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
