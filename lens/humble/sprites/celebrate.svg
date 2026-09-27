@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -25 200 275" class="humble-robot humble-robot-celebrate" aria-label="HUMBLE Lamplighter: Celebrate">
+  <defs>
+    <filter id="hb-blur-celeb" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <radialGradient id="hb-disc-celeb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#ff9a3c" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hb-lantern-celeb" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#ffc47a" stop-opacity="1"/>
+      <stop offset="80%" stop-color="#ff9a3c" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#e0701c" stop-opacity="0.6"/>
+    </radialGradient>
+    <linearGradient id="hb-body-celeb" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe6"/>
+      <stop offset="100%" stop-color="#dbd0be"/>
+    </linearGradient>
+  </defs>
+  <style>
+    :root {
+      --robot-core: #ff9a3c; --robot-hi: #ffc47a; --robot-deep: #e0701c;
+      --robot-out: #2b2622; --robot-screen: #2a1406; --robot-blue: #2440ff; --robot-pink: #ff2d87;
+    }
+    .bot-celebrate-jump { animation: hb-jump-squash 1.2s cubic-bezier(0.23, 1, 0.32, 1) infinite; transform-origin: 100px 236px; }
+    .screen-flash-blue { animation: hb-flash-blue 1.2s ease-in-out infinite; }
+    .antenna-wobble { animation: hb-ant-wobble 0.6s ease-in-out infinite alternate; transform-origin: 104px 11px; }
+    @keyframes hb-jump-squash {
+      0% { transform: translateY(0) scale(1, 1); }
+      15% { transform: translateY(6px) scale(1.1, 0.88); }
+      45% { transform: translateY(-22px) scale(0.92, 1.12); }
+      75% { transform: translateY(0) scale(1.06, 0.94); }
+      100% { transform: translateY(0) scale(1, 1); }
+    }
+    @keyframes hb-flash-blue {
+      0%, 30% { opacity: 0; }
+      50% { opacity: 0.55; }
+      70%, 100% { opacity: 0; }
+    }
+    @keyframes hb-ant-wobble {
+      0% { transform: rotate(-8deg); }
+      100% { transform: rotate(8deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bot-celebrate-jump, .screen-flash-blue, .antenna-wobble { animation: none !important; }
+      .screen-flash-blue { opacity: 0.25; }
+    }
+  </style>
+
+  <!-- Golden hover disc -->
+  <ellipse cx="100" cy="236" rx="44" ry="7" fill="url(#hb-disc-celeb)"/>
+
+  <g class="bot-celebrate-jump">
+    <!-- Blue screen / victory flash halo behind head -->
+    <rect class="screen-flash-blue" x="48" y="24" width="104" height="100" rx="40" fill="var(--robot-blue)" filter="url(#hb-blur-celeb)"/>
+
+    <!-- Backpack with all cartridges glowing -->
+    <rect x="74" y="128" width="52" height="48" rx="8" fill="#242b35" stroke="var(--robot-out)" stroke-width="3"/>
+    <rect x="78" y="134" width="7" height="12" rx="2" fill="#4589ff"/>
+    <rect x="89" y="134" width="7" height="12" rx="2" fill="#8a3ffc"/>
+    <rect x="100" y="134" width="7" height="12" rx="2" fill="#0072c3"/>
+    <rect x="111" y="134" width="7" height="12" rx="2" fill="#fa4d56"/>
+    <rect x="84" y="152" width="7" height="12" rx="2" fill="#1192e8"/>
+    <rect x="95" y="152" width="7" height="12" rx="2" fill="#009d9a"/>
+
+    <!-- Left Arm (raised high in victory) -->
+    <path d="M62 144 Q36 108 40 76" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="41" cy="74" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Right Arm (raised high in victory) -->
+    <path d="M138 144 Q164 108 160 76" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="159" cy="74" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Capsule Body -->
+    <rect x="58" y="122" width="84" height="92" rx="42" fill="url(#hb-body-celeb)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Radiant Golden Belly Lantern -->
+    <path d="M74 168 C74 150 86 142 100 142 C114 142 126 150 126 168 C126 186 114 196 100 196 C86 196 74 186 74 168 Z"
+          fill="url(#hb-lantern-celeb)" stroke="var(--robot-out)" stroke-width="2.5"/>
+    <circle cx="100" cy="168" r="18" fill="#ffc47a" opacity="0.9" filter="url(#hb-blur-celeb)"/>
+
+    <!-- Receipt slot mouth with printed "PROVEN ✓" receipt ticket! -->
+    <rect x="86" y="132" width="28" height="4" rx="2" fill="#2b2622"/>
+    <g>
+      <!-- White receipt slip -->
+      <path d="M88 135 L112 135 L112 154 L110 156 L108 154 L106 156 L104 154 L102 156 L100 154 L98 156 L96 154 L94 156 L92 154 L90 156 L88 154 Z"
+            fill="#ffffff" stroke="var(--robot-out)" stroke-width="1.2"/>
+      <text x="100" y="146" font-family="ui-monospace, monospace" font-size="6.5" font-weight="700" fill="#008a38" text-anchor="middle">PROVEN ✓</text>
+    </g>
+
+    <!-- Telescoping neck (segmented collar rings) -->
+    <rect x="88" y="112" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="85" y="116" width="30" height="4" rx="2" fill="#887b6d" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="88" y="120" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Head Dome -->
+    <path d="M56 82 C56 52 74 38 100 38 C126 38 144 52 144 82 C144 104 128 112 100 112 C72 112 56 104 56 82 Z"
+          fill="url(#hb-body-celeb)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Top antenna with celebratory wobble -->
+    <g class="antenna-wobble">
+      <path d="M100 38 C98 24 106 18 104 12" fill="none" stroke="var(--robot-out)" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="104" cy="11" r="5" fill="#2440ff" stroke="var(--robot-out)" stroke-width="2"/>
+    </g>
+
+    <!-- Dark Goggle Faceplate -->
+    <rect x="66" y="58" width="68" height="38" rx="19" fill="#1e1814" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Happy upside-down curved eyes (^ ^) -->
+    <path d="M74 81 Q83 69 92 81" fill="none" stroke="#ffaa33" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M108 81 Q117 69 126 81" fill="none" stroke="#ffaa33" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+</svg>
