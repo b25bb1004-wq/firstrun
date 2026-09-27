@@ -666,3 +666,231 @@ section[id] {
   gap: 18px;
 }
 
+/* ==========================================================================
+   PROVE IT LIVE — Hero Verification Panel
+   ========================================================================== */
+
+.prove-live {
+  margin: 44px auto 0;
+  max-width: 860px;
+  width: 100%;
+  text-align: left;
+}
+
+.prove-panel {
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.prove-progress-track {
+  height: 2px;
+  width: 100%;
+  background: var(--line);
+  position: relative;
+}
+
+.prove-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.prove-panel-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prove-panel-header .eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+
+.prove-headline {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(24px, 3.4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.prove-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+  max-width: 60ch;
+}
+
+.prove-input-block {
+  padding: 20px 28px;
+}
+
+.prove-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.prove-chip {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font: 500 12px var(--mono);
+  border-radius: 2px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.prove-chip:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.prove-chip.active {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--bg);
+}
+
+.prove-field-row {
+  display: flex;
+  gap: 10px;
+}
+
+.prove-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ink);
+  font: 13px var(--mono);
+  padding: 10px 14px;
+  outline: none;
+  min-width: 0;
+}
+
+.prove-input:focus {
+  border-color: var(--accent);
+}
+
+.prove-btn {
+  border-radius: 2px !important;
+  font: 600 13px var(--mono) !important;
+  padding: 10px 22px !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.prove-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.prove-console {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  padding: 20px 28px;
+  min-height: 140px;
+}
+
+.prove-mascot-edge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.prove-mascot-edge img {
+  width: 64px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.prove-stream-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.prove-stream-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prove-row {
+  font-size: 13px;
+  line-height: 1.5;
+  animation: proveRowReveal 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes proveRowReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prove-agent {
+  font-weight: 600;
+  min-width: 68px;
+  display: inline-block;
+}
+
+.agent-harvey { color: var(--c-scout); }
+.agent-mach { color: var(--c-runner); }
+.agent-drbo { color: var(--c-doctor); }
+.agent-larp { color: var(--c-verifier); }
+.agent-unity { color: var(--c-planner); }
+.agent-echo { color: var(--c-scribe); }
+.agent-vigil { color: var(--robot-core, #ff9a3c); }
+
+.prove-action {
+  color: var(--ink);
+}
+
+.prove-result-line {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font: 600 13px var(--mono);
+  color: var(--c-verifier);
+}
+
+.prove-result-line a {
+  text-decoration: underline;
+  color: var(--accent);
+}
+
+.prove-footer {
+  padding: 12px 28px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prove-row {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .prove-progress-bar {
+    transition: none !important;
+  }
+}
+
+

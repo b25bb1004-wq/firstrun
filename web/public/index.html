@@ -45,6 +45,47 @@
         <a class="btn" href="#try">Check a README</a>
         <a class="link" href="/proof">Watch a real run</a>
       </div>
+
+      <!-- PROVE IT LIVE Hero Panel -->
+      <div class="prove-live" id="prove-live" aria-labelledby="h-prove-live">
+        <div class="prove-panel">
+          <div class="prove-progress-track">
+            <div class="prove-progress-bar" id="prove-progress-bar" style="width: 0%;"></div>
+          </div>
+          
+          <div class="prove-panel-header">
+            <p class="eyebrow mono">LIVE · NO SIGN-IN · PUBLIC REPOS ONLY</p>
+            <h2 id="h-prove-live" class="prove-headline">Watch a README get proven.</h2>
+            <p class="prove-sub">One click runs the whole check on a clean machine, right now. The clean machine proves. Bob explains.</p>
+          </div>
+
+          <div class="prove-input-block">
+            <div class="prove-chips" role="radiogroup" aria-label="Preset public repositories">
+              <button type="button" class="prove-chip active" data-repo="b25bb1004-wq/acme-shop">acme-shop demo</button>
+              <button type="button" class="prove-chip" data-repo="GeekyAnts/express-typescript">GeekyAnts/express-typescript</button>
+              <button type="button" class="prove-chip" data-repo="addyosmani/git2txt">addyosmani/git2txt</button>
+            </div>
+            
+            <div class="prove-field-row">
+              <input type="text" id="prove-repo-input" class="prove-input mono" placeholder="or paste a public GitHub repo (owner/name)" value="b25bb1004-wq/acme-shop" spellcheck="false" autocomplete="off" aria-label="Public GitHub repository">
+              <button type="button" id="prove-btn" class="btn prove-btn">Prove it</button>
+            </div>
+          </div>
+
+          <!-- Live Streaming Console -->
+          <div class="prove-console" id="prove-console" style="display: none;">
+            <div class="prove-mascot-edge" id="prove-mascot">
+              <img id="prove-mascot-img" src="/assets/mascot/think.svg" alt="HUMBLE mascot thinking" width="64" height="80">
+            </div>
+            <div class="prove-stream-wrapper">
+              <div class="prove-stream-rows" id="prove-stream-rows" role="log" aria-live="polite"></div>
+              <div class="prove-result-line" id="prove-result-line" style="display: none;"></div>
+            </div>
+          </div>
+
+          <p class="prove-footer mono">Runs on GitHub Actions. Takes 3–10 minutes. We never store your code.</p>
+        </div>
+      </div>
       <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
         <div class="hero-agents-label">
           <span class="mono">Six specialized agents · orchestrated by IBM Bob</span>
@@ -318,6 +359,7 @@
 </footer>
 
 <script src="/assets/check.js" defer></script>
+<script src="/assets/prove-live.js" defer></script>
 <script src="/assets/site.js" defer></script>
 <script src="/assets/hero-gl.js" defer></script>
 <script src="/assets/wall.js" defer></script>
