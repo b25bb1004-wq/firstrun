@@ -64,15 +64,19 @@ async function getNpmVersion() {
 }
 
 async function getPythonVersion() {
-  // Try python3 first, then python
+  // Try python3 and python; on Windows, also recognize the standard py launcher.
   let r = await runCmd('python3', ['--version']);
   if (r.code !== 0) {
     r = await runCmd('python', ['--version']);
   }
+  if (r.code !== 0 && process.platform === 'win32') {
+    r = await runCmd('py', ['-3', '--version']);
+  }
   if (r.code === 0) {
     // Parse "Python 3.11.5"
-    const match = r.stdout.match(/Python\s+(\d+\.\d+\.\d+)/);
-    return match ? match[1] : r.stdout.trim();
+    const output = r.stdout || r.stderr;
+    const match = output.match(/Python\s+(\d+\.\d+\.\d+)/);
+    return match ? match[1] : output.trim();
   }
   return 'not found';
 }

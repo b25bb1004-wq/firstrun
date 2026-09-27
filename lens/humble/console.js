@@ -830,6 +830,12 @@ export class HumbleConsole {
       this.stepCounter.style.display = 'block';
     }
 
+    // Handle manual steps (spec: checklist item with Done button that runs checker)
+    if (step.kind === 'manual') {
+      await this.showManualStep(step);
+      return;
+    }
+
     // Check if already satisfied (spec section 8)
     const satisfied = await this.isStepSatisfied(step);
     if (satisfied) {
@@ -918,6 +924,77 @@ export class HumbleConsole {
     this.mascot.setState('celebrate');
     await sleep(600);
     this.mascot.setState('talk');
+  }
+
+  // ============================================================================
+  // MANUAL STEP HANDLING (spec: checklist item with Done button that runs checker)
+  // ============================================================================
+  async showManualStep(step) {
+    if (!this.terminalContent) return;
+
+    // Create a manual step line (checklist item)
+    const lineEl = document.createElement('div');
+    lineEl.className = 'term-line manual-step';
+    
+    // Step text
+    const textEl = document.createElement('span');
+    textEl.className = 'manual-text';
+    textEl.textContent = step.text || 'Manual step required';
+    lineEl.appendChild(textEl);
+
+    // Why line
+    if (step.why) {
+      const whyEl = document.createElement('div');
+      whyEl.className = 'term-line why';
+      whyEl.textContent = `  why: ${step.why}`;
+      this.terminalContent.appendChild(whyEl);
+    }
+
+    // Done button that runs the checker
+    const doneBtn = document.createElement('button');
+    doneBtn.className = 'manual-done-btn';
+    doneBtn.textContent = 'Done ✓';
+    doneBtn.onclick = async () => {
+      doneBtn.disabled = true;
+      doneBtn.textContent = 'Checking…';
+      const passed = await this.runManualChecker(step.checker);
+      if (passed) {
+        doneBtn.textContent = '✓ Verified';
+        doneBtn.classList.add('verified');
+        this.mascot.setState('celebrate');
+        await sleep(600);
+        this.mascot.setState('talk');
+        this.currentStepIndex++;
+        await this.showGuideStep(this.currentStepIndex);
+      } else {
+        doneBtn.disabled = false;
+        doneBtn.textContent = 'Done ✓';
+        doneBtn.classList.add('failed');
+        this.mascot.setState('worried');
+        this.appendOutput(['Manual step check did not pass. Please complete the step and try again.']);
+      }
+    };
+    lineEl.appendChild(doneBtn);
+
+    this.terminalContent.appendChild(lineEl);
+    this.scrollToBottom();
+
+    // Hide footer buttons for manual steps
+    if (this.btnShowHow) this.btnShowHow.style.display = 'none';
+    if (this.btnDoIt) this.btnDoIt.style.display = 'none';
+    if (this.footerLeft) this.footerLeft.style.display = 'none';
+  }
+
+  async runManualChecker(checker) {
+    if (typeof window !== 'undefined' && window.dock?.runManualChecker) {
+      try {
+        const result = await window.dock.runManualChecker({ checker, cwd: this.projectRoot });
+        return result?.passed === true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
   }
 
   async typeCommandLine(command) {
