@@ -283,6 +283,13 @@ export async function scout(root) {
   if (facts.python?.deps.some((d) => /^(python-dotenv|pydantic-settings|django-environ|environs)$/.test(d))) facts.loadsDotenv = true;
   const envPort = Number(facts.envExample?.keys?.PORT);
   if (envPort) facts.ports.unshift(envPort);
+  // A port pinned in the start script wins over .env: `cross-env PORT=4100 react-scripts start` serves on 4100
+  // whatever .env says (gothinkster/react-redux-realworld-example-app waited on 3000 and timed out).
+  for (const name of ['start', 'dev', 'serve']) {
+    const m = String(facts.node?.scripts?.[name] || '').match(/(?:^|\s)PORT=(\d{2,5})\b|--port[= ](\d{2,5})\b|\s-p\s+(\d{2,5})\b/);
+    const p = m && Number(m[1] || m[2] || m[3]);
+    if (p) { facts.ports = [p, ...facts.ports.filter((x) => Number(x) !== p)]; break; }
+  }
 
   // No manifest at the root, but exactly one project folder below it (backend/app/pyproject.toml):
   // take the runtime and dependency facts from there, so the clean machine gets the right runtime.

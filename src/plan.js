@@ -402,14 +402,22 @@ export function buildPlan(facts, { repo, commit } = {}) {
     const inSetup = (b) => {
       const p = sectionPath(md.sections, b.start);
       if (p.some(excludedHeading)) return false;
+      // A list item with a command counts only under a setup heading of its own ("Getting started"), not under
+      // a setup-ish ancestor: commander's "Contributing › Pull Requests" lists `npm run test` as a PR check.
+      if (b.inline) return SETUP_HEADING.test(p[p.length - 1] || '');
       return p.some((h) => SETUP_HEADING.test(h));
     };
     let chosen = shellBlocks.filter(inSetup);
+    // Inline list-item commands count only where their section has no fenced shell block (fences are the
+    // precise form; a bullet list next to one is usually a summary of it).
+    const secKey = (b) => sectionPath(md.sections, b.start).join(' › ');
+    const fencedSecs = new Set(chosen.filter((b) => !b.inline).map(secKey));
+    chosen = chosen.filter((b) => !b.inline || !fencedSecs.has(secKey(b)));
     // Drop "run it with Docker" sections when a non-Docker path exists.
     const nonDocker = chosen.filter((b) => !sectionPath(md.sections, b.start).some((h) => DOCKER_ALT_HEADING.test(h)));
     if (nonDocker.length) chosen = nonDocker;
     if (!chosen.length && docFile === facts.docs[0]) {
-      chosen = shellBlocks.filter((b) => !sectionPath(md.sections, b.start).some(excludedHeading));
+      chosen = shellBlocks.filter((b) => !b.inline && !sectionPath(md.sections, b.start).some(excludedHeading));
     }
     const before = steps.filter((s) => !s.skip).length;
     // A section that scaffolds a new app for users is skipped as a whole: express splits its quick start
