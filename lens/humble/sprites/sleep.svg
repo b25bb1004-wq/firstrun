@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-sleep" aria-label="HUMBLE Robot: Sleeping">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-muted { stroke: #8c867a; fill: #8c867a; }
+      .hb-sleep-bob { transform-origin: 40px 50px; animation: humble-sleep-breath 3s ease-in-out infinite; }
+      .hb-z1 { animation: humble-z-float 2.8s ease-in-out infinite; }
+      .hb-z2 { animation: humble-z-float 2.8s ease-in-out infinite 0.9s; }
+      @keyframes humble-sleep-breath {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(1.5px); }
+      }
+      @keyframes humble-z-float {
+        0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+        50% { opacity: 0.8; }
+        100% { opacity: 0; transform: translate(8px, -12px) scale(1.1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-sleep-bob, .hb-z1, .hb-z2 { animation: none; }
+      }
+    </style>
+  </defs>
+  
+  <!-- Floating Sleep ZZZ -->
+  <g class="hb-z-group" fill="#8c867a" font-family="'IBM Plex Mono', monospace" font-weight="600">
+    <text x="56" y="14" font-size="8" class="hb-z1">z</text>
+    <text x="63" y="8" font-size="10" class="hb-z2">Z</text>
+  </g>
+
+  <g class="hb-sleep-bob">
+    <!-- Antenna -->
+    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+    <circle cx="40" cy="5" r="4" class="hb-ink" fill="#cec4b2" />
+
+    <!-- Feet -->
+    <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+    <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+
+    <!-- Torso -->
+    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+    <!-- Chest Plate / Dots -->
+    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+    <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+    <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+
+    <!-- Arms Rested -->
+    <path d="M 25 46 Q 20 52 23 58" class="hb-ink" fill="none" />
+    <circle cx="23" cy="58" r="2.5" class="hb-ink hb-body" />
+    <path d="M 55 46 Q 60 52 57 58" class="hb-ink" fill="none" />
+    <circle cx="57" cy="58" r="2.5" class="hb-ink hb-body" />
+
+    <!-- Neck -->
+    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+    <!-- Head & Ears -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Sleepy Eyes (closed curved slits) -->
+    <path d="M 28 26 Q 33 28 37 26" class="hb-ink" fill="none" />
+    <path d="M 43 26 Q 47 28 52 26" class="hb-ink" fill="none" />
+
+    <!-- Sleepy Mouth (gentle soft line) -->
+    <path d="M 38 30 Q 40 31 42 30" class="hb-ink" stroke-width="1.5" fill="none" />
+  </g>
+</svg>

@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUMBLE Robot Companion — State Showcase</title>
+<link rel="stylesheet" href="./robot.css">
+<style>
+  :root {
+    --bg: #eae4d7;
+    --surface: #dfd7c8;
+    --line: #cec4b2;
+    --ink: #16181b;
+    --muted: #5d5a54;
+    --accent: #0f62fe;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  }
+  [data-theme="dark"] {
+    --bg: #161514;
+    --surface: #22201d;
+    --line: #33302a;
+    --ink: #f1efe9;
+    --muted: #9e9a90;
+    --accent: #4589ff;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    line-height: 1.5;
+    padding: 40px 24px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  header { margin-bottom: 32px; border-bottom: 1px solid var(--line); padding-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  p.sub { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+  .controls { display: flex; gap: 12px; align-items: center; }
+  button.btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* States Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card-stage {
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .state-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+  .card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  /* Interactive Stage Demo */
+  .demo-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 32px;
+  }
+  .demo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .demo-canvas {
+    height: 280px;
+    background: var(--bg);
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .demo-hint {
+    color: var(--muted);
+    font-size: 14px;
+    font-family: var(--mono);
+    pointer-events: none;
+    text-align: center;
+  }
+  .agent-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .agent-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: var(--mono);
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .agent-pill.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  /* Speech Bubble */
+  .humble-bubble {
+    position: absolute;
+    bottom: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .humble-bubble.visible { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .humble-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--ink);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>HUMBLE Robot Companion</h1>
+      <p class="sub">7 expressive states in oat parchment, ink lines &amp; blue/pink accents. 60fps CSS/SVG micro-animations.</p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="theme-btn">Theme: Auto</button>
+      <button class="btn" id="motion-btn">Motion: Full</button>
+    </div>
+  </header>
+
+  <!-- 7 States Gallery -->
+  <div class="grid">
+    <!-- 1. SLEEP -->
+    <div class="card" data-state="sleep">
+      <div class="state-tag">State 1</div>
+      <div class="card-stage">
+        <object data="./sprites/sleep.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Sleep</h3>
+      <p>Idle state waiting for repo detection. Breathing up/down bobbing + rising ZZZ vector particles.</p>
+    </div>
+
+    <!-- 2. THINK -->
+    <div class="card" data-state="think">
+      <div class="state-tag">State 2</div>
+      <div class="card-stage">
+        <object data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Think</h3>
+      <p>Isolation phase executing steps. Rhythmic head tilt, antenna pulse ring &amp; inquisitive upward gaze.</p>
+    </div>
+
+    <!-- 3. WALK -->
+    <div class="card" data-state="walk">
+      <div class="state-tag">State 3</div>
+      <div class="card-stage">
+        <object data="./sprites/walk.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Walk</h3>
+      <p>Moving across screen to target bounds. Dynamic stride gait with counter-balanced arm swing.</p>
+    </div>
+
+    <!-- 4. POINT -->
+    <div class="card" data-state="point">
+      <div class="state-tag">State 4</div>
+      <div class="card-stage">
+        <object data="./sprites/point.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Point</h3>
+      <p>Showing user where to focus. Outstretched pointing stylus with active radar beacon targeting.</p>
+    </div>
+
+    <!-- 5. TALK -->
+    <div class="card" data-state="talk">
+      <div class="state-tag">State 5</div>
+      <div class="card-stage">
+        <object data="./sprites/talk.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Talk</h3>
+      <p>Explaining instructions and reasons. Articulated speaking mouth &amp; friendly gesturing hand.</p>
+    </div>
+
+    <!-- 6. CELEBRATE -->
+    <div class="card" data-state="celebrate">
+      <div class="state-tag">State 6</div>
+      <div class="card-stage">
+        <object data="./sprites/celebrate.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Celebrate</h3>
+      <p>Verification check passed. Arms raised in victory (\o/), green beacon glow &amp; twinkling confetti sparkles.</p>
+    </div>
+
+    <!-- 7. WORRIED -->
+    <div class="card" data-state="worried">
+      <div class="state-tag">State 7</div>
+      <div class="card-stage">
+        <object data="./sprites/worried.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+      </div>
+      <h3>Worried</h3>
+      <p>Break diagnosed or command failed. Hands on cheeks, vibrating caution pink antenna &amp; nervous shiver.</p>
+    </div>
+  </div>
+
+  <!-- Interactive Flight & Guide Simulator -->
+  <div class="demo-section">
+    <div class="demo-header">
+      <div>
+        <h2 style="margin: 0; font-size: 18px;">Guide Mode Flight Simulator</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: var(--muted);">Click anywhere inside the box below to guide the robot in an arced trajectory to that location.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" onclick="setSimState('sleep')">Sleep</button>
+        <button class="btn" onclick="setSimState('think')">Think</button>
+        <button class="btn" onclick="setSimState('talk')">Talk</button>
+        <button class="btn" onclick="setSimState('celebrate')">Celebrate</button>
+        <button class="btn" onclick="setSimState('worried')">Worried</button>
+      </div>
+    </div>
+
+    <div class="demo-canvas" id="canvas">
+      <div class="demo-hint" id="hint">Click anywhere here to fly and point</div>
+      <div id="sim-robot" class="humble-robot-stage" style="left: 40px; top: 100px;">
+        <object id="sim-obj" data="./sprites/think.svg" type="image/svg+xml" class="humble-robot humble-robot-lg"></object>
+        <div class="humble-bubble" id="sim-bubble">I'm ready!</div>
+      </div>
+    </div>
+
+    <div class="agent-selector">
+      <span style="font-size: 12px; font-family: var(--mono); color: var(--muted); margin-right: 6px;">Antenna Tint:</span>
+      <button class="agent-pill active" onclick="setTint('#0f62fe', this)">Core Blue</button>
+      <button class="agent-pill" onclick="setTint('#4589ff', this)">Harvey (Scout)</button>
+      <button class="agent-pill" onclick="setTint('#8a3ffc', this)">Unity (Planner)</button>
+      <button class="agent-pill" onclick="setTint('#0072c3', this)">Mach (Runner)</button>
+      <button class="agent-pill" onclick="setTint('#fa4d56', this)">DR.BO (Doctor)</button>
+      <button class="agent-pill" onclick="setTint('#1192e8', this)">Larp (Verifier)</button>
+      <button class="agent-pill" onclick="setTint('#009d9a', this)">Echo (Scribe)</button>
+      <button class="agent-pill" onclick="setTint('#da1e28', this)">Vigil (Security)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Theme Toggle
+  const themeBtn = document.getElementById('theme-btn');
+  let dark = false;
+  themeBtn.addEventListener('click', () => {
+    dark = !dark;
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    themeBtn.textContent = 'Theme: ' + (dark ? 'Dark' : 'Light');
+  });
+
+  // Motion Toggle
+  const motionBtn = document.getElementById('motion-btn');
+  let reduced = false;
+  motionBtn.addEventListener('click', () => {
+    reduced = !reduced;
+    if (reduced) {
+      document.body.classList.add('reduced-motion-forced');
+      const style = document.createElement('style');
+      style.id = 'force-reduced';
+      style.textContent = '* { animation: none !important; transition: none !important; }';
+      document.head.appendChild(style);
+      motionBtn.textContent = 'Motion: Reduced (Static)';
+    } else {
+      const el = document.getElementById('force-reduced');
+      if (el) el.remove();
+      motionBtn.textContent = 'Motion: Full';
+    }
+  });
+
+  // Simulator
+  const robotEl = document.getElementById('sim-robot');
+  const robotObj = document.getElementById('sim-obj');
+  const bubble = document.getElementById('sim-bubble');
+  const canvas = document.getElementById('canvas');
+  const hint = document.getElementById('hint');
+
+  function setSimState(state, say) {
+    robotObj.data = `./sprites/${state}.svg`;
+    if (say) {
+      bubble.textContent = say;
+      bubble.classList.add('visible');
+      setTimeout(() => bubble.classList.remove('visible'), 3000);
+    }
+  }
+
+  canvas.addEventListener('click', (e) => {
+    if (hint) hint.style.display = 'none';
+    const rect = canvas.getBoundingClientRect();
+    const targetX = Math.max(20, Math.min(rect.width - 100, e.clientX - rect.left - 40));
+    const targetY = Math.max(20, Math.min(rect.height - 100, e.clientY - rect.top - 40));
+
+    // Mid-flight walk arc
+    robotEl.classList.add('humble-robot-flying');
+    setSimState('walk');
+    robotEl.style.left = targetX + 'px';
+    robotEl.style.top = targetY + 'px';
+
+    setTimeout(() => {
+      robotEl.classList.remove('humble-robot-flying');
+      setSimState('point', "Type command here!");
+    }, 600);
+  });
+
+  function setTint(color, btn) {
+    document.querySelectorAll('.agent-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    try {
+      const svgDoc = robotObj.contentDocument;
+      if (svgDoc) {
+        const bulb = svgDoc.querySelector('.hb-accent-blue');
+        if (bulb) bulb.style.fill = color;
+      }
+    } catch(err) {}
+  }
+</script>
+</body>
+</html>

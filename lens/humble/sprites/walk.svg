@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-walk" aria-label="HUMBLE Robot: Walking">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-walk-body { transform-origin: 40px 65px; animation: humble-walk-bob 0.8s ease-in-out infinite; }
+      .hb-walk-left-arm { transform-origin: 25px 45px; animation: humble-walk-arm-left 0.8s ease-in-out infinite; }
+      .hb-walk-right-arm { transform-origin: 55px 45px; animation: humble-walk-arm-right 0.8s ease-in-out infinite; }
+      .hb-walk-left-leg { transform-origin: 32px 64px; animation: humble-walk-leg-left 0.8s ease-in-out infinite; }
+      .hb-walk-right-leg { transform-origin: 48px 64px; animation: humble-walk-leg-right 0.8s ease-in-out infinite; }
+      @keyframes humble-walk-bob {
+        0%, 100% { transform: translateY(0) rotate(1deg); }
+        50% { transform: translateY(-3px) rotate(-1deg); }
+      }
+      @keyframes humble-walk-arm-left {
+        0%, 100% { transform: rotate(18deg); }
+        50% { transform: rotate(-20deg); }
+      }
+      @keyframes humble-walk-arm-right {
+        0%, 100% { transform: rotate(-22deg); }
+        50% { transform: rotate(18deg); }
+      }
+      @keyframes humble-walk-leg-left {
+        0%, 100% { transform: translate(-3px, -1px); }
+        50% { transform: translate(3px, 1px); }
+      }
+      @keyframes humble-walk-leg-right {
+        0%, 100% { transform: translate(3px, 1px); }
+        50% { transform: translate(-3px, -1px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-walk-body, .hb-walk-left-arm, .hb-walk-right-arm, .hb-walk-left-leg, .hb-walk-right-leg { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <!-- Left Leg (stepping back) -->
+  <g class="hb-walk-left-leg">
+    <rect x="25" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
+  </g>
+  <!-- Right Leg (stepping forward) -->
+  <g class="hb-walk-right-leg">
+    <rect x="45" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
+  </g>
+
+  <!-- Bobbing Body & Head -->
+  <g class="hb-walk-body">
+    <!-- Antenna -->
+    <line x1="40" y1="13" x2="43" y2="6" class="hb-ink" />
+    <circle cx="43" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+
+    <!-- Torso -->
+    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+    <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+    <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+
+    <!-- Left Arm (swinging) -->
+    <g class="hb-walk-left-arm">
+      <path d="M 25 46 Q 18 52 17 59" class="hb-ink" fill="none" />
+      <circle cx="17" cy="59" r="2.5" class="hb-ink hb-body" />
+    </g>
+
+    <!-- Right Arm (swinging forward) -->
+    <g class="hb-walk-right-arm">
+      <path d="M 55 46 Q 62 52 64 59" class="hb-ink" fill="none" />
+      <circle cx="64" cy="59" r="2.5" class="hb-ink hb-body" />
+    </g>
+
+    <!-- Neck -->
+    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+    <!-- Head & Ears -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Determined Forward Gaze -->
+    <circle cx="34" cy="25" r="3" class="hb-ink" fill="#16181b" />
+    <circle cx="35" cy="24" r="1" fill="#eae4d7" />
+    <circle cx="48" cy="25" r="3" class="hb-ink" fill="#16181b" />
+    <circle cx="49" cy="24" r="1" fill="#eae4d7" />
+
+    <!-- Confident Focus Mouth -->
+    <path d="M 37 30 L 43 30" class="hb-ink" stroke-width="1.8" />
+  </g>
+</svg>

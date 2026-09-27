@@ -1,0 +1,241 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-accent-green { fill: #2f9e6b; }
+      .hb-antenna-inactive { fill: #cec4b2; }
+    </style>
+
+    <!-- 1. SLEEP -->
+    <symbol id="hb-robot-sleep" viewBox="0 0 80 80">
+      <g fill="#8c867a" font-family="'IBM Plex Mono', monospace" font-weight="600">
+        <text x="56" y="14" font-size="8" class="hb-z1">z</text>
+        <text x="63" y="8" font-size="10" class="hb-z2">Z</text>
+      </g>
+      <g class="hb-sleep-bob">
+        <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+        <circle cx="40" cy="5" r="4" class="hb-ink hb-antenna-inactive" />
+        <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+        <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+        <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+        <path d="M 25 46 Q 20 52 23 58" class="hb-ink" fill="none" />
+        <circle cx="23" cy="58" r="2.5" class="hb-ink hb-body" />
+        <path d="M 55 46 Q 60 52 57 58" class="hb-ink" fill="none" />
+        <circle cx="57" cy="58" r="2.5" class="hb-ink hb-body" />
+        <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <path d="M 28 26 Q 33 28 37 26" class="hb-ink" fill="none" />
+        <path d="M 43 26 Q 47 28 52 26" class="hb-ink" fill="none" />
+        <path d="M 38 30 Q 40 31 42 30" class="hb-ink" stroke-width="1.5" fill="none" />
+      </g>
+    </symbol>
+
+    <!-- 2. THINK -->
+    <symbol id="hb-robot-think" viewBox="0 0 80 80">
+      <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+      <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+      <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+      <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+      <path d="M 55 46 Q 61 52 58 58" class="hb-ink" fill="none" />
+      <circle cx="58" cy="58" r="2.5" class="hb-ink hb-body" />
+      <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+      <g class="hb-think-head">
+        <circle cx="40" cy="5" r="4" class="hb-pulse-ring" fill="none" stroke="#0f62fe" />
+        <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+        <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+        <path d="M 25 45 Q 16 38 21 28" class="hb-ink" fill="none" />
+        <circle cx="21" cy="27" r="2.5" class="hb-ink hb-body" />
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <line x1="28" y1="21" x2="35" y2="20" class="hb-ink" stroke-width="1.8" />
+        <line x1="45" y1="20" x2="52" y2="21" class="hb-ink" stroke-width="1.8" />
+        <g class="hb-pupil-shift">
+          <circle cx="33" cy="25" r="3" class="hb-ink" fill="#16181b" />
+          <circle cx="34" cy="24" r="1" fill="#eae4d7" />
+          <circle cx="47" cy="25" r="3" class="hb-ink" fill="#16181b" />
+          <circle cx="48" cy="24" r="1" fill="#eae4d7" />
+        </g>
+        <path d="M 38 30 L 42 29.5" class="hb-ink" stroke-width="1.8" />
+      </g>
+    </symbol>
+
+    <!-- 3. WALK -->
+    <symbol id="hb-robot-walk" viewBox="0 0 80 80">
+      <g class="hb-walk-left-leg">
+        <rect x="25" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
+      </g>
+      <g class="hb-walk-right-leg">
+        <rect x="45" y="65" width="10" height="8" rx="3.5" class="hb-ink" fill="#16181b" />
+      </g>
+      <g class="hb-walk-body">
+        <line x1="40" y1="13" x2="43" y2="6" class="hb-ink" />
+        <circle cx="43" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+        <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+        <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+        <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+        <g class="hb-walk-left-arm">
+          <path d="M 25 46 Q 18 52 17 59" class="hb-ink" fill="none" />
+          <circle cx="17" cy="59" r="2.5" class="hb-ink hb-body" />
+        </g>
+        <g class="hb-walk-right-arm">
+          <path d="M 55 46 Q 62 52 64 59" class="hb-ink" fill="none" />
+          <circle cx="64" cy="59" r="2.5" class="hb-ink hb-body" />
+        </g>
+        <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="34" cy="25" r="3" class="hb-ink" fill="#16181b" />
+        <circle cx="35" cy="24" r="1" fill="#eae4d7" />
+        <circle cx="48" cy="25" r="3" class="hb-ink" fill="#16181b" />
+        <circle cx="49" cy="24" r="1" fill="#eae4d7" />
+        <path d="M 37 30 L 43 30" class="hb-ink" stroke-width="1.8" />
+      </g>
+    </symbol>
+
+    <!-- 4. POINT -->
+    <symbol id="hb-robot-point" viewBox="0 0 80 80">
+      <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+      <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+      <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+      <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+      <path d="M 25 46 Q 18 50 22 56" class="hb-ink" fill="none" />
+      <circle cx="22" cy="56" r="2.5" class="hb-ink hb-body" />
+      <g class="hb-arm-subtle">
+        <path d="M 54 46 L 70 44" class="hb-ink" stroke-width="3" />
+        <circle cx="70" cy="44" r="3" class="hb-ink hb-body" />
+        <line x1="72" y1="44" x2="76" y2="44" class="hb-ink" stroke-width="2.5" />
+        <circle cx="76" cy="44" r="3" class="hb-point-pulse" fill="none" stroke="#0f62fe" />
+        <circle cx="76" cy="44" r="2" class="hb-accent-blue" />
+      </g>
+      <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+      <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+      <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+      <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+      <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+      <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+      <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+      <circle cx="36" cy="25" r="3" class="hb-ink" fill="#16181b" />
+      <circle cx="37" cy="24" r="1" fill="#eae4d7" />
+      <circle cx="50" cy="25" r="3" class="hb-ink" fill="#16181b" />
+      <circle cx="51" cy="24" r="1" fill="#eae4d7" />
+      <path d="M 37 30 Q 42 32 46 29" class="hb-ink" stroke-width="1.8" fill="none" />
+    </symbol>
+
+    <!-- 5. TALK -->
+    <symbol id="hb-robot-talk" viewBox="0 0 80 80">
+      <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+      <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+      <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+      <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+      <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+      <path d="M 25 46 Q 17 50 19 56" class="hb-ink" fill="none" />
+      <circle cx="19" cy="56" r="2.5" class="hb-ink hb-body" />
+      <g class="hb-talk-hand">
+        <path d="M 55 46 Q 64 48 68 53" class="hb-ink" fill="none" />
+        <circle cx="68" cy="53" r="3" class="hb-ink hb-body" />
+        <path d="M 68 51 Q 72 53 70 56" class="hb-ink" stroke-width="2" fill="none" />
+      </g>
+      <g class="hb-talk-head">
+        <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+        <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+        <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="34" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
+        <circle cx="35" cy="23" r="1.1" fill="#eae4d7" />
+        <circle cx="47" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
+        <circle cx="48" cy="23" r="1.1" fill="#eae4d7" />
+        <ellipse cx="40.5" cy="29.5" rx="3.5" ry="2.2" class="hb-ink hb-talk-mouth" fill="#16181b" />
+      </g>
+    </symbol>
+
+    <!-- 6. CELEBRATE -->
+    <symbol id="hb-robot-celebrate" viewBox="0 0 80 80">
+      <g class="hb-sparkle1" fill="#2f9e6b">
+        <path d="M 22 7 L 23 10 L 26 11 L 23 12 L 22 15 L 21 12 L 18 11 L 21 10 Z" />
+      </g>
+      <g class="hb-sparkle2" fill="#0f62fe">
+        <path d="M 58 7 L 59 10 L 62 11 L 59 12 L 58 15 L 57 12 L 54 11 L 57 10 Z" />
+      </g>
+      <g class="hb-celebrate-jump">
+        <rect x="27" y="65" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <rect x="43" y="65" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <path d="M 25 46 Q 14 36 12 24" class="hb-ink" fill="none" />
+        <circle cx="12" cy="24" r="3" class="hb-ink hb-body" />
+        <path d="M 55 46 Q 66 36 68 24" class="hb-ink" fill="none" />
+        <circle cx="68" cy="24" r="3" class="hb-ink hb-body" />
+        <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+        <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="35" cy="53" r="2.5" class="hb-accent-green" />
+        <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+        <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+        <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+        <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-green hb-antenna-glow" />
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <path d="M 29 26 Q 34 21 38 26" class="hb-ink" stroke-width="2.5" fill="none" />
+        <path d="M 43 26 Q 47 21 52 26" class="hb-ink" stroke-width="2.5" fill="none" />
+        <path d="M 33 27 Q 40.5 35 48 27 Z" class="hb-ink" fill="#16181b" />
+        <path d="M 38 31 Q 40.5 34 43 31 Z" fill="#f06292" />
+      </g>
+    </symbol>
+
+    <!-- 7. WORRIED -->
+    <symbol id="hb-robot-worried" viewBox="0 0 80 80">
+      <g class="hb-worried-shake">
+        <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+        <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+        <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+        <circle cx="35" cy="53" r="2.5" class="hb-accent-pink" />
+        <circle cx="45" cy="53" r="2.5" class="hb-accent-blue" />
+        <path d="M 25 46 Q 16 40 18 28" class="hb-ink" fill="none" />
+        <circle cx="18" cy="27" r="3" class="hb-ink hb-body" />
+        <path d="M 55 46 Q 64 40 62 28" class="hb-ink" fill="none" />
+        <circle cx="62" cy="27" r="3" class="hb-ink hb-body" />
+        <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+        <g class="hb-antenna-buzz">
+          <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+          <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-pink" />
+          <path d="M 33 3 L 31 1" class="hb-ink" stroke-width="1.5" stroke="#f06292" />
+          <path d="M 47 3 L 49 1" class="hb-ink" stroke-width="1.5" stroke="#f06292" />
+        </g>
+        <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+        <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+        <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+        <line x1="28" y1="19" x2="35" y2="21" class="hb-ink" stroke-width="1.8" />
+        <line x1="45" y1="21" x2="52" y2="19" class="hb-ink" stroke-width="1.8" />
+        <circle cx="33" cy="25" r="3.4" class="hb-ink" fill="#16181b" />
+        <circle cx="34" cy="24" r="1.2" fill="#eae4d7" />
+        <circle cx="47" cy="25" r="2.8" class="hb-ink" fill="#16181b" />
+        <circle cx="48" cy="24" r="0.9" fill="#eae4d7" />
+        <path d="M 33 30 Q 36 28 39 30 Q 42 32 45 30 Q 47 28 49 30" class="hb-ink" stroke-width="1.8" fill="none" />
+      </g>
+    </symbol>
+  </defs>
+</svg>

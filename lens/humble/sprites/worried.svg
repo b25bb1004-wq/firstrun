@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-worried" aria-label="HUMBLE Robot: Worried">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-worried-shake { transform-origin: 40px 50px; animation: humble-worried-shiver 0.7s ease-in-out infinite; }
+      .hb-antenna-buzz { transform-origin: 40px 5px; animation: humble-antenna-jitter 0.25s linear infinite; }
+      @keyframes humble-worried-shiver {
+        0%, 100% { transform: rotate(0deg) translateY(0); }
+        25% { transform: rotate(-1.5deg) translateY(-0.5px); }
+        75% { transform: rotate(1.5deg) translateY(0.5px); }
+      }
+      @keyframes humble-antenna-jitter {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-1px, 0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-worried-shake, .hb-antenna-buzz { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <g class="hb-worried-shake">
+    <!-- Feet -->
+    <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+    <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+
+    <!-- Torso -->
+    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+    <circle cx="35" cy="53" r="2.5" class="hb-accent-pink" />
+    <circle cx="45" cy="53" r="2.5" class="hb-accent-blue" />
+
+    <!-- Hands on Cheeks / Head (anxious "oh no" pose) -->
+    <path d="M 25 46 Q 16 40 18 28" class="hb-ink" fill="none" />
+    <circle cx="18" cy="27" r="3" class="hb-ink hb-body" />
+    <path d="M 55 46 Q 64 40 62 28" class="hb-ink" fill="none" />
+    <circle cx="62" cy="27" r="3" class="hb-ink hb-body" />
+
+    <!-- Neck -->
+    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+    <!-- Antenna (buzzing pink) -->
+    <g class="hb-antenna-buzz">
+      <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+      <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-pink" />
+      <!-- Alert lines -->
+      <path d="M 33 3 L 31 1" class="hb-ink" stroke-width="1.5" stroke="#f06292" />
+      <path d="M 47 3 L 49 1" class="hb-ink" stroke-width="1.5" stroke="#f06292" />
+    </g>
+
+    <!-- Head & Ears -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Worried Eyebrows (angled outward) -->
+    <line x1="28" y1="19" x2="35" y2="21" class="hb-ink" stroke-width="1.8" />
+    <line x1="45" y1="21" x2="52" y2="19" class="hb-ink" stroke-width="1.8" />
+
+    <!-- Uneven Nervous Eyes -->
+    <circle cx="33" cy="25" r="3.4" class="hb-ink" fill="#16181b" />
+    <circle cx="34" cy="24" r="1.2" fill="#eae4d7" />
+    <circle cx="47" cy="25" r="2.8" class="hb-ink" fill="#16181b" />
+    <circle cx="48" cy="24" r="0.9" fill="#eae4d7" />
+
+    <!-- Wavy Nervous Mouth -->
+    <path d="M 33 30 Q 36 28 39 30 Q 42 32 45 30 Q 47 28 49 30" class="hb-ink" stroke-width="1.8" fill="none" />
+  </g>
+</svg>

@@ -1,0 +1,276 @@
+/**
+ * HUMBLE Robot: Onboarder Companion Animations & Styling
+ * Palette: oat body, crisp ink lines, blue/pink accents, flat vector (no shadows/gradients)
+ * Performance: 60fps transform & opacity only
+ * Accessibility: full prefers-reduced-motion support
+ */
+
+:root {
+  --robot-body: #eae4d7;
+  --robot-plate: #dfd7c8;
+  --robot-ink: #16181b;
+  --robot-blue: #0f62fe;
+  --robot-pink: #f06292;
+  --robot-green: #2f9e6b;
+  --robot-inactive: #cec4b2;
+  --robot-stroke: 2.5px;
+}
+
+[data-theme="dark"] {
+  --robot-body: #232220;
+  --robot-plate: #2e2c28;
+  --robot-ink: #f1efe9;
+  --robot-inactive: #555047;
+}
+
+/* Base Robot SVG Container */
+.humble-robot {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: visible;
+  shape-rendering: geometricPrecision;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Size Variants */
+.humble-robot-sm { width: 32px; height: 32px; }
+.humble-robot-md { width: 56px; height: 56px; }
+.humble-robot-lg { width: 80px; height: 80px; }
+.humble-robot-xl { width: 120px; height: 120px; }
+
+/* Internal Component Stroke & Fills */
+.humble-robot .hb-ink {
+  stroke: var(--robot-ink);
+  stroke-width: var(--robot-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.humble-robot .hb-body { fill: var(--robot-body); }
+.humble-robot .hb-plate { fill: var(--robot-plate); }
+.humble-robot .hb-accent-blue { fill: var(--robot-blue); }
+.humble-robot .hb-accent-pink { fill: var(--robot-pink); }
+.humble-robot .hb-accent-green { fill: var(--robot-green); }
+.humble-robot .hb-antenna-inactive { fill: var(--robot-inactive); }
+
+/* --- 1. SLEEP ANIMATIONS --- */
+.humble-robot-sleep .hb-sleep-bob {
+  transform-origin: 40px 50px;
+  animation: humble-sleep-breath 3s ease-in-out infinite;
+}
+.humble-robot-sleep .hb-z1 {
+  animation: humble-z-float 2.8s ease-in-out infinite;
+}
+.humble-robot-sleep .hb-z2 {
+  animation: humble-z-float 2.8s ease-in-out infinite 0.9s;
+}
+
+@keyframes humble-sleep-breath {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(1.5px); }
+}
+@keyframes humble-z-float {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  50% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(8px, -12px) scale(1.1); }
+}
+
+/* --- 2. THINK ANIMATIONS --- */
+.humble-robot-think .hb-think-head {
+  transform-origin: 40px 38px;
+  animation: humble-think-tilt 2.4s ease-in-out infinite;
+}
+.humble-robot-think .hb-pulse-ring {
+  transform-origin: 40px 5px;
+  animation: humble-antenna-pulse 1.8s ease-out infinite;
+}
+.humble-robot-think .hb-pupil-shift {
+  animation: humble-pupil-think 2.4s ease-in-out infinite;
+}
+
+@keyframes humble-think-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes humble-antenna-pulse {
+  0% { r: 4px; opacity: 0.9; }
+  100% { r: 10px; opacity: 0; stroke-width: 1.5; }
+}
+@keyframes humble-pupil-think {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(1.5px, -1px); }
+}
+
+/* --- 3. WALK ANIMATIONS --- */
+.humble-robot-walk .hb-walk-body {
+  transform-origin: 40px 65px;
+  animation: humble-walk-bob 0.8s ease-in-out infinite;
+}
+.humble-robot-walk .hb-walk-left-arm {
+  transform-origin: 25px 45px;
+  animation: humble-walk-arm-left 0.8s ease-in-out infinite;
+}
+.humble-robot-walk .hb-walk-right-arm {
+  transform-origin: 55px 45px;
+  animation: humble-walk-arm-right 0.8s ease-in-out infinite;
+}
+.humble-robot-walk .hb-walk-left-leg {
+  transform-origin: 32px 64px;
+  animation: humble-walk-leg-left 0.8s ease-in-out infinite;
+}
+.humble-robot-walk .hb-walk-right-leg {
+  transform-origin: 48px 64px;
+  animation: humble-walk-leg-right 0.8s ease-in-out infinite;
+}
+
+@keyframes humble-walk-bob {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  50% { transform: translateY(-3px) rotate(-1deg); }
+}
+@keyframes humble-walk-arm-left {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-20deg); }
+}
+@keyframes humble-walk-arm-right {
+  0%, 100% { transform: rotate(-22deg); }
+  50% { transform: rotate(18deg); }
+}
+@keyframes humble-walk-leg-left {
+  0%, 100% { transform: translate(-3px, -1px); }
+  50% { transform: translate(3px, 1px); }
+}
+@keyframes humble-walk-leg-right {
+  0%, 100% { transform: translate(3px, 1px); }
+  50% { transform: translate(-3px, -1px); }
+}
+
+/* --- 4. POINT ANIMATIONS --- */
+.humble-robot-point .hb-point-pulse {
+  transform-origin: 76px 44px;
+  animation: humble-point-pulse 1.2s ease-out infinite;
+}
+.humble-robot-point .hb-arm-subtle {
+  transform-origin: 55px 46px;
+  animation: humble-point-arm 2s ease-in-out infinite;
+}
+
+@keyframes humble-point-pulse {
+  0% { r: 2px; opacity: 1; }
+  100% { r: 8px; opacity: 0; stroke-width: 1.5; }
+}
+@keyframes humble-point-arm {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+/* --- 5. TALK ANIMATIONS --- */
+.humble-robot-talk .hb-talk-mouth {
+  transform-origin: 40.5px 29.5px;
+  animation: humble-mouth-talk 0.8s ease-in-out infinite alternate;
+}
+.humble-robot-talk .hb-talk-hand {
+  transform-origin: 55px 46px;
+  animation: humble-hand-gesture 1.6s ease-in-out infinite;
+}
+.humble-robot-talk .hb-talk-head {
+  transform-origin: 40px 38px;
+  animation: humble-head-nod 1.6s ease-in-out infinite;
+}
+
+@keyframes humble-mouth-talk {
+  0% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1.3); }
+  100% { transform: scaleY(0.8); }
+}
+@keyframes humble-hand-gesture {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-12deg); }
+}
+@keyframes humble-head-nod {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+/* --- 6. CELEBRATE ANIMATIONS --- */
+.humble-robot-celebrate .hb-celebrate-jump {
+  transform-origin: 40px 65px;
+  animation: humble-celebrate-hop 0.9s cubic-bezier(0.18, 0.89, 0.32, 1.28) infinite;
+}
+.humble-robot-celebrate .hb-sparkle1 {
+  transform-origin: 22px 10px;
+  animation: humble-twinkle 1.2s ease-in-out infinite;
+}
+.humble-robot-celebrate .hb-sparkle2 {
+  transform-origin: 58px 10px;
+  animation: humble-twinkle 1.2s ease-in-out infinite 0.4s;
+}
+.humble-robot-celebrate .hb-antenna-glow {
+  transform-origin: 40px 5px;
+  animation: humble-antenna-shine 1s ease-in-out infinite alternate;
+}
+
+@keyframes humble-celebrate-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes humble-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(45deg); }
+}
+@keyframes humble-antenna-shine {
+  0% { filter: drop-shadow(0 0 1px #2f9e6b); }
+  100% { filter: drop-shadow(0 0 4px #2f9e6b); }
+}
+
+/* --- 7. WORRIED ANIMATIONS --- */
+.humble-robot-worried .hb-worried-shake {
+  transform-origin: 40px 50px;
+  animation: humble-worried-shiver 0.7s ease-in-out infinite;
+}
+.humble-robot-worried .hb-antenna-buzz {
+  transform-origin: 40px 5px;
+  animation: humble-antenna-jitter 0.25s linear infinite;
+}
+
+@keyframes humble-worried-shiver {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-1.5deg) translateY(-0.5px); }
+  75% { transform: rotate(1.5deg) translateY(0.5px); }
+}
+@keyframes humble-antenna-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-1px, 0); }
+}
+
+/* Stage Arced Flight (Desktop Onboarding Guide) */
+.humble-robot-stage {
+  position: absolute;
+  pointer-events: none;
+  z-index: 9999;
+  transition: top 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.humble-robot-flying {
+  animation: humble-flight-arc 0.6s ease-in-out;
+}
+@keyframes humble-flight-arc {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15) translateY(-14px); }
+  100% { transform: scale(1); }
+}
+
+/* Accessibility: Stop all continuous loops when user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .humble-robot *,
+  .humble-robot-sleep *,
+  .humble-robot-think *,
+  .humble-robot-walk *,
+  .humble-robot-point *,
+  .humble-robot-talk *,
+  .humble-robot-celebrate *,
+  .humble-robot-worried *,
+  .humble-robot-flying {
+    animation: none !important;
+    transition: none !important;
+  }
+}

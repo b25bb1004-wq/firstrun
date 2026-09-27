@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-think" aria-label="HUMBLE Robot: Thinking">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-think-head { transform-origin: 40px 38px; animation: humble-think-tilt 2.4s ease-in-out infinite; }
+      .hb-pulse-ring { transform-origin: 40px 5px; animation: humble-antenna-pulse 1.8s ease-out infinite; }
+      .hb-pupil-shift { animation: humble-pupil-think 2.4s ease-in-out infinite; }
+      @keyframes humble-think-tilt {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(4deg); }
+      }
+      @keyframes humble-antenna-pulse {
+        0% { r: 4px; opacity: 0.9; }
+        100% { r: 9px; opacity: 0; stroke-width: 1.5; }
+      }
+      @keyframes humble-pupil-think {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(1.5px, -1px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-think-head, .hb-pulse-ring, .hb-pupil-shift { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <!-- Feet -->
+  <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+  <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+
+  <!-- Torso -->
+  <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+  <!-- Chest Plate / Dots -->
+  <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+  <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+  <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+
+  <!-- Right Arm (relaxed at side) -->
+  <path d="M 55 46 Q 61 52 58 58" class="hb-ink" fill="none" />
+  <circle cx="58" cy="58" r="2.5" class="hb-ink hb-body" />
+
+  <!-- Neck -->
+  <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+  <!-- Head Group (tilts thoughtfully) -->
+  <g class="hb-think-head">
+    <!-- Antenna Pulse Ring -->
+    <circle cx="40" cy="5" r="4" class="hb-pulse-ring" fill="none" stroke="#0f62fe" />
+    <!-- Antenna -->
+    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+    <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+
+    <!-- Left Arm (raised to temple/chin tapping) -->
+    <path d="M 25 45 Q 16 38 21 28" class="hb-ink" fill="none" />
+    <circle cx="21" cy="27" r="2.5" class="hb-ink hb-body" />
+
+    <!-- Ears & Head Box -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Inquisitive Eyebrow -->
+    <line x1="28" y1="21" x2="35" y2="20" class="hb-ink" stroke-width="1.8" />
+    <line x1="45" y1="20" x2="52" y2="21" class="hb-ink" stroke-width="1.8" />
+
+    <!-- Curious Thinking Eyes (looking up and slightly right) -->
+    <g class="hb-pupil-shift">
+      <circle cx="33" cy="25" r="3" class="hb-ink" fill="#16181b" />
+      <circle cx="34" cy="24" r="1" fill="#eae4d7" />
+      <circle cx="47" cy="25" r="3" class="hb-ink" fill="#16181b" />
+      <circle cx="48" cy="24" r="1" fill="#eae4d7" />
+    </g>
+
+    <!-- Thoughtful Mouth (slight thoughtful pursed notch) -->
+    <path d="M 38 30 L 42 29.5" class="hb-ink" stroke-width="1.8" />
+  </g>
+</svg>

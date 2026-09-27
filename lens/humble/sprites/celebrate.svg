@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-celebrate" aria-label="HUMBLE Robot: Celebrating">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-accent-green { fill: #2f9e6b; }
+      .hb-celebrate-jump { transform-origin: 40px 65px; animation: humble-celebrate-hop 0.9s cubic-bezier(0.18, 0.89, 0.32, 1.28) infinite; }
+      .hb-sparkle1 { transform-origin: 22px 10px; animation: humble-twinkle 1.2s ease-in-out infinite; }
+      .hb-sparkle2 { transform-origin: 58px 10px; animation: humble-twinkle 1.2s ease-in-out infinite 0.4s; }
+      .hb-antenna-glow { transform-origin: 40px 5px; animation: humble-antenna-shine 1s ease-in-out infinite alternate; }
+      @keyframes humble-celebrate-hop {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+      @keyframes humble-twinkle {
+        0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0deg); }
+        50% { opacity: 1; transform: scale(1.1) rotate(45deg); }
+      }
+      @keyframes humble-antenna-shine {
+        0% { filter: drop-shadow(0 0 1px #2f9e6b); }
+        100% { filter: drop-shadow(0 0 4px #2f9e6b); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-celebrate-jump, .hb-sparkle1, .hb-sparkle2, .hb-antenna-glow { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <!-- Sparkles -->
+  <g class="hb-sparkle1" fill="#2f9e6b">
+    <path d="M 22 7 L 23 10 L 26 11 L 23 12 L 22 15 L 21 12 L 18 11 L 21 10 Z" />
+  </g>
+  <g class="hb-sparkle2" fill="#0f62fe">
+    <path d="M 58 7 L 59 10 L 62 11 L 59 12 L 58 15 L 57 12 L 54 11 L 57 10 Z" />
+  </g>
+
+  <!-- Jumping Body Group -->
+  <g class="hb-celebrate-jump">
+    <!-- Feet (raised in hop) -->
+    <rect x="27" y="65" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+    <rect x="43" y="65" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+
+    <!-- Both Arms Raised Up in Joy (\o/) -->
+    <path d="M 25 46 Q 14 36 12 24" class="hb-ink" fill="none" />
+    <circle cx="12" cy="24" r="3" class="hb-ink hb-body" />
+    <path d="M 55 46 Q 66 36 68 24" class="hb-ink" fill="none" />
+    <circle cx="68" cy="24" r="3" class="hb-ink hb-body" />
+
+    <!-- Torso -->
+    <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+    <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+    <circle cx="35" cy="53" r="2.5" class="hb-accent-green" />
+    <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+
+    <!-- Neck -->
+    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+    <!-- Antenna -->
+    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+    <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-green hb-antenna-glow" />
+
+    <!-- Head & Ears -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Happy Eyes (^ ^) -->
+    <path d="M 29 26 Q 34 21 38 26" class="hb-ink" stroke-width="2.5" fill="none" />
+    <path d="M 43 26 Q 47 21 52 26" class="hb-ink" stroke-width="2.5" fill="none" />
+
+    <!-- Big Wide Happy Smile -->
+    <path d="M 33 27 Q 40.5 35 48 27 Z" class="hb-ink" fill="#16181b" />
+    <!-- Pink Tongue -->
+    <path d="M 38 31 Q 40.5 34 43 31 Z" fill="#f06292" />
+  </g>
+</svg>

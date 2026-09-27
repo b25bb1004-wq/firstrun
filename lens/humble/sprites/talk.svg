@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" class="humble-robot humble-robot-talk" aria-label="HUMBLE Robot: Talking">
+  <defs>
+    <style>
+      .hb-ink { stroke: #16181b; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .hb-body { fill: #eae4d7; }
+      .hb-plate { fill: #dfd7c8; }
+      .hb-accent-blue { fill: #0f62fe; }
+      .hb-accent-pink { fill: #f06292; }
+      .hb-talk-mouth { animation: humble-mouth-talk 0.8s ease-in-out infinite alternate; }
+      .hb-talk-hand { transform-origin: 55px 46px; animation: humble-hand-gesture 1.6s ease-in-out infinite; }
+      .hb-talk-head { transform-origin: 40px 38px; animation: humble-head-nod 1.6s ease-in-out infinite; }
+      @keyframes humble-mouth-talk {
+        0% { transform: scaleY(0.5); }
+        50% { transform: scaleY(1.3); }
+        100% { transform: scaleY(0.8); }
+      }
+      @keyframes humble-hand-gesture {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(-12deg); }
+      }
+      @keyframes humble-head-nod {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-1px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hb-talk-mouth, .hb-talk-hand, .hb-talk-head { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <!-- Feet -->
+  <rect x="27" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+  <rect x="43" y="66" width="10" height="7" rx="3.5" class="hb-ink" fill="#16181b" />
+
+  <!-- Torso -->
+  <rect x="25" y="42" width="30" height="23" rx="6" class="hb-ink hb-body" />
+  <rect x="29" y="46" width="22" height="15" rx="3" class="hb-ink hb-plate" stroke-width="1.5" />
+  <circle cx="35" cy="53" r="2.5" class="hb-accent-blue" />
+  <circle cx="45" cy="53" r="2.5" class="hb-accent-pink" />
+
+  <!-- Left Arm (supportive gesture) -->
+  <path d="M 25 46 Q 17 50 19 56" class="hb-ink" fill="none" />
+  <circle cx="19" cy="56" r="2.5" class="hb-ink hb-body" />
+
+  <!-- Right Arm (gesturing / explaining) -->
+  <g class="hb-talk-hand">
+    <path d="M 55 46 Q 64 48 68 53" class="hb-ink" fill="none" />
+    <circle cx="68" cy="53" r="3" class="hb-ink hb-body" />
+    <!-- Friendly open hand cup -->
+    <path d="M 68 51 Q 72 53 70 56" class="hb-ink" stroke-width="2" fill="none" />
+  </g>
+
+  <!-- Head Group (slight speech nod) -->
+  <g class="hb-talk-head">
+    <!-- Neck -->
+    <rect x="35" y="38" width="10" height="4" class="hb-ink hb-plate" />
+
+    <!-- Antenna -->
+    <line x1="40" y1="13" x2="40" y2="6" class="hb-ink" />
+    <circle cx="40" cy="5" r="4.5" class="hb-ink hb-accent-blue" />
+
+    <!-- Head & Ears -->
+    <rect x="15" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="62" y="22" width="3" height="8" rx="1.5" class="hb-ink hb-plate" />
+    <rect x="18" y="13" width="44" height="26" rx="9" class="hb-ink hb-body" />
+
+    <!-- Visor -->
+    <rect x="23" y="18" width="34" height="15" rx="5" class="hb-ink hb-plate" stroke-width="1.5" />
+
+    <!-- Attentive Wide Eyes -->
+    <circle cx="34" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
+    <circle cx="35" cy="23" r="1.1" fill="#eae4d7" />
+    <circle cx="47" cy="24" r="3.2" class="hb-ink" fill="#16181b" />
+    <circle cx="48" cy="23" r="1.1" fill="#eae4d7" />
+
+    <!-- Expressive Talking Mouth -->
+    <g transform="translate(0, 0)">
+      <ellipse cx="40.5" cy="29.5" rx="3.5" ry="2.2" class="hb-ink hb-talk-mouth" fill="#16181b" />
+    </g>
+  </g>
+</svg>
