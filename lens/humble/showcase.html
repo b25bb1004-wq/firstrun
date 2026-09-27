@@ -6,6 +6,7 @@
 <title>HUMBLE Companion — Amber CRT Mascot Showcase</title>
 <link rel="stylesheet" href="./robot.css">
 <link rel="stylesheet" href="./debugger-ui.css">
+<link rel="stylesheet" href="./timeline-controls.css">
 <style>
   :root {
     --bg: #efe7da;
@@ -363,20 +364,27 @@
       <div id="guard-badge-container"></div>
     </div>
 
+    <!-- D1: Step Controls Bar Mount -->
+    <div id="step-controls-container" style="margin-bottom: 12px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line);"></div>
+
     <!-- Command Line with Verdict Chip -->
     <div style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.18); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-      <span>$ npm install <span class="hb-verdict-chip chip-warn">warn: sudo</span> <span class="hb-verdict-chip chip-block">blocked: deletes outside repo</span></span>
+      <span><span class="hb-gutter-breakpoint active" title="Breakpoint (click gutter to toggle)"></span>$ npm install <span class="hb-verdict-chip chip-warn">warn: sudo</span> <span class="hb-verdict-chip chip-block">blocked: deletes outside repo</span></span>
       <span style="color: var(--muted); font-size: 11px;">step 2 of 5</span>
     </div>
 
     <!-- Debugger Sub-panel Container -->
     <div id="debugger-container"></div>
+
+    <!-- D5: Timeline Scrubber Mount -->
+    <div id="timeline-container" style="margin-top: 14px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line);"></div>
   </div>
 </div>
 
 <script type="module">
   import { HumbleRobot } from './robot.js';
   import { createDebuggerPanel, createGuardBadge } from './debugger-ui.js';
+  import { createStepControls, createTimelineScrubber } from './timeline-controls.js';
 
   // Theme Toggle
   const themeBtn = document.getElementById('theme-btn');
@@ -476,6 +484,41 @@
       onRunFix: async (fix) => {
         await new Promise(r => setTimeout(r, 600));
         return true; // Fix verified!
+      }
+    }));
+  }
+
+  // Mount D1: Step Controls Bar
+  const stepControlsContainer = document.getElementById('step-controls-container');
+  if (stepControlsContainer) {
+    stepControlsContainer.appendChild(createStepControls({
+      callstack: ['README.md', 'Setup', 'Step 2'],
+      pauseOnFailure: true,
+      onStep: () => {
+        sim.peek();
+      },
+      onContinue: () => {
+        sim.setState('point');
+      }
+    }));
+  }
+
+  // Mount D5: Timeline Scrubber with real 5-step sequence
+  const timelineContainer = document.getElementById('timeline-container');
+  if (timelineContainer) {
+    timelineContainer.appendChild(createTimelineScrubber([
+      { command: 'git clone https://github.com/b25bb1004-wq/acme-shop', status: 'pass', exitCode: 0, duration: 1.2, filesChanged: 42, undo: 'rm -rf acme-shop' },
+      { command: 'npm install', status: 'fail', exitCode: 1, duration: 4.8, filesChanged: 2, undo: 'rm -rf node_modules' },
+      { command: 'nvm use 20', status: 'pass', exitCode: 0, duration: 0.3, filesChanged: 0, undo: 'nvm use 18' },
+      { command: 'npm test', status: 'pass', exitCode: 0, duration: 3.1, filesChanged: 0 },
+      { command: 'npm run build', status: 'pass', exitCode: 0, duration: 5.4, filesChanged: 8, undo: 'rm -rf dist' }
+    ], {
+      activeIndex: 1,
+      onScrub: (idx, step) => {
+        sim.dartEyes(idx * 20);
+      },
+      onRewind: (idx, step) => {
+        sim.setState('think', { say: `Rewinding using undo: ${step.undo}` });
       }
     }));
   }
