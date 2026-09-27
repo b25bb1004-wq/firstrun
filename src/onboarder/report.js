@@ -200,7 +200,10 @@ function buildPlatformGaps(steps, hostProbe) {
 function buildSummary(guide, satisfied, missingCount, gapsCount, missingTools, warnings) {
   const parts = [];
 
-  parts.push(`I set this repo up on a clean machine, fixed what broke and proved it from zero in ${guide.provenOn.replaySeconds}s.`);
+  // Say what actually happened: breaks fixed or not, and the replay time only when the run recorded one.
+  const fixed = (guide.steps || []).filter((s) => s.why?.evidenceId).length;
+  const secs = guide.provenOn?.replaySeconds;
+  parts.push(`I set this repo up on a clean machine${fixed ? `, fixed ${fixed} step${fixed === 1 ? '' : 's'} that broke` : '; it worked as written'} and proved it from zero${secs != null ? ` in ${secs}s` : ''}.`);
   parts.push(`Proven for you: ${guide.steps.length} steps (${satisfied} already done on your machine).`);
 
   if (missingCount > 0) {
@@ -208,7 +211,7 @@ function buildSummary(guide, satisfied, missingCount, gapsCount, missingTools, w
   }
 
   if (warnings.length > 0) {
-    parts.push(`Version warnings: ${warnings.map(w => `${w.tool} ${w.found} < ${w.required}`).join(', ')}.`);
+    parts.push(`Version warnings: ${warnings.map(w => w.reason || `${w.tool} ${w.found} vs ${w.required}`).join(' ')}`);
   }
 
   if (gapsCount > 0) {
@@ -237,8 +240,14 @@ function findMissingTools(host, plan) {
     } else {
       const hostMajor = parseInt(host.node.replace('v', '').split('.')[0], 10);
       const requiredMajor = parseInt(requiredVersion.split('.')[0], 10);
-      if (hostMajor < requiredMajor) {
-        warnings.push({ tool: 'node', required: requiredVersion, found: host.node, reason: `Node.js version ${hostMajor} < required ${requiredMajor}` });
+      // Any major difference from the proof matters, newer too: Node 24 removed internals old dev servers use
+      // (react-scripts' spdy: "No such module: http_parser"), while the proof on Node 22 served fine.
+      if (hostMajor !== requiredMajor) {
+        warnings.push({
+          tool: 'node', required: requiredVersion, found: host.node, runtimeMismatch: true,
+          reason: `Proven on Node.js ${requiredMajor}; this machine has ${host.node}${hostMajor > requiredMajor ? ' (newer)' : ' (older)'}.`,
+          fix: `nvm install ${requiredMajor} && nvm use ${requiredMajor}`,
+        });
       }
     }
   }
