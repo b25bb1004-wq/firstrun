@@ -10,6 +10,18 @@ headless), its home (three custom Bob modes and an MCP server for Bob IDE), and 
 guide (a Bob mode that walks people through the verified setup).
 
 <!-- RESULTS:BEGIN -->
+**Live demo:** https://firstrun-sigma.vercel.app · **Full proof of a run:** https://firstrun-sigma.vercel.app/proof · **Deck:** [docs/pitch/deck/HUMBLE-deck.pdf](docs/pitch/deck/HUMBLE-deck.pdf)
+
+**Results on 31 real open-source repos, pinned to exact commits** (`audit/v2-31-final-combined/`):
+
+| | |
+|---|---|
+| **26 of 31 verified** | 14 end-to-end (fixed and replayed from zero on a clean machine) + 12 waiting only on your input (an API key or a service) |
+| **36 breaks fixed** | each with evidence: the failing command, the cause, the fix, the step passing again |
+| **16 of 19** | READMEs that broke were repaired automatically |
+| **+3 verified** | from one capped IBM Bob pass (4.58 Bobcoins, 11 → 14 end-to-end) |
+
+Every stop is written down with the exact README line and what it needs from you; the next rules are trained from those stops.
 <!-- RESULTS:END -->
 
 ---
