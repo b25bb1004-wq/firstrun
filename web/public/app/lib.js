@@ -146,3 +146,9 @@ export function rafBatch(fn) {
   const run = () => { if (!queued) return; queued = false; fn(); };
   return () => { if (queued) return; queued = true; requestAnimationFrame(run); setTimeout(run, 250); };
 }
+
+// Display names for verdicts. The ids stay the same everywhere in data and code.
+// PARTIAL = HUMBLE found the breaks, fixed them with evidence, and one step needs a person.
+export const VERDICT_LABEL = { PARTIAL: 'FIXES PROVEN' };
+export const VERDICT_TITLE = { PARTIAL: 'Found the breaks and proved its fixes; one step needs you (for example an API key or an outside service).' };
+export const vlabel = (v) => VERDICT_LABEL[v] || v;

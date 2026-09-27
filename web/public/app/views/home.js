@@ -1,5 +1,5 @@
 // Home: every run and audit the server can see.
-import { h, api, when, PHASE_LABEL, icon } from '../lib.js';
+import { h, api, when, PHASE_LABEL, icon, vlabel } from '../lib.js';
 
 export function mountHome(root) {
   let closed = false;
@@ -29,7 +29,7 @@ export function mountHome(root) {
             return h`<tr class="${isLive ? 'is-live' : ''}" data-href="#/run/${r.id}">
               <td><a href="#/run/${r.id}" class="rr"><span class="org">${name ? org + '/' : ''}</span>${name || org}</a> <span class="rid mono">${r.id}</span></td>
               <td>${isLive ? h`<span class="live-pill">${icon('dot')} ${PHASE_LABEL[r.phase] || r.phase}</span>` : PHASE_LABEL[r.phase] || r.phase}</td>
-              <td>${r.verdict ? h`<span class="vchip v-${r.verdict.toLowerCase()}">${r.verdict}</span>` : h`<span class="muted">pending</span>`}</td>
+              <td>${r.verdict ? h`<span class="vchip v-${r.verdict.toLowerCase()}">${vlabel(r.verdict)}</span>` : h`<span class="muted">pending</span>`}</td>
               <td class="mono">${when(r.startedAt)}</td>
               <td class="acts"><a href="#/run/${r.id}">Run</a>${r.verdict && r.verdict !== 'FAILED' ? h`<a href="#/guide/${r.id}">Guide</a>` : ''}</td>
             </tr>`;
