@@ -113,9 +113,8 @@ function buildReel(runDir, runName) {
     }
   }
   
-  // Find README line before/after for one fix
-  let readmeBefore = '';
-  let readmeAfter = '';
+  // Find README fix for one fix (replace-command, prerequisite, or insert-step)
+  let readmeFix = null;
   
   // First, get the initial plan to find README commands
   let initialPlan = null;
@@ -132,8 +131,12 @@ function buildReel(runDir, runName) {
       if (e.type === 'fix' && e.data?.fix?.doc?.kind === 'replace-command' && e.data?.stepId) {
         const step = initialPlan.steps.find(s => s.id === e.data.stepId);
         if (step && step.source?.file === 'README.md' && step.command) {
-          readmeBefore = step.command;
-          readmeAfter = e.data.fix.doc.text;
+          readmeFix = {
+            kind: 'replace',
+            before: step.command,
+            after: e.data.fix.doc.text,
+            anchor: step.command,
+          };
           break;
         }
       }
@@ -141,13 +144,17 @@ function buildReel(runDir, runName) {
   }
   
   // If no replace-command found, try prerequisite
-  if (!readmeBefore && initialPlan) {
+  if (!readmeFix && initialPlan) {
     for (const e of events) {
       if (e.type === 'fix' && e.data?.fix?.doc?.kind === 'prerequisite' && e.data?.stepId) {
         const step = initialPlan.steps.find(s => s.id === e.data.stepId);
         if (step && step.source?.file === 'README.md' && step.command) {
-          readmeBefore = step.command;
-          readmeAfter = e.data.fix.doc.text;
+          readmeFix = {
+            kind: 'replace',
+            before: step.command,
+            after: e.data.fix.doc.text,
+            anchor: step.command,
+          };
           break;
         }
       }
@@ -155,13 +162,18 @@ function buildReel(runDir, runName) {
   }
   
   // If still not found, try insert-step (new step inserted before a README step)
-  if (!readmeBefore && initialPlan) {
+  if (!readmeFix && initialPlan) {
     for (const e of events) {
       if (e.type === 'fix' && e.data?.fix?.doc?.kind === 'insert-step' && e.data?.stepId) {
         const step = initialPlan.steps.find(s => s.id === e.data.stepId);
         if (step && step.source?.file === 'README.md' && step.command) {
-          readmeBefore = step.command;
-          readmeAfter = e.data.fix.doc.text;
+          // For insert-step, the fix is inserting BEFORE this step
+          readmeFix = {
+            kind: 'insert',
+            before: null,
+            after: e.data.fix.doc.text,
+            anchor: step.command,
+          };
           break;
         }
       }
@@ -204,13 +216,126 @@ function buildReel(runDir, runName) {
     if (beats.length >= 25) break;
   }
   
+  const builtLines = buildLines(runDir, initialPlan, events);
   return {
     name: runName,
     beats,
-    readmeBefore,
-    readmeAfter,
+    readmeFix,
     replaySeconds,
+    lines: builtLines,
+    firstFailIndex: findFirstFailIndex(beats, builtLines),
+    fixIndex: findFixIndex(beats, builtLines),
   };
+}
+
+function findFixIndex(beats, lines) {
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].kind === 'fix') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function findFirstFailIndex(beats, lines) {
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].kind === 'fail') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function buildLines(runDir, initialPlan, events) {
+  const lines = [];
+  const runDirPath = path.join('web/public/data/runs', runDir, 'f');
+  let plan = initialPlan;
+  
+  // If we have the initial plan, extract lines from it
+  if (plan && plan.steps) {
+    for (const step of plan.steps) {
+      if (step.command && step.source?.file === 'README.md') {
+        lines.push({
+          kind: 'cmd',
+          text: step.command,
+          agent: 'planner',
+          seconds: 0, // Will be filled from events
+        });
+        if (step.why) {
+          lines.push({
+            kind: 'why',
+            text: step.why,
+            agent: 'planner',
+            seconds: 0,
+          });
+        }
+      }
+    }
+  }
+  
+  // Add actual event-based lines with timing
+  const startTime = new Date(events[0]?.t || Date.now()).getTime();
+  
+  for (const e of events) {
+    const agent = e.agent;
+    const type = e.type;
+    const kind = getKind(agent, type, e);
+    const text = redactSecrets(extractText(e));
+    const t = (new Date(e.t).getTime() - startTime) / 1000;
+    
+    if (kind === 'step' && type === 'step.start' && e.data?.command) {
+      lines.push({
+        kind: 'cmd',
+        text: e.data.command,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    } else if (kind === 'fail') {
+      lines.push({
+        kind: 'fail',
+        text: text,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    } else if (kind === 'pass') {
+      lines.push({
+        kind: 'pass',
+        text: text,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    } else if (kind === 'diagnosis') {
+      lines.push({
+        kind: 'diag',
+        text: text,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    } else if (kind === 'fix') {
+      lines.push({
+        kind: 'fix',
+        text: text,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    } else if (kind === 'verified') {
+      lines.push({
+        kind: 'verified',
+        text: text,
+        agent,
+        seconds: Math.round(t * 10) / 10,
+      });
+    }
+  }
+  
+  // Deduplicate lines with same text and agent
+  const seen = new Set();
+  return lines.filter(line => {
+    const key = `${line.agent}:${line.kind}:${line.text}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function main() {
