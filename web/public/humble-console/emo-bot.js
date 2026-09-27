@@ -1,14 +1,15 @@
 /**
  * HUMBLE's mascot: a small hovering robot with an EMO-style LED face.
  *
- * - Body: real 3D (three.js, lazy-loaded from jsDelivr only when the bot is on screen,
- *   so it never counts against the first-load JS budget).
+ * - Body: real 3D (three.js, lazy-loaded only when the bot is on screen, so it never
+ *   counts against the first-load JS budget). Defaults to jsDelivr; pass `threeUrl` to
+ *   load a vendored copy instead (e.g. the Electron app, whose CSP has no CDN allowed).
  * - Face: a dark glass visor showing a blue LED dot-matrix. Only lit pixels glow;
  *   the unlit grid stays faintly visible. Eyes blink, dart and change shape per state.
  * - Fallback: the same LED face drawn flat on a canvas (no WebGL, reduced motion,
- *   or the CDN is unreachable). The face is the character, so the fallback keeps it.
+ *   or three.js failed to load). The face is the character, so the fallback keeps it.
  *
- * API: const bot = new EmoBot(el, { size: 140 }); bot.setState('think'); bot.look(dx, dy);
+ * API: const bot = new EmoBot(el, { size: 140, threeUrl }); bot.setState('think'); bot.look(dx, dy);
  * States: sleep think talk point celebrate worried idle
  */
 
@@ -118,9 +119,10 @@ function roundRect(ctx, x, y, w, h, r) {
 // ---------------------------------------------------------------- the bot
 
 export class EmoBot {
-  constructor(container, { size = 140, interactive = true } = {}) {
+  constructor(container, { size = 140, interactive = true, threeUrl } = {}) {
     this.el = container;
     this.size = size;
+    this._threeUrl = threeUrl || THREE_URL;
     this.state = 'idle';
     this.gaze = { x: 0, y: 0 };
     this.targetGaze = { x: 0, y: 0 };
@@ -169,7 +171,7 @@ export class EmoBot {
     this._booted = true;
     if (this.reduced || !hasWebGL()) return this._mountFlat();
     try {
-      const THREE = await import(/* webpackIgnore: true */ THREE_URL);
+      const THREE = await import(/* webpackIgnore: true */ this._threeUrl);
       this._mount3D(THREE);
     } catch {
       this._mountFlat();

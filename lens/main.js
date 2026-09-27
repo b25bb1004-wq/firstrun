@@ -42,9 +42,40 @@ function dockWebPrefs() {
   return { preload: PRELOAD_DOCK, contextIsolation: true, sandbox: true };
 }
 
+// The floating button can be dragged anywhere, on any display; its spot is remembered.
+const BUTTON_POS = path.join(app.getPath('userData'), 'dock-button.json');
+function savedButtonPos() {
+  try {
+    const p = JSON.parse(fs.readFileSync(BUTTON_POS, 'utf8'));
+    const onScreen = screen.getAllDisplays().some((d) => { const b = d.bounds; return p.x >= b.x - 40 && p.y >= b.y - 40 && p.x < b.x + b.width - 16 && p.y < b.y + b.height - 16; });
+    return onScreen ? p : null;
+  } catch { return null; }
+}
+function clampToDisplays(x, y) {
+  const d = screen.getDisplayNearestPoint({ x: x + 28, y: y + 28 }).bounds;
+  return { x: Math.round(Math.min(Math.max(x, d.x - 20), d.x + d.width - 36)), y: Math.round(Math.min(Math.max(y, d.y - 20), d.y + d.height - 36)) };
+}
+let dragFrom = null;
+ipcMain.on('dock:button:dragStart', () => { if (dockButton && !dockButton.isDestroyed()) dragFrom = dockButton.getBounds(); });
+ipcMain.on('dock:button:drag', (_e, { dx, dy }) => {
+  if (!dragFrom || !dockButton || dockButton.isDestroyed()) return;
+  const p = clampToDisplays(dragFrom.x + dx, dragFrom.y + dy);
+  dockButton.setBounds({ x: p.x, y: p.y, width: 56, height: 56 });
+});
+ipcMain.on('dock:button:dragEnd', () => {
+  dragFrom = null;
+  if (!dockButton || dockButton.isDestroyed()) return;
+  const { x, y } = dockButton.getBounds();
+  try { fs.writeFileSync(BUTTON_POS, JSON.stringify({ x, y })); } catch {}
+});
+ipcMain.on('dock:button:reset', () => {
+  try { fs.unlinkSync(BUTTON_POS); } catch {}
+  if (dockButton && !dockButton.isDestroyed()) { const b = screen.getPrimaryDisplay().bounds; dockButton.setBounds({ x: b.x, y: b.y, width: 56, height: 56 }); }
+});
+
 function createDockButton() {
   if (dockButton && !dockButton.isDestroyed()) return;
-  const { x, y } = screen.getPrimaryDisplay().bounds;
+  const { x, y } = savedButtonPos() || screen.getPrimaryDisplay().bounds;
   dockButton = new BrowserWindow({
     x, y, width: 56, height: 56, frame: false, resizable: false, movable: true,
     minimizable: false, maximizable: false, skipTaskbar: true, alwaysOnTop: true,

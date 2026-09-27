@@ -13,6 +13,7 @@
 import { flight, typeSchedule, lineFromBeat, lineFromGuideStep, reelPlayer } from './console-core.js';
 import { flightMath, HUMBLE_STATES, AGENT_COLORS } from './robot.js';
 import { redactTokens, redactSecrets, REDACTED } from '../../src/redact.js';
+import { EmoBot } from '../../web/public/humble-console/emo-bot.js';
 
 // ============================================================================
 // CONSOLE-CORE ADAPTER
@@ -225,28 +226,31 @@ export class HumbleConsole {
   }
 
   initMascot() {
-    // Brand header avatar controller (spec §5 / brand face: sideways ? + wink arrow on #0d1030)
+    // Brand header avatar controller (spec §5): the EMO mascot (web/public/humble-console/emo-bot.js)
+    // replaces the flat brand SVG. three.js is vendored locally (lens/vendor/) since the CSP
+    // here is script-src 'self' — no CDN loads.
+    if (this.brandAvatar) {
+      const threeUrl = new URL('../vendor/three.module.js', import.meta.url).href;
+      this.emoBot = new EmoBot(this.brandAvatar, { size: 38, threeUrl });
+    }
     this.mascot = {
       state: 'sleep',
       boot: async () => {
-        if (this.brandAvatar) {
-          this.brandAvatar.classList.add('think');
-          await sleep(420);
-          this.brandAvatar.classList.remove('think');
-        }
+        this.emoBot?.setState('think');
+        await sleep(420);
+        this.emoBot?.setState('idle');
       },
       setState: (state) => {
         this.mascot.state = state;
+        this.emoBot?.setState(state);
         if (this.brandAvatar) {
           this.brandAvatar.classList.remove('celebrate', 'worried', 'think', 'talk', 'sleep', 'point');
           this.brandAvatar.classList.add(state);
         }
       },
       dartEyes: () => {
-        if (this.brandAvatar) {
-          this.brandAvatar.style.transform = 'scale(1.08) rotate(-4deg)';
-          setTimeout(() => { if (this.brandAvatar) this.brandAvatar.style.transform = ''; }, 180);
-        }
+        this.emoBot?.look(1.4, -1.6);
+        setTimeout(() => this.emoBot?.look(0, 0), 180);
       },
       say: async (text, holdMs = 3000) => {
         let bubble = document.querySelector('.humble-bubble');
