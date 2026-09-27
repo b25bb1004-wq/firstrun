@@ -23,21 +23,25 @@
   const RECORDED_RUNS = {
     'acme-shop': {
       path: '/data/runs/acme-shop-3c0bc2b2/f/events.ndjson',
+      passportPath: '/data/runs/acme-shop-3c0bc2b2/run.json',
       label: 'acme-shop demo (recorded run)',
       evidenceLink: '/proof'
     },
     'b25bb1004-wq/acme-shop': {
       path: '/data/runs/acme-shop-3c0bc2b2/f/events.ndjson',
+      passportPath: '/data/runs/acme-shop-3c0bc2b2/run.json',
       label: 'acme-shop demo (recorded run)',
       evidenceLink: '/proof'
     },
     'GeekyAnts/express-typescript': {
       path: '/data/runs/real-16-v2-GeekyAnts__express-typescript/f/events.ndjson',
+      passportPath: '/data/runs/real-16-v2-GeekyAnts__express-typescript/run.json',
       label: 'GeekyAnts/express-typescript (recorded run)',
       evidenceLink: '/audit'
     },
     'addyosmani/git2txt': {
       path: '/data/runs/real-16-v2-addyosmani__git2txt/f/events.ndjson',
+      passportPath: '/data/runs/real-16-v2-addyosmani__git2txt/run.json',
       label: 'addyosmani/git2txt (recorded run)',
       evidenceLink: '/audit'
     }
@@ -149,9 +153,12 @@
     const recorded = RECORDED_RUNS[repo];
     if (recorded) {
       try {
-        const resp = await fetch(recorded.path);
-        if (resp.ok) {
-          const text = await resp.text();
+        const [resp, passportResp] = await Promise.all([
+          fetch(recorded.path),
+          fetch(recorded.passportPath),
+        ]);
+        if (resp.ok && passportResp.ok) {
+          const [text, run] = await Promise.all([resp.text(), passportResp.json()]);
           const rows = await parseRecordedEvents(text);
           if (rows.length > 0) {
             for (let i = 0; i < rows.length; i++) {
@@ -159,7 +166,7 @@
               progressBar.style.width = `${Math.round(((i + 1) / rows.length) * 95)}%`;
             }
             progressBar.style.width = '100%';
-            finishSuccess(repo, true, recorded.evidenceLink);
+            finishSuccess(repo, true, recorded.evidenceLink, run.passport);
             return;
           }
         }
@@ -227,15 +234,32 @@
     }
   }
 
-  function finishSuccess(repo, isRecorded, link) {
+  function finishSuccess(repo, isRecorded, link, passport = null) {
     clearInterval(timerInterval);
     btn.disabled = false;
     btn.textContent = 'Prove it';
     isRunning = false;
 
     mascotImg.src = '/assets/mascot/celebrate.svg';
-    const tag = isRecorded ? ' (recorded run)' : '';
-    resultLine.innerHTML = `VERIFIED${tag} · breaks diagnosed &amp; fixed · replay passed &nbsp;<a href="${link}" class="link" target="_blank" rel="noopener">Open the evidence →</a>`;
+    let summary;
+    if (isRecorded && passport) {
+      summary = String(passport.verdict || 'UNKNOWN') + ' (recorded run) · ' +
+        Number(passport.breaksFixed || 0) + ' of ' + Number(passport.breaksFound || 0) +
+        ' breaks fixed · replay ' + Number(passport.replaySeconds || 0) + 's';
+    } else {
+      summary = 'GitHub Actions completed for ' + String(repo);
+    }
+    resultLine.replaceChildren(document.createTextNode(summary + '  '));
+    const evidence = document.createElement('a');
+    const target = new URL(link, location.origin);
+    if (target.protocol !== 'https:' && target.origin !== location.origin) return;
+    if (target.protocol === 'https:' && target.hostname !== 'github.com') return;
+    evidence.href = target.href;
+    evidence.className = 'link';
+    evidence.target = '_blank';
+    evidence.rel = 'noopener';
+    evidence.textContent = 'Open the evidence';
+    resultLine.append(evidence);
     resultLine.style.display = 'block';
   }
 
