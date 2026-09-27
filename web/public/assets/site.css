@@ -1492,3 +1492,162 @@ section .sub, section .prose { max-width: 46ch; }
 .heal-stick { max-width: var(--wrap); padding-left: var(--gutter); padding-right: var(--gutter); }
 /* The proof gallery snapped its first card to the gallery edge (200 px) instead of the column (248 px). */
 #proof .gallery { scroll-padding-left: var(--gutter); scroll-padding-right: var(--gutter); }
+
+/* ── HUMBLE Initial Loader & First Frame Reveal ─────────────────────────── */
+.humble-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(to right, color-mix(in srgb, var(--brand-line) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--brand-line) 14%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  user-select: none;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.loader-top {
+  height: 64px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.loader-top .wrap {
+  width: 100%;
+}
+
+.loader-mark {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.loader-brand-svg {
+  display: block;
+  height: 26px;
+  width: auto;
+  color: var(--ink);
+  fill: currentColor;
+}
+
+.loader-brand-svg .draw-path {
+  fill: var(--ink);
+  fill-opacity: 0;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: loaderDrawMark 450ms cubic-bezier(0.23, 1, 0.32, 1) forwards,
+             loaderFillMark 180ms ease 350ms forwards;
+}
+
+@keyframes loaderDrawMark {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes loaderFillMark {
+  to { fill-opacity: 1; }
+}
+
+.loader-wink-group {
+  transform-origin: 167px 35px;
+  animation: loaderWinkTick 180ms cubic-bezier(0.34, 1.56, 0.64, 1) 380ms forwards;
+}
+
+@keyframes loaderWinkTick {
+  0% { transform: rotate(0deg); }
+  45% { transform: rotate(14deg) scale(1.08); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.loader-wordmark-group {
+  opacity: 0;
+  transform: translateX(-8px);
+  animation: loaderWordmarkIn 250ms cubic-bezier(0.23, 1, 0.32, 1) 400ms forwards;
+}
+
+@keyframes loaderWordmarkIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.loader-hero {
+  padding-top: clamp(72px, 12vw, 150px);
+  width: 100%;
+  flex: 1;
+}
+
+.loader-hero .wrap {
+  width: 100%;
+}
+
+.loader-hero .eyebrow {
+  font-size: 13px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 20px;
+}
+
+.loader-hero h1 {
+  font-size: clamp(48px, 6.8vw, 84px);
+  letter-spacing: -0.032em;
+  font-weight: 700;
+  line-height: 1.04;
+  margin: 0;
+  color: var(--ink);
+}
+
+.loader-fade {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: loaderFadeUp 300ms cubic-bezier(0.23, 1, 0.32, 1) 350ms forwards;
+}
+
+.loader-delay {
+  animation-delay: 450ms;
+}
+
+@keyframes loaderFadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.humble-loader.closing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-brand-svg .draw-path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    fill-opacity: 1 !important;
+  }
+  .loader-wink-group, .loader-wordmark-group, .loader-fade {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .humble-loader.closing {
+    transition: opacity 120ms ease !important;
+  }
+}
+

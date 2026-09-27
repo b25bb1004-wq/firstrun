@@ -1,87 +1,110 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-think" aria-label="HUMBLE Robot: Thinking">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-think" aria-label="HUMBLE Lamplighter: Think">
   <defs>
-    <filter id="blur-think" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
-    <filter id="bloom-think" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="1.2" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="hb-blur-think" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
     </filter>
-    <pattern id="lines-think" width="4" height="4" patternUnits="userSpaceOnUse">
-      <rect width="4" height="1.2" fill="#ffc47a" opacity="0.09"/>
-    </pattern>
-    <clipPath id="scr-think"><rect x="46" y="34" width="108" height="80" rx="18"/></clipPath>
+    <radialGradient id="hb-disc-think" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#ff9a3c" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hb-lantern-think" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#ff9a3c" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#e0701c" stop-opacity="0.4"/>
+    </radialGradient>
+    <linearGradient id="hb-body-think" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe6"/>
+      <stop offset="100%" stop-color="#dbd0be"/>
+    </linearGradient>
   </defs>
   <style>
     :root {
-      --core: #ff9a3c; --hi: #ffc47a; --deep: #e0701c;
-      --out: #3a1c0a; --screen: #2a1406; --blue: #2440ff; --pink: #ff2d87;
+      --robot-core: #ff9a3c; --robot-hi: #ffc47a; --robot-deep: #e0701c;
+      --robot-out: #2b2622; --robot-screen: #2a1406; --robot-blue: #2440ff; --robot-pink: #ff2d87;
     }
-    .halo { filter: url(#blur-think); opacity: 0.38; }
-    .bot-head { transform-origin: 100px 124px; animation: hb-think-tilt 2.4s ease-in-out infinite; }
-    .antenna-ball { animation: hb-think-pulse 1.6s ease-in-out infinite alternate; }
+    .bot-think-float { animation: hb-think-float 2.8s ease-in-out infinite alternate; }
+    .bot-head-think { animation: hb-think-tilt 2.4s ease-in-out infinite alternate; transform-origin: 100px 114px; }
+    .antenna-ball-think { animation: hb-think-pulse 1.4s ease-in-out infinite alternate; }
+    @keyframes hb-think-float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-4px); }
+    }
     @keyframes hb-think-tilt {
-      0%, 100% { transform: rotate(-5deg); }
-      50% { transform: rotate(4deg); }
+      0% { transform: rotate(-5deg); }
+      100% { transform: rotate(6deg); }
     }
     @keyframes hb-think-pulse {
-      0% { fill: var(--hi, #ffc47a); filter: drop-shadow(0 0 4px var(--hi, #ffc47a)); }
-      100% { fill: var(--blue, #2440ff); filter: drop-shadow(0 0 8px var(--blue, #2440ff)); }
+      0% { fill: #ff9a3c; }
+      100% { fill: #4589ff; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bot-head, .antenna-ball { animation: none !important; }
+      .bot-think-float, .bot-head-think, .antenna-ball-think { animation: none !important; }
     }
   </style>
-  <g class="bot-body">
-    <!-- Amber halo glow -->
-    <g class="halo" fill="var(--core, #ff9a3c)">
-      <rect x="32" y="20" width="136" height="108" rx="30"/>
-      <ellipse cx="100" cy="170" rx="44" ry="40"/>
-    </g>
-    <!-- Legs (rubber hose) -->
-    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="9" stroke-linecap="round">
-      <path d="M86 196 Q84 214 80 228"/>
-      <path d="M114 196 Q116 214 120 228"/>
-    </g>
-    <g fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
-      <ellipse cx="76" cy="231" rx="13" ry="7"/>
-      <ellipse cx="124" cy="231" rx="13" ry="7"/>
-    </g>
-    <!-- Body & chest light -->
-    <path d="M100 136 C128 136 140 158 138 178 C136 198 120 206 100 206 C80 206 64 198 62 178 C60 158 72 136 100 136Z" fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
-    <circle cx="100" cy="168" r="7" fill="var(--hi, #ffc47a)" filter="url(#bloom-think)"/>
-    <!-- Thoughtful arm pose: left hand near chin, right arm resting -->
-    <g fill="none" stroke="var(--out, #3a1c0a)" stroke-width="8" stroke-linecap="round">
-      <path d="M66 158 Q52 142 66 122"/>
-      <path d="M134 158 Q152 170 154 188"/>
-    </g>
-    <g fill="var(--core, #ff9a3c)" stroke="var(--out, #3a1c0a)" stroke-width="3">
-      <circle cx="68" cy="120" r="9"/>
-      <circle cx="154" cy="192" r="9"/>
-    </g>
-    <!-- Neck -->
-    <rect x="88" y="124" width="24" height="14" rx="4" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3"/>
-    <!-- Head: CRT screen with tilt animation -->
-    <g class="bot-head">
-      <rect x="36" y="24" width="128" height="100" rx="28" fill="var(--deep, #e0701c)" stroke="var(--out, #3a1c0a)" stroke-width="3.5"/>
-      <rect x="46" y="34" width="108" height="80" rx="18" fill="var(--screen, #2a1406)"/>
-      <g clip-path="url(#scr-think)">
-        <g filter="url(#bloom-think)" stroke-linecap="round" fill="none">
-          <!-- Focused upward-left looking eyes -->
-          <g fill="var(--hi, #ffc47a)">
-            <ellipse cx="76" cy="66" rx="9" ry="9"/>
-            <ellipse cx="116" cy="66" rx="9" ry="9"/>
-          </g>
-          <!-- Concentrated pensive mouth -->
-          <path d="M86 96 L114 96" stroke="var(--hi, #ffc47a)" stroke-width="4"/>
-        </g>
-        <rect x="46" y="34" width="108" height="80" fill="url(#lines-think)"/>
-      </g>
-      <!-- Glass glare -->
-      <rect x="54" y="40" width="30" height="8" rx="4" fill="#ffffff" opacity="0.08"/>
-      <!-- Antenna with pulsing bulb -->
-      <g id="ant">
-        <path d="M100 24 L94 4" stroke="var(--out, #3a1c0a)" stroke-width="4" stroke-linecap="round"/>
-        <circle class="antenna-ball hb-antenna-ball" cx="93" cy="2" r="8" fill="var(--hi, #ffc47a)" stroke="var(--out, #3a1c0a)" stroke-width="3" filter="url(#bloom-think)"/>
-      </g>
+
+  <!-- Hover disc on floor -->
+  <ellipse cx="100" cy="236" rx="34" ry="6" fill="url(#hb-disc-think)"/>
+
+  <g class="bot-think-float">
+    <!-- Backpack (behind body) with agent cartridges -->
+    <rect x="74" y="128" width="52" height="48" rx="8" fill="#242b35" stroke="var(--robot-out)" stroke-width="3"/>
+    <rect x="78" y="134" width="7" height="12" rx="2" fill="#4589ff"/>
+    <rect x="89" y="134" width="7" height="12" rx="2" fill="#8a3ffc"/>
+    <rect x="100" y="134" width="7" height="12" rx="2" fill="#0072c3"/>
+    <rect x="111" y="134" width="7" height="12" rx="2" fill="#fa4d56"/>
+    <rect x="84" y="152" width="7" height="12" rx="2" fill="#1192e8"/>
+    <rect x="95" y="152" width="7" height="12" rx="2" fill="#009d9a"/>
+
+    <!-- Left Arm (resting) -->
+    <path d="M62 144 Q46 166 52 188" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="53" cy="189" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Right Arm (raised to chin/cheek in thought) -->
+    <path d="M138 144 Q158 132 138 116" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="135" cy="114" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Capsule Body -->
+    <rect x="58" y="122" width="84" height="92" rx="42" fill="url(#hb-body-think)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Glowing Belly Lantern -->
+    <path d="M74 168 C74 150 86 142 100 142 C114 142 126 150 126 168 C126 186 114 196 100 196 C86 196 74 186 74 168 Z"
+          fill="url(#hb-lantern-think)" stroke="var(--robot-out)" stroke-width="2.5"/>
+    <circle cx="100" cy="168" r="14" fill="#ffc47a" opacity="0.65" filter="url(#hb-blur-think)"/>
+
+    <!-- Receipt slot mouth with small tip poking out -->
+    <rect x="86" y="132" width="28" height="3" rx="1.5" fill="#2b2622"/>
+    <rect x="92" y="135" width="16" height="5" rx="1" fill="#ffffff" stroke="#2b2622" stroke-width="1"/>
+
+    <!-- Telescoping neck (segmented collar rings) -->
+    <rect x="88" y="110" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="85" y="114" width="30" height="4" rx="2" fill="#887b6d" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="88" y="118" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Tilted Head Dome (inquisitive) -->
+    <g class="bot-head-think">
+      <path d="M56 82 C56 52 74 38 100 38 C126 38 144 52 144 82 C144 104 128 112 100 112 C72 112 56 104 56 82 Z"
+            fill="url(#hb-body-think)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+      <!-- Top antenna curl -->
+      <path d="M100 38 C98 24 106 18 104 12" fill="none" stroke="var(--robot-out)" stroke-width="3.5" stroke-linecap="round"/>
+      <circle class="antenna-ball-think" cx="104" cy="11" r="5" fill="#ff9a3c" stroke="var(--robot-out)" stroke-width="2"/>
+
+      <!-- Dark Goggle Faceplate -->
+      <rect x="66" y="58" width="68" height="38" rx="19" fill="#1e1814" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+      <!-- Dual Camera Eyes (looking up & right in thought) -->
+      <!-- Left Lens -->
+      <circle cx="83" cy="77" r="14" fill="#2d2218" stroke="#ffaa33" stroke-width="2"/>
+      <circle cx="86" cy="74" r="7" fill="#ffaa33"/>
+      <circle cx="87" cy="73" r="3.5" fill="#1e1814"/>
+      <circle cx="89" cy="71" r="2" fill="#ffffff"/>
+
+      <!-- Right Lens -->
+      <circle cx="117" cy="77" r="14" fill="#2d2218" stroke="#ffaa33" stroke-width="2"/>
+      <circle cx="120" cy="74" r="7" fill="#ffaa33"/>
+      <circle cx="121" cy="73" r="3.5" fill="#1e1814"/>
+      <circle cx="123" cy="71" r="2" fill="#ffffff"/>
     </g>
   </g>
 </svg>
