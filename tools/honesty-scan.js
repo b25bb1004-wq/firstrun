@@ -329,18 +329,23 @@ function findViolations(filePath, content) {
         const text = match.slice(1, -1); // remove > and <
         
         const sampleIndicators = [
-          /acme-shop/i, /demo/i, /example/i, /sample/i, /placeholder/i
+          /\bacme-shop\b/i, /\bdemo\b/i, /\bexample\b/i, /\bsample\b/i, /\bplaceholder\b/i
         ];
         
         for (const indicator of sampleIndicators) {
           if (indicator.test(text)) {
-            // Check if there's a badge nearby
+            // Check if there's a badge in the SAME line (e.g., <span class="prove-tag">[recorded run]</span> acme-shop demo)
+            const hasBadgeInLine = line.includes('[recorded run]') || line.includes('[sample data]');
+            
+            // Also check nearby lines for badge
             const contextStart = Math.max(0, i - 3);
             const contextEnd = Math.min(lines.length, i + 4);
             const context = lines.slice(contextStart, contextEnd).join('\n');
-            if (context.includes('[recorded run]') || context.includes('[sample data]') ||
+            const hasBadgeNearby = context.includes('[recorded run]') || context.includes('[sample data]') ||
                 context.includes('data-badge') || context.includes('badge') ||
-                context.includes('evidenceLink') || context.includes('recorded')) {
+                context.includes('evidenceLink') || context.includes('recorded');
+            
+            if (hasBadgeInLine || hasBadgeNearby) {
               continue;
             }
             
@@ -348,7 +353,7 @@ function findViolations(filePath, content) {
               file: filePath.replace(ROOT + '/', ''),
               line: lineNum,
               type: 'missing_sample_badge',
-              message: `Sample/demo data indicator "${indicator.source.replace(/\\\//g, '')}" in visible text lacks visible [recorded run] or [sample data] badge in same component`,
+              message: `Sample/demo data indicator "${indicator.source.replace(/\\//g, '')}" in visible text lacks visible [recorded run] or [sample data] badge in same component`,
               snippet: line.trim().slice(0, 120)
             });
             break;
