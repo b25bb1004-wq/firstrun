@@ -1,0 +1,157 @@
+name: 'HUMBLE README CI'
+description: 'Run HUMBLE verify on a repo and fail PR when setup docs break'
+author: 'HUMBLE team'
+
+inputs:
+  repo-path:
+    description: 'Path to the repository to verify (relative to workspace root)'
+    required: false
+    default: '.'
+  mode:
+    description: 'verify or fix'
+    required: false
+    default: 'verify'
+  fail-on:
+    description: 'Comma-separated list of verdicts that fail the workflow'
+    required: false
+    default: 'FAILED'
+  bob-key:
+    description: 'IBM Bob API key (optional, for doctor calls that need reasoning)'
+    required: false
+  time-limit:
+    description: 'Maximum minutes to run the verification'
+    required: false
+    default: '20'
+
+outputs:
+  verdict:
+    description: 'The passport verdict (VERIFIED, PARTIAL, FAILED, INCONCLUSIVE)'
+    value: ${{ steps.humble.outputs.verdict }}
+  run-dir:
+    description: 'Path to the run directory (artifact)'
+    value: ${{ steps.humble.outputs.run-dir }}
+  breaks-found:
+    description: 'Number of setup breaks found'
+    value: ${{ steps.humble.outputs.breaks-found }}
+  breaks-fixed:
+    description: 'Number of setup breaks fixed with evidence'
+    value: ${{ steps.humble.outputs.breaks-fixed }}
+  replay-seconds:
+    description: 'Clone-to-running time of repaired guide from zero'
+    value: ${{ steps.humble.outputs.replay-seconds }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install HUMBLE
+      shell: bash
+      run: |
+        npm ci
+      working-directory: ${{ inputs.repo-path }}
+
+    - name: Run HUMBLE verify
+      id: humble
+      shell: bash
+      env:
+        BOB_API_KEY: ${{ inputs.bob-key }}
+      run: |
+        set -euo pipefail
+        TIME_LIMIT=${{ inputs.time-limit }}
+        MODE=${{ inputs.mode }}
+        FAIL_ON="${{ inputs.fail-on }}"
+        
+        # Run HUMBLE verify
+        npx firstrun verify "${{ inputs.repo-path }}" --max-minutes "$TIME_LIMIT" --out .firstrun-ci
+        
+        # Extract outputs from passport.json
+        PASSPORT=".firstrun-ci/out/passport.json"
+        if [ -f "$PASSPORT" ]; then
+          VERDICT=$(jq -r '.verdict' "$PASSPORT")
+          BREAKS_FOUND=$(jq -r '.breaksFound' "$PASSPORT")
+          BREAKS_FIXED=$(jq -r '.breaksFixed' "$PASSPORT")
+          REPLAY_SECONDS=$(jq -r '.replaySeconds' "$PASSPORT")
+          echo "verdict=$VERDICT" >> $GITHUB_OUTPUT
+          echo "breaks-found=$BREAKS_FOUND" >> $GITHUB_OUTPUT
+          echo "breaks-fixed=$BREAKS_FIXED" >> $GITHUB_OUTPUT
+          echo "replay-seconds=$REPLAY_SECONDS" >> $GITHUB_OUTPUT
+        else
+          echo "verdict=ERROR" >> $GITHUB_OUTPUT
+          echo "breaks-found=0" >> $GITHUB_OUTPUT
+          echo "breaks-fixed=0" >> $GITHUB_OUTPUT
+          echo "replay-seconds=0" >> $GITHUB_OUTPUT
+        fi
+        echo "run-dir=.firstrun-ci" >> $GITHUB_OUTPUT
+        
+        # Check if verdict should fail
+        if [[ ",$FAIL_ON," == *",$VERDICT,"* ]]; then
+          echo "::error::HUMBLE verdict is $VERDICT (fail-on includes $FAIL_ON)"
+          exit 1
+        fi
+
+    - name: Upload run directory as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: humble-run
+        path: ${{ inputs.repo-path }}/.firstrun-ci
+        retention-days: 7
+
+    - name: Build PR comment
+      if: github.event_name == 'pull_request'
+      id: comment
+      shell: bash
+      run: |
+        node src/ci/comment.js "${{ inputs.repo-path }}/.firstrun-ci" "${{ github.event.pull_request.number }}" "${{ github.repository }}" "${{ github.actor }}" "${{ github.event.pull_request.head.sha }}" "${{ github.event.pull_request.base.sha }}"
+
+    - name: Post PR comment
+      if: github.event_name == 'pull_request' && steps.comment.outputs.body != ''
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const body = `${{ steps.comment.outputs.body }}`
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body: body
+          })
+
+    - name: Mode fix - create fix branch and PR
+      if: inputs.mode == 'fix' && steps.humble.outputs.verdict == 'VERIFIED'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        REPO_PATH="${{ inputs.repo-path }}"
+        RUN_DIR="$REPO_PATH/.firstrun-ci"
+        
+        # Get the corrected README
+        CORRECTED_README="$RUN_DIR/out/README.md"
+        if [ ! -f "$CORRECTED_README" ]; then
+          echo "No corrected README found"
+          exit 1
+        fi
+        
+        # Create branch
+        BRANCH="humble/fix-readme-$(date +%s)"
+        git -C "$REPO_PATH" checkout -b "$BRANCH"
+        
+        # Apply the fix
+        cp "$CORRECTED_README" "$REPO_PATH/README.md"
+        
+        # Commit
+        git -C "$REPO_PATH" add README.md
+        git -C "$REPO_PATH" -c user.name='Arnav Yadav' -c user.email='b25bb1004@iitj.ac.in' commit -m "docs: fix README setup breaks (HUMBLE verified)"
+        
+        # Push
+        git -C "$REPO_PATH" push -u origin "$BRANCH"
+        
+        # Open PR
+        PR_BODY=$(cat "$RUN_DIR/out/FIRSTRUN.md")
+        gh pr create --repo "${{ github.repository }}" --base main --head "$BRANCH" --title "HUMBLE: fix README setup breaks" --body "$PR_BODY"
