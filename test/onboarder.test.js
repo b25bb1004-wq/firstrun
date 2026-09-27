@@ -198,7 +198,7 @@ test('buildReport: classifies fake host facts object correctly', () => {
   for (const step of report.steps) {
     assert.ok(step.id, 'step must have id');
     assert.ok(step.title, 'step must have title');
-    assert.ok(['satisfied', 'pending', 'needs-human', 'skipped', 'gap'].includes(step.status),
+    assert.ok(['satisfied', 'pending', 'needs-human', 'skipped', 'gap', 'manual'].includes(step.status),
       `step ${step.id} status must be valid, got ${step.status}`);
     assert.ok(step.reason, 'step must have reason');
   }

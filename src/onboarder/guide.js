@@ -212,10 +212,8 @@ function getTimeoutMs(kind) {
 }
 
 function getPlatform(step) {
-  // All steps proven on Linux
-  // For now, mark all as proven on all platforms (they're shell commands)
-  // In reality, some commands need translation on Windows
-  return { linux: 'proven', darwin: 'proven', win32: 'translated' };
+  // The saved command is proven on Linux; other hosts require an explicit translation.
+  return { linux: 'proven', darwin: 'translated', win32: 'translated' };
 }
 
 function buildWhy(step, evidence) {
