@@ -124,10 +124,13 @@ describe('Honesty Gate - Data Traceability', () => {
     const indexHtml = resolve(ROOT, 'web/public/index.html');
     const content = readFileSync(indexHtml, 'utf-8');
     
-    // Check that data-count attributes exist for the stats
-    assert.ok(content.includes('data-count="16"'), '16 public repos stat should have data-count');
-    assert.ok(content.includes('data-count="9"'), '9 of 14 stat should have data-count');
-    assert.ok(content.includes('data-count="11"'), '11 breaks fixed stat should have data-count');
+    // The headline stats must carry data-count and equal the published audit's own summary
+    const audit = JSON.parse(readFileSync(resolve(ROOT, 'audit/v2-31-final/audit.json'), 'utf-8'));
+    const s = audit.summary;
+    const withDocs = audit.repos.filter((r) => r.verdict !== 'NO-SETUP-DOCS').length;
+    assert.ok(content.includes(`data-count="${s.total}" data-stat="total"`), `repos audited stat should be data-count="${s.total}"`);
+    assert.ok(content.includes(`data-count="${s.brokeOnCleanMachine}" data-suffix=" of ${withDocs}" data-stat="broke"`), `broke stat should be ${s.brokeOnCleanMachine} of ${withDocs}`);
+    assert.ok(content.includes(`data-count="${s.breaksFixed}" data-stat="fixed"`), `breaks fixed stat should be data-count="${s.breaksFixed}"`);
     
     // Check the footnote references the audit
     assert.ok(content.includes('/audit'), 'Should reference audit page for numbers');
