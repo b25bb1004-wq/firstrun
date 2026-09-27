@@ -1,0 +1,21 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -9,6 +9,8 @@ _This is an example project using the structure proposed in [this blog post](htt
+ 
+ ## Running the app
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.7` machine at `744239535f`.
++
+ Preferably, first create a virtualenv and activate it, perhaps with the following command:
+ 
+ ```
+@@ -20,6 +22,8 @@ Next, run
+ 
+ ```
+ pip install -r requirements.txt
++pip install "cython<3.0" "setuptools<58" wheel && pip install --no-build-isolation -r requirements.txt
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ to get the dependencies.

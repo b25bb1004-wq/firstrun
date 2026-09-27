@@ -1,0 +1,466 @@
+{
+  "id": "factory-2-nerdeveloper__hackathon-starter-kit",
+  "repo": "nerdeveloper/hackathon-starter-kit",
+  "commit": "d129ad7465+dirty",
+  "startedAt": "2026-09-27T12:26:15.662Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S4": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S5": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S6": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "file .env.variable.env",
+      "docs": "cp .env.variable.env variable.env",
+      "truth": "does not exist in the repo",
+      "source": "README.md:108"
+    },
+    {
+      "what": "env var SESSION_NAME",
+      "docs": "not documented",
+      "truth": "read in src/app.ts:47",
+      "source": "README"
+    },
+    {
+      "what": "env var SENDGRID_USERNAME",
+      "docs": "not documented",
+      "truth": "read in src/handlers/mail.ts:8",
+      "source": "README"
+    },
+    {
+      "what": "env var SENDGRID_PASSWORD",
+      "docs": "not documented",
+      "truth": "read in src/handlers/mail.ts:9",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:36",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:37",
+      "source": "README"
+    },
+    {
+      "what": "env var GITHUB_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:65",
+      "source": "README"
+    },
+    {
+      "what": "env var GITHUB_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:66",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_CONSUMER_KEY",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:96",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_CONSUMER_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:97",
+      "source": "README"
+    },
+    {
+      "what": "env var FACEBOOK_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:126",
+      "source": "README"
+    },
+    {
+      "what": "env var FACEBOOK_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:127",
+      "source": "README"
+    },
+    {
+      "what": "env var LINKEDIN_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:156",
+      "source": "README"
+    },
+    {
+      "what": "env var LINKEDIN_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:157",
+      "source": "README"
+    },
+    {
+      "what": "env var DROPBOX_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:190",
+      "source": "README"
+    },
+    {
+      "what": "env var DROPBOX_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:191",
+      "source": "README"
+    },
+    {
+      "what": "env var DISCORD_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:220",
+      "source": "README"
+    },
+    {
+      "what": "env var DISCORD_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:221",
+      "source": "README"
+    },
+    {
+      "what": "env var SLACK_CLIENT_ID",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:251",
+      "source": "README"
+    },
+    {
+      "what": "env var SLACK_CLIENT_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/handlers/passport.ts:252",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "nerdeveloper/hackathon-starter-kit",
+    "commit": "d129ad7465+dirty",
+    "image": "node:10",
+    "runtime": {
+      "name": "node",
+      "version": "10",
+      "source": "README.md:86 (\"Node.js 10.0+\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/nerdeveloper/hackathon-starter-kit.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 102,
+          "endLine": 102,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "skip": "git clone: HUMBLE starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd hackathon-starter-kit",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 105,
+          "endLine": 105,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "cp env.variable.env variable.env",
+        "kind": "env",
+        "source": {
+          "file": "README.md",
+          "line": 108,
+          "endLine": 108,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "readmeCommand": "cp .env.variable.env variable.env",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S4",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 116,
+          "endLine": 116,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S5",
+        "command": "npm start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 119,
+          "endLine": 119,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "needs-human"
+      },
+      {
+        "id": "S6",
+        "command": "npm i -g ngrok",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 128,
+          "endLine": 128,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "status": "blocked",
+        "blockedBy": "S5"
+      },
+      {
+        "id": "S7",
+        "command": "ngrok http 3000",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 131,
+          "endLine": 131,
+          "section": "Hackathon Starter Kit(Node-Typescript/Express) › Getting Started › Setting up manually"
+        },
+        "origin": "readme",
+        "skip": "usage example: `ngrok` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S8",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "package.json",
+          "line": 0,
+          "section": "scripts.test"
+        },
+        "origin": "package",
+        "synthetic": "the package's own test script",
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "file .env.variable.env",
+        "docs": "cp .env.variable.env variable.env",
+        "truth": "does not exist in the repo",
+        "source": "README.md:108"
+      },
+      {
+        "what": "env var SESSION_NAME",
+        "docs": "not documented",
+        "truth": "read in src/app.ts:47",
+        "source": "README"
+      },
+      {
+        "what": "env var SENDGRID_USERNAME",
+        "docs": "not documented",
+        "truth": "read in src/handlers/mail.ts:8",
+        "source": "README"
+      },
+      {
+        "what": "env var SENDGRID_PASSWORD",
+        "docs": "not documented",
+        "truth": "read in src/handlers/mail.ts:9",
+        "source": "README"
+      },
+      {
+        "what": "env var GOOGLE_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:36",
+        "source": "README"
+      },
+      {
+        "what": "env var GOOGLE_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:37",
+        "source": "README"
+      },
+      {
+        "what": "env var GITHUB_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:65",
+        "source": "README"
+      },
+      {
+        "what": "env var GITHUB_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:66",
+        "source": "README"
+      },
+      {
+        "what": "env var TWITTER_CONSUMER_KEY",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:96",
+        "source": "README"
+      },
+      {
+        "what": "env var TWITTER_CONSUMER_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:97",
+        "source": "README"
+      },
+      {
+        "what": "env var FACEBOOK_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:126",
+        "source": "README"
+      },
+      {
+        "what": "env var FACEBOOK_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:127",
+        "source": "README"
+      },
+      {
+        "what": "env var LINKEDIN_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:156",
+        "source": "README"
+      },
+      {
+        "what": "env var LINKEDIN_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:157",
+        "source": "README"
+      },
+      {
+        "what": "env var DROPBOX_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:190",
+        "source": "README"
+      },
+      {
+        "what": "env var DROPBOX_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:191",
+        "source": "README"
+      },
+      {
+        "what": "env var DISCORD_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:220",
+        "source": "README"
+      },
+      {
+        "what": "env var DISCORD_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:221",
+        "source": "README"
+      },
+      {
+        "what": "env var SLACK_CLIENT_ID",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:251",
+        "source": "README"
+      },
+      {
+        "what": "env var SLACK_CLIENT_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/handlers/passport.ts:252",
+        "source": "README"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/status",
+      "fromDocs": true
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:10",
+    "originalRuntime": {
+      "name": "node",
+      "version": "10",
+      "source": "README.md:86 (\"Node.js 10.0+\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 20318
+  },
+  "passport": {
+    "repo": "nerdeveloper/hackathon-starter-kit",
+    "commit": "d129ad7465+dirty",
+    "verifiedAt": "2026-09-27T12:28:31.340Z",
+    "verdict": "PARTIAL",
+    "image": "node:10",
+    "runtime": "Node.js 10",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 1,
+    "breaksFixed": 1,
+    "needsHuman": 2,
+    "repoBreaks": 1,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 2,
+    "replaySeconds": 20,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/status",
+      "fromDocs": true
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T12:28:31.465Z"
+}

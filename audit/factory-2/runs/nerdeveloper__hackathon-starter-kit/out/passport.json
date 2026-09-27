@@ -1,0 +1,27 @@
+{
+  "repo": "nerdeveloper/hackathon-starter-kit",
+  "commit": "d129ad7465+dirty",
+  "verifiedAt": "2026-09-27T12:28:31.340Z",
+  "verdict": "PARTIAL",
+  "image": "node:10",
+  "runtime": "Node.js 10",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 2,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 2,
+  "replaySeconds": 20,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/status",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

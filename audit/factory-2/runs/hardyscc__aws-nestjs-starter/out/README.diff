@@ -1,0 +1,59 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,5 +1,7 @@
+ # Serverless, AWS, NestJS, GraphQL and DynamoDB starter
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `2e312502fc`: clone to running in 34s.
++
+ <p>
+ <a href="https://github.com/hardyscc/aws-nestjs-starter/actions"><img src="https://github.com/hardyscc/aws-nestjs-starter/workflows/Node.js%20CI/badge.svg" alt="CI"></a>
+ <a href="https://sonarcloud.io/dashboard?id=hardyscc_aws-nestjs-starter"><img src="https://sonarcloud.io/api/project_badges/measure?project=hardyscc_aws-nestjs-starter&metric=alert_status" alt="Alert Status"></a>
+@@ -59,6 +61,7 @@ Config AWS CLI
+ 
+ ```bash
+ $ aws configure
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ AWS Access Key ID [****************TKYQ]:
+ AWS Secret Access Key [****************yNO2]:
+@@ -80,6 +83,7 @@ $ npm run deploy
+ ```bash
+ # download dynamodb local into .dynamodb folder
+ $ npm run ddb:install
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ## Local Offline Development
+@@ -87,6 +91,7 @@ $ npm run ddb:install
+ ```bash
+ # start dynamodb local
+ $ npm run ddb:start
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # start serverless-offline server
+ $ npm run sls:offline
+@@ -100,6 +105,7 @@ $ npm run sls:online
+ ```bash
+ # start dynamodb local
+ $ npm run ddb:start
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # start local nestjs server
+ $ npm start
+@@ -123,6 +129,7 @@ $ npm run genres
+ ```bash
+ # run unit test
+ $ npm test
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # run unit test with coverage
+ $ npm run test:cov
+@@ -133,6 +140,7 @@ $ npm run test:cov
+ ```bash
+ # start dynamodb local
+ $ npm run ddb:start
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # run unit test with coverage
+ $ npm run test:e2e

@@ -1,0 +1,29 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T12:26:12.029Z",
+  "commit": "6da20f9302",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "docker compose up -d pgsqldb",
+      "kind": "services",
+      "origin": "repair"
+    }
+  ],
+  "knownFailures": []
+}

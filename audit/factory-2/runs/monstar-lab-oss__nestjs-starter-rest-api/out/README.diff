@@ -1,0 +1,33 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -43,6 +43,8 @@ If you would like to use a more feature rich starter kit, with more awesome feat
+ 
+ ## Installation
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `6da20f9302`.
++
+ Note: when using docker, all the `npm` commands can also be performed using `./scripts/npm` (for example `./scripts/npm install`).
+ This script allows you to run the same commands inside the same environment and versions than the service, without relying on what is installed on the host.
+ 
+@@ -116,6 +118,7 @@ $ npm run start:dev
+ 
+ # production mode
+ $ npm run start:prod
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ### Docker
+@@ -138,9 +141,12 @@ Learn more about Docker conventions [here](https://github.com/monstar-lab-group/
+ ```bash
+ # unit tests
+ $ npm run test
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # e2e tests
++$ docker compose up -d pgsqldb
+ $ npm run test:e2e
++# HUMBLE: this step still fails on a clean machine: The test suite runs, but 30 of 30 tests fail on a clean setup. The failures are database connection or permission errors: the tests expect a database set up differently from the one the docs start.
+ 
+ # test coverage
+ $ npm run test:cov

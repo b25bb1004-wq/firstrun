@@ -1,0 +1,27 @@
+{
+  "repo": "mongodb-developer/mern-stack-example",
+  "commit": "6a5e9397b1",
+  "verifiedAt": "2026-09-27T12:21:28.832Z",
+  "verdict": "INCONCLUSIVE",
+  "image": "node:20",
+  "runtime": "Node.js 20",
+  "stepsTotal": 7,
+  "stepsFromReadme": 7,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 2,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5173/",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

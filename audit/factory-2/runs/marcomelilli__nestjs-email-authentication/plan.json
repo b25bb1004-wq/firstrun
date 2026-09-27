@@ -1,0 +1,99 @@
+{
+  "repo": "marcomelilli/nestjs-email-authentication",
+  "commit": "d8fbaadc1e",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 11,
+        "endLine": 11,
+        "section": "Getting started"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "readmeCommand": "npm install",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "R1",
+      "command": "docker compose up -d mongo",
+      "kind": "services",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": "README.md",
+        "line": 12,
+        "endLine": 12,
+        "section": "Getting started",
+        "insertedBefore": "S2"
+      },
+      "silent": true
+    },
+    {
+      "id": "S2",
+      "command": "npm run start",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 12,
+        "endLine": 12,
+        "section": "Getting started"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "repaired",
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo",
+          "env": {
+            "MONGO_INITDB_ROOT_USERNAME": "root",
+            "MONGO_INITDB_ROOT_PASSWORD": "example"
+          },
+          "port": 27017,
+          "volumes": [
+            "mongodata:/data/db"
+          ],
+          "composeDir": null
+        }
+      ],
+      "evidence": [
+        "E2"
+      ],
+      "probe": {
+        "status": 200,
+        "body": "Hello World!"
+      }
+    }
+  ],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

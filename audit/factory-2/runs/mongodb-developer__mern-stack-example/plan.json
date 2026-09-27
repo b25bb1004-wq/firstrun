@@ -1,0 +1,179 @@
+{
+  "repo": "mongodb-developer/mern-stack-example",
+  "commit": "6a5e9397b1",
+  "image": "node:20",
+  "runtime": {
+    "name": "node",
+    "version": "20",
+    "source": "README.md:55 (\"Node.js 20+\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm 9+",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 56,
+        "endLine": 56,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Prerequisites"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S2",
+      "command": "git clone https://github.com/mongodb-developer/mern-stack-example.git",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 63,
+        "endLine": 63,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "skip": "git clone: HUMBLE starts from a fresh clone already",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "cd mern-stack-example",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 64,
+        "endLine": 64,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "skip": "cd into the clone: already there",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "cp mern/server/config.env.example mern/server/config.env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 67,
+        "endLine": 67,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S5",
+      "command": "cd mern/server && node seed.js",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 84,
+        "endLine": 84,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    },
+    {
+      "id": "S6",
+      "command": "cd mern/server",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 90,
+        "endLine": 90,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S7",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 91,
+        "endLine": 91,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S8",
+      "command": "npm start",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 92,
+        "endLine": 92,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"npm run dev\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S9",
+      "command": "cd mern/client",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 98,
+        "endLine": 98,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S10",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 99,
+        "endLine": 99,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "skip": "alternative to the step above (package manager install)",
+      "status": "skipped"
+    },
+    {
+      "id": "S11",
+      "command": "npm run dev",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 100,
+        "endLine": 100,
+        "section": "MERN Stack Example: Employee Records App (MongoDB Atlas, Express, React, Node.js) › Quick Start and MongoDB Setup"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 5173
+      },
+      "status": "blocked"
+    }
+  ],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5173/",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:20",
+  "originalRuntime": {
+    "name": "node",
+    "version": "20",
+    "source": "README.md:55 (\"Node.js 20+\")"
+  }
+}

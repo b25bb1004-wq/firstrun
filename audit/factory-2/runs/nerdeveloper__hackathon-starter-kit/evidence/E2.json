@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "npm start",
+    "exitCode": 1,
+    "durationMs": 14098,
+    "logTail": "[] TypeError: OAuth2Strategy requires a clientID option\n[]     at Strategy.OAuth2Strategy (/workspace/node_modules/passport-oauth2/lib/strategy.js:86:34)\n[]     at new Strategy (/workspace/node_modules/passport-google-oauth20/lib/strategy.js:52:18)\n[]     at Object.<anonymous> (/workspace/dist/handlers/passport.js:35:24)\n[]     at Module._compile (internal/modules/cjs/loader.js:778:30)\n[]     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n[]     at Module.load (internal/modules/cjs/loader.js:653:32)\n[]     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n[]     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n[]     at Module.require (internal/modules/cjs/loader.js:692:17)\n[]     at require (internal/modules/cjs/helpers.js:25:18)\n[]     at Object.<anonymous> (/workspace/dist/controllers/authController.js:18:1)\n[]     at Module._compile (internal/modules/cjs/loader.js:778:30)\n[]     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n[]     at Module.load (internal/modules/cjs/loader.js:653:32)\n[]     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n[]     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n[] [nodemon] app crashed - waiting for file changes before starting...\n[] [nodemon] restarting due to changes...\n[] [nodemon] starting `node dist/server.js --public`\n[] [nodemon] restarting due to changes...\n[] [nodemon] starting `node dist/server.js --public`\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] starting `node dist/server.js --public`\n[] [nodemon] restarting due to changes...\n[📦] \n[📦] 12:27:56 PM - Found 0 errors. Watching for file changes.\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] restarting due to changes...\n[] [nodemon] starting `node dist/server.js --public`\n[] /workspace/node_modules/passport-oauth2/lib/strategy.js:86\n[]   if (!options.clientID) { throw new TypeError('OAuth2Strategy requires a clientID option'); }\n[]                            ^\n[] \n[] TypeError: OAuth2Strategy requires a clientID option\n[]     at Strategy.OAuth2Strategy (/workspace/node_modules/passport-oauth2/lib/strategy.js:86:34)\n[]     at new Strategy (/workspace/node_modules/passport-google-oauth20/lib/strategy.js:52:18)\n[]     at Object.<anonymous> (/workspace/dist/handlers/passport.js:35:24)\n[]     at Module._compile (internal/modules/cjs/loader.js:778:30)\n[]     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n[]     at Module.load (internal/modules/cjs/loader.js:653:32)\n[]     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n[]     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n[]     at Module.require (internal/modules/cjs/loader.js:692:17)\n[]     at require (internal/modules/cjs/helpers.js:25:18)\n[]     at Object.<anonymous> (/workspace/dist/controllers/authController.js:18:1)\n[]     at Module._compile (internal/modules/cjs/loader.js:778:30)\n[]     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n[]     at Module.load (internal/modules/cjs/loader.js:653:32)\n[]     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n[]     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n[] [nodemon] app crashed - waiting for file changes before starting...\n\n[firstrun] the server crashed during startup and is not listening on port 3000",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T12:28:06.822Z"
+}

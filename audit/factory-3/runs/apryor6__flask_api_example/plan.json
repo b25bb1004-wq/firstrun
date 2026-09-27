@@ -1,0 +1,100 @@
+{
+  "repo": "apryor6/flask_api_example",
+  "commit": "744239535f",
+  "image": "python:3.7",
+  "runtime": {
+    "name": "python",
+    "version": "3.7",
+    "source": "newest Python with a numpy==1.17.0 wheel on PyPI"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "pip install -r requirements.txt",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 22,
+        "endLine": 22,
+        "section": "Example of a scalable Flask API › Running the app"
+      },
+      "origin": "readme",
+      "status": "needs-human",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S2",
+      "command": "python manage.py seed_db",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 30,
+        "endLine": 30,
+        "section": "Example of a scalable Flask API › Running the app"
+      },
+      "origin": "readme",
+      "skip": "alternative start command (using \"python wsgi.py\")",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "python wsgi.py",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 38,
+        "endLine": 38,
+        "section": "Example of a scalable Flask API › Running the app"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "blocked"
+    },
+    {
+      "id": "S4",
+      "command": "pip install pytest",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 51,
+        "endLine": 51,
+        "section": "Example of a scalable Flask API › Running tests"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S5",
+      "command": "pytest",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 52,
+        "endLine": 52,
+        "section": "Example of a scalable Flask API › Running tests"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    }
+  ],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

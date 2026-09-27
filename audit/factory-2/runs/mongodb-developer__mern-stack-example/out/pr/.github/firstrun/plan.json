@@ -1,0 +1,47 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T12:21:28.832Z",
+  "commit": "6a5e9397b1",
+  "image": "node:20",
+  "runtime": {
+    "name": "node",
+    "version": "20",
+    "source": "README.md:55 (\"Node.js 20+\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5173/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S4",
+      "command": "cp mern/server/config.env.example mern/server/config.env",
+      "kind": "env"
+    },
+    {
+      "id": "S6",
+      "command": "cd mern/server",
+      "kind": "other"
+    },
+    {
+      "id": "S7",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S9",
+      "command": "cd mern/client",
+      "kind": "other"
+    },
+    {
+      "id": "S11",
+      "command": "npm run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 5173
+      }
+    }
+  ],
+  "knownFailures": []
+}

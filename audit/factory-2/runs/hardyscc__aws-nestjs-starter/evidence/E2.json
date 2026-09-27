@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "npm run ddb:install",
+    "exitCode": 1,
+    "durationMs": 4698,
+    "logTail": "\n> aws-nestjs-starter@0.0.1 ddb:install\n> sls dynamodb install\n\nStarted downloading dynamodb-local from http://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz into /workspace/.dynamodb. Process may take few minutes.\n× Uncaught exception\nEnvironment: linux, node 22.23.3, framework 3.40.0 (local), plugin 7.2.3, SDK 4.5.1\nDocs:        docs.serverless.com\nSupport:     forum.serverless.com\nBugs:        github.com/serverless/serverless/issues\n\nError:\nError: Error getting DynamoDb local latest tar.gz location undefined: 403\n    at ClientRequest.<anonymous> (/workspace/node_modules/dynamodb-localhost/dynamodb/installer.js:29:15)\n    at Object.onceWrapper (node:events:634:26)\n    at ClientRequest.emit (node:events:519:28)\n    at ClientRequest.emit (node:domain:489:12)\n    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:780:27)\n    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17)\n    at Socket.socketOnData (node:_http_client:615:22)\n    at Socket.emit (node:events:519:28)\n    at Socket.emit (node:domain:489:12)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T12:15:33.600Z"
+}

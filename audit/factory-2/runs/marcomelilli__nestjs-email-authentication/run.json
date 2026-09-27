@@ -1,0 +1,157 @@
+{
+  "id": "factory-2-marcomelilli__nestjs-email-authentication",
+  "repo": "marcomelilli/nestjs-email-authentication",
+  "commit": "d8fbaadc1e",
+  "startedAt": "2026-09-27T12:18:51.905Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S2": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "marcomelilli/nestjs-email-authentication",
+    "commit": "d8fbaadc1e",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install --legacy-peer-deps",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 11,
+          "endLine": 11,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "readmeCommand": "npm install",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "R1",
+        "command": "docker compose up -d mongo",
+        "kind": "services",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 12,
+          "endLine": 12,
+          "section": "Getting started",
+          "insertedBefore": "S2"
+        },
+        "silent": true
+      },
+      {
+        "id": "S2",
+        "command": "npm run start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 12,
+          "endLine": 12,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "repaired",
+        "prereqs": [
+          {
+            "type": "service",
+            "name": "mongo",
+            "image": "mongo",
+            "env": {
+              "MONGO_INITDB_ROOT_USERNAME": "root",
+              "MONGO_INITDB_ROOT_PASSWORD": "example"
+            },
+            "port": 27017,
+            "volumes": [
+              "mongodata:/data/db"
+            ],
+            "composeDir": null
+          }
+        ],
+        "evidence": [
+          "E2"
+        ],
+        "probe": {
+          "status": 200,
+          "body": "Hello World!"
+        }
+      }
+    ],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 23581
+  },
+  "passport": {
+    "repo": "marcomelilli/nestjs-email-authentication",
+    "commit": "d8fbaadc1e",
+    "verifiedAt": "2026-09-27T12:23:58.174Z",
+    "verdict": "VERIFIED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 3,
+    "stepsFromReadme": 2,
+    "breaksFound": 2,
+    "breaksFixed": 2,
+    "needsHuman": 0,
+    "repoBreaks": 2,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 24,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T12:23:58.438Z"
+}

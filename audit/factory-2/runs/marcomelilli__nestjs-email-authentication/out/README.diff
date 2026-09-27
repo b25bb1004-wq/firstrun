@@ -1,0 +1,19 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -4,11 +4,14 @@ This project is an example of implementation of a user **email authentication**
+ It can be used as starter for a new project: it implements API for user sign-in/sign-up and features like **email verification**, **forgotten password**, **reset password**, **update profile** and **settings**.
+ 
+ # Getting started
++
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `d8fbaadc1e`: clone to running in 24s.
+ Install `nodejs` and `mongodb` in your machine.
+ 
+ Install dependencies with npm and run the application:
+ ``` 
+-npm install
++npm install --legacy-peer-deps
++docker compose up -d mongo
+ npm run start
+ ```
+ 

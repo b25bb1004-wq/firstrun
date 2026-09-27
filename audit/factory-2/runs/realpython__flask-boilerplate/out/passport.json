@@ -1,0 +1,27 @@
+{
+  "repo": "realpython/flask-boilerplate",
+  "commit": "488e33624b",
+  "verifiedAt": "2026-09-27T12:34:04.247Z",
+  "verdict": "FAILED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 3,
+  "stepsFromReadme": 2,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 266,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5000/",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

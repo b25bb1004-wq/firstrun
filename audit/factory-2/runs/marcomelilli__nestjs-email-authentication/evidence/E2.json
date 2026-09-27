@@ -1,0 +1,62 @@
+{
+  "id": "E2",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "npm run start",
+    "exitCode": 124,
+    "durationMs": 152871,
+    "logTail": "\n> project@1.0.0 start\n> ts-node -r tsconfig-paths/register src/main.ts\n\n[Nest] 238  - 09/27/2026, 12:19:14 PM     LOG [NestFactory] Starting Nest application...\n[Nest] 238  - 09/27/2026, 12:19:14 PM     LOG [InstanceLoader] MongooseModule dependencies initialized +22ms\n[Nest] 238  - 09/27/2026, 12:19:14 PM     LOG [InstanceLoader] HttpModule dependencies initialized +0ms\n[Nest] 238  - 09/27/2026, 12:19:14 PM     LOG [InstanceLoader] AppModule dependencies initialized +0ms\n[Nest] 238  - 09/27/2026, 12:19:44 PM   ERROR [MongooseModule] Unable to connect to the database. Retrying (1)...\n[Nest] 238  - 09/27/2026, 12:20:17 PM   ERROR [MongooseModule] Unable to connect to the database. Retrying (2)...\n[Nest] 238  - 09/27/2026, 12:20:50 PM   ERROR [MongooseModule] Unable to connect to the database. Retrying (3)...\n[Nest] 238  - 09/27/2026, 12:21:23 PM   ERROR [MongooseModule] Unable to connect to the database. Retrying (4)...\n\n[firstrun] server did not become ready on port 3000 within 150s",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-service",
+    "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+    "by": "rules",
+    "ruleId": "missing-service",
+    "confidence": 0.92
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "service",
+        "name": "mongo",
+        "image": "mongo",
+        "env": {
+          "MONGO_INITDB_ROOT_USERNAME": "root",
+          "MONGO_INITDB_ROOT_PASSWORD": "example"
+        },
+        "port": 27017,
+        "volumes": [
+          "mongodata:/data/db"
+        ],
+        "composeDir": null
+      },
+      {
+        "type": "insert-before",
+        "command": "docker compose up -d mongo",
+        "kind": "services",
+        "silent": true
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "docker compose up -d mongo",
+      "service": "mongo"
+    },
+    "log": "started mongo as \"mongo\" on localhost:27017\n$ docker compose up -d mongo → exit 0"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "npm run start",
+    "exitCode": 0,
+    "durationMs": 2597,
+    "logTail": "\n> project@1.0.0 start\n> ts-node -r tsconfig-paths/register src/main.ts\n\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [NestFactory] Starting Nest application...\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] MongooseModule dependencies initialized +24ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] HttpModule dependencies initialized +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] AppModule dependencies initialized +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] MongooseCoreModule dependencies initialized +6ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] MongooseModule dependencies initialized +3ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] MongooseModule dependencies initialized +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] AuthModule dependencies initialized +1ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [InstanceLoader] UsersModule dependencies initialized +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RoutesResolver] AppController {/}: +3ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/, GET} route +1ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RoutesResolver] UsersController {/users}: +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/users/user/:email, GET} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/users/profile/update, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/users/gallery/update, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/users/settings/update, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RoutesResolver] AuthController {/auth}: +1ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/login, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/register, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/verify/:token, GET} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/resend-verification/:email, GET} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/forgot-password/:email, GET} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [RouterExplorer] Mapped {/auth/email/reset-password, POST} route +0ms\n[Nest] 2980  - 09/27/2026, 12:23:32 PM     LOG [NestApplication] Nest application successfully started +1ms\n\n[firstrun] GET http://127.0.0.1:3000/ → 200\nHello World!",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T12:23:33.083Z"
+}

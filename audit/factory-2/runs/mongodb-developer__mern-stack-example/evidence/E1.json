@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 1,
+    "command": "npm 9+",
+    "exitCode": 1,
+    "durationMs": 142,
+    "logTail": "Unknown command: \"9+\"\n\nTo see a list of supported npm commands, run:\n  npm help",
+    "logFile": "logs/S1-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T12:21:28.129Z"
+}

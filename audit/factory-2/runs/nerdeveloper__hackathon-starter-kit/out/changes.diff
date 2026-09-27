@@ -1,0 +1,295 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,8 @@
+ 
+ # Hackathon Starter Kit(Node-Typescript/Express)
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:10` machine at `d129ad7465+dirty`: clone to running in 20s.
++
+ [![Build Status](https://travis-ci.org/nerdeveloper/hackathon-starter-kit.svg?branch=master)](https://travis-ci.org/nerdeveloper/hackathon-starter-kit)
+ ![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/nerdeveloper/hackathon-starter-kit/master)
+ ![David](https://img.shields.io/david/dev/nerdeveloper/hackathon-starter-kit)
+@@ -105,7 +107,7 @@ git clone https://github.com/nerdeveloper/hackathon-starter-kit.git
+ cd hackathon-starter-kit
+ 
+ # Copy .env.example to .env
+-cp .env.variable.env variable.env
++cp env.variable.env variable.env
+ 
+ # Create a database (with MongoDB)
+ # Update variable.env file with database credentials
+@@ -117,6 +119,7 @@ npm install
+ 
+ # Then simply start your app
+ npm start
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ **Warning:** If you want to use some API that need https to work (for example Github or Facebook),
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+Binary files a/var/folders/9b/nc__10sj0p3bhfs8txqlsm3w0000gn/T/firstrun-diff-cVTZzO/a and b/var/folders/9b/nc__10sj0p3bhfs8txqlsm3w0000gn/T/firstrun-diff-cVTZzO/b differ
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 1/1 fixed">
++  <title>HUMBLE: partly verified · 1/1 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 1/1 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "nerdeveloper/hackathon-starter-kit",
++  "commit": "d129ad7465+dirty",
++  "verifiedAt": "2026-09-27T12:28:31.340Z",
++  "verdict": "PARTIAL",
++  "image": "node:10",
++  "runtime": "Node.js 10",
++  "stepsTotal": 5,
++  "stepsFromReadme": 4,
++  "breaksFound": 1,
++  "breaksFixed": 1,
++  "needsHuman": 2,
++  "repoBreaks": 1,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 2,
++  "replaySeconds": 20,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/status",
++    "fromDocs": true
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,41 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T12:28:31.340Z",
++  "commit": "d129ad7465+dirty",
++  "image": "node:10",
++  "runtime": {
++    "name": "node",
++    "version": "10",
++    "source": "README.md:86 (\"Node.js 10.0+\")"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/status",
++    "fromDocs": true
++  },
++  "steps": [
++    {
++      "id": "S3",
++      "command": "cp env.variable.env variable.env",
++      "kind": "env"
++    },
++    {
++      "id": "S4",
++      "command": "npm install",
++      "kind": "install"
++    },
++    {
++      "id": "S6",
++      "command": "npm i -g ngrok",
++      "kind": "install"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "cp: cannot stat '.env.variable.env': No such file or directory",
++      "cause": ".env.variable.env does not exist; the repo ships env.variable.env.",
++      "fix": "cp env.variable.env variable.env",
++      "evidence": "E1"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,23 @@
++# Verified setup for nerdeveloper/hackathon-starter-kit
++
++Verified by HUMBLE on 2026-09-27 at commit `d129ad7465+dirty` on a clean `node:10` machine. Clone to running took 20s.
++
++Prerequisites: Node.js 10.
++
++## Steps
++
++1. `cp env.variable.env variable.env`
++   - Kind: env (the README used to say `cp .env.variable.env variable.env`)
++   - Expect: exits with code 0.
++2. `npm install`
++   - Kind: install
++   - Expect: exits with code 0.
++3. `npm i -g ngrok`
++   - Kind: install
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `cp: cannot stat '.env.variable.env': No such file or directory` | .env.variable.env does not exist; the repo ships env.variable.env. | cp env.variable.env variable.env |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "hackathon-starter-kit",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "cp env.variable.env variable.env && npm install && npm i -g ngrok",
++  "forwardPorts": [
++    3000
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,14 @@
++services:
++  app:
++    image: node:10
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  mongodb:
++    image: bitnami/mongodb:latest
++    network_mode: service:app
++    restart: unless-stopped
++    environment:
++      MONGODB_USERNAME: app
++      MONGODB_PASSWORD: password
++      MONGODB_DATABASE: hackathon
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,4 +5,7 @@ public/dist/**/*
+ app/**/*
+ .env
+ .DS_Store
+-coverage
+\ No newline at end of file
++coverage
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

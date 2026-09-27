@@ -1,0 +1,42 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T12:17:31.120Z",
+  "commit": "744239535f",
+  "image": "python:3.7",
+  "runtime": {
+    "name": "python",
+    "version": "3.7",
+    "source": "newest Python with a numpy==1.17.0 wheel on PyPI"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "R1",
+      "command": "pip install -r requirements.txt",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "S3",
+      "command": "python wsgi.py",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      }
+    },
+    {
+      "id": "S4",
+      "command": "pip install pytest",
+      "kind": "install"
+    },
+    {
+      "id": "S5",
+      "command": "pytest",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

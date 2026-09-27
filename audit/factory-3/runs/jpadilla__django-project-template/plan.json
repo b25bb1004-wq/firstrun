@@ -1,0 +1,68 @@
+{
+  "repo": "jpadilla/django-project-template",
+  "commit": "7d442e2bfb",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "django-admin.py startproject --template=https://github.com/jpadilla/django-project-template/archive/master.zip --name=Procfile --extension=py,md,env project_name",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "README.md",
+        "line": 19,
+        "endLine": 23,
+        "section": "Django 3.0+ project template › How to install"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "mv example.env .env",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "README.md",
+        "line": 24,
+        "endLine": 24,
+        "section": "Django 3.0+ project template › How to install"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "pipenv install --dev",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "README.md",
+        "line": 25,
+        "endLine": 25,
+        "section": "Django 3.0+ project template › How to install"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [],
+  "fromCI": false,
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

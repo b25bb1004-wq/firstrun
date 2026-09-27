@@ -1,0 +1,255 @@
+{
+  "id": "factory-2-monstar-lab-oss__nestjs-starter-rest-api",
+  "repo": "monstar-lab-oss/nestjs-starter-rest-api",
+  "commit": "6da20f9302",
+  "startedAt": "2026-09-27T12:21:32.659Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S5": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S6": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S7": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3",
+    "E4"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "20 (.tool-versions)",
+      "source": "README.md"
+    }
+  ],
+  "plan": {
+    "repo": "monstar-lab-oss/nestjs-starter-rest-api",
+    "commit": "6da20f9302",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 50,
+          "endLine": 50,
+          "section": "Installation"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S2",
+        "command": "npm run start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 112,
+          "endLine": 112,
+          "section": "Running the app › Local"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"npm run start:prod\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "npm run start:dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 115,
+          "endLine": 115,
+          "section": "Running the app › Local"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"npm run start:prod\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "npm run start:prod",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 118,
+          "endLine": 118,
+          "section": "Running the app › Local"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "needs-human"
+      },
+      {
+        "id": "S5",
+        "command": "npm run test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 140,
+          "endLine": 140,
+          "section": "Test"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "R1",
+        "command": "docker compose up -d pgsqldb",
+        "kind": "services",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 143,
+          "endLine": 143,
+          "section": "Test",
+          "insertedBefore": "S6"
+        },
+        "silent": true
+      },
+      {
+        "id": "S6",
+        "command": "npm run test:e2e",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 143,
+          "endLine": 143,
+          "section": "Test"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "prereqs": [
+          {
+            "type": "service",
+            "name": "pgsqldb",
+            "image": "postgres:16.3",
+            "env": {
+              "POSTGRES_USER": "${DB_USER}",
+              "POSTGRES_PASSWORD": "${DB_PASS}",
+              "POSTGRES_DB": "${DB_NAME}"
+            },
+            "port": 5432,
+            "volumes": [
+              "pgsqldata:/var/lib/postgresql/data"
+            ],
+            "composeDir": null
+          }
+        ],
+        "evidence": [
+          "E3"
+        ]
+      },
+      {
+        "id": "S7",
+        "command": "npm run test:cov",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 146,
+          "endLine": 146,
+          "section": "Test"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "20 (.tool-versions)",
+        "source": "README.md"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "failed",
+    "durationMs": 78966,
+    "failedStep": "R1"
+  },
+  "passport": {
+    "repo": "monstar-lab-oss/nestjs-starter-rest-api",
+    "commit": "6da20f9302",
+    "verifiedAt": "2026-09-27T12:26:12.029Z",
+    "verdict": "FAILED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 3,
+    "repoBreaks": 1,
+    "suiteIssues": 1,
+    "needsPerson": 0,
+    "humbleUnknowns": 2,
+    "replaySeconds": 79,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T12:26:12.134Z"
+}

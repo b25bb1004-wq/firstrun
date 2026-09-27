@@ -1,0 +1,27 @@
+{
+  "repo": "hardyscc/aws-nestjs-starter",
+  "commit": "2e312502fc",
+  "verifiedAt": "2026-09-27T12:19:35.152Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 11,
+  "stepsFromReadme": 11,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 6,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 6,
+  "replaySeconds": 34,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/dev/graphql",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

@@ -1,0 +1,66 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T12:23:58.174Z",
+  "commit": "d8fbaadc1e",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "docker compose up -d mongo",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S2",
+      "command": "npm run start",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      },
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo",
+          "env": {
+            "MONGO_INITDB_ROOT_USERNAME": "root",
+            "MONGO_INITDB_ROOT_PASSWORD": "example"
+          },
+          "port": 27017,
+          "volumes": [
+            "mongodata:/data/db"
+          ],
+          "composeDir": null
+        }
+      ]
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm error ERESOLVE could not resolve",
+      "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+      "fix": "npm install --legacy-peer-deps",
+      "evidence": "E1"
+    },
+    {
+      "signature": "[Nest] 238  - 09/27/2026, 12:21:23 PM   ERROR [MongooseModule] Unable to connect to the database. Retrying (4)...",
+      "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+      "fix": "docker compose up -d mongo",
+      "evidence": "E2"
+    }
+  ]
+}

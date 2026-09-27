@@ -1,0 +1,26 @@
+{
+  "repo": "apryor6/flask_api_example",
+  "commit": "744239535f",
+  "verifiedAt": "2026-09-27T12:17:31.120Z",
+  "verdict": "FAILED",
+  "image": "python:3.7",
+  "runtime": "Python 3.7",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 2,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

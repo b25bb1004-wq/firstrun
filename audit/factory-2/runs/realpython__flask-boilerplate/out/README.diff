@@ -1,0 +1,22 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -88,6 +88,8 @@ Project Structure
+ 
+ ### Quick Start
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `488e33624b`.
++
+ 1. Clone the repo
+   ```
+   $ git clone https://github.com/realpython/flask-boilerplate.git
+@@ -107,7 +109,9 @@ Project Structure
+ 
+ 5. Run the development server:
+   ```
++  $ pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer 2018-01-05 -r _updated/config/development/requirements.txt
+   $ python app.py
++  # HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+   ```
+ 
+ 6. Navigate to [http://localhost:5000](http://localhost:5000)

@@ -1,0 +1,26 @@
+{
+  "repo": "lincolnloop/django-layout",
+  "commit": "c61297ca49",
+  "verifiedAt": "2026-09-27T12:18:49.231Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 2,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 2,
+  "replaySeconds": 11,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "fromCI": false
+}

@@ -1,0 +1,240 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -43,6 +43,8 @@ If you would like to use a more feature rich starter kit, with more awesome feat
+ 
+ ## Installation
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `6da20f9302`.
++
+ Note: when using docker, all the `npm` commands can also be performed using `./scripts/npm` (for example `./scripts/npm install`).
+ This script allows you to run the same commands inside the same environment and versions than the service, without relying on what is installed on the host.
+ 
+@@ -116,6 +118,7 @@ $ npm run start:dev
+ 
+ # production mode
+ $ npm run start:prod
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ### Docker
+@@ -138,9 +141,12 @@ Learn more about Docker conventions [here](https://github.com/monstar-lab-group/
+ ```bash
+ # unit tests
+ $ npm run test
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # e2e tests
++$ docker compose up -d pgsqldb
+ $ npm run test:e2e
++# HUMBLE: this step still fails on a clean machine: The test suite runs, but 30 of 30 tests fail on a clean setup. The failures are database connection or permission errors: the tests expect a database set up differently from the one the docs start.
+ 
+ # test coverage
+ $ npm run test:cov
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+Binary files a/var/folders/9b/nc__10sj0p3bhfs8txqlsm3w0000gn/T/firstrun-diff-q4fKNQ/a and b/var/folders/9b/nc__10sj0p3bhfs8txqlsm3w0000gn/T/firstrun-diff-q4fKNQ/b differ
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="165" height="20" role="img" aria-label="HUMBLE: setup broken">
++  <title>HUMBLE: setup broken</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="165" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="95" height="20" fill="#dc2626"/>
++    <rect width="165" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="117.5" y="14">setup broken</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,26 @@
++{
++  "repo": "monstar-lab-oss/nestjs-starter-rest-api",
++  "commit": "6da20f9302",
++  "verifiedAt": "2026-09-27T12:26:12.029Z",
++  "verdict": "FAILED",
++  "image": "node:22",
++  "runtime": "Node.js 22",
++  "stepsTotal": 5,
++  "stepsFromReadme": 4,
++  "breaksFound": 1,
++  "breaksFixed": 0,
++  "needsHuman": 3,
++  "repoBreaks": 1,
++  "suiteIssues": 1,
++  "needsPerson": 0,
++  "humbleUnknowns": 2,
++  "replaySeconds": 79,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/"
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,29 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T12:26:12.029Z",
++  "commit": "6da20f9302",
++  "image": "node:22",
++  "runtime": {
++    "name": "node",
++    "version": "22",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:3000/"
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "npm install",
++      "kind": "install"
++    },
++    {
++      "id": "R1",
++      "command": "docker compose up -d pgsqldb",
++      "kind": "services",
++      "origin": "repair"
++    }
++  ],
++  "knownFailures": []
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,19 @@
++# Verified setup for monstar-lab-oss/nestjs-starter-rest-api
++
++Verified by HUMBLE on 2026-09-27 at commit `6da20f9302` on a clean `node:22` machine. Clone to running took 79s.
++
++Prerequisites: Node.js 22, Docker (for backing services).
++
++## Steps
++
++1. `npm install`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `docker compose up -d pgsqldb`
++   - Kind: services (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -394,3 +394,6 @@ documentation
+ test-report.xml
+ tsconfig.build.tsbuildinfo
+ .nvmrc
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/
