@@ -44,7 +44,7 @@ export function init(container, { reduced = false } = {}) {
 
       <div class="h-caption" style="font-size: 12px; color: var(--muted); padding-top: 4px; display: flex; justify-content: space-between; align-items: center;">
         <span>Illustration of a real run pattern · see <a href="/proof" class="link" style="color: var(--ink); text-decoration: underline;">/proof</a> for a recording</span>
-        <span class="h-time-indicator" style="font-size: 11px;">53s replay from zero</span>
+        <span class="h-time-indicator" style="font-size: 11px;" data-run="v2-31-final-GeekyAnts__express-typescript">audited run: 1 m 53 s replay from zero</span>
       </div>
     </div>
   `;

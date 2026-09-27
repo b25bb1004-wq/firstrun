@@ -69,13 +69,13 @@
     const storyBar = document.getElementById('prove-brand-story');
     if (!storyBar) return;
     if (repo === 'GeekyAnts/express-typescript') {
-      storyBar.innerHTML = '<span class="story-label">GeekyAnts proof (banner story):</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: npm install peer conflict</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: npm install --legacy-peer-deps</span>';
+      storyBar.innerHTML = '<span class="story-label">GeekyAnts proof (banner story):</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: npm install peer conflict</span> <span class="story-thread-arrow" aria-hidden="true">→</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: npm install --legacy-peer-deps</span>';
     } else if (repo === 'b25bb1004-wq/acme-shop') {
-      storyBar.innerHTML = '<span class="story-label">acme-shop demo:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: node 18/20 engine fail</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: node 20 verified replay</span>';
+      storyBar.innerHTML = '<span class="story-label">acme-shop demo:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: node 18/20 engine fail</span> <span class="story-thread-arrow" aria-hidden="true">→</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: node 20 verified replay</span>';
     } else if (repo === 'addyosmani/git2txt') {
-      storyBar.innerHTML = '<span class="story-label">addyosmani/git2txt:</span> <span class="story-chip-break">⚡ <span class="crack-text">break diagnosis</span></span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: automated zero replay pass</span>';
+      storyBar.innerHTML = '<span class="story-label">addyosmani/git2txt:</span> <span class="story-chip-break">⚡ <span class="crack-text">break diagnosis</span></span> <span class="story-thread-arrow" aria-hidden="true">→</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span>: automated zero replay pass</span>';
     } else {
-      storyBar.innerHTML = '<span class="story-label">Live prove:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span> for breaks</span> <span class="story-thread-arrow">🧵</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span> for verified fixes</span>';
+      storyBar.innerHTML = '<span class="story-label">Live prove:</span> <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span> for breaks</span> <span class="story-thread-arrow" aria-hidden="true">→</span> <span class="story-chip-fix"><span class="thread-text">blue thread</span> for verified fixes</span>';
     }
   }
 

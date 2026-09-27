@@ -204,6 +204,12 @@ section { padding: clamp(72px, 11vw, 140px) 0; }
 
 /* Horizontal proof gallery, Apple "Explore the lineup" style: large cards, the next one peeks in */
 .gallery { display: grid; grid-auto-flow: column; grid-auto-columns: min(78vw, 820px); gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px var(--gutter) 28px; margin: 0 calc(var(--gutter) * -1); scrollbar-width: thin; }
+/* A thin scrollbar in the page's own colours: the default white bar broke the paper look under the gallery. */
+.gallery { scrollbar-width: thin; scrollbar-color: var(--line) transparent; padding-bottom: 6px; }
+.gallery::-webkit-scrollbar { height: 6px; }
+.gallery::-webkit-scrollbar-track { background: transparent; }
+.gallery::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.gallery::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .gallery > * { scroll-snap-align: start; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
 .gallery .cap { padding: 22px 26px 26px; }
 .gallery .cap h3 { font-size: 22px; margin-bottom: 8px; } .gallery .cap p { color: var(--muted); margin: 0 0 14px; }
@@ -590,9 +596,12 @@ section[id] {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--accent);
+  text-decoration: none;
+  padding: 6px 0; /* a comfortable tap target */
 }
+a.agent-live-tag:hover, a.agent-live-tag:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 .agent-live-dot {
   width: 6px;
   height: 6px;
@@ -1007,7 +1016,7 @@ section[id] {
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 14px;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--muted);
   padding: 8px 12px;
   background: color-mix(in srgb, var(--bg) 80%, transparent);
@@ -1019,7 +1028,7 @@ section[id] {
   color: var(--muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 .story-chip-break {
   color: var(--brand-crack);

@@ -94,9 +94,9 @@
           </div>
           
           <div class="prove-panel-header">
-            <p class="eyebrow mono">LIVE · NO SIGN-IN · PUBLIC REPOS ONLY</p>
+            <p class="eyebrow mono">Recorded runs · or any public repo · no sign-in</p>
             <h2 id="h-prove-live" class="prove-headline">Watch a README get proven.</h2>
-            <p class="prove-sub">One click runs the whole check on a clean machine, right now. The clean machine proves. Bob explains.</p>
+            <p class="prove-sub">Replay a recorded run step by step, or paste a public repo to run the whole check on a clean machine. The clean machine proves. Bob explains.</p>
           </div>
 
           <div class="prove-input-block">
@@ -113,7 +113,7 @@
             <div class="prove-brand-story mono" id="prove-brand-story">
               <span class="story-label">In the art & in real proof:</span>
               <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: npm install breaks</span>
-              <span class="story-thread-arrow">🧵</span>
+              <span class="story-thread-arrow" aria-hidden="true">→</span>
               <span class="story-chip-fix"><span class="thread-text">blue thread</span>: npm install --legacy-peer-deps</span>
             </div>
           </div>
@@ -132,79 +132,79 @@
             </div>
           </div>
 
-          <p class="prove-footer mono">Runs on GitHub Actions. Takes 3–10 minutes. We never store your code.</p>
+          <p class="prove-footer mono">Live checks run on GitHub Actions and take 3–10 minutes. We never store your code.</p>
         </div>
       </div>
       <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
         <div class="hero-agents-label">
           <span class="mono">Six specialized agents · orchestrated by IBM Bob</span>
-          <span class="agent-live-tag mono"><span class="agent-live-dot"></span> LIVE 3D ORBS</span>
+          <a class="agent-live-tag mono" href="#how">How they work ↓</a>
         </div>
         <div class="hero-agents-grid">
-          <button type="button" class="agent-chip" data-agent="scout" aria-label="Agent 01 Scout: Audits facts against reality">
+          <button type="button" class="agent-chip" data-agent="scout" aria-label="Agent 01 Harvey: Scout · reads the repo">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-scout)">01</span>
-              <span class="agent-chip-name">Scout</span>
+              <span class="agent-chip-name">Harvey</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="searching" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Audits Facts</span>
+            <span class="agent-chip-role mono">Scout · reads the repo</span>
           </button>
 
-          <button type="button" class="agent-chip" data-agent="planner" aria-label="Agent 02 Planner: Turns prose into commands">
+          <button type="button" class="agent-chip" data-agent="planner" aria-label="Agent 02 Unity: Planner · sequences the run">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-planner)">02</span>
-              <span class="agent-chip-name">Planner</span>
+              <span class="agent-chip-name">Unity</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="shaping" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Builds Plan</span>
+            <span class="agent-chip-role mono">Planner · sequences the run</span>
           </button>
 
-          <button type="button" class="agent-chip" data-agent="runner" aria-label="Agent 03 Runner: Runs steps on clean machine">
+          <button type="button" class="agent-chip" data-agent="runner" aria-label="Agent 03 Mach: Runner · runs on a clean machine">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-runner)">03</span>
-              <span class="agent-chip-name">Runner</span>
+              <span class="agent-chip-name">Mach</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="working" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Zero Clean</span>
+            <span class="agent-chip-role mono">Runner · runs on a clean machine</span>
           </button>
 
-          <button type="button" class="agent-chip" data-agent="doctor" aria-label="Agent 04 Doctor: Diagnoses failures with IBM Bob">
+          <button type="button" class="agent-chip" data-agent="doctor" aria-label="Agent 04 DR.BO: Doctor · diagnoses and fixes">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-doctor)">04</span>
-              <span class="agent-chip-name">Doctor</span>
+              <span class="agent-chip-name">DR.BO</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="solving" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Diagnoses</span>
+            <span class="agent-chip-role mono">Doctor · diagnoses and fixes</span>
           </button>
 
-          <button type="button" class="agent-chip" data-agent="verifier" aria-label="Agent 05 Verifier: Discards machine and replays from zero">
+          <button type="button" class="agent-chip" data-agent="verifier" aria-label="Agent 05 Larp: Verifier · proves from zero">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-verifier)">05</span>
-              <span class="agent-chip-name">Verifier</span>
+              <span class="agent-chip-name">Larp</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="listening" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Replays Zero</span>
+            <span class="agent-chip-role mono">Verifier · proves from zero</span>
           </button>
 
-          <button type="button" class="agent-chip" data-agent="scribe" aria-label="Agent 06 Scribe: Writes minimal README diff with proof">
+          <button type="button" class="agent-chip" data-agent="scribe" aria-label="Agent 06 Echo: Scribe · rewrites the README">
             <span class="agent-chip-header">
               <span class="agent-chip-id mono" style="color:var(--c-scribe)">06</span>
-              <span class="agent-chip-name">Scribe</span>
+              <span class="agent-chip-name">Echo</span>
             </span>
             <span class="agent-chip-orb">
               <canvas class="agent-orb" data-orb="composing" width="44" height="44" aria-hidden="true"></canvas>
             </span>
-            <span class="agent-chip-role mono">Proves Diff</span>
+            <span class="agent-chip-role mono">Scribe · rewrites the README</span>
           </button>
         </div>
       </div>
@@ -394,7 +394,7 @@
       <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
-          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
+          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard for audit v2-31-final: 18 of 31 READMEs broke on a clean machine, 34 breaks found, 28 fixed with evidence, one card per repository with its verdict." data-run="v2-31-final">
           <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3 data-stat="caption">31 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
         <article class="card-diff-slider">
