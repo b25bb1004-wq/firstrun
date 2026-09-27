@@ -1,0 +1,24 @@
+{
+  "id": "E2",
+  "stepId": "S17",
+  "before": {
+    "stepId": "S17",
+    "n": 1,
+    "command": "python please/please.py",
+    "exitCode": 1,
+    "durationMs": 5808,
+    "logTail": "Hello! What can I call you?: Aborted!\n\n[firstrun] server process exited before becoming ready on port 3000",
+    "logFile": "logs/S17-1.log"
+  },
+  "diagnosis": {
+    "class": "interactive",
+    "cause": "`python please/please.py` stops to ask a question (\"Hello! What can I call you?\") and waits for a person to type an answer. Everything before it is proven; this step needs you at the keyboard, and the docs don't say so.",
+    "by": "rules",
+    "ruleId": "interactive-prompt",
+    "confidence": 0.85
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T00:14:12.352Z"
+}

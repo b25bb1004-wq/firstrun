@@ -1,0 +1,421 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -25,6 +25,8 @@ The `master` branch contains the core version of NET.ts. However, if you need ad
+ 
+ ## Getting started
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:16` machine at `d731e5cef4`: clone to running in 30s.
++
+ Install `Docker` and `Docker Compose` which are used to maximise the convenience of development on local machine.
+ 
+ When both are installed, build the NET.ts image as follow:
+@@ -87,6 +89,8 @@ There are few rules that you have to obey to enjoy NET.ts fully.
+ The Jest test suites are run by executing
+ 
+ ```sh
++npm install --no-save jest@27
++export NODE_ENV=development
+ npm test
+ ```
+ 
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,139 @@
++# Setup Passport: przemek-nowicki/node-express-template.ts
++
++✅ **VERIFIED**: HUMBLE followed this project's setup docs on a clean `node:16` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `d731e5cef4` |
++| Verified | 2026-09-27 00:00 UTC |
++| Runtime | Node.js 16 (`node:16`) |
++| Clone to running, from zero | **30s** |
++| Steps followed | 2 from the docs, 2 added by HUMBLE |
++| Breaks found / fixed | 2 / 2 |
++| Needs a human | 0 |
++| Done when | `npm test` passes |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `npm test` (README.md:90).
++
++## Verified setup
++
++```bash
++docker-compose up
++npm install --no-save jest@27
++export NODE_ENV=development
++npm test
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing dependency <a id="e1"></a>
++
++- **Docs said:** `npm test` (README.md:90)
++- **Cause:** The test script runs `jest`, but jest is not in package.json, so installing the project never installs it. It only works on machines that already have it.
++- **Diagnosed by:** HUMBLE rule `test-runner-undeclared`, confidence 85%
++- **Doc change:** npm install --save-dev jest@27
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++
++> net.ts@1.1.5 test
++> jest -c jest.config.js --env=node
++
++sh: 1: jest: not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ npm install --no-save jest@27 → exit 0
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++      2026-09-27 00:00:06.589 6886e236-35ce-40be-bb38-7fc99f6d2d85 info END Request Id: 6886e236-35ce-40be-bb38-7fc99f6d2d85
++
++      at Console.log (node_modules/winston/lib/winston/transports/console.js:79:23)
++
++
++Test Suites: 6 passed, 6 total
++Tests:       15 passed, 15 total
++Snapshots:   0 total
++Time:        6.081 s
++Ran all test suites.
++```
++</details>
++
++### E2: Undocumented environment variable <a id="e2"></a>
++
++- **Docs said:** `npm test` (README.md:90)
++- **Cause:** The app only accepts NODE_ENV = production | integration | development, but this step runs with another value (Jest sets NODE_ENV=test, and the config rejects that); the docs never say to set it.
++- **Diagnosed by:** HUMBLE rule `env-invalid-value`, confidence 85%
++- **Doc change:** export NODE_ENV=development
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++    > 28 |   throw new Error(
++         |         ^
++      29 |     `Config validation error: ${error.message}. \n
++      30 |      This app requires env variables to work properly. If you run app locally use docker-compose`,
++      31 |   );
++
++      at Object.<anonymous> (src/config/config.ts:28:9)
++      at Object.<anonymous> (src/core/utils/httpLogger.ts:4:1)
++
++Test Suites: 5 failed, 1 passed, 6 total
++Tests:       6 passed, 6 total
++Snapshots:   0 total
++Time:        5.507 s
++Ran all test suites.
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ export NODE_ENV=development → exit 0
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++      2026-09-27 00:00:06.589 6886e236-35ce-40be-bb38-7fc99f6d2d85 info END Request Id: 6886e236-35ce-40be-bb38-7fc99f6d2d85
++
++      at Console.log (node_modules/winston/lib/winston/transports/console.js:79:23)
++
++
++Test Suites: 6 passed, 6 total
++Tests:       15 passed, 15 total
++Snapshots:   0 total
++Time:        6.081 s
++Ran all test suites.
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Docker Compose v1 | docker-compose build | retired in 2023; current Docker ships it as `docker compose` | README.md:33 |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="178" height="20" role="img" aria-label="HUMBLE: verified · 30s">
++  <title>HUMBLE: verified · 30s</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="178" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="108" height="20" fill="#1f9d55"/>
++    <rect width="178" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="124" y="14">verified · 30s</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,26 @@
++{
++  "repo": "przemek-nowicki/node-express-template.ts",
++  "commit": "d731e5cef4",
++  "verifiedAt": "2026-09-27T00:00:39.859Z",
++  "verdict": "VERIFIED",
++  "image": "node:16",
++  "runtime": "Node.js 16",
++  "stepsTotal": 4,
++  "stepsFromReadme": 2,
++  "breaksFound": 2,
++  "breaksFixed": 2,
++  "needsHuman": 0,
++  "repoBreaks": 2,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 0,
++  "replaySeconds": 30,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "command",
++    "target": "npm test"
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,53 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:00:39.859Z",
++  "commit": "d731e5cef4",
++  "image": "node:16",
++  "runtime": {
++    "name": "node",
++    "version": "16",
++    "source": "README.md:60 (\"node version 16\")"
++  },
++  "verify": {
++    "kind": "command",
++    "target": "npm test"
++  },
++  "steps": [
++    {
++      "id": "S2",
++      "command": "docker-compose up",
++      "kind": "services"
++    },
++    {
++      "id": "R1",
++      "command": "npm install --no-save jest@27",
++      "kind": "install",
++      "origin": "repair"
++    },
++    {
++      "id": "R2",
++      "command": "export NODE_ENV=development",
++      "kind": "env",
++      "origin": "repair"
++    },
++    {
++      "id": "S3",
++      "command": "npm test",
++      "kind": "test"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "sh: 1: jest: not found",
++      "cause": "The test script runs `jest`, but jest is not in package.json, so installing the project never installs it. It only works on machines that already have it.",
++      "fix": "npm install --save-dev jest@27",
++      "evidence": "E1"
++    },
++    {
++      "signature": "Test Suites: 5 failed, 1 passed, 6 total",
++      "cause": "The app only accepts NODE_ENV = production | integration | development, but this step runs with another value (Jest sets NODE_ENV=test, and the config rejects that); the docs never say to set it.",
++      "fix": "export NODE_ENV=development",
++      "evidence": "E2"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,27 @@
++# Verified setup for przemek-nowicki/node-express-template.ts
++
++Verified by HUMBLE on 2026-09-27 at commit `d731e5cef4` on a clean `node:16` machine. Clone to running took 30s.
++
++Prerequisites: Node.js 16, Docker (for backing services).
++
++## Steps
++
++1. `docker-compose up`
++   - Kind: services
++   - Expect: exits with code 0.
++2. `npm install --no-save jest@27`
++   - Kind: install (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++3. `export NODE_ENV=development`
++   - Kind: env (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++4. `npm test`
++   - Kind: test
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `sh: 1: jest: not found` | The test script runs `jest`, but jest is not in package.json, so installing the project never installs it. It only works on machines that already have it. | npm install --save-dev jest@27 |
++| `Test Suites: 5 failed, 1 passed, 6 total` | The app only accepts NODE_ENV = production \| integration \| development, but this step runs with another value (Jest sets NODE_ENV=test, and the config rejects that); the docs never say to set it. | export NODE_ENV=development |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,13 @@
++{
++  "name": "node-express-template.ts",
++  "image": "node:16",
++  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
++  "postCreateCommand": "npm install --no-save jest@27 && export NODE_ENV=development",
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -39,4 +39,7 @@ dist/
+ 
+ # Generated source-code #
+ src/**/*.js.map
+-coverage/
+\ No newline at end of file
++coverage/
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

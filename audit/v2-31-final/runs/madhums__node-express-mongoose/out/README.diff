@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -19,6 +19,8 @@ Checkout the [apps that are built using this approach](https://github.com/madhum
+ 
+ ## Docker
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `node:22` machine at `86e569617f`: clone to running in 31s.
++
+ You can also use docker for development. Make sure you run npm install on your host machine so that code linting and everything works fine.
+ 
+ ```sh

@@ -1,0 +1,33 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -44,6 +44,12 @@ If you consider my project as helpful stuff, You can appreciate me or my hard wo
+ 
+ ## How to install
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:16` machine at `6a1ba2da70`: clone to running in 39s.
++
++Prerequisites verified by HUMBLE:
++
++- Node.js 16 (see bcrypt's compatibility table: bcrypt ^3.0.6 supports Node.js 12–16; upgrading to bcrypt >= 6 lets you use a current Node.js)
++
+ ### Using Git (recommended)
+ 
+ 1.  Clone the project from github. Change "myproject" to your project name.
+@@ -117,6 +123,8 @@ npm install
+ npm run dev
+ ```
+ 
++> **Note:** `.env.example` now has a working local value for `MONGODB_URL` instead of a placeholder.
++
+ You will know server is running by checking the output of the command `npm run dev`
+ 
+ ```bash
+@@ -146,6 +154,7 @@ If you need to add more controllers to the project just create a new file in `/c
+ 
+ ```bash
+ npm test
++# HUMBLE: this step still fails on a clean machine: The test suite runs, but 2 of 2 tests fail on a clean setup. The failures are timeouts, which usually means a service the tests call is not running.
+ ```
+ 
+ You can set custom command for test at `package.json` file inside `scripts` property. You can also change timeout for each assertion with `--timeout` parameter of mocha command.

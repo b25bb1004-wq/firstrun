@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -14,6 +14,8 @@ Convert GitHub repositories to text files with ease. This CLI tool downloads a r
+ 
+ ## Installation
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `e8db771b97`: clone to running in 12s.
++
+ ```bash
+ npm install -g git2txt
+ ```

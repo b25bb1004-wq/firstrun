@@ -1,0 +1,23 @@
+*.iml
+.idea
+.tscache
+.DS_Store
+node_modules/
+coverage/
+temp/
+test/typescript/axios.js*
+sauce_connect.log
+test/module/**/package-lock.json
+backup/
+.env
+dist/
+.vscode/
+docs/.vitepress/dist
+docs/.vitepress/cache
+.claude/
+openspec/
+.opencode/
+.codex/
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/
