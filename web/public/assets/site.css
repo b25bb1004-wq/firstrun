@@ -2,6 +2,16 @@
    no gradients, no hover motion. Dark is the default; light is a warm off-white, never #fff. */
 
 :root {
+  /* Brand Tokens (Avtansh's Brand Kit & BRAND.md) */
+  --brand-paper: #f4e9dc;      /* drafting paper background */
+  --brand-paper-2: #e9dccd;    /* paper shadows, cards */
+  --brand-ink: #0d1030;        /* logo, headline ink */
+  --brand-ink-2: #55546c;      /* sub-headline grey */
+  --brand-blue: #2d4fa0;       /* "fixes itself." accent text */
+  --brand-electric: #1f3bff;   /* the fix: blue thread, corrected command box */
+  --brand-crack: #f0287a;      /* the break: pink cracks, failing command highlight */
+  --brand-line: #b9aa9c;       /* blueprint lines */
+
   --bg: #111315; --surface: #171a1d; --line: #2a2e33;
   --ink: #e9e7e2; --muted: #9a9893; --accent: #56c08c; --accent-ink: #0d1a13;
   --del: #d98b7a; --r: 2px;
@@ -10,14 +20,14 @@
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f1efe9; --surface: #e9e6de; --line: #d3cfc5;
-  --ink: #16181b; --muted: #5d5a54; --accent: #2f9e6b; --accent-ink: #f1efe9; --del: #a8483a;
+  --bg: var(--brand-paper); --surface: var(--brand-paper-2); --line: var(--brand-line);
+  --ink: var(--brand-ink); --muted: var(--brand-ink-2); --accent: var(--brand-electric); --accent-ink: var(--brand-paper); --del: var(--brand-crack);
   color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #f1efe9; --surface: #e9e6de; --line: #d3cfc5;
-    --ink: #16181b; --muted: #5d5a54; --accent: #2f9e6b; --accent-ink: #f1efe9; --del: #a8483a;
+    --bg: var(--brand-paper); --surface: var(--brand-paper-2); --line: var(--brand-line);
+    --ink: var(--brand-ink); --muted: var(--brand-ink-2); --accent: var(--brand-electric); --accent-ink: var(--brand-paper); --del: var(--brand-crack);
     color-scheme: light;
   }
 }
@@ -25,7 +35,17 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(to right, color-mix(in srgb, var(--brand-line) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--brand-line) 14%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--ink);
+  font: 400 17px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
 img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; }
 .mono, code, pre { font-family: var(--mono); }
@@ -38,7 +58,12 @@ b { font-weight: 600; }
 /* Header */
 .top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
 .top-in { display: flex; align-items: center; gap: 32px; height: 64px; }
-.mark { font-weight: 600; letter-spacing: .14em; text-decoration: none; font-size: 15px; margin: 0; }
+.mark { font-weight: 600; letter-spacing: .14em; text-decoration: none; font-size: 15px; margin: 0; display: inline-flex; align-items: center; }
+.brand-nav-link { display: inline-flex; align-items: center; text-decoration: none; }
+.brand-logo-svg { display: block; height: 26px; width: auto; color: var(--ink); fill: currentColor; transition: opacity 0.15s; }
+.brand-nav-link:hover .brand-logo-svg { opacity: 0.85; }
+.brand-blue-accent { color: var(--brand-blue); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 .top nav { display: flex; gap: 24px; margin-left: auto; }
 .top nav a, .foot nav a { text-decoration: none; color: var(--muted); font-size: 15px; }
 .top nav a:hover, .foot nav a:hover { color: var(--ink); }
@@ -665,4 +690,347 @@ section[id] {
   align-items: flex-start;
   gap: 18px;
 }
+
+/* ==========================================================================
+   PROVE IT LIVE — Hero Verification Panel
+   ========================================================================== */
+
+.prove-live {
+  margin: 44px auto 0;
+  max-width: 860px;
+  width: 100%;
+  text-align: left;
+}
+
+.prove-panel {
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.prove-progress-track {
+  height: 2px;
+  width: 100%;
+  background: var(--line);
+  position: relative;
+}
+
+.prove-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.prove-panel-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prove-panel-header .eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+
+.prove-headline {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(24px, 3.4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.prove-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+  max-width: 60ch;
+}
+
+.prove-input-block {
+  padding: 20px 28px;
+}
+
+.prove-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.prove-chip {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font: 500 12px var(--mono);
+  border-radius: 2px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.prove-chip:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.prove-chip.active {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--bg);
+}
+
+.prove-field-row {
+  display: flex;
+  gap: 10px;
+}
+
+.prove-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ink);
+  font: 13px var(--mono);
+  padding: 10px 14px;
+  outline: none;
+  min-width: 0;
+}
+
+.prove-input:focus {
+  border-color: var(--accent);
+}
+
+.prove-btn {
+  border-radius: 2px !important;
+  font: 600 13px var(--mono) !important;
+  padding: 10px 22px !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.prove-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.prove-console {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  padding: 20px 28px;
+  min-height: 140px;
+}
+
+.prove-mascot-edge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.prove-mascot-edge img {
+  width: 64px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.prove-stream-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.prove-stream-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prove-row {
+  font-size: 13px;
+  line-height: 1.5;
+  animation: proveRowReveal 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes proveRowReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prove-agent {
+  font-weight: 600;
+  min-width: 68px;
+  display: inline-block;
+}
+
+.agent-harvey { color: var(--c-scout); }
+.agent-mach { color: var(--c-runner); }
+.agent-drbo { color: var(--c-doctor); }
+.agent-larp { color: var(--c-verifier); }
+.agent-unity { color: var(--c-planner); }
+.agent-echo { color: var(--c-scribe); }
+.agent-vigil { color: var(--robot-core, #ff9a3c); }
+
+.prove-action {
+  color: var(--ink);
+}
+
+.prove-result-line {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font: 600 13px var(--mono);
+  color: var(--c-verifier);
+}
+
+.prove-result-line a {
+  text-decoration: underline;
+  color: var(--accent);
+}
+
+.prove-footer {
+  padding: 12px 28px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Construction-line motifs */
+.construction-corner {
+  position: relative;
+}
+.construction-corner::before,
+.construction-corner::after {
+  content: "+";
+  position: absolute;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--brand-line);
+  pointer-events: none;
+  z-index: 4;
+}
+.construction-corner::before {
+  top: -7px;
+  left: -5px;
+}
+.construction-corner::after {
+  bottom: -7px;
+  right: -5px;
+}
+
+/* Narrative Brand Story strip */
+.prove-brand-story {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border: 1px dashed var(--line);
+  border-radius: 2px;
+}
+.story-label {
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.story-chip-break {
+  color: var(--brand-crack);
+  font-weight: 600;
+}
+.story-chip-fix {
+  color: var(--brand-electric);
+  font-weight: 600;
+}
+.story-thread-arrow {
+  opacity: 0.8;
+}
+
+/* Pink crack for failures / breaks */
+.prove-row-crack,
+.prove-row[data-kind="crack"] {
+  border-left: 2px solid var(--brand-crack) !important;
+  background: color-mix(in srgb, var(--brand-crack) 6%, transparent);
+  padding: 4px 8px;
+  border-radius: 0 2px 2px 0;
+}
+.prove-crack-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--brand-crack) 15%, transparent);
+  color: var(--brand-crack);
+  border: 1px solid var(--brand-crack);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* Blue thread for repairs / fixes */
+.prove-row-thread,
+.prove-row[data-kind="thread"] {
+  border-left: 2px dashed var(--brand-electric) !important;
+  background: color-mix(in srgb, var(--brand-electric) 6%, transparent);
+  padding: 4px 8px;
+  border-radius: 0 2px 2px 0;
+}
+.prove-thread-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--brand-electric) 15%, transparent);
+  color: var(--brand-electric);
+  border: 1px solid var(--brand-electric);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prove-row {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .prove-progress-bar {
+    transition: none !important;
+  }
+}
+
+/* Gradient background token from Banner 2 (for section backgrounds & cards) */
+.section-gradient,
+[data-bg="gradient"] {
+  background-image: linear-gradient(to bottom, rgba(17, 19, 21, 0.82), rgba(17, 19, 21, 0.95)), url('/brand/gradient-bg-1920.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+:root[data-theme="light"] .section-gradient,
+:root[data-theme="light"] [data-bg="gradient"] {
+  background-image: linear-gradient(to bottom, rgba(244, 233, 220, 0.88), rgba(244, 233, 220, 0.96)), url('/brand/gradient-bg-1920.jpg');
+}
+
 
