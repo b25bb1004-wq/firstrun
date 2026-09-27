@@ -28,6 +28,10 @@ const match = (src, p) => {
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://localhost');
   let p = u.pathname;
+  for (const r of cfg.redirects || []) {
+    if (!match(r.source, p)) continue;
+    res.writeHead(r.permanent ? 308 : 307, { Location: r.destination }); return res.end();
+  }
   for (const r of cfg.rewrites || []) {
     const m = match(r.source, p); if (!m) continue;
     if (r.has && !u.searchParams.get('path')) continue;
