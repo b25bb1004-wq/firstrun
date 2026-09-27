@@ -8,9 +8,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ocr, warmOcr, loadKnownFixes, matchKnownFix, askBobAbout } from './engine.js';
 import { runAgent, open as openArtifact } from './dock-bridge.js';
+import { readWindows } from './spatial/windows.js';
+import { ocrPng } from './spatial/ocr.js';
+import { createCaptureGate, bobPayload } from './spatial/point.js';
+import { look } from './spatial/look.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const HOTKEYS = ['CommandOrControl+Shift+Space', 'Alt+Shift+Q'];
+const LOOK_HOTKEYS = ['CommandOrControl+Shift+L', 'Alt+Shift+L']; // "look at my screen" (spec section 17)
 // Dock hotkey: Alt+Command+Space (Mac) / Control+Alt+Space (Windows/Linux) — DOCK_CONTRACT §5
 const DOCK_HOTKEYS = process.platform === 'darwin'
   ? ['Alt+Command+Space']
@@ -85,6 +90,43 @@ ipcMain.on('dock:cancel', () => { dockBridge?.cancel(); dockBridge = null; });
 ipcMain.on('dock:open', (_e, { what, runDir }) => { openArtifact(what, runDir); });
 
 ipcMain.on('dock:lens', () => openLens());
+
+// ── Spatial context (spec section 17) ────────────────────────────────────────
+// Capture only on the look hotkey or the Dock's "look at my screen" button; one window, in memory, flashed amber.
+const gate = createCaptureGate({ userExcludes: (process.env.HUMBLE_NEVER_CAPTURE || '').split(',').map((x) => x.trim()).filter(Boolean) });
+let lastLook = null;
+
+async function grabWindow(win) {
+  const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: { width: win.bounds.width, height: win.bounds.height } });
+  const src = sources.find((x) => x.id.startsWith(`window:${win.hwnd}:`));
+  if (!src) throw new Error(`window "${win.title}" could not be captured`);
+  return src.thumbnail.toPNG();
+}
+
+function flash(rect) {
+  const w = new BrowserWindow({ ...rect, frame: false, transparent: true, focusable: false, skipTaskbar: true, alwaysOnTop: true, hasShadow: false, resizable: false, show: false });
+  w.setIgnoreMouseEvents(true);
+  w.loadURL('data:text/html,' + encodeURIComponent('<body style="margin:0;height:100vh;box-sizing:border-box;border:3px solid #f5a623;border-radius:10px;box-shadow:inset 0 0 18px #f5a62380"></body>'));
+  w.once('ready-to-show', () => { w.showInactive(); setTimeout(() => !w.isDestroyed() && w.close(), 1000); });
+}
+
+async function lookAtScreen(source, want = {}) {
+  gate.allow(source);
+  const r = await look(gate, {
+    readWindows, ocrPng,
+    displays: screen.getAllDisplays().map((d) => ({ id: d.id, bounds: d.bounds, scaleFactor: d.scaleFactor })),
+    grab: async (win) => { flash(physRect(win)); return grabWindow(win); },
+  }, { hints: { repo: path.basename(project), cwd: project }, ...want });
+  lastLook = r;
+  const out = { ok: r.ok, reason: r.reason, how: r.how, lookedAt: r.lookedAt && { app: r.lookedAt.app, title: r.lookedAt.title }, target: r.target, captures: gate.log() };
+  pushState({ spatial: out });
+  return out;
+}
+const physRect = (win) => screen.screenToDipRect ? screen.screenToDipRect(null, win.bounds) : win.bounds;
+
+ipcMain.handle('spatial:look', (_e, want) => lookAtScreen('button', want || {}).catch((e) => ({ ok: false, reason: e.message, captures: gate.log() })));
+// Text-only view for Bob (redacted lines + ids); marks the capture log so the security tab can say "Bob saw text".
+ipcMain.handle('spatial:forBob', () => (lastLook?.ocr ? bobPayload(lastLook.map, lastLook.ocr, lastLook.lookedAt?.entry) : null));
 ipcMain.on('dock:toggle', () => toggleDockPanel());
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -172,6 +214,7 @@ app.whenReady().then(() => {
   hotkey = HOTKEYS.find((k) => globalShortcut.register(k, openLens)) || null;
   // Dock hotkey toggles the panel; try each candidate, stop at first success.
   let dockHotkey = DOCK_HOTKEYS.find((k) => globalShortcut.register(k, toggleDockPanel)) || null;
+  LOOK_HOTKEYS.find((k) => globalShortcut.register(k, () => lookAtScreen('hotkey').catch((e) => pushState({ spatial: { ok: false, reason: e.message } }))));
   buildTray();
   createDockButton();
   warmOcr(CACHE).catch(() => {});

@@ -140,3 +140,28 @@ test('Bob payload: text + ids only, secrets redacted, capture log marked', async
   assert.match(p.lines[0], /^B1: /);
   assert.equal(entry.bobSawText, true);
 });
+
+test('look: map -> gated capture -> real OCR rows -> verified beam target in overlay pixels', async () => {
+  const { look } = await import('../lens/spatial/look.js');
+  const rawOcr = fixture('acme-ebadengine.ocr.json');
+  const raw = { monitors: [{ x: 0, y: 0, width: 2880, height: 1800, primary: true }],
+    windows: [{ hwnd: 7, app: 'WindowsTerminal', cls: 'CASCADIA_HOSTING_WINDOW_CLASS', title: 'C:\Code\acme-shop', x: 300, y: 150, width: 1500, height: 330, z: 0 }] };
+  const deps = { readWindows: async () => raw, grab: async () => Buffer.from('png'), ocrPng: async () => withIds(rawOcr),
+    displays: [{ id: 1, bounds: { x: 0, y: 0, width: 1920, height: 1200 }, scaleFactor: 1.5 }] };
+  const gate = createCaptureGate();
+  await assert.rejects(look(gate, deps, {}), /no capture without/, 'look never captures on its own');
+  gate.allow('hotkey');
+  const r = await look(gate, deps, { matchedLine: 'npm ERR! code EBADENGINE', hints: { cwd: 'C:\Code\acme-shop' } });
+  assert.equal(r.ok, true); assert.equal(r.how, 'rule');
+  assert.match(r.target.text, /EBADENGINE/);
+  // window at physical (300,150) = DIP (200,100); thumbnail is 1:1 physical, so boxes scale by 1/1.5
+  const line = r.ocr.lines.find((l) => l.id === r.target.id);
+  assert.equal(r.target.box.x, 200 + line.x / 1.5);
+  assert.equal(r.target.box.y, 100 + line.y / 1.5);
+  assert.equal(r.lookedAt.app, 'WindowsTerminal');
+
+  gate.allow('button');
+  let n = 0; const moving = { ...deps, readWindows: async () => (n++ ? { ...raw, windows: [{ ...raw.windows[0], x: 900 }] } : raw) };
+  const moved = await look(gate, moving, { matchedLine: 'npm ERR! code EBADENGINE' });
+  assert.equal(moved.ok, false); assert.match(moved.reason, /moved/);
+});
