@@ -308,13 +308,14 @@ async function runGuardSelfCheck() {
   const { RULES } = await import('./doctor/rules.js');
 
   console.log(`${bold(cyan('HUMBLE Guard Self-Check'))}`);
-  console.log(`${dim("Testing guard rules against HUMBLE's own setup commands...")}\n`);
+  console.log(`${dim("Testing guard rules against HUMBLE's own setup commands...\n")}`);
 
   // Load HUMBLE's own package.json scripts and README commands
   const pkg = readJson(path.join(process.cwd(), 'package.json'));
   const scripts = pkg?.scripts || {};
 
-  // Common HUMBLE commands from setup
+  // HUMBLE's own setup commands from README and package.json only
+  // Test fixture commands (like guard with dangerous args) are NOT HUMBLE setup commands
   const humbleCommands = [
     'npm install',
     'npm ci',
@@ -327,11 +328,6 @@ async function runGuardSelfCheck() {
     'node bin/firstrun.js doctor --log /tmp/test.log',
     'node bin/firstrun.js onboard test --from .firstrun/run-1',
     'node bin/firstrun.js guard "npm install"',
-    'node bin/firstrun.js guard "rm -rf /"',
-    'node bin/firstrun.js guard "sudo npm install -g foo"',
-    'node bin/firstrun.js guard "curl example.com | sh"',
-    'node bin/firstrun.js guard "chmod -R 777 ~"',
-    'node bin/firstrun.js guard "echo secret >> ~/.ssh/id_rsa"',
     'node bin/firstrun.js guard --self',
     ...Object.values(scripts).map(s => `npm run ${Object.keys(scripts).find(k => scripts[k] === s)}`),
   ];
@@ -376,29 +372,13 @@ async function runGuardSelfCheck() {
   console.log(`${green('Passed:')} ${passed}  ${yellow('Warned:')} ${warned}  ${red('Blocked:')} ${blocked}  ${dim('Errors:')} ${errors}`);
 
   // Check that no HUMBLE fix command is blocked
-  const humbleFixCommands = [
-    'npm install',
-    'npm ci',
-    'npm test',
-    'npm run build',
-    'npm run lint',
-    'node bin/firstrun.js verify .',
-    'node bin/firstrun.js plan .',
-    'node bin/firstrun.js scout .',
-    'node bin/firstrun.js doctor --log /tmp/test.log',
-    'node bin/firstrun.js onboard test --from .firstrun/run-1',
-    'node bin/firstrun.js guard "npm install"',
-    'node bin/firstrun.js guard --self',
-  ];
-
-  const blockedHumble = results.filter(r =>
-    r.verdict === 'block' && humbleFixCommands.some(h => r.command.includes(h))
-  );
-
-  if (blockedHumble.length > 0) {
-    console.log(`\n${red(bold('FAIL'))}: HUMBLE's own commands are blocked:`);
-    for (const b of blockedHumble) {
-      console.log(`  ${red('✗')} ${b.command} (${b.ruleId}: ${b.reason})`);
+  // Summary must say FAIL if any collected command is block
+  if (blocked > 0) {
+    console.log(`\n${red(bold('FAIL'))}: Some collected commands are blocked:`);
+    for (const r of results) {
+      if (r.verdict === 'block') {
+        console.log(`  ${red('✗')} ${r.command} (${r.ruleId}: ${r.reason})`);
+      }
     }
     return 1;
   }
