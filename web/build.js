@@ -2,7 +2,7 @@
 // Builds the hosted demo into web/public: the landing page (committed), the dashboard under /app,
 // and a static snapshot of REAL runs under /data (the dashboard reads it through vercel.json
 // rewrites and web/static-shim.js). Synthetic fixtures are never exported.
-//   node web/build.js [--audit audit/v2-31-final] [--out web/public]
+//   node web/build.js [--audit audit/real-16-v2] [--out web/public]
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,17 +14,14 @@ const ROOT = path.resolve(HERE, '..');
 
 // Parse CLI args
 function parseArgs(argv) {
-  const auditDefault = process.env.AUDIT_DIR
-    ? process.env.AUDIT_DIR
-    : ['audit/v2-31-final', 'audit/real-31-v2', 'audit/v2-31', 'audit/real-16-v2'].find((r) => fs.existsSync(path.join(ROOT, r))) || 'audit/v2-31-final';
-  const args = { audit: auditDefault, out: 'web/public' };
+  const args = { audit: 'audit/real-16-v2', out: 'web/public' };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--audit') args.audit = argv[++i];
     else if (a === '--out') args.out = argv[++i];
     else if (a === '-h' || a === '--help') {
       console.log('usage: node web/build.js [--audit <path>] [--out <dir>]');
-      console.log('  --audit  Audit folder to export (default: auto-detected)');
+      console.log('  --audit  Audit folder to export (default: audit/real-16-v2)');
       console.log('  --out    Output directory (default: web/public)');
       process.exit(0);
     }
@@ -33,12 +30,12 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const OUT = path.resolve(ROOT, args.out);
+const OUT = path.resolve(ROOT, args.out); // --out is relative to the repo root (it resolved against web/, writing to web/web/public)
 const AUDIT_PATH = path.resolve(ROOT, args.audit);
 const EXAMPLES_PATH = path.resolve(ROOT, 'examples');
 const ROOTS = [EXAMPLES_PATH, AUDIT_PATH];
 
-const RUN_FILES = /^(events\.ndjson|plan\.json|run\.json|evidence\/.*|logs\/.*|out\/.*)$/; // never bob/ (stand-in transcripts)
+const RUN_FILES = /^(events\.ndjson|plan\.json|run\.json|evidence\/.*|logs\/.*|out\/.*|$)/; // never bob/ (stand-in transcripts)
 
 const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
 const write = (p, data) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, typeof data === 'string' ? data : JSON.stringify(data)); };
@@ -123,32 +120,6 @@ async function main() {
   // run dirs are local paths; don't publish them
   writeRedacted(path.join(OUT, 'data', 'runs.json'), runs.map(({ dir, ...r }) => r));
   
-  // Synchronize landing page index.html static figures with the exported audit
-  if (audits.length) {
-    const primaryId = audits[0].id;
-    const primaryDataPath = path.join(OUT, 'data', 'audits', `${primaryId}.json`);
-    if (fs.existsSync(primaryDataPath)) {
-      const primary = JSON.parse(fs.readFileSync(primaryDataPath, 'utf8'));
-      const total = primary.summary?.total ?? primary.repos?.length ?? 0;
-      const noDocs = (primary.repos || []).filter((r) => r.verdict === 'NO-SETUP-DOCS').length;
-      const followable = Math.max(0, total - noDocs);
-      const broke = primary.summary?.brokeOnCleanMachine ?? (primary.repos || []).filter((r) => r.verdict === 'FAILED' || r.verdict === 'PARTIAL').length;
-      const fixed = primary.summary?.breaksFixed ?? 0;
-
-      const landingPath = path.join(OUT, 'index.html');
-      if (fs.existsSync(landingPath)) {
-        let html = fs.readFileSync(landingPath, 'utf8');
-        html = html.replace(/<b data-count="\d+" data-stat="total">\d+<\/b>/, `<b data-count="${total}" data-stat="total">${total}</b>`);
-        html = html.replace(/<b data-count="\d+" data-suffix="[^"]*" data-stat="broke">[^<]+<\/b>/, `<b data-count="${broke}" data-suffix=" of ${followable}" data-stat="broke">${broke} of ${followable}</b>`);
-        html = html.replace(/<b data-count="\d+" data-stat="fixed">\d+<\/b>/, `<b data-count="${fixed}" data-stat="fixed">${fixed}</b>`);
-        html = html.replace(/<p class="fact" data-stat="fact"[^>]*>.*?<\/p>/, `<p class="fact" data-stat="fact" data-reveal>Numbers from an audit of ${total} public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>`);
-        html = html.replace(/<h3 data-stat="caption">.*?<\/h3>/, `<h3 data-stat="caption">${total} public repos, pinned to exact commits</h3>`);
-        fs.writeFileSync(landingPath, html);
-        console.log(`web/public/index.html synced to audit ${primaryId}: ${total} repos, ${broke}/${followable} broke, ${fixed} fixed`);
-      }
-    }
-  }
-
   // Count verdicts
   const verdictCounts = {};
   for (const r of runs) {

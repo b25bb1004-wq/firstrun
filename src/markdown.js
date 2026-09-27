@@ -3,6 +3,11 @@
  * shell commands inside them, with line numbers so edits can be mapped back.
  */
 
+// First words of a shell command, shared by unlabelled fences and inline list items.
+const CMD_START = /^(\$ |> )?(npm|npx|yarn|pnpm|bun|node|python3?|pip3?|poetry|uv|pipenv|cp|mv|mkdir|cd|export|source|\.|docker|docker-compose|make|git|go|cargo|bundle|rails|php|composer|flask|uvicorn|gunicorn|pytest|alembic|curl|touch|echo|corepack|nvm|brew|sudo|apt|apt-get|createdb|psql)\b/;
+// A setup step written as a list item: "- `npm install` to install deps", "2. Run `npm start`".
+const LIST_ITEM = /^(\s*)(?:[-*+]|\d+[.)])\s+(?:(?:then\s+)?(?:run|execute|type|use)\s*:?\s+)?`([^`]+)`/i;
+
 const SHELL_LANGS = new Set(['', 'bash', 'sh', 'shell', 'zsh', 'console', 'shell-session', 'shellsession', 'terminal', 'cli', 'text', 'fish']);
 
 export function parseMarkdown(text) {
@@ -25,6 +30,12 @@ export function parseMarkdown(text) {
     }
     if (fm) {
       fence = { start: i, end: -1, marker: fm[2], lang: (fm[3] || '').toLowerCase(), indent: fm[1].length, lines: [] };
+      continue;
+    }
+    const li = line.match(LIST_ITEM);
+    if (li && CMD_START.test(li[2].trim())) {
+      // One-line pseudo block; the scribe edits inside the backticks so the list item keeps its prose.
+      blocks.push({ start: i, end: i, lang: 'inline', inline: true, indent: li[1].length, code: li[2], lines: [{ text: li[2].trim(), line: i }] });
       continue;
     }
     const hm = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
@@ -62,12 +73,13 @@ export function sectionPath(sections, line) {
 }
 
 export function isShellBlock(block) {
+  if (block.inline) return true; // only list items whose code starts with a known command become blocks
   if (!SHELL_LANGS.has(block.lang)) return false;
   if (block.lang === 'text' || block.lang === '') {
     // Unlabelled blocks are often output or config; accept only if most lines look like commands.
     const ls = block.lines.map((l) => l.text.trim()).filter(Boolean);
     if (!ls.length) return false;
-    const cmdish = ls.filter((l) => /^(\$ |> )?(npm|npx|yarn|pnpm|bun|node|python3?|pip3?|poetry|uv|pipenv|cp|mv|mkdir|cd|export|source|\.|docker|docker-compose|make|git|go|cargo|bundle|rails|php|composer|flask|uvicorn|gunicorn|pytest|alembic|curl|touch|echo|corepack|nvm|brew|sudo|apt|apt-get|createdb|psql)\b/.test(l)).length;
+    const cmdish = ls.filter((l) => CMD_START.test(l)).length;
     return cmdish / ls.length >= 0.6;
   }
   return true;
