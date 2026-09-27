@@ -1,0 +1,27 @@
+{
+  "repo": "edwinhern/express-typescript",
+  "commit": "983fa04136",
+  "verifiedAt": "2026-09-27T00:11:58.285Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 2,
+  "stepsFromReadme": 0,
+  "breaksFound": 2,
+  "breaksFixed": 2,
+  "needsHuman": 0,
+  "repoBreaks": 2,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 3,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "pnpm test"
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}

@@ -1,0 +1,26 @@
+{
+  "repo": "teamhide/fastapi-boilerplate",
+  "commit": "df4e6d4f81",
+  "verifiedAt": "2026-09-26T23:06:04.129Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.11.7",
+  "runtime": "Python 3.11.7",
+  "stepsTotal": 6,
+  "stepsFromReadme": 5,
+  "breaksFound": 4,
+  "breaksFixed": 4,
+  "needsHuman": 1,
+  "repoBreaks": 4,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 130,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/"
+  },
+  "fromCI": false
+}

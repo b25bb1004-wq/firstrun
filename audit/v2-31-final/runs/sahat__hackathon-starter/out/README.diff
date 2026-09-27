@@ -1,0 +1,43 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,5 +1,7 @@
+ ![](https://lh4.googleusercontent.com/-PVw-ZUM9vV8/UuWeH51os0I/AAAAAAAAD6M/0Ikg7viJftQ/w1286-h566-no/hackathon-starter-logo.jpg)
+ Hackathon Starter
++
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `410fccec23`: clone to running in 1m28s.
+ =======================
+ 
+ [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sahat/hackathon-starter)
+@@ -140,6 +142,7 @@ cd myproject
+ npm install
+ 
+ # Then simply start your app
++docker run -d --name mongo -p 27017:27017 mongo:7
+ npm start
+ ```
+ 
+@@ -1557,6 +1560,7 @@ You can run the tests using:
+ npm test                  # unit tests (core functions)
+ npm run test:e2e:live     # All E2E tests with previously recorded API responses
+ npm run test:e2e:replay   # E2E (replay fixtures - recorded API responses)
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ You can run a single E2E Test file like the following:
+@@ -1564,12 +1568,15 @@ You can run a single E2E Test file like the following:
+ ```bash
+ # Run tests in a single test file against live APIs
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # Run tests in a single test file while replaying recorded API responses from the fixtures
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-replay
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # Run tests in a single test file against live APIs and capture the API responses as fixtures for replay later
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-record
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ For more information on creating or running E2E tests see [test/TESTING.md](https://github.com/sahat/hackathon-starter/blob/master/test/TESTING.md)

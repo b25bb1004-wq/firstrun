@@ -1,0 +1,122 @@
+{
+  "repo": "madhums/node-express-mongoose",
+  "commit": "86e569617f",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm i",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 25,
+        "endLine": 25,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S2",
+      "command": "cp .env.example .env",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 26,
+        "endLine": 26,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S3",
+      "command": "docker-compose up -d",
+      "kind": "services",
+      "source": {
+        "file": "README.md",
+        "line": 32,
+        "endLine": 32,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S4",
+      "command": "docker-compose logs -f",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 38,
+        "endLine": 38,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "skip": "follows logs; not a setup step",
+      "status": "skipped"
+    },
+    {
+      "id": "S5",
+      "command": "docker-compose exec node npm i",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 44,
+        "endLine": 44,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    },
+    {
+      "id": "S6",
+      "command": "docker-compose exec -e MONGODB_URL=mongodb://mongo:27017/noobjs_test node npm test",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 52,
+        "endLine": 52,
+        "section": "Docker"
+      },
+      "origin": "readme",
+      "skip": "container-based alternative workflow",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "10 (package.json engines (\">=10.x\"))",
+      "source": "README.md"
+    },
+    {
+      "what": "Docker Compose v1",
+      "docs": "docker-compose up -d",
+      "truth": "retired in 2023; current Docker ships it as `docker compose`",
+      "source": "README.md:32"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

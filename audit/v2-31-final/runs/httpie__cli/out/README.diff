@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -71,6 +71,8 @@ Please note we recently accidentally made this repo private for a moment, and Gi
+ 
+ ## Examples
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.7` machine at `5b604c37c6`: clone to running in 1m19s.
++
+ Hello World:
+ 
+ ```bash

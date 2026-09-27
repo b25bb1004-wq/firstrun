@@ -1,0 +1,222 @@
+{
+  "id": "v2-31-final-httpie__cli",
+  "repo": "httpie/cli",
+  "commit": "5b604c37c6",
+  "startedAt": "2026-09-27T00:40:43.183Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S6": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "Python 3.7+",
+      "truth": "3.9 (CI (.github/workflows/benchmark.yml))",
+      "source": "README.md:281"
+    },
+    {
+      "what": "env var HTTPIE_BUILDING_MAN_PAGES",
+      "docs": "not documented",
+      "truth": "read in extras/scripts/generate_man_pages.py:9",
+      "source": "README"
+    },
+    {
+      "what": "Setup path",
+      "docs": "none documented",
+      "truth": "CI runs `make test`",
+      "source": "README.md",
+      "ci": ".github/workflows/tests.yml:54",
+      "from": "ci-reference"
+    }
+  ],
+  "plan": {
+    "repo": "httpie/cli",
+    "commit": "5b604c37c6",
+    "image": "python:3.7",
+    "runtime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.md:281 (\"Python 3.7+\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "https httpie.io/hello",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 77,
+          "endLine": 77,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "http PUT pie.dev/put X-API-Token:123 name=John",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 83,
+          "endLine": 83,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "http --offline pie.dev/post hello=offline",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 89,
+          "endLine": 89,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "http -a USERNAME POST https://api.github.com/repos/httpie/cli/issues/83/comments body='HTTPie is awesome! :heart:'",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 95,
+          "endLine": 95,
+          "section": "Examples"
+        },
+        "origin": "readme",
+        "skip": "usage example: runs the tool on your own input once it is installed",
+        "status": "skipped"
+      },
+      {
+        "id": "S5",
+        "command": "make install",
+        "kind": "install",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "passed"
+      },
+      {
+        "id": "S6",
+        "command": "make test",
+        "kind": "test",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Python version",
+        "docs": "Python 3.7+",
+        "truth": "3.9 (CI (.github/workflows/benchmark.yml))",
+        "source": "README.md:281"
+      },
+      {
+        "what": "env var HTTPIE_BUILDING_MAN_PAGES",
+        "docs": "not documented",
+        "truth": "read in extras/scripts/generate_man_pages.py:9",
+        "source": "README"
+      },
+      {
+        "what": "Setup path",
+        "docs": "none documented",
+        "truth": "CI runs `make test`",
+        "source": "README.md",
+        "ci": ".github/workflows/tests.yml:54",
+        "from": "ci-reference"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "make test"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": true,
+    "originalImage": "python:3.7",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.7",
+      "source": "README.md:281 (\"Python 3.7+\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 78858
+  },
+  "passport": {
+    "repo": "httpie/cli",
+    "commit": "5b604c37c6",
+    "verifiedAt": "2026-09-27T00:46:07.228Z",
+    "verdict": "PARTIAL",
+    "image": "python:3.7",
+    "runtime": "Python 3.7",
+    "stepsTotal": 2,
+    "stepsFromReadme": 0,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 0,
+    "suiteIssues": 1,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 79,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "make test"
+    },
+    "fromCI": true,
+    "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+  },
+  "finishedAt": "2026-09-27T00:46:07.928Z"
+}
