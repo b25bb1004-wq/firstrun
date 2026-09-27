@@ -596,6 +596,94 @@
       if (state?.verdict === 'VERIFIED' || state?.verdict === 'FAILED') {
         cancelBtn.style.display = 'none';
       }
+      if (state?.spatial) {
+        applySpatialState(state.spatial);
+      }
+    });
+  }
+
+  // Section 17 Spatial UI Handler
+  function applySpatialState(spatial) {
+    if (!spatial) return;
+    if (window.HumbleSpatial?.handleSpatialState) {
+      window.HumbleSpatial.handleSpatialState(spatial, {
+        headerEl: document.querySelector('.dock-title-wrap'),
+        statusEl: bobPrompt,
+      });
+      return;
+    }
+
+    if (spatial.lookedAt) {
+      const windowTitle = spatial.lookedAt.app || spatial.lookedAt.title || 'window';
+      let chip = document.getElementById('looked-at-chip');
+      if (!chip) {
+        chip = document.createElement('span');
+        chip.id = 'looked-at-chip';
+        chip.className = 'humble-looked-at-chip';
+        chip.setAttribute('role', 'status');
+        const header = document.querySelector('.dock-title-wrap');
+        if (header) header.appendChild(chip);
+      }
+      chip.textContent = `👁 looked at: ${windowTitle}`;
+    }
+
+    if (spatial.ok && spatial.target) {
+      const target = spatial.target;
+      if (target.text && bobPrompt) {
+        bobPrompt.textContent = `I see: ${target.text.slice(0, 48)}`;
+      }
+      if (target.box) {
+        let boxEl = document.getElementById('humble-spatial-target-box');
+        if (!boxEl) {
+          boxEl = document.createElement('div');
+          boxEl.id = 'humble-spatial-target-box';
+          boxEl.className = 'humble-spatial-target-box visible';
+          document.body.appendChild(boxEl);
+        }
+        boxEl.style.left = `${target.box.x || 0}px`;
+        boxEl.style.top = `${target.box.y || 0}px`;
+        boxEl.style.width = `${target.box.width || 100}px`;
+        boxEl.style.height = `${target.box.height || 40}px`;
+        setTimeout(() => boxEl?.remove(), 3000);
+      }
+    } else if (spatial.ok === false && spatial.reason) {
+      if (bobPrompt) bobPrompt.textContent = `Spatial look: ${spatial.reason}`;
+    }
+  }
+
+  // Look at my screen button listener (Section 17)
+  const btnLook = document.getElementById('btn-look-screen');
+  if (btnLook) {
+    btnLook.addEventListener('click', async () => {
+      btnLook.disabled = true;
+      btnLook.style.opacity = '0.5';
+      if (bobPrompt) bobPrompt.textContent = 'Looking at your screen (private, local OCR)…';
+      try {
+        if (window.dock?.look) {
+          const res = await window.dock.look({ role: 'terminal' });
+          if (res?.spatial) applySpatialState(res.spatial);
+          else if (res) applySpatialState(res);
+        } else {
+          // Demo / preview fallback (§17: replay recorded spatial moment from demo machine)
+          applySpatialState({
+            ok: true,
+            how: 'rule',
+            lookedAt: { app: 'WindowsTerminal', title: 'C:\\Code\\acme-shop' },
+            target: {
+              kind: 'box',
+              id: 'B1',
+              text: 'npm ERR! code EBADENGINE',
+              box: { x: 20, y: 120, width: 340, height: 28 },
+              overlay: { x: 190, y: 134 },
+            },
+          });
+        }
+      } catch (err) {
+        applySpatialState({ ok: false, reason: err.message });
+      } finally {
+        btnLook.disabled = false;
+        btnLook.style.opacity = '1';
+      }
     });
   }
 
