@@ -513,6 +513,200 @@ export class HumbleRobot {
     this.setState('sleep');
   }
 
+  /**
+   * Calculate lantern center coordinates in viewport space (§6)
+   * The Lamplighter belly lantern sits at ~50% x, ~65% y of the body.
+   */
+  getLanternPosition() {
+    if (!this.el || typeof this.el.getBoundingClientRect !== 'function') {
+      return { x: this.x + 48, y: this.y + 60 };
+    }
+    const rect = this.el.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width * 0.5,
+      y: rect.top + rect.height * 0.65
+    };
+  }
+
+  /**
+   * Pointing = the lantern BEAM (§6):
+   * A soft cone (linear-gradient, 18% --c-hi to transparent) from the lantern
+   * to the target line, fading in over 180ms on arrival and out with the bubble;
+   * the target line gets a 2px --c-core left bar while lit.
+   *
+   * @param {HTMLElement|{x: number, y: number, width?: number, height?: number}} target
+   */
+  showBeam(target) {
+    if (typeof document === 'undefined') return;
+    this.setState('point');
+    const lantern = this.getLanternPosition();
+
+    let targetBounds = null;
+    if (target && typeof target.getBoundingClientRect === 'function') {
+      const r = target.getBoundingClientRect();
+      targetBounds = { x: r.left, y: r.top, width: r.width, height: r.height };
+      target.classList.add('humble-target-lit');
+      target.setAttribute('data-humble-lit', 'true');
+      this._litElement = target;
+    } else if (target && typeof target.x === 'number') {
+      targetBounds = {
+        x: target.x,
+        y: target.y,
+        width: target.width || 200,
+        height: target.height || 24
+      };
+    } else {
+      targetBounds = { x: lantern.x + 80, y: lantern.y, width: 120, height: 20 };
+    }
+
+    if (!this._beamSvg) {
+      this._beamSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      this._beamSvg.setAttribute('class', 'humble-beam-svg');
+      this._beamSvg.setAttribute('aria-hidden', 'true');
+      this._beamSvg.innerHTML = `
+        <defs>
+          <linearGradient id="hb-beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="var(--c-hi, #ffc47a)" stop-opacity="0.28" />
+            <stop offset="70%" stop-color="var(--c-core, #ff9a3c)" stop-opacity="0.08" />
+            <stop offset="100%" stop-color="var(--c-core, #ff9a3c)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon class="humble-beam-cone" />
+      `;
+      document.body.appendChild(this._beamSvg);
+    }
+
+    const poly = this._beamSvg.querySelector('.humble-beam-cone');
+    if (poly) {
+      const pTop = `${targetBounds.x},${targetBounds.y}`;
+      const pBottom = `${targetBounds.x},${targetBounds.y + targetBounds.height}`;
+      poly.setAttribute('points', `${lantern.x},${lantern.y} ${pTop} ${pBottom}`);
+    }
+
+    this._beamSvg.classList.add('visible');
+    this._beamSvg.style.opacity = '1';
+  }
+
+  /**
+   * Hide the lantern BEAM and remove lit highlight from target
+   */
+  hideBeam() {
+    if (this._beamSvg) {
+      this._beamSvg.classList.remove('visible');
+      this._beamSvg.style.opacity = '0';
+    }
+    if (this._litElement) {
+      this._litElement.classList.remove('humble-target-lit');
+      this._litElement.removeAttribute('data-humble-lit');
+      this._litElement = null;
+    }
+  }
+
+  /**
+   * Point at a target line or element with the full Clicky sequence (§6):
+   * 1. Eyestalk peek (280ms out, 200ms back)
+   * 2. Fly to target line
+   * 3. On arrival, show lantern BEAM (180ms fade in) and light target line (2px left bar)
+   * 4. Type speech bubble text
+   * 5. Hold 3s, fade out bubble AND fade out beam together
+   * 6. Return home if options.returnHome is set
+   *
+   * @param {HTMLElement|{x: number, y: number, width?: number, height?: number}} target
+   * @param {Object} [options]
+   * @param {string} [options.say]
+   * @param {number} [options.holdMs=3000]
+   * @param {boolean} [options.returnHome=false]
+   */
+  async pointAt(target, options = {}) {
+    let targetX = this.x;
+    let targetY = this.y;
+
+    if (target && typeof target.getBoundingClientRect === 'function') {
+      const r = target.getBoundingClientRect();
+      targetX = r.left - 60;
+      targetY = r.top - 20;
+    } else if (target && typeof target.x === 'number') {
+      targetX = target.x - 60;
+      targetY = target.y - 20;
+    }
+
+    // Peek eyestalk before flight (§5 signature move: 280ms out, 200ms back)
+    await this.peek();
+
+    // Fly to target
+    await this.flyTo(targetX, targetY, {
+      onArrive: () => {
+        this.showBeam(target);
+      }
+    });
+
+    if (options.say) {
+      await this.say(options.say, options.holdMs || 3000);
+    }
+
+    this.hideBeam();
+
+    if (options.returnHome) {
+      await this.returnHome();
+    }
+  }
+
+  /**
+   * Spatial Context: Show 2px --c-core rounded outline with soft glow (§17)
+   * @param {{x: number, y: number, width: number, height: number}} bounds
+   */
+  showSpatialTarget(bounds) {
+    if (typeof document === 'undefined') return;
+    if (!this._spatialTargetBox) {
+      this._spatialTargetBox = document.createElement('div');
+      this._spatialTargetBox.className = 'humble-spatial-target-box';
+      document.body.appendChild(this._spatialTargetBox);
+    }
+    this._spatialTargetBox.style.left = `${bounds.x || bounds.left || 0}px`;
+    this._spatialTargetBox.style.top = `${bounds.y || bounds.top || 0}px`;
+    this._spatialTargetBox.style.width = `${bounds.width || 100}px`;
+    this._spatialTargetBox.style.height = `${bounds.height || 40}px`;
+    this._spatialTargetBox.classList.add('visible');
+  }
+
+  /**
+   * Spatial Context: Hide spatial target outline (§17)
+   */
+  hideSpatialTarget() {
+    if (this._spatialTargetBox) {
+      this._spatialTargetBox.classList.remove('visible');
+    }
+  }
+
+  /**
+   * Spatial Context: 1s amber capture flash around the captured window (§17)
+   * @param {{x?: number, y?: number, width?: number, height?: number}} bounds
+   */
+  triggerCaptureFlash(bounds = {}) {
+    if (typeof document === 'undefined') return;
+    const flash = document.createElement('div');
+    flash.className = 'humble-spatial-capture-flash';
+    flash.style.left = `${bounds.x || bounds.left || 0}px`;
+    flash.style.top = `${bounds.y || bounds.top || 0}px`;
+    flash.style.width = `${bounds.width || (typeof window !== 'undefined' ? window.innerWidth : 800)}px`;
+    flash.style.height = `${bounds.height || (typeof window !== 'undefined' ? window.innerHeight : 600)}px`;
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1000);
+  }
+
+  /**
+   * Spatial Context: create 'looked at: Windows Terminal' chip for console header (§17)
+   * @param {string} windowTitle
+   * @returns {HTMLElement}
+   */
+  createLookedAtChip(windowTitle) {
+    const chip = document.createElement('span');
+    chip.className = 'humble-looked-at-chip';
+    const textNode = document.createTextNode(`👁 looked at: ${windowTitle || 'window'}`);
+    chip.appendChild(textNode);
+    return chip;
+  }
+
   render() {
     this.el.innerHTML = `
       <svg class="humble-robot humble-robot-${this.state} humble-robot-${this.size}" viewBox="${this.state === 'celebrate' ? '0 -25 200 275' : '0 0 200 250'}">

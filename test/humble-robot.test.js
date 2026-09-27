@@ -111,3 +111,26 @@ test('HUMBLE Robot: flight math matches Section 6 of spec (duration clamp, scale
     assert.deepEqual(midPoint, { x: 50, y: -30 });
   });
 });
+
+test('HUMBLE Robot: lantern BEAM and Section 17 spatial UI methods exist on HumbleRobot prototype', () => {
+  assert.equal(typeof HumbleRobot.prototype.showBeam, 'function');
+  assert.equal(typeof HumbleRobot.prototype.hideBeam, 'function');
+  assert.equal(typeof HumbleRobot.prototype.pointAt, 'function');
+  assert.equal(typeof HumbleRobot.prototype.getLanternPosition, 'function');
+  assert.equal(typeof HumbleRobot.prototype.showSpatialTarget, 'function');
+  assert.equal(typeof HumbleRobot.prototype.hideSpatialTarget, 'function');
+  assert.equal(typeof HumbleRobot.prototype.triggerCaptureFlash, 'function');
+  assert.equal(typeof HumbleRobot.prototype.createLookedAtChip, 'function');
+});
+
+test('HUMBLE Robot: CSS includes lantern BEAM, target lighting, and spatial context rules (§6 & §17)', () => {
+  const css = fs.readFileSync(CSS_FILE, 'utf8');
+  assert.ok(css.includes('.humble-beam-svg'), 'Missing .humble-beam-svg rule');
+  assert.ok(css.includes('.humble-beam-cone'), 'Missing .humble-beam-cone rule');
+  assert.ok(css.includes('.humble-target-lit'), 'Missing .humble-target-lit rule');
+  assert.ok(css.includes('border-left: 2px solid var(--c-core, #ff9a3c) !important'), 'Missing 2px target line left bar');
+  assert.ok(css.includes('.humble-spatial-target-box'), 'Missing .humble-spatial-target-box rule');
+  assert.ok(css.includes('.humble-spatial-capture-flash'), 'Missing .humble-spatial-capture-flash rule');
+  assert.ok(css.includes('.humble-looked-at-chip'), 'Missing .humble-looked-at-chip rule');
+});
+
