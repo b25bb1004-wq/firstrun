@@ -1,0 +1,184 @@
+# HUMBLE Console: build spec (every detail)
+
+Owner map: **Hermes-1** = Electron console (`lens/humble/console.*`, opened from the Dock). **Hermes-3** = shared console core (typing engine, flight math, line grammar, reel player: `lens/humble/console-core.js`, used by both consoles). **Luna** = web console (`web/`, inner screen of the "Prove it live" hero). **Zeus** = visual polish and the mascot (`lens/humble/robot.*`, branch `zeus/humble-robot`). **Edith** = copy (section 9). **Hermes-2** = reel data (`web/public/data/reels/*.json`). Both consoles implement the SAME sequence from the SAME data; only the host differs.
+
+Reference: heyclicky (source: github.com/farzaa/clicky: `OverlayWindow.swift`, `CompanionManager.swift`, `CompanionPanelView.swift`, `DesignSystem.swift`). Numbers marked (C) are copied from Clicky's source; the rest are ours.
+
+Hard rules: no invented text in the terminal (every line comes from a real run event, the guide, or the probe); no new dependencies (CSS + `requestAnimationFrame`); never echo secrets (all displayed output goes through `src/redact.js`); every Run asks first; `prefers-reduced-motion` = no motion, same content.
+
+---
+
+## 1. Layout
+
+```
++--------------------------------------------------+  width 380 (web: 100% up to 560)
+| (mascot 56x56)  HUMBLE            [status dot] x |  header 64 high, padding 16
+|                 onboarding acme-shop             |
+|--------------------------------------------------|  1px --c-line
+| $ npm ci                                    ✓ 4s |  terminal pane
+|   why: installs the locked dependencies          |  min-height 240, max 420, scrolls
+| $ npm test                                  ✗    |
+|   > Error: Cannot find module 'pg'               |
+|  ▌                                               |  block caret
+|--------------------------------------------------|
+| [ Show me how ]  [ Do it for me ]      step 2/6  |  footer 52 high
++--------------------------------------------------+
+  watch onboarding again                             10px link under the panel
+```
+
+(The lines above are layout placeholders only; real content always comes from data.)
+
+- Panel: radius 12, border 1px `--c-line`, shadow `0 18px 48px rgba(0,0,0,.45)`, background `--c-surface`.
+- Opens anchored to the Dock button (Electron) / centered in the hero (web). Open: from scale .96 + opacity 0 + translateY 8px to 1/1/0, 220ms `--hb-ease-out`.
+- Close (x or Esc): reverse, 160ms. Esc never kills a running command; it asks "stop the command? y/n".
+
+## 2. Tokens (dark default; light theme swaps bg/ink/line exactly like robot.css)
+
+| token | value | use |
+|---|---|---|
+| `--c-bg` | `#16120e` | page behind panel (web) |
+| `--c-surface` | `#1c1712` | panel |
+| `--c-term` | `#120e0a` | terminal pane |
+| `--c-line` | `#342c24` | borders, dividers |
+| `--c-ink` | `#efe7da` | primary text |
+| `--c-ink-2` | `#b8ab98` | why lines, meta |
+| `--c-ink-3` | `#7a6e5f` | timestamps, step counter |
+| `--c-core` | `#ff9a3c` | mascot, caret, prompt `$`, focus ring, bubbles |
+| `--c-hi` | `#ffc47a` | glow highlights, hover |
+| `--c-deep` | `#e0701c` | pressed buttons |
+| `--c-ok` | `#3dd68c` | pass ✓ (same as `--agent-verifier`) |
+| `--c-fail` | `#ff5c7a` | fail ✗ (same as doctor) |
+| `--c-warn` | `#ffb224` | checklist rows not yet satisfied (C: Radix Amber 9) |
+| `--c-bob` | `#5E9EFF` | anything IBM Bob produced |
+| `--hb-ease-out` | `cubic-bezier(0.23,1,0.32,1)` | entrances |
+| `--hb-ease-bounce` | `cubic-bezier(0.34,1.56,0.64,1)` | bubbles, check marks |
+
+Type: terminal `ui-monospace, "JetBrains Mono", "Cascadia Code", Menlo, monospace` 12.5px / 1.55; UI `Inter, system-ui` 12px medium; header title 14px semibold (C); step counter 10px semibold uppercase, letter-spacing .06em.
+Spacing scale (C): 4 8 12 16 20 24 32. Radii (C): small 6, medium 8; panel 12.
+
+## 3. Terminal pane: line grammar
+
+Each line has a kind; the kind picks color and prefix. Nothing else may appear.
+
+| kind | prefix | color | source |
+|---|---|---|---|
+| `cmd` | `$ ` (the `$` in `--c-core`) | `--c-ink` | guide step `command` / reel beat `step` |
+| `why` | 2 spaces + `why: ` | `--c-ink-2` | guide step `why` |
+| `out` | 2 spaces | `--c-ink-2`; max 6 lines then `… N more lines` (click expands) | live stdout/stderr, redacted |
+| `fail` | 2 spaces + `> ` | `--c-fail` | reel `fail` beat / failing checker |
+| `diag` | 2 spaces + agent tag `[DR.BO]` | tag in agent color, text `--c-ink`; `[BOB]` tag in `--c-bob` | reel `diagnosis` beat |
+| `was` | 2 spaces + `- ` | `--c-fail` 70% opacity, strikethrough | README line before |
+| `fix` | 2 spaces + `+ ` | `--c-ok` | README line after |
+| `pass` | right-aligned `✓ Ns` on the cmd line | `--c-ok` | checker passed; N = real duration |
+| `sys` | none, italic | `--c-ink-3` | "checking your machine (read-only)…" |
+
+- Right status on a running `cmd`: braille spinner `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏` at 80ms/frame in `--c-ink-3`, then `✓ Ns` or `✗`.
+- ✓ enters scale .6 → 1 on `--hb-ease-bounce`, 260ms. ✗ enters with a 3-frame horizontal shake (±2px, 180ms).
+- Caret: block `▌` in `--c-core`, blink 1.06s `steps(2)`; hidden while typing, shown when waiting for input.
+- Auto-scroll to bottom unless the user scrolled up; then show a `↓ new output` pill (20px high, bottom-right).
+- Text selectable; a copy icon appears on hover over a `cmd` line (copies the command only).
+
+## 4. Typing engine (one function, shared)
+
+`type(el, text, {min, max})` appends one character per tick.
+- Welcome and prompts: fixed 30ms/char (C).
+- Pointing bubbles: random 30–60ms/char (C).
+- Commands in the terminal: 18ms/char, then 120ms pause before the `why` line.
+- Output lines: never typed; appear line by line every 40ms.
+- Reduced motion or hidden tab: full text instantly.
+- Any key or click finishes the current line instantly (never skips a confirmation).
+
+## 5. The mascot (Zeus's robot, `lens/humble/robot.*`)
+
+States in robot.js: `sleep think talk point celebrate worried`.
+
+| moment | state |
+|---|---|
+| panel closed / idle > 60s | `sleep` |
+| probing, loading guide, command running | `think` |
+| typing welcome, why lines, bubbles | `talk` |
+| flying to / pointing at a line | `point` |
+| checker passes | `celebrate` 1.2s, then `talk` |
+| checker fails / command errors | `worried` until the next action |
+
+- Boot (first open only): CRT flicker, opacity 0 → .8 → .2 → 1 over 420ms (steps), a 1px scanline sweeps top to bottom in 300ms, eyes open last with one blink.
+- Idle life: blink every 3–6s (random); eyes dart toward each new terminal line (150ms).
+- Glow: `drop-shadow(0 0 8px var(--c-core))` at rest; in flight radius = 8 + (scale − 1) × 20 px (C).
+
+## 6. Flight (mascot points at a line or page element)
+
+Port Clicky's math 1:1 (C):
+- duration = clamp(distance / 800, 0.6s, 1.4s)
+- quadratic bezier: P0 = start, P2 = target, P1 = midpoint moved UP by min(distance × 0.2, 80px)
+- eased progress t = 3u² − 2u³ (u = linear progress)
+- rotation = atan2(B'(t)) + 90°, with B'(t) = 2(1−t)(P1−P0) + 2t(P2−P1); settle at −35° on arrival
+- scale = 1 + sin(u·π) × 0.3 (1.3x mid-flight)
+- driven by `requestAnimationFrame`, never CSS transitions.
+
+On arrival: bubble at (target.x + 10, target.y + 18) (C); on the FIRST character scale .5 → 1 with a spring (`--hb-ease-bounce` 400ms); glow radius starts 22 and settles to 6 ("materializing", C); text types 30–60ms random; hold 3s; fade 0.5s; fly back.
+Mouse moves > 100px during the RETURN flight → cancel and snap home (C). The forward flight is never interrupted.
+Bubble: bg `--c-core`, text `#1a0e04`, 11px medium, padding 4px 8px, radius 6, shadow `0 0 6px rgba(255,154,60,.5)`.
+
+## 7. Onboarding sequence (first run; replayable)
+
+1. **Intro panel** (no terminal yet). Mascot `sleep`. Body:
+   - line 1 (14px semibold): personal line (section 9)
+   - line 2 (12px `--c-ink-2`): trust line
+   - label `CHECKING YOUR MACHINE` (10px semibold caps, `--c-ink-3`)
+   - checklist rows from `probe.js` + the guide's required tools: 28px high; 8px dot left (`--c-warn` missing / `--c-ok` present); tool name; right side the found version or `not found` + a `how?` link that types the install hint into the terminal later.
+   - rows re-poll every 2s (C polls permissions the same way); on flip, dot animates warn → ok with a 1.3x pop (200ms) and the mascot glances at it.
+   - optional tools listed after a divider, marked `optional`, never block Start.
+   - all required rows ok → footer types "you're all set. hit start to meet humble." and Start fades in. Start: full width, 36 high, bg `--c-core`, dark text, radius 8, hover `--c-hi`, press `--c-deep` + translateY 1px.
+   - Web: the checklist shows the RECORDED probe of the demo machine, labelled `demo machine`. Never pretend it is the visitor's machine.
+2. **Boot**: CRT boot (section 5), 420ms.
+3. **Welcome**: bubble fades in 0.4s, types "hey! i'm humble" at 30ms/char, holds 2s, fades 0.5s (C).
+4. **Reel**: terminal fades in over 2s (C), then plays the real reel (Hermes-2's JSON) compressed to ~25s: step lines type, fail lines shake, diagnosis appears, the README `-`/`+` pair appears, replay lines run, and it ends with `VERIFIED · replay from zero in Ns` (N = real `replaySeconds`).
+5. **Demo point**: at the first `fail` beat the mascot flies to that line: "this broke here"; then to the `+` line: "so i fixed the readme". Section 6 timings.
+6. **Call to action**: 2.3s after the reel ends (C), the caret line types the CTA. Stays 10s, then fades (C); the caret keeps blinking.
+7. Save `humble.onboarded = 1` (Electron: app settings; web: localStorage in try/catch). "watch onboarding again" replays steps 2–6.
+
+`skip intro` text button (10px, `--c-ink-3`, top-right of the terminal) jumps to step 6 with all reel lines written instantly.
+
+## 8. Guide mode (after onboarding, Electron only)
+
+- Steps come ONLY from `guide.json` (proven steps). For each: type `cmd`, type `why`, footer shows `[ Show me how ]` (copy the command + point at where to paste) and `[ Do it for me ]`.
+- Do it for me → inline confirmation replaces the footer: `run <command> in <dir>?  [ run ]  [ cancel ]` (Enter = run, Esc = cancel). Never auto-confirm, never batch-confirm.
+- Running: mascot `think`, spinner, streamed redacted output, a `stop` button replaces run.
+- Then run the step's checker: ✓ → `celebrate`, advance after 800ms; ✗ → `worried`, show the failure line, offer `[ ask DR.BO ]` (rules first, Bob only if configured) and `[ skip ]`.
+- Steps already satisfied (from report.js): `$ cmd   ✓ already done` in `--c-ink-3`, auto-skipped 300ms apart.
+- End: `VERIFIED on your machine · N steps · Ms` + Setup Passport link.
+
+## 9. Copy (Edith owns final wording; lowercase, warm, short)
+
+- personal: "hi, we're arnav and karmanya. this is humble."
+- trust: "nothing runs without your ok. first i only look at your machine, read-only."
+- ready: "you're all set. hit start to meet humble."
+- welcome: "hey! i'm humble"
+- point 1: "this broke here" · point 2: "so i fixed the readme"
+- CTA Electron: "press enter to run step 1 on your machine" · CTA web: "press enter to replay it"
+- Never "simply" or "just" (Clicky's own rule, C).
+
+## 10. Sound (optional, OFF by default)
+
+Clicky plays music and fades it over 3s at 90s (C). Ours: a soft key-tick per typed character at 8% volume, only if the user turns sound on (speaker icon in the header).
+
+## 11. Accessibility and performance
+
+- Terminal `role="log" aria-live="polite"`; bubble text is duplicated into the log for screen readers.
+- Everything reachable by Tab; focus ring 2px `--c-core`, offset 2px.
+- Contrast ≥ 4.5:1 for all text (verify `--c-ink-2` on `--c-term`).
+- Web: lazy-mount when the hero enters the viewport; reserve height (no layout shift); added JS ≤ 25 KB gzip; Lighthouse mobile stays ≥ 90.
+- Reduced motion: no flight (bubble appears beside the line), no typing, no shake, no flicker.
+
+## 12. Acceptance checklist (paste into each PR with ticks)
+
+- [ ] every terminal line traceable to a run event / guide step / probe fact (a test proves it)
+- [ ] flight math matches section 6 (unit test: bezier point, duration clamp, scale peak)
+- [ ] typing speeds match section 4
+- [ ] confirmation before every run; Esc cancels; no batch confirm
+- [ ] displayed output redacted (test with a fake token built at runtime, never a literal)
+- [ ] reduced-motion path works
+- [ ] replay onboarding and skip intro work
+- [ ] light and dark theme
+- [ ] `node --test test/*.test.js` green, `bash tools/check-secrets.sh` clean
+- [ ] 10–20s screen recording or GIF of the sequence in the PR body
