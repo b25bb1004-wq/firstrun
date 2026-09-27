@@ -2,8 +2,13 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.platform === 'darwin' 
+  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  : process.platform === 'win32'
+    ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+    : 'google-chrome';
 const PORT = 9223;
 
 async function sleep(ms) {
@@ -11,7 +16,7 @@ async function sleep(ms) {
 }
 
 async function run() {
-  const userDataDir = `/tmp/chrome-snap-${Date.now()}`;
+  const userDataDir = path.join(os.tmpdir(), `chrome-snap-${Date.now()}`);
   const chrome = spawn(CHROME, [
     '--headless=new',
     '--disable-gpu',

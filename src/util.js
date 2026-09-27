@@ -2,15 +2,23 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import os from 'node:os';
 
 /**
  * Run a process and collect its output. Never rejects on a non-zero exit;
  * callers inspect `code`. `onData` receives stdout+stderr chunks as they arrive.
+ * On Windows, uses shell: true for npm/npx/yarn/pnpm/bob/code to handle .cmd shims.
  */
+function needsShell(cmd) {
+  const base = path.basename(cmd).toLowerCase();
+  return ['npm', 'npx', 'yarn', 'pnpm', 'bob', 'code'].includes(base);
+}
+
 export function run(cmd, args, { cwd, input, onData, timeoutMs, env } = {}) {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn(cmd, args, { cwd, env: env ? { ...process.env, ...env } : process.env, windowsHide: true });
+    const shell = process.platform === 'win32' && needsShell(cmd);
+    const child = spawn(cmd, args, { cwd, env: env ? { ...process.env, ...env } : process.env, windowsHide: true, shell });
     let out = '';
     let timedOut = false;
     const onChunk = (b) => {
