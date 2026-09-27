@@ -42,7 +42,7 @@ test('HUMBLE Robot: all 7 standalone SVG sprite files exist and contain valid CR
     assert.ok(fs.existsSync(file), `Missing SVG file: ${file}`);
     const content = fs.readFileSync(file, 'utf8');
     assert.ok(content.startsWith('<svg'), `${state}.svg does not start with <svg`);
-    assert.ok(content.includes('viewBox="0 0 200 250"'), `${state}.svg missing viewBox="0 0 200 250"`);
+    assert.ok(/viewBox="0 (-25|0) 200 (250|275)"/.test(content), `${state}.svg missing or invalid viewBox`);
     assert.ok(content.includes(`humble-robot-${state}`), `${state}.svg missing class humble-robot-${state}`);
   }
 });

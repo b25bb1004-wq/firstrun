@@ -276,7 +276,7 @@
   <!-- ========================================== -->
   <!-- 6. CELEBRATE                               -->
   <!-- ========================================== -->
-  <symbol id="hb-robot-celebrate" viewBox="0 0 200 250">
+  <symbol id="hb-robot-celebrate" viewBox="0 -25 200 275">
     <g class="bot-body bot-celebrate-jump">
       <g class="hb-halo" fill="var(--robot-core, #ff9a3c)">
         <rect x="32" y="20" width="136" height="108" rx="30"/>

@@ -338,11 +338,11 @@
   font-weight: 500;
   line-height: 1.4;
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: 2px;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0 4px 16px rgba(58, 28, 10, 0.25);
+  box-shadow: none;
   border: 1px solid var(--robot-core);
   transition: opacity 0.2s var(--hb-ease-out), transform 0.2s var(--hb-ease-out);
   z-index: 100;
