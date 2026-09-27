@@ -1,0 +1,208 @@
+{
+  "name": "louis3797",
+  "beats": [
+    {
+      "t": 0,
+      "agent": "scout",
+      "kind": "step",
+      "text": "Phase: scout",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0,
+      "agent": "scout",
+      "kind": "step",
+      "text": "{\"stack\":\"node\",\"docs\":[\"README.md\",\"CONTRIBUTING.md\"],\"node\":{\"truth\":null,\"pac",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0,
+      "agent": "planner",
+      "kind": "step",
+      "text": "Phase: plan",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"repo\":\"Louis3797/express-ts-auth-service\",\"commit\":\"fc6722badf\",\"image\":\"node:",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 1.4,
+      "agent": "runner",
+      "kind": "step",
+      "text": "clean machine ready: node:22",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 1.4,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install --global yarn",
+      "stepId": "S1",
+      "evidenceId": null
+    },
+    {
+      "t": 3.2,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "npm install --global yarn",
+      "stepId": "S1",
+      "evidenceId": null
+    },
+    {
+      "t": 3.2,
+      "agent": "runner",
+      "kind": "step",
+      "text": "yarn install",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 36.9,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S4 attempt 1",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 36.9,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "yarn install",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 36.9,
+      "agent": "runner",
+      "kind": "step",
+      "text": "yarn start",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 39.7,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S13 attempt 1",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 39.9,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "yarn start",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 39.9,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 40.1,
+      "agent": "doctor",
+      "kind": "diagnosis",
+      "text": "The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more ",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 40.1,
+      "agent": "doctor",
+      "kind": "fix",
+      "text": "cp .env.example .env",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 40.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"step\":{\"id\":\"R1\",\"command\":\"cp .env.example .env\",\"kind\":\"env\",\"origin\":\"repai",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 40.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"repo\":\"Louis3797/express-ts-auth-service\",\"commit\":\"fc6722badf\",\"image\":\"node:",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 40.1,
+      "agent": "runner",
+      "kind": "step",
+      "text": "cp .env.example .env",
+      "stepId": "R1",
+      "evidenceId": null
+    },
+    {
+      "t": 40.3,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "cp .env.example .env",
+      "stepId": "R1",
+      "evidenceId": null
+    },
+    {
+      "t": 40.3,
+      "agent": "runner",
+      "kind": "step",
+      "text": "yarn start",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 43,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S13 attempt 2",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 43.2,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "yarn start",
+      "stepId": "S13",
+      "evidenceId": null
+    },
+    {
+      "t": 43.2,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more ",
+      "stepId": "S13",
+      "evidenceId": "E1"
+    },
+    {
+      "t": 43.2,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    }
+  ],
+  "readmeBefore": "yarn start",
+  "readmeAfter": "cp .env.example .env",
+  "replaySeconds": 90
+}

@@ -1,0 +1,208 @@
+{
+  "name": "geekyants",
+  "beats": [
+    {
+      "t": 0,
+      "agent": "scout",
+      "kind": "step",
+      "text": "Phase: scout",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "scout",
+      "kind": "step",
+      "text": "{\"stack\":\"node\",\"docs\":[\"README.md\",\"CONTRIBUTING.md\"],\"node\":{\"truth\":null,\"pac",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "Phase: plan",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"repo\":\"GeekyAnts/express-typescript\",\"commit\":\"6b9bb70e23\",\"image\":\"node:22\",\"",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 2.3,
+      "agent": "runner",
+      "kind": "step",
+      "text": "clean machine ready: node:22",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 2.3,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 26.9,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S3 attempt 1",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 27,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S3 attempt 1",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 27,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 27,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 27.2,
+      "agent": "doctor",
+      "kind": "diagnosis",
+      "text": "Current npm refuses the project's conflicting peer dependencies (older npm versi",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 27.2,
+      "agent": "doctor",
+      "kind": "fix",
+      "text": "npm install --legacy-peer-deps",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 27.2,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install --legacy-peer-deps",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 73.1,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "npm install --legacy-peer-deps",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 73.1,
+      "agent": "doctor",
+      "kind": "verified",
+      "text": "Current npm refuses the project's conflicting peer dependencies (older npm versi",
+      "stepId": "S3",
+      "evidenceId": "E1"
+    },
+    {
+      "t": 73.2,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm run dev",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 74.5,
+      "agent": "runner",
+      "kind": "step",
+      "text": "Step S5 attempt 1",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 76.1,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "npm run dev",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 76.1,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 76.4,
+      "agent": "doctor",
+      "kind": "diagnosis",
+      "text": "The scripts call `nodemon`, but it isn't a dependency of the project: the docs a",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 76.4,
+      "agent": "doctor",
+      "kind": "fix",
+      "text": "npm install --global nodemon",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 76.4,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"step\":{\"id\":\"R1\",\"command\":\"npm install --global nodemon\",\"kind\":\"install\",\"or",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 76.4,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"repo\":\"GeekyAnts/express-typescript\",\"commit\":\"6b9bb70e23\",\"image\":\"node:22\",\"",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 76.4,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install --global nodemon",
+      "stepId": "R1",
+      "evidenceId": null
+    },
+    {
+      "t": 78.7,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "npm install --global nodemon",
+      "stepId": "R1",
+      "evidenceId": null
+    }
+  ],
+  "readmeBefore": "npm install",
+  "readmeAfter": "npm install --legacy-peer-deps",
+  "replaySeconds": 69
+}

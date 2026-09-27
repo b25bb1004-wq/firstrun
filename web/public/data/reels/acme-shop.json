@@ -1,0 +1,208 @@
+{
+  "name": "acme-shop",
+  "beats": [
+    {
+      "t": 0,
+      "agent": "scout",
+      "kind": "step",
+      "text": "Phase: scout",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "scout",
+      "kind": "step",
+      "text": "{\"stack\":\"node\",\"docs\":[\"README.md\",\"CONTRIBUTING.md\"],\"node\":{\"truth\":{\"version",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "Phase: plan",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 0.1,
+      "agent": "planner",
+      "kind": "step",
+      "text": "{\"repo\":\"acme-shop\",\"commit\":\"c0661ce19b\",\"image\":\"node:16\",\"runtime\":{\"name\":\"n",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 1.8,
+      "agent": "runner",
+      "kind": "step",
+      "text": "clean machine ready: node:16",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 1.8,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 2.6,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 2.6,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 2.8,
+      "agent": "doctor",
+      "kind": "diagnosis",
+      "text": "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 2.8,
+      "agent": "doctor",
+      "kind": "fix",
+      "text": "Node.js 20 (see .nvmrc)",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 2.8,
+      "agent": "runner",
+      "kind": "step",
+      "text": "switching the clean machine to node:20",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 3.9,
+      "agent": "runner",
+      "kind": "step",
+      "text": "replaying earlier steps on the new machine",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 3.9,
+      "agent": "runner",
+      "kind": "step",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 7.5,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "npm install",
+      "stepId": "S3",
+      "evidenceId": null
+    },
+    {
+      "t": 7.5,
+      "agent": "doctor",
+      "kind": "verified",
+      "text": "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).",
+      "stepId": "S3",
+      "evidenceId": "E1"
+    },
+    {
+      "t": 7.5,
+      "agent": "runner",
+      "kind": "step",
+      "text": "cp .env.sample .env",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 7.8,
+      "agent": "runner",
+      "kind": "fail",
+      "text": "cp .env.sample .env",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 7.8,
+      "agent": "doctor",
+      "kind": "step",
+      "text": "Phase: repair",
+      "stepId": null,
+      "evidenceId": null
+    },
+    {
+      "t": 8,
+      "agent": "doctor",
+      "kind": "diagnosis",
+      "text": ".env.sample does not exist; the repo ships .env.example.",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 8,
+      "agent": "doctor",
+      "kind": "fix",
+      "text": "cp .env.example .env",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 8,
+      "agent": "runner",
+      "kind": "step",
+      "text": "cp .env.example .env",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 8.3,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "cp .env.example .env",
+      "stepId": "S4",
+      "evidenceId": null
+    },
+    {
+      "t": 8.3,
+      "agent": "doctor",
+      "kind": "verified",
+      "text": ".env.sample does not exist; the repo ships .env.example.",
+      "stepId": "S4",
+      "evidenceId": "E2"
+    },
+    {
+      "t": 8.3,
+      "agent": "runner",
+      "kind": "step",
+      "text": "docker compose up -d",
+      "stepId": "S5",
+      "evidenceId": null
+    },
+    {
+      "t": 12.8,
+      "agent": "runner",
+      "kind": "pass",
+      "text": "docker compose up -d",
+      "stepId": "S5",
+      "evidenceId": null
+    }
+  ],
+  "readmeBefore": "cp .env.sample .env",
+  "readmeAfter": "cp .env.example .env",
+  "replaySeconds": 14
+}
