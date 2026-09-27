@@ -23,7 +23,7 @@ else
   hits=$(git log --all -p --no-color | grep -oE "$PAT" | grep -vE '=dev-[a-z-]*[0-9a-f]{8,}$|=[a-z-]*(password|secret|token|key|example|your|changeme|placeholder)[a-z-]*$|<redacted-by-firstrun>' | sort -u)
   context="history (all commits)"
 fi
-tracked=$(git ls-files | grep -iE '(^|/)\.env($|\.)' | grep -v '\.example$')
+tracked=$(git ls-files | grep -iE '(^|/)\.env($|\.)' | grep -vE '\.(example|template|sample|dist)$')  # templates hold no values
 [ -n "$tracked" ] && echo "Tracked env files (must not be committed):" && echo "$tracked"
 if [ -n "$hits" ]; then
   # Never print the value itself (this output gets pasted into chat/issues): a masked prefix + the commits.

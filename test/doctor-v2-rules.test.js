@@ -462,3 +462,234 @@ test('shebang-interpreter-missing: negative case (script not in repo) returns nu
   const res = rule.test(ctx);
   assert.equal(res, null);
 });
+
+// ── NODE slice tests ──
+
+test('pnpm-broken-lockfile: positive case', () => {
+  const rule = RULES.find((r) => r.id === 'pnpm-broken-lockfile');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: 'Error: ERR_PNPM_BROKEN_LOCKFILE\n\n  × The lockfile at \"/workspace/pnpm-lock.yaml\" is broken: The lockfileVersion\n  │ of 6.0 is incompatible with the supported formats (1:18)\n',
+    step: { command: 'pnpm install', kind: 'install', source: {} },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'pnpm-broken-lockfile');
+  assert.equal(res.class, 'missing-dependency');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('--no-frozen-lockfile'));
+});
+
+test('pnpm-broken-lockfile: negative case (not pnpm install) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'pnpm-broken-lockfile');
+  const ctx = makeCtx({
+    log: 'Error: ERR_PNPM_BROKEN_LOCKFILE\n',
+    step: { command: 'npm install', kind: 'install', source: {} },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('pnpm-not-installed: positive case (pnpm-lock.yaml present)', () => {
+  const rule = RULES.find((r) => r.id === 'pnpm-not-installed');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: '/firstrun/step-1.sh: line 5: pnpm: command not found\n',
+    step: { command: 'pnpm install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'pnpm-lock.yaml' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'pnpm-not-installed');
+  assert.equal(res.class, 'missing-tool');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('corepack enable'));
+});
+
+test('pnpm-not-installed: negative case (no pnpm-lock.yaml) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'pnpm-not-installed');
+  const ctx = makeCtx({
+    log: '/firstrun/step-1.sh: line 5: pnpm: command not found\n',
+    step: { command: 'pnpm install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('yarn-not-installed: positive case (yarn.lock present)', () => {
+  const rule = RULES.find((r) => r.id === 'yarn-not-installed');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: '/firstrun/step-1.sh: line 5: yarn: command not found\n',
+    step: { command: 'yarn install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'yarn.lock' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'yarn-not-installed');
+  assert.equal(res.class, 'missing-tool');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('corepack enable'));
+});
+
+test('yarn-not-installed: negative case (no yarn.lock) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'yarn-not-installed');
+  const ctx = makeCtx({
+    log: '/firstrun/step-1.sh: line 5: yarn: command not found\n',
+    step: { command: 'yarn install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('wrong-package-manager: pnpm on npm lockfile switches to npm', () => {
+  const rule = RULES.find((r) => r.id === 'wrong-package-manager');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: 'some log',
+    step: { command: 'pnpm install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'wrong-package-manager');
+  assert.equal(res.class, 'missing-dependency');
+  assert.ok(res.fix);
+  assert.ok(res.fix.actions[0].command.includes('npm install'));
+});
+
+test('wrong-package-manager: negative case (not pnpm install) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'wrong-package-manager');
+  const ctx = makeCtx({
+    log: 'some log',
+    step: { command: 'npm install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('wrong-package-manager-yarn: npm on yarn.lock switches to yarn', () => {
+  const rule = RULES.find((r) => r.id === 'wrong-package-manager-yarn');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: 'some log',
+    step: { command: 'npm install', kind: 'install', source: {} },
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'yarn.lock' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'wrong-package-manager-yarn');
+  assert.equal(res.class, 'missing-dependency');
+  assert.ok(res.fix);
+  // First action is corepack enable, second is replace-step with yarn install
+  assert.ok(res.fix.actions[1].command.includes('yarn install'));
+  assert.ok(res.fix.actions[0].command.includes('corepack enable'));
+});
+
+test('ts-skip-lib-check: positive case (errors only in node_modules/*.d.ts)', () => {
+  const rule = RULES.find((r) => r.id === 'ts-skip-lib-check');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: 'node_modules/mongoose/node_modules/mongodb/mongodb.d.ts(74,5): error TS2304: Cannot find name \'AsyncDisposable\'.\nnode_modules/@types/node/globals.d.ts(10,1): error TS2693: \'X\' only refers to a type, but is being used as a value here.',
+    facts: {
+      ...makeCtx().facts,
+      files: ['tsconfig.json', 'src/index.ts'],
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'ts-skip-lib-check');
+  assert.equal(res.class, 'missing-dependency');
+  assert.ok(res.fix);
+  assert.ok(res.fix.patches.some((p) => p.op === 'tsconfig-skip-lib-check'));
+});
+
+test('ts-skip-lib-check: negative case (errors in project files) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'ts-skip-lib-check');
+  const ctx = makeCtx({
+    log: 'src/index.ts(10,5): error TS2304: Cannot find name \'foo\'.\nnode_modules/mongoose/node_modules/mongodb/mongodb.d.ts(74,5): error TS2304: Cannot find name \'AsyncDisposable\'.',
+    facts: {
+      ...makeCtx().facts,
+      files: ['tsconfig.json', 'src/index.ts'],
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('ts-skip-lib-check: negative case (no tsconfig.json) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'ts-skip-lib-check');
+  const ctx = makeCtx({
+    log: 'node_modules/mongoose/node_modules/mongodb/mongodb.d.ts(74,5): error TS2304: Cannot find name \'AsyncDisposable\'.',
+    facts: {
+      ...makeCtx().facts,
+      files: ['src/index.ts'],
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
+
+test('npm-engine-warn: positive case (EBADENGINE with required node version)', () => {
+  const rule = RULES.find((r) => r.id === 'npm-engine-warn');
+  assert.ok(rule, 'rule exists');
+  const ctx = makeCtx({
+    log: 'npm WARN EBADENGINE Unsupported engine {\n  package: \'@commitlint/cli@21.2.2\',\n  required: { node: \'>=22.12.0\' },\n  current: { node: \'v19.9.0\' }\n}',
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json', truth: { version: '22', source: 'package.json engines' } },
+    },
+    plan: {
+      ...makeCtx().plan,
+      runtime: { name: 'node', version: '19', source: 'docs do not say' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.ok(res, 'rule should match');
+  assert.equal(res.ruleId, 'npm-engine-warn');
+  assert.equal(res.class, 'runtime-version');
+  assert.ok(res.fix);
+  assert.equal(res.fix.actions[0].type, 'rebase');
+  assert.ok(res.fix.actions[0].image.includes('node:22'));
+});
+
+test('npm-engine-warn: negative case (no EBADENGINE) returns null', () => {
+  const rule = RULES.find((r) => r.id === 'npm-engine-warn');
+  const ctx = makeCtx({
+    log: 'npm WARN something else',
+    facts: {
+      ...makeCtx().facts,
+      node: { deps: [], scripts: {}, lockfile: 'package-lock.json' },
+    },
+    plan: {
+      ...makeCtx().plan,
+      runtime: { name: 'node', version: '22', source: 'docs do not say' },
+    },
+  });
+  const res = rule.test(ctx);
+  assert.equal(res, null);
+});
