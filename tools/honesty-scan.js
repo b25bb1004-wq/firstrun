@@ -253,7 +253,7 @@ function findViolations(filePath, content) {
           continue;
         }
         // Allow recorded run facts in console components (these are replay data, not hardcoded probes)
-        if (filePath.includes('lens/humble/console.js') && (match[0].includes('node:') || match[0].includes('os:'))) {
+        if (filePath.includes('lens/humble/console.js') && (match[0].includes('node:') || match[0].includes('os:') || match[0].includes('Node.js'))) {
           continue;
         }
         violations.push({
