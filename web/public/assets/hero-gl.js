@@ -7,6 +7,13 @@
   var hero = document.querySelector('.hero-full');
   if (!hero) return;
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    var poster = document.createElement('div');
+    poster.className = 'field hero-poster';
+    poster.setAttribute('aria-hidden', 'true');
+    hero.insertBefore(poster, hero.firstChild);
+    return;
+  }
   var canvas = document.createElement('canvas');
   canvas.className = 'field';
   canvas.setAttribute('aria-hidden', 'true');
@@ -23,45 +30,42 @@
     '  if(i<0.5) return vec3(0.14,0.25,1.0); if(i<1.5) return vec3(0.11,0.17,0.72); if(i<2.5) return vec3(1.0,0.37,0.66);',
     '  if(i<3.5) return vec3(1.0,0.18,0.53); if(i<4.5) return vec3(0.24,0.45,1.0); return vec3(1.0,0.55,0.78); }',
     'void main(){',
-    '  float t = uTime;',
-    // Chaos: each particle rides layered swirls around its own home point (stateless flow).
-    '  vec2 home = aSeed.xy * uRes;',
-    '  vec2 sw = vec2(sin(t*0.37*aSeed.z + home.y*0.004 + aSeed.w*6.28) + sin(t*0.21 + home.x*0.003),',
-    '                 cos(t*0.33*aSeed.z + home.x*0.004 + aSeed.w*6.28) + cos(t*0.19 + home.y*0.0035));',
-    '  vec2 chaos = home + sw * (70.0 + 90.0*aSeed.z) + vec2(sin(t*0.6+aSeed.w*9.0), cos(t*0.5+aSeed.z*7.0))*24.0;',
-    // Order: a wavefront sweeps left→right, each particle settles when it passes (writing the page).
-    '  float wave = clamp(uOrder*1.55 - (aTarget.x/uRes.x)*0.55 - aSeed.w*0.12, 0.0, 1.0);',
-    '  float k = wave*wave*(3.0-2.0*wave);',
-    '  vec2 breathe = vec2(sin(t*1.3+aSeed.w*20.0), cos(t*1.1+aSeed.z*20.0)) * 0.35;',
-    '  vec2 p = mix(chaos, aTarget + breathe, k);',
-    // Pointer carves a hole; ink flows back when it leaves.
-    '  vec2 d = p - uMouse; float dist = length(d);',
-    '  p += (dist < 130.0 ? normalize(d + 0.0001) * (130.0 - dist) * 0.55 : vec2(0.0));',
-    // 3D: scrolling tilts the page back around its lower third and pushes it away.
-    '  vec2 c = p - vec2(uRes.x*0.5, uRes.y*0.62);',
-    '  float ang = uScroll * 1.05; float z = c.y * sin(ang) + uScroll*260.0;',
-    '  float persp = 900.0 / (900.0 + z);',
-    '  vec2 q = vec2(c.x, c.y * cos(ang)) * persp + vec2(uRes.x*0.5, uRes.y*0.62 - uScroll*uRes.y*0.18);',
+    '  float t = uTime * 0.55;',
+    // An immersive volume, not text: every particle lives on a depth layer (aSeed.z: 0 near, 1 far) and drifts
+    // on slow layered swirls. Near layers are larger, brighter and move more; far layers are small and dim.
+    '  float zd = aSeed.z;',
+    '  vec2 home = aSeed.xy * uRes * vec2(1.3, 1.25) - uRes * vec2(0.15, 0.12);',
+    '  float calm = mix(1.0, 0.45, uOrder);',
+    '  vec2 sw = vec2(sin(t*0.37*(0.6+zd) + home.y*0.003 + aSeed.w*6.28) + sin(t*0.21 + home.x*0.0025),',
+    '                 cos(t*0.33*(0.6+zd) + home.x*0.003 + aSeed.w*6.28) + cos(t*0.19 + home.y*0.003));',
+    '  vec2 p = home + sw * (60.0 + 80.0*(1.0-zd)) * calm;',
+    // Depth projection around the centre, pointer parallax (near layers shift more), scroll pushes the layers apart.
+    '  vec2 ctr = uRes * 0.5;',
+    '  float persp = 1.0 / (1.0 + zd * 0.9 + uScroll * (0.6 + zd));',
+    '  vec2 look = (uMouse.x < -1000.0) ? vec2(0.0) : (uMouse - ctr);',
+    '  vec2 q = ctr + (p - ctr) * persp - look * (0.05 * (1.0 - zd)) - vec2(0.0, uScroll * uRes.y * 0.15);',
+    // The pointer opens a gap exactly where the cursor is: repel in screen space, after the projection.
+    '  vec2 d = q - uMouse; float dist = length(d); float R = 120.0 * (1.2 - zd*0.5);',
+    '  q += (dist < R ? normalize(d + 0.0001) * (R - dist) * 0.6 : vec2(0.0));',
     '  gl_Position = vec4((q / uRes) * 2.0 - 1.0, 0.0, 1.0); gl_Position.y *= -1.0;',
-    '  float fixLine = aFix * step(0.55, k);',
-    '  gl_PointSize = (1.7 + fixLine*0.8 + (1.0-k)*0.5) * uDpr * persp;',
-    // Colour: agent colours in the chaos → calm ink on the page; the broken line red → green.
-    '  vec3 ink = uLight > 0.5 ? vec3(0.08,0.09,0.23) : vec3(0.94,0.91,0.85);',
-    '  vec3 col = mix(agent(aColor), ink * 0.62, k*0.92);',
-    '  col = mix(col, vec3(1.0,0.18,0.53), fixLine*uAlarm);',
-    '  col = mix(col, vec3(0.14,0.25,1.0), fixLine*uFixed);',
-    '  vCol = col;',
-    '  vAlpha = mix(0.55, 0.62, k) + fixLine*max(uAlarm,uFixed)*0.4;',
-    '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, p) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, p));',
-    '  vAlpha *= 1.0 - 0.9 * inC.x * inC.y;',
-    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0) * (uLight > 0.5 ? 0.34 + fixLine*0.66 : 1.0);',
+    '  gl_PointSize = mix(3.4, 1.1, zd) * uDpr * (0.8 + 0.2*persp);',
+    // Colour: a palette burst at first that calms into oat; about one particle in eight keeps its blue or pink.
+    '  vec3 ink = uLight > 0.5 ? vec3(0.64,0.54,0.39) : vec3(0.94,0.91,0.85);',
+    '  float accent = step(0.875, fract(aSeed.w * 7.13));',
+    '  vCol = mix(agent(aColor), ink, uOrder * (1.0 - accent) * 0.95);',
+    '  vAlpha = mix(0.95, 0.28, zd);',
+    '  vec2 inC = smoothstep(uClear.xy - 28.0, uClear.xy + 10.0, q) * (1.0 - smoothstep(uClear.zw - 10.0, uClear.zw + 28.0, q));',
+    '  vAlpha *= 1.0 - 0.85 * inC.x * inC.y;',
+    '  vAlpha *= (1.0 - uScroll*0.85) * (uMobile > 0.5 ? 0.8 : 1.0);',
     '}'
   ].join('\n');
   var FS = [
     'precision mediump float; varying vec3 vCol; varying float vAlpha;',
-    'void main(){ vec2 c = gl_PointCoord - 0.5; float r = dot(c,c); if(r > 0.25) discard;',
-    '  vec3 col = vCol;',
-    '  gl_FragColor = vec4(col, vAlpha * (1.0 - smoothstep(0.12, 0.25, r))); }'
+    'void main(){ vec2 c = gl_PointCoord - 0.5; float r2 = dot(c,c); if(r2 > 0.25) discard;',
+    '  float d = sqrt(r2) * 2.0;',
+    '  float core = 1.0 - smoothstep(0.0, 0.65, d);',
+    '  float bloom = (1.0 - d) * 0.35;',
+    '  gl_FragColor = vec4(vCol, vAlpha * (core + bloom)); }'
   ].join('\n');
 
   function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
@@ -79,19 +83,34 @@
   function buffer(name, data, size) {
     if (!bufs[name]) bufs[name] = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufs[name]); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    // Attributes the shader no longer reads (aTarget, aFix since the volume redesign) are optimised away: skip them.
+    if (A[name] < 0) return;
     gl.enableVertexAttribArray(A[name]); gl.vertexAttribPointer(A[name], size, gl.FLOAT, false, 0, 0);
   }
 
+  // Device-aware hardware detection (alche.studio technique)
+  var cores = navigator.hardwareConcurrency || 4;
+  var memory = navigator.deviceMemory || 4;
+  var isLowEnd = cores <= 4 || memory < 4;
+
   // Build the README page as dense word-shaped glyph blocks (a few rows of points per text line).
   function build() {
-    dpr = Math.min(devicePixelRatio || 1, 2);
-    var r = hero.getBoundingClientRect(); W = r.width; H = r.height; mobile = W < 720;
+    var r = hero.getBoundingClientRect(); W = r.width; H = r.height; mobile = W < 768;
+    var maxDpr = isLowEnd ? 1.0 : (mobile ? 1.25 : 1.75);
+    dpr = Math.min(devicePixelRatio || 1, maxDpr);
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     var seed = 11; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
-    var budget = mobile ? 18000 : 60000;
+    var budget;
+    if (mobile) {
+      budget = isLowEnd ? 8000 : 14000;
+    } else if (isLowEnd) {
+      budget = 20000;
+    } else {
+      budget = 42000;
+    }
     var rowH = mobile ? 20 : 24, glyphH = mobile ? 5 : 6, step = mobile ? 1.9 : 1.55;
     var cols = W < 1000 ? [[0.05, 0.95]] : [[0.035, 0.29], [0.71, 0.965]];
     var pts = [], lines = [];
@@ -127,11 +146,10 @@
 
   var clearRect = [0, 0, 0, 0];
   function measureClear() {
-    var hr = hero.getBoundingClientRect(), a = hero.querySelector('.inner .eyebrow'), b = hero.querySelector('.inner .actions');
-    if (!a || !b) return;
-    var h1 = hero.querySelector('.inner h1').getBoundingClientRect(), lede = hero.querySelector('.inner .lede').getBoundingClientRect();
-    var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
-    clearRect = [Math.min(h1.left, lede.left) - hr.left, ra.top - hr.top, Math.max(h1.right, lede.right) - hr.left, rb.bottom - hr.top];
+    var hr = hero.getBoundingClientRect(), inner = hero.querySelector('.inner');
+    if (!inner) return;
+    var ir = inner.getBoundingClientRect();
+    clearRect = [ir.left - hr.left - 16, ir.top - hr.top - 16, ir.right - hr.left + 16, ir.bottom - hr.top + 16];
   }
   function clamp(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function draw(now) {
@@ -152,9 +170,12 @@
   }
   function start() { if (!raf && visible && !reduced) raf = requestAnimationFrame(draw); }
 
-  build(); measureClear();
-  if (reduced) draw(performance.now());
-  else {
+  function init() {
+    build(); measureClear();
+    if (reduced) {
+      draw(performance.now());
+      return;
+    }
     new IntersectionObserver(function (es) { visible = es[0].isIntersecting && !document.hidden; start(); }).observe(hero);
     document.addEventListener('visibilitychange', function () { visible = !document.hidden; start(); });
     hero.addEventListener('pointermove', function (e) { var r = hero.getBoundingClientRect(); mouse = [e.clientX - r.left, e.clientY - r.top]; });
@@ -162,6 +183,16 @@
     addEventListener('scroll', function () { scrollK = clamp(scrollY / (H * 0.9)); }, { passive: true });
     start();
   }
+
+  // Defer execution until after first paint (code-splitting / performance optimization)
+  if (document.readyState === 'complete') {
+    requestAnimationFrame(function () { setTimeout(init, 50); });
+  } else {
+    window.addEventListener('load', function () {
+      requestAnimationFrame(function () { setTimeout(init, 50); });
+    });
+  }
+
   var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { build(); measureClear(); if (reduced) draw(performance.now()); }, 150); });
   var themeBtn = document.getElementById('theme');
   if (themeBtn) themeBtn.addEventListener('click', function () { if (reduced) setTimeout(function () { draw(performance.now()); }, 30); });

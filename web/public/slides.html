@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUMBLE: Your README, proven — Presentation Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Mono:wght@400;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #16120e;
+  --surface: #1f1a15;
+  --surface-raised: #2e261f;
+  --line: #342c24;
+  --ink: #efe7da;
+  --muted: #a89b88;
+  --blue: #5b73ff;
+  --pink: #ff4d9b;
+  --green: #3dd68c;
+  --amber: #ffb224;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Jost', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 16:9 Slide Presentation Frame */
+.deck {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  max-width: calc(100vh * 16 / 9);
+  max-height: calc(100vw * 9 / 16);
+  padding: 56px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 280ms ease, transform 280ms ease;
+  transform: scale(0.985);
+  background: var(--bg);
+}
+
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+/* Slide Header & Footer */
+.slide-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.tagline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.slide-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Slide Content Core */
+.slide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pink);
+  margin-bottom: 12px;
+}
+h1, h2 {
+  font-family: var(--font-display);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+h1 { font-size: clamp(48px, 5.2vw, 68px); font-weight: 800; }
+h2 { font-size: clamp(34px, 3.8vw, 48px); font-weight: 750; margin-bottom: 12px; }
+.sub {
+  font-size: clamp(16px, 1.8vw, 20px);
+  color: var(--muted);
+  line-height: 1.45;
+  max-width: 860px;
+}
+
+/* Grids & Cards */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px;
+  text-align: left;
+}
+.card h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Big Metrics */
+.metric-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px 20px;
+}
+.metric-val {
+  font-family: var(--font-display);
+  font-size: clamp(42px, 4.4vw, 56px);
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.metric-lbl {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* Comparison Table */
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+}
+.matrix th, .matrix td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.matrix th {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.matrix td:first-child { font-weight: 600; color: var(--ink); }
+.matrix tr.highlight td {
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  color: #fff;
+  font-weight: 600;
+}
+.matrix .check { color: var(--green); font-weight: 700; }
+.matrix .cross { color: var(--muted); opacity: 0.5; }
+
+/* Interactive Controls */
+.controls {
+  position: fixed;
+  bottom: 18px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+}
+.btn-ctrl {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.btn-ctrl:hover { background: var(--line); }
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0; height: 3px;
+  background: var(--blue);
+  transition: width 240ms ease;
+  z-index: 100;
+}
+
+/* Print to PDF rules */
+@media print {
+  @page {
+    size: 16in 9in landscape;
+    margin: 0;
+  }
+  body {
+    overflow: visible !important;
+    background: #16120e !important;
+    color: #efe7da !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .deck {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
+  .slide {
+    position: relative !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    width: 16in !important;
+    height: 9in !important;
+    max-width: none !important;
+    max-height: none !important;
+    padding: 56px 72px !important;
+    background: #16120e !important;
+    color: #efe7da !important;
+    transform: none !important;
+    display: flex !important;
+  }
+  .controls, .progress-bar { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width: 10%;"></div>
+
+<div class="deck">
+
+  <!-- Slide 1: Title -->
+  <section class="slide active" data-index="1">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">IBM Bob 2.0 Hackathon</span>
+    </div>
+    <div class="slide-body" style="text-align: center; align-items: center;">
+      <p class="eyebrow">Developer Onboarding · Clean-Machine Verification</p>
+      <h1>Your README,<br>proven on a clean machine.</h1>
+      <p class="sub" style="margin-top: 18px; max-width: 680px;">
+        Setup docs drift quietly. HUMBLE follows your instructions in an isolated sandbox, fixes what breaks, and replays every repair from zero to prove your README works.
+      </p>
+      <div style="margin-top: 36px; display: inline-flex; gap: 20px; font-family: var(--font-mono); font-size: 13px;">
+        <span style="color: var(--blue);">● Six-Agent Pipeline</span>
+        <span style="color: var(--pink);">● Zero-Guess Repairs</span>
+        <span style="color: var(--green);">● Proven from Zero</span>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Team HUMBLE · IIT Jodhpur</span>
+      <span>01 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 2: The Problem -->
+  <section class="slide" data-index="2">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">The Problem</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">The Broken Day-One Experience</p>
+      <h2>Day one is where setup docs fail.</h2>
+      <p class="sub" style="margin-bottom: 28px;">
+        Nobody breaks docs on purpose. A runtime updates, a service is added, or an implicit step lives only in a senior dev's head. The newcomer finds out on day one—alone.
+      </p>
+      <div class="grid-3">
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--pink);">64%</div>
+          <div class="metric-lbl">of audited public READMEs broke immediately on a clean machine (21 of 31 repos).</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--amber);">72%</div>
+          <div class="metric-lbl">of engineering new hires take over a month to ship their first 3 PRs (Cortex 2024).</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--blue);">$19.2k</div>
+          <div class="metric-lbl">wasted engineering salary per developer per year lost to environment friction (Atlassian 2025).</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Context: Atlassian State of DevEx 2025 · Cortex Engineering Report 2024</span>
+      <span>02 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 3: The Solution -->
+  <section class="slide" data-index="3">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">The Solution</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Proof-Driven Developer Onboarding</p>
+      <h2>Three steps. Verified from zero.</h2>
+      <p class="sub" style="margin-bottom: 30px;">
+        HUMBLE is not a markdown linter or a doc editor. It acts as your next teammate on a brand-new machine, executing and validating reality against documentation.
+      </p>
+      <div class="grid-3">
+        <div class="card" style="border-top: 3px solid var(--blue);">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--blue);">01 · READ</span>
+          <h3 style="margin-top: 8px;">Audit Docs vs Code</h3>
+          <p>Extracts setup steps from README and cross-checks against manifests, Dockerfiles, lockfiles, and CI configurations to detect static drift in seconds.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--pink);">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--pink);">02 · EXECUTE</span>
+          <h3 style="margin-top: 8px;">Run on Clean Machine</h3>
+          <p>Launches an isolated Docker container with zero cache. Executes step-by-step; when commands fail, diagnoses the exact root cause.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--green);">03 · REPLAY</span>
+          <h3 style="margin-top: 8px;">Prove Fix from Zero</h3>
+          <p>Replays the complete repaired setup from scratch on a brand-new container. Hands back an updated README backed by cryptographically verifiable proof.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Zero Synthetic Data · Real Isolated Execution</span>
+      <span>03 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 4: The 6-Agent Pipeline -->
+  <section class="slide" data-index="4">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Multi-Agent Architecture</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Specialized Collaborative Crew</p>
+      <h2>Six agents, one mission: H · U · M · B · L · E</h2>
+      <p class="sub" style="margin-bottom: 24px;">
+        A deterministic pipeline orchestrated by IBM Bob 2.0. Each agent owns a distinct phase of onboarding verification.
+      </p>
+      <div class="grid-6">
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: var(--blue);">01 · H</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">HARVEY</h3>
+          <p style="font-size: 12px;"><b>Scout:</b> Reads repo facts, manifests, engines, services & ports.</p>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: #6a5cff;">02 · U</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">UNITY</h3>
+          <p style="font-size: 12px;"><b>Planner:</b> Sequences docs commands into a structured plan.</p>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: #ff5fa8;">03 · M</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">MACH</h3>
+          <p style="font-size: 12px;"><b>Runner:</b> Runs execution inside a clean container sandbox.</p>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: var(--pink);">04 · B</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">DR.BO</h3>
+          <p style="font-size: 12px;"><b>Doctor:</b> Diagnoses breaks using rules + IBM Bob 2.0 fallback.</p>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: var(--blue);">05 · L</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">LARP</h3>
+          <p style="font-size: 12px;"><b>Verifier:</b> Replays repaired setup from zero on a clean machine.</p>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <p style="font-family: var(--font-mono); font-size: 11px; color: var(--ink);">06 · E</p>
+          <h3 style="font-size: 16px; margin: 4px 0;">ECHO</h3>
+          <p style="font-size: 12px;"><b>Scribe:</b> Rewrites FIRSTRUN.md and generates devcontainer.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Architected for reproducible, zero-hallucination agent execution</span>
+      <span>04 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 5: Real-World Audit Evidence -->
+  <section class="slide" data-index="5">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Empirical Validation</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Rigorous Real-Repo Benchmark</p>
+      <h2>Tested on 31 public repositories.</h2>
+      <p class="sub" style="margin-bottom: 24px;">
+        Every audit runs pinned commits of real GitHub open-source repositories in production runtimes (Node, Python, Go) with zero synthetic mocking.
+      </p>
+      <div class="grid-4" style="margin-bottom: 20px;">
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--blue);">31</div>
+          <div class="metric-lbl">Public Repos Audited</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--pink);">21</div>
+          <div class="metric-lbl">READMEs Failed on Day 1</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--green);">11</div>
+          <div class="metric-lbl">Repaired & Verified</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" style="color: var(--amber);">53s</div>
+          <div class="metric-lbl">GeekyAnts 4/4 Replay Time</div>
+        </div>
+      </div>
+      <div class="card" style="padding: 18px 24px;">
+        <h3 style="font-size: 16px; margin-bottom: 4px;">Case Study: GeekyAnts/express-typescript (1.2k ★)</h3>
+        <p style="font-size: 13.5px;">README instructions omitted MongoDB and Redis background services, failed peer dependencies under modern npm, and pointed to a wrong directory. HUMBLE caught all 4 breaks, applied surgical rule fixes, and re-verified from clone to running in 53 seconds.</p>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Audit logs & evidence passports: /audit on firstrun-sigma.vercel.app</span>
+      <span>05 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 6: Powered by IBM Bob 2.0 -->
+  <section class="slide" data-index="6">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">IBM Bob 2.0 Core</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Enterprise Intelligence Integration</p>
+      <h2>Where IBM Bob 2.0 delivers the advantage.</h2>
+      <p class="sub" style="margin-bottom: 24px;">
+        Deterministic rules solve 80% of common environment bugs instantly and for free. IBM Bob steps in as the core cognitive engine for the hard 20%.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--blue); margin-bottom: 6px;">CORE REASONING</div>
+          <h3>DR.BO Engine</h3>
+          <p>When unknown stack traces or obscure compile failures occur, Bob reads the repository manifests, logs, and AST to output structured, minimal JSON remedies with zero hallucination.</p>
+        </div>
+        <div class="card">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--pink); margin-bottom: 6px;">NEWCOMER COPILOT</div>
+          <h3>Bob Guide Mode</h3>
+          <p>Transforms proven run passports into an interactive, step-by-step terminal copilot inside Bob IDE, ensuring newcomers never stall on environment setup.</p>
+        </div>
+        <div class="card">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--green); margin-bottom: 6px;">MULTIMODAL DEBUGGING</div>
+          <h3>HUMBLE Lens</h3>
+          <p>Developers circle any failure, error dialog, or log snippet on screen. Lens matches against proven fixes or queries Bob for immediate explanation and fix commands.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Built using Bob 2.0 Agent Mode, Parallel Tasks & Document Understanding</span>
+      <span>06 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 7: Market Opportunity -->
+  <section class="slide" data-index="7">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Market Opportunity</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">TAM / SAM / SOM Sizing</p>
+      <h2>A massive, neglected friction point.</h2>
+      <p class="sub" style="margin-bottom: 28px;">
+        Over 30 million active developers worldwide lose an average of 4.2 hours per month to onboarding hurdles, outdated READMEs, and broken local toolchains.
+      </p>
+      <div class="grid-3">
+        <div class="metric-box" style="border-left: 4px solid var(--blue);">
+          <div class="metric-val" style="color: var(--blue);">$4.2B</div>
+          <div class="metric-lbl"><b>TAM</b> · Global Developer Experience & Onboarding Software Market by 2028.</div>
+        </div>
+        <div class="metric-box" style="border-left: 4px solid var(--pink);">
+          <div class="metric-val" style="color: var(--pink);">$850M</div>
+          <div class="metric-lbl"><b>SAM</b> · Enterprise teams adopting internal developer portals (IDPs) and DevEx platforms.</div>
+        </div>
+        <div class="metric-box" style="border-left: 4px solid var(--green);">
+          <div class="metric-val" style="color: var(--green);">$92M</div>
+          <div class="metric-lbl"><b>SOM</b> · Initial target: 12,000 engineering teams modernizing CI and developer onboarding.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Gartner DevEx Market Study 2025 · Stack Overflow Developer Survey</span>
+      <span>07 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 8: Competitive Advantage -->
+  <section class="slide" data-index="8">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Competitive Landscape</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Why HUMBLE Wins</p>
+      <h2>Proof from zero vs static assumptions.</h2>
+      <p class="sub" style="margin-bottom: 20px;">
+        Existing tools either containerize the app or format markdown. HUMBLE is the only solution that actively follows setup docs, fixes breaks, and proves it.
+      </p>
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>HUMBLE</th>
+            <th>DevPod / Codespaces</th>
+            <th>Runme</th>
+            <th>Doc Detective</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>Clean-Machine Replay Proof</td>
+            <td class="check">✔ Full Zero-Replay</td>
+            <td class="cross">✘ Preconfigured Only</td>
+            <td class="cross">✘ Manual Execution</td>
+            <td class="cross">✘ Browser Only</td>
+          </tr>
+          <tr>
+            <td>Automated Break Repair</td>
+            <td class="check">✔ Rules + IBM Bob 2.0</td>
+            <td class="cross">✘ No Repairs</td>
+            <td class="cross">✘ No Repairs</td>
+            <td class="cross">✘ Assertion Only</td>
+          </tr>
+          <tr>
+            <td>Rewrites Human README</td>
+            <td class="check">✔ Verified Output</td>
+            <td class="cross">✘ Dockerfile Only</td>
+            <td class="cross">✘ Markdown Runner</td>
+            <td class="cross">✘ Test Reports</td>
+          </tr>
+          <tr>
+            <td>Zero-Cache Sandbox Isolation</td>
+            <td class="check">✔ Ephemeral Containers</td>
+            <td class="cross">✔ VM / Container</td>
+            <td class="cross">✘ Host Machine</td>
+            <td class="cross">✘ Host Machine</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="slide-foot">
+      <span>Unique defensibility: Automated diagnosis + clean replay verification</span>
+      <span>08 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 9: Business & Revenue Model -->
+  <section class="slide" data-index="9">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Business Model</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">Open Core & Enterprise Monetization</p>
+      <h2>Scalable bottom-up adoption.</h2>
+      <p class="sub" style="margin-bottom: 26px;">
+        Open-source CLI captures individual developer trust; hosted team and enterprise platforms monetize continuous drift prevention in CI.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 6px;">COMMUNITY</div>
+          <h3>Open Source CLI</h3>
+          <p style="color: var(--ink); font-size: 22px; font-weight: 700; margin-bottom: 8px;">Free Forever</p>
+          <p>Local Docker verification, open-source rules engine, instant GitHub repository check, and FIRSTRUN.md export.</p>
+        </div>
+        <div class="card" style="border: 1px solid var(--blue);">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--blue); margin-bottom: 6px;">PRO / TEAMS</div>
+          <h3>Team Cloud</h3>
+          <p style="color: var(--blue); font-size: 22px; font-weight: 700; margin-bottom: 8px;">$19 <span style="font-size: 13px; font-weight: 400; color: var(--muted);">/ user / mo</span></p>
+          <p>Hosted sandbox verification, GitHub PR automation bots, shared run passports, and Bob Guide mode workspace sync.</p>
+        </div>
+        <div class="card">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--green); margin-bottom: 6px;">ENTERPRISE</div>
+          <h3>Continuous Guard</h3>
+          <p style="color: var(--green); font-size: 22px; font-weight: 700; margin-bottom: 8px;">$49 <span style="font-size: 13px; font-weight: 400; color: var(--muted);">/ user / mo</span></p>
+          <p>Automated pre-merge CI drift prevention, private registry access, SSO/SAML, dedicated Bob compute, and SLA support.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Targeting 3.8x net expansion through CI drift guard upgrades</span>
+      <span>09 / 10</span>
+    </div>
+  </section>
+
+  <!-- Slide 10: Team & Roadmap -->
+  <section class="slide" data-index="10">
+    <div class="slide-top">
+      <span class="brand">HUMBLE</span>
+      <span class="tagline">Team & Roadmap</span>
+    </div>
+    <div class="slide-body">
+      <p class="eyebrow">The Journey to v1.0</p>
+      <h2>Built with passion by Team HUMBLE.</h2>
+      <div class="grid-2" style="margin-top: 14px;">
+        <div class="card">
+          <h3 style="margin-bottom: 12px;">Core Team · IIT Jodhpur</h3>
+          <p style="margin-bottom: 8px;"><b style="color: var(--ink);">Arnav Yadav</b> — Product Architecture, Clean Sandbox Engine, Pipeline Design.</p>
+          <p><b style="color: var(--ink);">Karmanya Patil</b> — Doctor Rules, Multi-Agent Motion Systems, Audits.</p>
+          <p style="margin-top: 12px; font-size: 12px; color: var(--blue); font-family: var(--font-mono);">Pair-programmed with Claude Code, Antigravity & IBM Bob 2.0</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom: 12px;">Immediate Roadmap</h3>
+          <p style="margin-bottom: 6px;"><b>Q4 2026:</b> GitHub Marketplace App + PR self-healing check.</p>
+          <p style="margin-bottom: 6px;"><b>Q1 2027:</b> Multi-container Kubernetes & docker-compose support.</p>
+          <p style="margin-bottom: 6px;"><b>Q2 2027:</b> Deep IBM watsonx.ai enterprise integration & catalog sync.</p>
+          <div style="margin-top: 14px;">
+            <a href="https://firstrun-sigma.vercel.app" style="display: inline-block; background: var(--blue); color: #fff; font-family: var(--font-mono); font-size: 12px; padding: 6px 14px; text-decoration: none; border-radius: 2px;">Try Live Demo &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot">
+      <span>Source: github.com/b25bb1004-wq/firstrun · Open Source (MIT)</span>
+      <span>10 / 10</span>
+    </div>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button class="btn-ctrl" id="prevBtn" type="button" aria-label="Previous Slide">&larr; Prev</button>
+  <span id="counter" style="font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0 4px;">1 / 10</span>
+  <button class="btn-ctrl" id="nextBtn" type="button" aria-label="Next Slide">Next &rarr;</button>
+  <button class="btn-ctrl" id="printBtn" type="button" aria-label="Print to PDF">Print PDF</button>
+</div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const bar = document.getElementById('progressBar');
+  const counter = document.getElementById('counter');
+
+  function showSlide(index) {
+    if (index < 0) index = 0;
+    if (index >= total) index = total - 1;
+    current = index;
+
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === current);
+    });
+
+    const pct = ((current + 1) / total) * 100;
+    bar.style.width = pct + '%';
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => showSlide(current - 1));
+  document.getElementById('nextBtn').addEventListener('click', () => showSlide(current + 1));
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      showSlide(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      showSlide(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      showSlide(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      showSlide(total - 1);
+    }
+  });
+
+  // Touch / swipe support
+  let touchStartX = 0;
+  window.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+  window.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].screenX - touchStartX;
+    if (diff < -50) showSlide(current + 1);
+    else if (diff > 50) showSlide(current - 1);
+  }, { passive: true });
+
+  showSlide(0);
+})();
+</script>
+</body>
+</html>
