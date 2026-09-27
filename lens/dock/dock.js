@@ -328,6 +328,17 @@
     openDrawer('guide');
   });
 
+  // EMO mascot as the header avatar (in place of the flat brand tile). Dynamic import
+  // since this file is a classic script; three.js is vendored locally (lens/vendor/) —
+  // the CSP here is script-src 'self', no CDN loads.
+  if (bobBtn) {
+    import('../../web/public/humble-console/emo-bot.js').then(({ EmoBot }) => {
+      const threeUrl = new URL('../vendor/three.module.js', document.baseURI).href;
+      bobBtn.innerHTML = '';
+      new EmoBot(bobBtn, { size: 32, threeUrl });
+    }).catch(() => {});
+  }
+
   const consoleBtn = document.getElementById('console-btn');
   consoleBtn?.addEventListener('click', () => {
     openConsole();
