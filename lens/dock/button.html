@@ -6,22 +6,43 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 56px; height: 56px; overflow: hidden; background: transparent;
-               -webkit-app-region: drag; user-select: none; }
-  button { -webkit-app-region: no-drag; position: absolute; inset: 4px; border: none; cursor: pointer;
+               user-select: none; }
+  button { position: absolute; inset: 4px; border: none; cursor: grab; touch-action: none;
            border-radius: 50%; background: #0d1030; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
   button:hover { background: #1b2150; }
+  button.dragging { cursor: grabbing; }
   svg { display: block; margin: auto; width: 30px; height: 23px; }
 </style>
 </head>
 <body>
 <!-- draggable frame; button opens the panel -->
-<button id="btn" title="Open HUMBLE Dock">
+<button id="btn" title="Click: open HUMBLE Dock · Drag: move it anywhere · Right-click: reset position">
   <svg viewBox="0 0 716.94 537.7" xmlns="http://www.w3.org/2000/svg" fill="#fffefe" aria-label="HUMBLE"><!-- brand face, lens/assets/humble-face.svg -->
     <polygon points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/><polygon points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/>
   </svg>
 </button>
 <script>
-  document.getElementById('btn').addEventListener('click', () => window.dock?.toggle?.());
+  const btn = document.getElementById('btn');
+  let start = null, moved = false;
+  btn.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    start = { x: e.screenX, y: e.screenY }; moved = false;
+    btn.setPointerCapture(e.pointerId);
+    window.dock?.dragStart?.();
+  });
+  btn.addEventListener('pointermove', (e) => {
+    if (!start) return;
+    const dx = e.screenX - start.x, dy = e.screenY - start.y;
+    if (!moved && Math.hypot(dx, dy) < 4) return;
+    moved = true; btn.classList.add('dragging');
+    window.dock?.dragMove?.(dx, dy);
+  });
+  btn.addEventListener('pointerup', () => {
+    if (!start) return;
+    start = null; btn.classList.remove('dragging');
+    if (moved) window.dock?.dragEnd?.(); else window.dock?.toggle?.();
+  });
+  btn.addEventListener('contextmenu', (e) => { e.preventDefault(); window.dock?.dragReset?.(); });
 </script>
 </body>
 </html>
