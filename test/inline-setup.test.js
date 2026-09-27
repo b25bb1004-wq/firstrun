@@ -49,3 +49,16 @@ test('a port pinned in the start script is the one HUMBLE waits on', async () =>
   const facts = await scout(dir);
   assert.equal(Number(facts.ports[0]), 4100);
 });
+
+test('a README URL on another port (the backend API) does not override the start-script port', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { scout } = await import('../src/scout/index.js');
+  const { buildPlan } = await import('../src/plan.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'humble-port2-'));
+  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'x', scripts: { start: 'cross-env PORT=4100 react-scripts start' }, dependencies: { react: '^16' } }));
+  fs.writeFileSync(path.join(dir, 'README.md'), '# x\n\n## Getting started\n\n- `npm install` to install\n- `npm start` to start the local server\n\nTo use a local API, set API_ROOT to `http://localhost:3000/api`.\n');
+  const plan = buildPlan(await scout(dir));
+  assert.equal(plan.verify.target, 'http://127.0.0.1:4100/');
+});
