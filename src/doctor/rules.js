@@ -589,6 +589,10 @@ export const RULES = [
       if (!port && m && /MySQL/.test(m[0])) port = 3306;
       if (!port && socket) port = 5432;
       if (!port && /redis/i.test(log) && /ECONNREFUSED|connection refused/i.test(log)) port = 6379;
+      // Prisma names host and port (P1001, gothinkster: IBM Bob's fix in the Bob pass, now a free rule).
+      if (!port) { const pr = log.match(/P1001: Can't reach database server at `?[\w.-]+`?:`?(\d+)/); if (pr) port = Number(pr[1]); }
+      // Mongoose / NestJS print no port (rule factory: nestjs-email-authentication): MongoDB's default.
+      if (!port && /MongooseModule\] Unable to connect to the database|Mongoose ?ServerSelectionError|MongoServerSelectionError/i.test(log)) port = 27017;
       const kind = PORT_TO_SERVICE[port];
       if (!kind) return null;
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
@@ -1070,6 +1074,19 @@ export const RULES = [
     },
   },
   {
+    // Rule factory (jpadilla/django-project-template): Django 4 removed `django-admin.py`; the command is `django-admin`.
+    id: 'django-admin-renamed',
+    test({ log, step }) {
+      if (!/\bdjango-admin\.py\b/.test(step.command) || !/django-admin\.py: (command )?not found/.test(log)) return null;
+      const cmd = step.command.replace(/\bdjango-admin\.py\b/g, 'django-admin');
+      return {
+        ruleId: 'django-admin-renamed', class: 'missing-tool', confidence: 0.95,
+        cause: 'The docs run `django-admin.py`, which Django removed in 4.0; the command is now `django-admin`.',
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
         // wagtail (final run): ./manage.py migrate fails with exit 127 because the shebang points to
         // a Python version not in the image (e.g. #!/usr/bin/env python3.12 on python:3.11).
         // Replace ./X.py with python X.py.
@@ -1081,7 +1098,9 @@ export const RULES = [
           const script = m[1];
           const args = m[2] || '';
           // Shebang failure patterns: exit 127, bad interpreter, no such file or directory for the interpreter
-          if (!/exit(?:ed)?\s+127|bad interpreter|python.*No such file or directory|No such file or directory.*python|exec format error|Exec format error/.test(log)) return null;
+          // Also "Permission denied" (exit 126): the clone lost the executable bit (wagtail in the Bob pass; IBM Bob's
+          // fix there, `python manage.py`, is now this free rule).
+          if (!/exit(?:ed)?\s+12[67]|bad interpreter|python.*No such file or directory|No such file or directory.*python|exec format error|Exec format error|\.py: Permission denied/.test(log)) return null;
           // The file must exist in the repo
           if (!facts.files?.includes(script)) return null;
           // Only for Python runtime

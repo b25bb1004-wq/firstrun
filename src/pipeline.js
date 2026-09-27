@@ -244,7 +244,9 @@ export async function verifyRepo(repoDir, opts = {}) {
         const opts = { onData, timeoutMs, detectServer: ['other', 'build'].includes(step.kind) };
         r = await box.exec(step.command, opts);
         // A script (justfile, Makefile) asked the docker shim for services: start them as sidecars, retry once.
-        const req = r.exitCode === 97 ? await box.readFile('/firstrun/services.request') : null;
+        // Any failing exit: make wraps the shim's 97 as 'make: *** [...] Error 97' with exit 2 (lincolnloop, tko22).
+        // The request file exists only when the shim wrote it, so this cannot misfire on an ordinary failure.
+        const req = r.exitCode !== 0 ? await box.readFile('/firstrun/services.request') : null;
         if (req) {
           const [cwd, asked] = req.trim().split('\n');
           const sr = await runServicesStep(asked.replace(/^docker-compose\b/, 'docker compose'), { sandbox: box, facts, cwd });
