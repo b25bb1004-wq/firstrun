@@ -26,6 +26,15 @@
   var tl = function (el, kf, o) { var a = el.animate(kf, Object.assign({ fill: 'both' }, o)); a.pause(); anims.push(a); return a; };
 
   if (reduced) { sec.classList.add('static'); slots.forEach(function (s) { s.style.opacity = 1; }); return; }
+  try {
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function (e) {
+      if (e.matches) {
+        sec.classList.add('static');
+        slots.forEach(function (s) { s.style.opacity = 1; });
+        anims.forEach(function (a) { a.cancel(); });
+      }
+    });
+  } catch (e) {}
 
   function build() {
     anims.forEach(function (a) { a.cancel(); }); anims = [];

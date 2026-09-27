@@ -1,0 +1,48 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:11:58.285Z",
+  "commit": "983fa04136",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "pnpm test"
+  },
+  "steps": [
+    {
+      "id": "R1",
+      "command": "pnpm install",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "S1",
+      "command": "pnpm test",
+      "kind": "test",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ]
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 5: pnpm: command not found",
+      "cause": "`pnpm` is not installed; the docs assume it is.",
+      "fix": "pnpm (via `corepack enable`)",
+      "evidence": "E1"
+    },
+    {
+      "signature": "sh: 1: vitest: not found",
+      "cause": "Dependencies were never installed before \"pnpm test\"; the docs skip `pnpm install`.",
+      "fix": "pnpm install",
+      "evidence": "E2"
+    }
+  ]
+}

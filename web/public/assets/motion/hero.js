@@ -31,7 +31,7 @@ export function init(container, { reduced = false } = {}) {
               <span>${s.num}</span>
             </span>
             <span class="h-step-icon" style="display: inline-block; width: 8px; height: 8px; border-radius: 1px; background: var(--line); transition: background-color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));"></span>
-            <code class="h-step-cmd" style="flex: 1; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
+            <code class="h-step-cmd" style="flex: 1; min-width: 0; overflow-wrap: break-word; word-break: break-all; color: var(--ink); background: none; border: none; padding: 0;">${s.cmd || s.failCmd}</code>
             <span class="h-step-msg" style="font-size: 12px; color: var(--muted); transition: color 0.2s var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));">queued</span>
           </div>
         `).join('')}

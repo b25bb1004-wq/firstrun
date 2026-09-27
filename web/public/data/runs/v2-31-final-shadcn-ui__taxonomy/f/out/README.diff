@@ -1,0 +1,17 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -60,10 +60,13 @@ If you have some suggestions, feel free to create an issue.
+ 
+ ## Running Locally
+ 
++🔵 **Inconclusive by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `298a8857c7`.
++
+ 1. Install dependencies using pnpm:
+ 
+ ```sh
+ pnpm install
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ 2. Copy `.env.example` to `.env.local` and update the variables.

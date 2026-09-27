@@ -1,0 +1,13 @@
+{
+  "name": "node-express-template.ts",
+  "image": "node:16",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "npm install --no-save jest@27 && export NODE_ENV=development",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

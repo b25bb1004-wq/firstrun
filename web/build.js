@@ -33,7 +33,7 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const OUT = path.resolve(HERE, args.out);
+const OUT = path.resolve(ROOT, args.out);
 const AUDIT_PATH = path.resolve(ROOT, args.audit);
 const EXAMPLES_PATH = path.resolve(ROOT, 'examples');
 const ROOTS = [EXAMPLES_PATH, AUDIT_PATH];

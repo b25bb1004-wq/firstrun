@@ -1,0 +1,117 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T22:52:18.328Z",
+  "commit": "6b9bb70e23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:4040/"
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install"
+    },
+    {
+      "id": "R1",
+      "command": "npm install --global nodemon",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "R2",
+      "command": "docker compose -f docker-compose.yaml up -d mongo",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "R3",
+      "command": "docker compose -f docker-compose.yaml up -d redis",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S5",
+      "command": "npm run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 4040
+      },
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo",
+          "env": {},
+          "port": 27017,
+          "volumes": [],
+          "composeDir": null
+        },
+        {
+          "type": "service",
+          "name": "redis",
+          "image": "redis",
+          "env": {},
+          "port": 6379,
+          "volumes": [],
+          "composeDir": null
+        },
+        {
+          "type": "service",
+          "name": "mongo",
+          "image": "mongo:4.4",
+          "env": {},
+          "port": 27017
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "command": "docker-compose up",
+      "kind": "services"
+    },
+    {
+      "id": "S7",
+      "command": "docker-compose up -d",
+      "kind": "services"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm error ERESOLVE unable to resolve dependency tree",
+      "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+      "fix": "npm install --legacy-peer-deps",
+      "evidence": "E1"
+    },
+    {
+      "signature": "sh: 1: nodemon: not found",
+      "cause": "The scripts call `nodemon`, but it isn't a dependency of the project: the docs assume it is installed globally.",
+      "fix": "npm install --global nodemon",
+      "evidence": "E2"
+    },
+    {
+      "signature": "Error [MongoError]: failed to connect to server [127.0.0.1:27017] on first connect [Error: connect ECONNREFUSED 127.0.0.1:27017",
+      "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
+      "fix": "docker compose -f docker-compose.yaml up -d mongo",
+      "evidence": "E3"
+    },
+    {
+      "signature": "Error: connect ECONNREFUSED 127.0.0.1:6379",
+      "cause": "The app connects to Redis on localhost:6379, but the docs never start it.",
+      "fix": "docker compose -f docker-compose.yaml up -d redis",
+      "evidence": "E4"
+    },
+    {
+      "signature": "[ERROR] :: TypeError: OAuth2Strategy requires a clientID option",
+      "cause": "The app's MongoDB driver uses legacy opcodes that MongoDB 6 and later removed (\"Unsupported OP_QUERY command\"), so it connects but every write fails. The docs don't say which MongoDB to run; the driver needs 4.4 or older.",
+      "fix": "MongoDB 4.4 (this project's driver can't talk to MongoDB 6+): docker run -d -p 27017:27017 mongo:4.4",
+      "evidence": "E5"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:36:01.127Z",
+  "commit": "d73fa1cdcb",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "python -c 'import secrets; print(secrets.token_hex())'",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

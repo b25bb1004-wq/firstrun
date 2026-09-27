@@ -1,0 +1,35 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -55,6 +55,12 @@ docker --version
+ ```
+ 
+ ## Make
++
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.11` machine at `96f10870e7`.
++
++Prerequisites verified by HUMBLE:
++
++- poetry
+ "Make" is a build automation tool that is primarily used to manage the compilation and building of software projects. It reads a file called a "Makefile" which specifies a set of rules and dependencies for building a project, and then executes the necessary commands to build the project according to those rules. Depending of your OS you will requiere to install it in different ways.
+ 
+ Mac
+@@ -95,7 +101,9 @@ When you are opening python files do this cna help you to vscode detect installe
+ 
+ ```
+ cd backend/app/
++poetry install
+ poetry shell
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ After that you can show the interpreted path. You can copy that path and set as the default for the project in vscode. Press on **Enter interpreter path ..** and past path.
+@@ -298,7 +306,7 @@ The above code starts SonarQube at [localhost:9000](http://localhost:9000/). You
+ sonar.organization=my_organization
+ sonar.projectKey=fastapi-alembic-sqlmodel-async
+ sonar.host.url=http://host.docker.internal:9000
+-sonar.login=<redacted-by-firstrun>
++sonar.login=<redacted-by-firstrun>
+ 
+ # --- optional properties ---
+ 

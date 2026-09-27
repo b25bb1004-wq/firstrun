@@ -1,0 +1,12 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -60,6 +60,8 @@ For information about terms used in this document see: [terminology](./docs/term
+ 
+ ## Installation
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `ba6d13ddb4`: clone to running in 9s.
++
+ ```sh
+ npm install commander
+ ```

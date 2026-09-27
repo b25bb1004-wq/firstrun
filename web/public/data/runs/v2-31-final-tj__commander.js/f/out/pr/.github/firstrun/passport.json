@@ -1,0 +1,27 @@
+{
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4",
+  "verifiedAt": "2026-09-27T00:52:17.952Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 2,
+  "stepsFromReadme": 0,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 0,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 9,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}
