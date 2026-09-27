@@ -1,0 +1,115 @@
+{
+  "id": "factory-1-marcomelilli__nestjs-email-authentication",
+  "repo": "marcomelilli/nestjs-email-authentication",
+  "commit": "d8fbaadc1e",
+  "startedAt": "2026-09-27T09:32:38.218Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S2": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "marcomelilli/nestjs-email-authentication",
+    "commit": "d8fbaadc1e",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install --legacy-peer-deps",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 11,
+          "endLine": 11,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "readmeCommand": "npm install",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S2",
+        "command": "npm run start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 12,
+          "endLine": 12,
+          "section": "Getting started"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 3000
+        },
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 24897
+  },
+  "passport": {
+    "repo": "marcomelilli/nestjs-email-authentication",
+    "commit": "d8fbaadc1e",
+    "verifiedAt": "2026-09-27T09:36:30.304Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 2,
+    "stepsFromReadme": 2,
+    "breaksFound": 1,
+    "breaksFixed": 1,
+    "needsHuman": 1,
+    "repoBreaks": 1,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 25,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:3000/"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T09:36:31.101Z"
+}

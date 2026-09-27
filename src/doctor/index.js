@@ -38,10 +38,13 @@ export async function diagnose(ctx, { brain = 'auto', bobBudget, onBob } = {}) {
     return { diagnosis: { class: 'unknown', cause: 'No rule recognises this failure and the Bobcoin budget for this run is spent.', by: 'rules', confidence: 0 }, fix: null };
   }
   const request = doctorRequest(ctx);
-  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}` });
+  // 20 turns: a real failure needs Bob to read a few files before answering; 12 ran out on rest-hapi.
+  let res = await askBob({ mode: 'firstrun-doctor', request, workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, maxTurns: 20, name: `doctor-${ctx.step.id}` });
   bobBudget?.spend(res.bobcoins || 0);
   onBob?.(res);
-  if (!res.ok && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) >= 0.05)) {
+  // Retry only a formatting slip. Re-asking after a turn-limit failure repeats the same investigation for the same
+  // coins (rest-hapi paid 0.40 + 0.38 for two identical dead ends).
+  if (!res.ok && !res.turnLimit && /no parsable JSON|expected JSON|json block/i.test(res.error || '') && (!bobBudget || (bobBudget.cap ? bobBudget.cap() : bobBudget.remaining()) >= 0.05)) {
     const retry = await askBob({ mode: 'firstrun-doctor', request: request + '\nYour previous reply was not valid JSON. Reply with exactly one JSON object in a ```json block and nothing else.', workspace: ctx.facts.root, maxCost: bobBudget?.cap?.() ?? bobBudget?.perCall ?? 1.5, name: `doctor-${ctx.step.id}-retry` });
     bobBudget?.spend(retry.bobcoins || 0);
     onBob?.(retry);

@@ -1,0 +1,36 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -47,6 +47,8 @@ It includes:
+ 
+ ## Usage
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `c61297ca49`: clone to running in 20s.
++
+ ### Start project
+ 
+ Run the following command (replace `YOUR_PROJECT_NAME` with your preferred name):
+@@ -96,6 +98,7 @@ Initialize the project & tooling:
+ 
+ ```bash
+ make init
++# HUMBLE: this step still fails on a clean machine: This step starts Docker containers itself, and HUMBLE's clean machine has no Docker engine inside it (no nested Docker). On a newcomer's laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.
+ ```
+ 
+ Start the Django test server:
+@@ -130,6 +133,7 @@ Build the project:
+ 
+ ```bash
+ make init
++# HUMBLE: this step still fails on a clean machine: This step starts Docker containers itself, and HUMBLE's clean machine has no Docker engine inside it (no nested Docker). On a newcomer's laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.
+ ```
+ 
+ ## Usage
+@@ -138,6 +142,7 @@ make init
+ 
+ ```bash
+ make run
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ Open http://localhost:8000/.

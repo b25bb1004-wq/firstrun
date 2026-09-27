@@ -1,0 +1,38 @@
+{
+  "id": "factory-1-kutia-software-company__express-typescript-starter",
+  "repo": "kutia-software-company/express-typescript-starter",
+  "commit": "de844c46fa",
+  "startedAt": "2026-09-27T09:30:49.235Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "kutia-software-company/express-typescript-starter",
+    "commit": "de844c46fa",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "No setup docs: read readme.md, found no setup commands a newcomer could follow.",
+  "finishedAt": "2026-09-27T09:30:49.494Z"
+}

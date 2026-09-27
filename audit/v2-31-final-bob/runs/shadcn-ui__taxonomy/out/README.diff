@@ -1,0 +1,24 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -60,6 +60,12 @@ If you have some suggestions, feel free to create an issue.
+ 
+ ## Running Locally
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `298a8857c7`: clone to running in 56s.
++
++Prerequisites verified by HUMBLE:
++
++- pnpm (via `corepack enable`)
++
+ 1. Install dependencies using pnpm:
+ 
+ ```sh
+@@ -76,6 +82,7 @@ cp .env.example .env.local
+ 
+ ```sh
+ pnpm dev
++# HUMBLE: this step still fails on a clean machine: `.env.example` ships all third-party credentials as empty strings (lines 10-32), but `env.mjs` lines 9-20 validate every one of them with `z.string().min(1)`, so Next.js aborts at config-load time with 'Invalid environment variables' for NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_ACCESS_TOKEN, SMTP_FROM, POSTMARK_API_TOKEN, POSTMARK_SIGN_IN_TEMPLATE, POSTMARK_ACTIVATION_TEMPLA
+ ```
+ 
+ ## License

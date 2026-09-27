@@ -1,0 +1,26 @@
+# dependencies
+/node_modules
+
+# IDE
+/.idea
+/.awcache
+/.vscode
+
+# misc
+npm-debug.log
+
+# example
+/quick-start
+
+# tests
+/test
+/coverage
+/.nyc_output
+
+# dist
+/dist
+
+.history
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

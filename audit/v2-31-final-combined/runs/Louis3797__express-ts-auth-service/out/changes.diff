@@ -1,0 +1,536 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -351,6 +351,8 @@ See .env.example for further details
+ 
+ ## Getting Started
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `node:22` machine at `fc6722badf`: clone to running in 1m53s.
++
+ <!-- Prerequisites -->
+ 
+ ### Prerequisites
+@@ -435,9 +437,12 @@ Start the server in development mode
+ Start the server in production mode
+ 
+ ```bash
++  cp .env.example .env
+   yarn start
+ ```
+ 
++> **Note:** `.env.example` now has working local values for the variables that were blank (PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more).
++
+ <!-- Run with Docker -->
+ 
+ ### Run with Docker
+diff --git a/.env.example b/.env.example
+--- a/.env.example
++++ b/.env.example
+@@ -2,35 +2,35 @@
+ NODE_ENV=
+ 
+ # App's running port
+-PORT=
++PORT=4000
+ 
+ # Server url
+-SERVER_URL=
++SERVER_URL=http://localhost:4000
+ 
+ # Cors origin url
+-CORS_ORIGIN=
++CORS_ORIGIN=*
+ 
+ # Run node -e "console.log(require('crypto').randomBytes(256).toString('base64'));" in your console to generate a secret
+-ACCESS_TOKEN_SECRET=
++ACCESS_TOKEN_SECRET=change.me.local.dev.only.not.a.secret
+ 
+-REFRESH_TOKEN_SECRET=
++REFRESH_TOKEN_SECRET=change.me.local.dev.only.not.a.secret
+ 
+-ACCESS_TOKEN_EXPIRE=
++ACCESS_TOKEN_EXPIRE=20m
+ 
+-REFRESH_TOKEN_EXPIRE=
++REFRESH_TOKEN_EXPIRE=1d
+ 
+ # name of the refresh token cookie
+-REFRESH_TOKEN_COOKIE_NAME=
++REFRESH_TOKEN_COOKIE_NAME=jid
+ 
+-MYSQL_DATABASE=
+-MYSQL_ROOT_PASSWORD=
++MYSQL_DATABASE=app
++MYSQL_ROOT_PASSWORD=change.me.local.dev.only.not.a.secret
+ 
+ # Example: mysql://USER:PASSWORD@HOST:PORT/DATABASE
+-DATABASE_URL=
++DATABASE_URL=mysql://root:change.me.local.dev.only.not.a.secret@localhost:3306/app
+ 
+ # Configuration for the emial service
+-SMTP_HOST=
+-SMTP_PORT=
+-SMTP_USERNAME=
+-SMTP_PASSWORD=
+-EMAIL_FROM=
+\ No newline at end of file
++SMTP_HOST=localhost
++SMTP_PORT=1025
++SMTP_USERNAME=dev
++SMTP_PASSWORD=change.me.local.dev.only.not.a.secret
++EMAIL_FROM=dev@example.com
+\ No newline at end of file
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,154 @@
++# Setup Passport: Louis3797/express-ts-auth-service
++
++✅ **VERIFIED**: HUMBLE followed this project's setup docs on a clean `node:22` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `fc6722badf` |
++| Verified | 2026-09-26 22:57 UTC |
++| Runtime | Node.js 22 (`node:22`) |
++| Clone to running, from zero | **1m53s** |
++| Steps followed | 4 from the docs, 1 added by HUMBLE |
++| Breaks found / fixed | 2 / 2 |
++| Needs a human | 0 |
++| Done when | `GET http://127.0.0.1:4000/` answers |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `yarn start` (README.md:438).
++
++## Verified setup
++
++```bash
++npm install --global yarn
++yarn install
++cp .env.example .env
++yarn start
++yarn test
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Undocumented environment variable <a id="e1"></a>
++
++- **Docs said:** `yarn start` (README.md:438)
++- **Cause:** The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more from .env.example, but the docs never say to create .env from it.
++- **Diagnosed by:** HUMBLE rule `missing-env-var`, confidence 90%
++- **Doc change:** cp .env.example .env
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++    at Object..js (node:internal/modules/cjs/loader:1913:10)
++    at Module.load (node:internal/modules/cjs/loader:1505:32)
++    at Function._load (node:internal/modules/cjs/loader:1309:12)
++    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
++    at Module.require (node:internal/modules/cjs/loader:1527:12)
++    at require (node:internal/modules/helpers:147:16)
++    at Object.<anonymous> (/workspace/dist/config/prisma.js:7:34)
++    at Module._compile (node:internal/modules/cjs/loader:1781:14)
++
++Node.js v22.23.3
++error Command failed with exit code 1.
++info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
++
++[firstrun] server process exited before becoming ready on port 3000
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ cp .env.example .env → exit 0
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++yarn run v1.22.22
++$ yarn run build && cross-env NODE_ENV=production node --trace-warnings ./dist/index.js
++$ tsc --project './tsconfig.build.json'
++2026-09-26 22:54:58 [INFO] Server is running on Port: 4000 
++
++[firstrun] the app is listening on port 4000 (it says so in its output), not 3000
++
++[firstrun] GET http://127.0.0.1:4000/ → 404
++404
++[firstrun] the docs name no URL to check; the server answered 404 on / so it is up
++```
++</details>
++
++### E2: Undocumented environment variable <a id="e2"></a>
++
++- **Docs said:** `yarn start` (README.md:438)
++- **Cause:** .env.example leaves 16 required values blank and the app rejects empty values. HUMBLE fills PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP).
++- **Diagnosed by:** HUMBLE rule `env-empty-value`, confidence 85%
++- **Doc change:** `.env.example` now has working local values for the variables that were blank (PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more).
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++    at Object..js (node:internal/modules/cjs/loader:1913:10)
++    at Module.load (node:internal/modules/cjs/loader:1505:32)
++    at Function._load (node:internal/modules/cjs/loader:1309:12)
++    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
++    at Module.require (node:internal/modules/cjs/loader:1527:12)
++    at require (node:internal/modules/helpers:147:16)
++    at Object.<anonymous> (/workspace/dist/config/prisma.js:7:34)
++    at Module._compile (node:internal/modules/cjs/loader:1781:14)
++
++Node.js v22.23.3
++error Command failed with exit code 1.
++info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
++
++[firstrun] server process exited before becoming ready on port 3000
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++patched .env.example
++$ touch .env && { grep -v -E '^(PORT|SERVER_URL|CORS_ORIGIN|ACCESS_TOKEN_SECRET|ACCESS_TOKEN_EXPIRE|REFRESH_TOKEN_SECRET|REFRESH_TOKEN_EXPIRE|REFRESH_TOKEN_COOKIE_NAME|MYSQL_DATABASE|MYSQL_ROOT_PASSWORD|DATABASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USERNAME|SMTP_PASSWORD|EMAIL_FROM)=' .env; printf '%s=%s\n' 'PORT' '4000'; printf '%s=%s\n' 'SERVER_URL' 'http://localhost:4000'; printf '%s=%s\n' 'CORS_ORIGIN' '*'; printf '%s=%s\n' 'ACCESS_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\n' 'ACCESS_TOKEN_EXPIRE' '20m'; printf '%s=%s\n' 'REFRESH_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\n' 'REFRESH_TOKEN_EXPIRE' '1d'; printf '%s=%s\n' 'REFRESH_TOKEN_COOKIE_NAME' 'jid'; printf '%s=%s\n' 'MYSQL_DATABASE' 'app'; printf '%s=%s\n' 'MYSQL_ROOT_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\n' 'DATABASE_URL' 'mysql://root:change.me.local.dev.only.not.a.secret@localhost:3306/app'; printf '%s=%s\n' 'SMTP_HOST' 'localhost'; printf '%s=%s\n' 'SMTP_PORT' '1025'; printf '%s=%s\n' 'SMTP_USERNAME' 'dev'; printf '%s=%s\n' 'SMTP_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\n' 'EMAIL_FROM' 'dev@example.com'; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++yarn run v1.22.22
++$ yarn run build && cross-env NODE_ENV=production node --trace-warnings ./dist/index.js
++$ tsc --project './tsconfig.build.json'
++2026-09-26 22:54:58 [INFO] Server is running on Port: 4000 
++
++[firstrun] the app is listening on port 4000 (it says so in its output), not 3000
++
++[firstrun] GET http://127.0.0.1:4000/ → 404
++404
++[firstrun] the docs name no URL to check; the server answered 404 on / so it is up
++```
++</details>
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="192" height="20" role="img" aria-label="HUMBLE: verified · 1m53s">
++  <title>HUMBLE: verified · 1m53s</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="192" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="122" height="20" fill="#1f9d55"/>
++    <rect width="192" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="131" y="14">verified · 1m53s</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,26 @@
++{
++  "repo": "Louis3797/express-ts-auth-service",
++  "commit": "fc6722badf",
++  "verifiedAt": "2026-09-26T22:57:59.271Z",
++  "verdict": "VERIFIED",
++  "image": "node:22",
++  "runtime": "Node.js 22",
++  "stepsTotal": 5,
++  "stepsFromReadme": 4,
++  "breaksFound": 2,
++  "breaksFixed": 2,
++  "needsHuman": 0,
++  "repoBreaks": 2,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 0,
++  "replaySeconds": 113,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:4000/"
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,66 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-26T22:57:59.271Z",
++  "commit": "fc6722badf",
++  "image": "node:22",
++  "runtime": {
++    "name": "node",
++    "version": "22",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:4000/"
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "npm install --global yarn",
++      "kind": "install"
++    },
++    {
++      "id": "S4",
++      "command": "yarn install",
++      "kind": "install"
++    },
++    {
++      "id": "R1",
++      "command": "cp .env.example .env",
++      "kind": "env",
++      "origin": "repair"
++    },
++    {
++      "id": "S13",
++      "command": "yarn start",
++      "kind": "serve",
++      "serve": {
++        "port": 4000
++      },
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "touch .env && { grep -v -E '^(PORT|SERVER_URL|CORS_ORIGIN|ACCESS_TOKEN_SECRET|ACCESS_TOKEN_EXPIRE|REFRESH_TOKEN_SECRET|REFRESH_TOKEN_EXPIRE|REFRESH_TOKEN_COOKIE_NAME|MYSQL_DATABASE|MYSQL_ROOT_PASSWORD|DATABASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USERNAME|SMTP_PASSWORD|EMAIL_FROM)=' .env; printf '%s=%s\\n' 'PORT' '4000'; printf '%s=%s\\n' 'SERVER_URL' 'http://localhost:4000'; printf '%s=%s\\n' 'CORS_ORIGIN' '*'; printf '%s=%s\\n' 'ACCESS_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'ACCESS_TOKEN_EXPIRE' '20m'; printf '%s=%s\\n' 'REFRESH_TOKEN_SECRET' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'REFRESH_TOKEN_EXPIRE' '1d'; printf '%s=%s\\n' 'REFRESH_TOKEN_COOKIE_NAME' 'jid'; printf '%s=%s\\n' 'MYSQL_DATABASE' 'app'; printf '%s=%s\\n' 'MYSQL_ROOT_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'DATABASE_URL' 'mysql://root:change.me.local.dev.only.not.a.secret@localhost:3306/app'; printf '%s=%s\\n' 'SMTP_HOST' 'localhost'; printf '%s=%s\\n' 'SMTP_PORT' '1025'; printf '%s=%s\\n' 'SMTP_USERNAME' 'dev'; printf '%s=%s\\n' 'SMTP_PASSWORD' 'change.me.local.dev.only.not.a.secret'; printf '%s=%s\\n' 'EMAIL_FROM' 'dev@example.com'; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env"
++        }
++      ]
++    },
++    {
++      "id": "S14",
++      "command": "yarn test",
++      "kind": "test"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "Error: Environment variable validation error:",
++      "cause": "The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more from .env.example, but the docs never say to create .env from it.",
++      "fix": "cp .env.example .env",
++      "evidence": "E1"
++    },
++    {
++      "signature": "Error: Environment variable validation error:",
++      "cause": ".env.example leaves 16 required values blank and the app rejects empty values. HUMBLE fills PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP).",
++      "fix": "`.env.example` now has working local values for the variables that were blank (PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more).",
++      "evidence": "E2"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,30 @@
++# Verified setup for Louis3797/express-ts-auth-service
++
++Verified by HUMBLE on 2026-09-26 at commit `fc6722badf` on a clean `node:22` machine. Clone to running took 113s.
++
++Prerequisites: Node.js 22.
++
++## Steps
++
++1. `npm install --global yarn`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `yarn install`
++   - Kind: install
++   - Expect: exits with code 0.
++3. `cp .env.example .env`
++   - Kind: env (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++4. `yarn start`
++   - Kind: serve
++   - Expect: the app answers at http://127.0.0.1:4000/ (HTTP 404). Leave it running in its own terminal.
++5. `yarn test`
++   - Kind: test
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `Error: Environment variable validation error:` | The app requires PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 11 more from .env.example, but the docs never say to create .env from it. | cp .env.example .env |
++| `Error: Environment variable validation error:` | .env.example leaves 16 required values blank and the app rejects empty values. HUMBLE fills PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more with local values (the app's own defaults where it has them, generated dev secrets, a local mail catcher for SMTP). | `.env.example` now has working local values for the variables that were blank (PORT, SERVER_URL, CORS_ORIGIN, ACCESS_TOKEN_SECRET and 12 more). |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "express-ts-auth-service",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "npm install --global yarn && yarn install && cp .env.example .env",
++  "forwardPorts": [
++    4000
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,15 @@
++services:
++  app:
++    image: node:22
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  mysql:
++    image: mysql:8.0
++    network_mode: service:app
++    restart: unless-stopped
++    environment:
++      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
++      MYSQL_DATABASE: ${MYSQL_DATABASE}
++      MYSQL_USER: root
++      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,4 +5,7 @@ yarn.lock
+ yarn-error.log
+ logs/
+ coverage/
+-data
+\ No newline at end of file
++data
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

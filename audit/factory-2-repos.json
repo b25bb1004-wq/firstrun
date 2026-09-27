@@ -1,0 +1,166 @@
+{
+ "generatedAt": "2026-09-27T10:13:01.508Z",
+ "note": "Rule factory batch 2: retry of the non-VERIFIED repos with the new rules (rules only, 0 Bobcoins).",
+ "repos": [
+  {
+   "slug": "apryor6__flask_api_example",
+   "url": "https://github.com/apryor6/flask_api_example",
+   "ref": "744239535f1b4a7d122491693ac49590ef761fef",
+   "stack": "python",
+   "stars": 417,
+   "source": "factory-1"
+  },
+  {
+   "slug": "hardyscc__aws-nestjs-starter",
+   "url": "https://github.com/hardyscc/aws-nestjs-starter",
+   "ref": "2e312502fcba622fd55a166eb31851856d929d30",
+   "stack": "node",
+   "stars": 348,
+   "source": "factory-1"
+  },
+  {
+   "slug": "jpadilla__django-project-template",
+   "url": "https://github.com/jpadilla/django-project-template",
+   "ref": "7d442e2bfb13071732a236084048a96fa93cb396",
+   "stack": "python",
+   "stars": 723,
+   "source": "factory-1"
+  },
+  {
+   "slug": "lincolnloop__django-layout",
+   "url": "https://github.com/lincolnloop/django-layout",
+   "ref": "c61297ca496d9befa219a267f36692aceb9b8406",
+   "stack": "python",
+   "stars": 330,
+   "source": "factory-1"
+  },
+  {
+   "slug": "marcomelilli__nestjs-email-authentication",
+   "url": "https://github.com/marcomelilli/nestjs-email-authentication",
+   "ref": "d8fbaadc1e8d76dcbf53d5f588deb8bceacddfcf",
+   "stack": "node",
+   "stars": 494,
+   "source": "factory-1"
+  },
+  {
+   "slug": "mongodb-developer__mern-stack-example",
+   "url": "https://github.com/mongodb-developer/mern-stack-example",
+   "ref": "6a5e9397b197cbb8edb34c787af7e6c8977b0152",
+   "stack": "node",
+   "stars": 408,
+   "source": "factory-1"
+  },
+  {
+   "slug": "monstar-lab-oss__nestjs-starter-rest-api",
+   "url": "https://github.com/monstar-lab-oss/nestjs-starter-rest-api",
+   "ref": "6da20f930269d68c1417f6b1992fd820172ce013",
+   "stack": "node",
+   "stars": 639,
+   "source": "factory-1"
+  },
+  {
+   "slug": "ndabAP__vue-sails-example",
+   "url": "https://github.com/ndabAP/vue-sails-example",
+   "ref": "2b2dd1dc3b44ccc70dc72c6d03df5427d1c52f4a",
+   "stack": "node",
+   "stars": 293,
+   "source": "factory-1"
+  },
+  {
+   "slug": "nerdeveloper__hackathon-starter-kit",
+   "url": "https://github.com/nerdeveloper/hackathon-starter-kit",
+   "ref": "d129ad74653887acaed64e5777668756598a5204",
+   "stack": "node",
+   "stars": 344,
+   "source": "factory-1"
+  },
+  {
+   "slug": "realpython__flask-boilerplate",
+   "url": "https://github.com/realpython/flask-boilerplate",
+   "ref": "488e33624bf0236fc16358d9e8cd66590e0e89ee",
+   "stack": "python",
+   "stars": 1579,
+   "source": "factory-1"
+  },
+  {
+   "slug": "tko22__flask-boilerplate",
+   "url": "https://github.com/tko22/flask-boilerplate",
+   "ref": "8be897648118ba3caf5c1a7cc967bbf801438b11",
+   "stack": "python",
+   "stars": 303,
+   "source": "factory-1"
+  },
+  {
+   "slug": "vargasjona__fastapi-alembic-sqlmodel-async",
+   "url": "https://github.com/vargasjona/fastapi-alembic-sqlmodel-async",
+   "ref": "96f10870e7a9cd0fb7fcc678674d7b409545b942",
+   "stack": "python",
+   "services": [
+    "postgres",
+    "redis",
+    "minio"
+   ],
+   "stars": 1266,
+   "lastCommit": "2026-03-09",
+   "readmeSetupSection": "Prerequisites / Run project using Docker containers",
+   "suspectedDrift": [
+    {
+     "what": "A required settings field has no safe default; .env.example only ships an empty stub",
+     "evidence": "backend/app/app/core/config.py:23 declares `OPENAI_API_KEY: str` (required, no default); backend/app/app/main.py:173 does `ChatOpenAI(temperature=0, openai_api_key=settings.OPENAI_API_KEY)`; .env.example:50 ships `OPENAI_API_KEY=` empty, and the README never flags the Langchain/chatbot feature (Table of Contents item 18) as optional or the key as skippable."
+    },
+    {
+     "what": "README states three slightly different Python version ranges in one document",
+     "evidence": "README.md intro: 'fully compatible with Python >=3.10' and 'Python 3.10 and later versions'; the 'Prerequisites' section header itself is literally `## Python \">3.9,<3.12\"`; backend/app/pyproject.toml:42 pins `python = \">3.9,<3.12\"`."
+    }
+   ],
+   "risk": "medium",
+   "why": "Heaviest stack in the set (Postgres+Redis+MinIO+Celery+Caddy) with a genuinely required-looking API key field — a good stress test of FirstRun's missing-secret handling, though setup takes longer than the others.",
+   "source": "real-16"
+  },
+  {
+   "slug": "fastapi__full-stack-fastapi-template",
+   "url": "https://github.com/fastapi/full-stack-fastapi-template",
+   "ref": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+   "stack": "node",
+   "stars": 45763,
+   "source": "known-10"
+  },
+  {
+   "slug": "JKHeadley__rest-hapi",
+   "url": "https://github.com/JKHeadley/rest-hapi",
+   "ref": "708ecbcd4f5d3ec1d11c987a4741d505358e7de9",
+   "stack": "node",
+   "services": [
+    "mongodb"
+   ],
+   "stars": 1181,
+   "lastCommit": "2023-03-26",
+   "readmeSetupSection": "Quick Start",
+   "suspectedDrift": [
+    {
+     "what": "The repo's own 'Quick Start' doesn't set up this repo at all — it clones a different repo",
+     "evidence": "README.md lines 82-90, 'Quick Start' step 1: `git clone https://github.com/JKHeadley/rest-hapi-demo.git` then `cd rest-hapi-demo`, not this repository (rest-hapi). rest-hapi-demo was itself last pushed 2022-12-02, over two years before this README's last update, and is a separate scaffolded project, not this library's source."
+    }
+   ],
+   "risk": "high",
+   "why": "A maximally clean example of README drift: following the literal 'Quick Start' takes a newcomer out of the audited repo entirely, into a second, differently-maintained repo.",
+   "source": "real-16"
+  },
+  {
+   "slug": "christianalfoni__webpack-express-boilerplate",
+   "url": "https://github.com/christianalfoni/webpack-express-boilerplate",
+   "ref": "170d929d1fffcb02c37244098e29a1d8b1aa535f",
+   "stack": "node",
+   "stars": 1374,
+   "source": "factory-1"
+  },
+  {
+   "slug": "caktus__django-project-template",
+   "url": "https://github.com/caktus/django-project-template",
+   "ref": "644148f7327a7bb54e52d3de8a7fe3c03c674b20",
+   "stack": "python",
+   "stars": 208,
+   "source": "factory-1"
+  }
+ ]
+}

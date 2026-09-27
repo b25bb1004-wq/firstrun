@@ -1,0 +1,24 @@
+{
+  "id": "E1",
+  "stepId": "S16",
+  "before": {
+    "stepId": "S16",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 3267,
+    "logTail": "      type: 'test'\n      ...\n    # Subtest: FORCE_COLOR environment variable tests\n        # Subtest: when FORCE_COLOR=true then returns true\n        ok 1 - when FORCE_COLOR=true then returns true\n          ---\n          duration_ms: 0.46666\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=false then returns false\n        ok 2 - when FORCE_COLOR=false then returns false\n          ---\n          duration_ms: 0.186818\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=0 then returns false\n        ok 3 - when FORCE_COLOR=0 then returns false\n          ---\n          duration_ms: 0.393215\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=1 then returns true\n        ok 4 - when FORCE_COLOR=1 then returns true\n          ---\n          duration_ms: 0.371833\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=2 then returns true\n        ok 5 - when FORCE_COLOR=2 then returns true\n          ---\n          duration_ms: 0.25391\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=3 then returns true\n        ok 6 - when FORCE_COLOR=3 then returns true\n          ---\n          duration_ms: 0.140777\n          type: 'test'\n          ...\n        1..6\n    ok 7 - FORCE_COLOR environment variable tests\n      ---\n      duration_ms: 2.466238\n      type: 'suite'\n      ...\n    1..7\nok 141 - internal useColor environment variable support\n  ---\n  duration_ms: 8.206053\n  type: 'suite'\n  ...\n1..141\n# tests 1373\n# suites 210\n# pass 1368\n# fail 4\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 2685.859695",
+    "logFile": "logs/S16-1.log"
+  },
+  "diagnosis": {
+    "class": "failing-tests",
+    "cause": "The test suite runs, but 4 of 1373 tests fail on a clean setup.",
+    "by": "rules",
+    "ruleId": "failing-tests",
+    "confidence": 0.8
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T00:52:06.827Z"
+}

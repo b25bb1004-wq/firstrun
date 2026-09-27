@@ -33,7 +33,7 @@ function agentLine(m, a) {
     case 'replay.start': return 'Replaying from zero';
     case 'replay.end': return `Replay ${d.status} in ${dur(d.durationMs)}`;
     case 'artifact': return `Wrote ${d.name}`;
-    case 'passport': return `Passport issued: ${d.verdict}`;
+    case 'passport': return `Passport issued: ${d.verdict === 'PARTIAL' ? 'FIXES PROVEN' : d.verdict}`;
     case 'done': return 'Run complete';
     default: return last.type;
   }
@@ -285,7 +285,7 @@ export function mountRun(root, runId, sub) {
       <div class="rh-gauges">
         <div class="gauge"><span class="gl">Elapsed</span><span class="gv mono" id="clock">T+${clock(elapsed)}</span></div>
         <div class="gauge g-bob"><span class="gl">Bobcoins</span><span class="gv mono">${m.bobcoins}</span></div>
-        ${m.verdict ? h`<div class="gauge g-verdict v-${m.verdict.toLowerCase()}"><span class="gl">Verdict</span><span class="gv">${m.verdict}</span></div>`
+        ${m.verdict ? h`<div class="gauge g-verdict v-${m.verdict.toLowerCase()}"><span class="gl">Verdict</span><span class="gv">${m.verdict === 'PARTIAL' ? 'FIXES PROVEN' : m.verdict}</span></div>`
                     : h`<div class="gauge g-live ${live && m.phase !== 'done' ? 'on' : ''}"><span class="gl">Stream</span><span class="gv">${live ? 'Live' : 'Loading'}</span></div>`}
         ${m.verdict && m.verdict !== 'FAILED' ? h`<a class="btn" href="#/guide/${runId}">Newcomer guide</a>` : ''}
       </div>`);

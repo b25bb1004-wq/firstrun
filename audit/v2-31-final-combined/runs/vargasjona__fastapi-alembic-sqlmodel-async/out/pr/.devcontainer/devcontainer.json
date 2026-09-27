@@ -1,0 +1,17 @@
+{
+  "name": "fastapi-alembic-sqlmodel-async",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "poetry install && make init-db && make add-dev-migration && make pytest",
+  "forwardPorts": [
+    15432
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

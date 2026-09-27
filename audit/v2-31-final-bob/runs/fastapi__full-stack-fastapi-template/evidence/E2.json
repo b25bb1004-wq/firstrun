@@ -1,0 +1,45 @@
+{
+  "id": "E2",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "uv run bash scripts/prestart.sh",
+    "exitCode": 127,
+    "durationMs": 213,
+    "logTail": "bash: scripts/prestart.sh: No such file or directory",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "`uv run bash scripts/prestart.sh` must run inside `backend/` (the file is `backend/scripts/prestart.sh`), but the docs never say to change into that folder.",
+    "by": "rules",
+    "ruleId": "wrong-directory",
+    "confidence": 0.85
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "cd backend && uv run bash scripts/prestart.sh"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "cd backend && uv run bash scripts/prestart.sh"
+    },
+    "log": "step command → cd backend && uv run bash scripts/prestart.sh"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 2,
+    "command": "cd backend && uv run bash scripts/prestart.sh",
+    "exitCode": 0,
+    "durationMs": 2638,
+    "logTail": "+ alembic upgrade head\n/workspace/backend/app/core/config.py:75: UserWarning: The value of SECRET_KEY is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/workspace/backend/app/core/config.py:75: UserWarning: The value of DATABASE_URL password is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/workspace/backend/app/core/config.py:75: UserWarning: The value of FIRST_SUPERUSER_PASSWORD is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> e2412789c190, Initialize models\nINFO  [alembic.runtime.migration] Running upgrade e2412789c190 -> 9c0a54914c78, Add max length for string(varchar) fields in User and Items models\nINFO  [alembic.runtime.migration] Running upgrade 9c0a54914c78 -> d98dd8ec85a3, Edit replace id integers in all models to use UUID instead\nINFO  [alembic.runtime.migration] Running upgrade d98dd8ec85a3 -> 1a31ce608336, Add cascade delete relationships\nINFO  [alembic.runtime.migration] Running upgrade 1a31ce608336 -> fe56fa70289e, Add created_at to User and Item\n+ python app/initial_data.py\n/workspace/backend/app/core/config.py:75: UserWarning: The value of SECRET_KEY is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/workspace/backend/app/core/config.py:75: UserWarning: The value of DATABASE_URL password is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\n/workspace/backend/app/core/config.py:75: UserWarning: The value of FIRST_SUPERUSER_PASSWORD is \"changethis\", for security, please change it, at least for deployments.\n  warnings.warn(message, stacklevel=1)\nINFO:__main__:Creating initial data\nINFO:__main__:Initial data created",
+    "logFile": "logs/S3-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T08:40:44.563Z"
+}

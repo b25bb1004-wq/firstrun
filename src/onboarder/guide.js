@@ -234,7 +234,7 @@ const PURPOSE = {
 function buildWhy(step, evidence, plan) {
   const src = step.source?.file ? ` (${step.source.file}${step.source.line ? ':' + step.source.line : ''})` : '';
   const purpose = `${PURPOSE[step.kind] || PURPOSE.other}${src}`;
-  if (!evidence) return { evidenceId: null, cause: purpose, proof: `worked first time on a clean ${plan?.image || 'machine'}`, log: null };
+  if (!evidence) return { evidenceId: null, cause: step.bobWhy ? `${step.bobWhy} (IBM Bob)` : purpose, proof: `worked first time on a clean ${plan?.image || 'machine'}`, log: null };
   return { evidenceId: evidence.id, cause: evidence.diagnosis?.cause || purpose, proof: 'fixed, then replayed from zero', log: evidence.before?.logFile || null };
 }
 

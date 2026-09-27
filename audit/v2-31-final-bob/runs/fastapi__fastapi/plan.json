@@ -1,0 +1,97 @@
+{
+  "repo": "fastapi/fastapi",
+  "commit": "192b12197e",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "uv sync --no-dev --group tests --extra all",
+      "kind": "install",
+      "source": {
+        "file": ".github/workflows/test.yml (Install Dependencies step)",
+        "line": 0,
+        "where": "",
+        "section": "extracted by IBM Bob"
+      },
+      "origin": "readme",
+      "by": "bob",
+      "why": "Installs all project dependencies plus the test dependency group using the locked uv.lock file",
+      "status": "repaired",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+        }
+      ],
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "S2",
+      "command": "mkdir coverage",
+      "kind": "other",
+      "source": {
+        "file": ".github/workflows/test.yml (mkdir coverage step)",
+        "line": 0,
+        "where": "",
+        "section": "extracted by IBM Bob"
+      },
+      "origin": "readme",
+      "by": "bob",
+      "why": "Creates the coverage output directory required by the test runner",
+      "status": "passed"
+    },
+    {
+      "id": "S3",
+      "command": "uv run bash scripts/test.sh",
+      "kind": "other",
+      "source": {
+        "file": "scripts/test.sh (called by scripts/test-cov.sh which is called by CI; scripts/test.sh is the plain test entry point)",
+        "line": 0,
+        "where": "",
+        "section": "extracted by IBM Bob"
+      },
+      "origin": "readme",
+      "by": "bob",
+      "why": "Sets PYTHONPATH=./docs_src and runs pytest across tests/ and scripts/tests/ with parallel execution",
+      "status": "needs-human"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.11 (.python-version)",
+      "source": "README.md"
+    },
+    {
+      "what": "env var DYLD_FALLBACK_LIBRARY_PATH",
+      "docs": "not documented",
+      "truth": "read in scripts/docs.py:129",
+      "source": "README"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "plannedBy": "bob",
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

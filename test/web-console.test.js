@@ -26,46 +26,10 @@ function gzipSize(text) {
   return gzipSync(text).length;
 }
 
-// Import modules using file:// URLs that work in Node
-const coreModule = await import('file://' + resolve(CONSOLE_DIR, 'core.js'));
+// The website's console JS was removed (no page mounted it after the thread guide replaced that panel), so the
+// line-grammar and reel tests run against the desktop app's copy of the same core.
+const coreModule = await import('file://' + resolve(LENS_DIR, 'console-core.js'));
 const { flight, typeSchedule, lineFromBeat, lineFromGuideStep, reelPlayer, onboardingTimeline } = coreModule;
-
-// robot.js doesn't exist in lens/humble, it's in the zeus/humble-robot branch
-// So we just test the web copy exists and exports correctly
-const robotModule = await import('file://' + resolve(CONSOLE_DIR, 'robot.js'));
-const { HumbleRobot, HUMBLE_STATES, AGENT_COLORS, flightMath } = robotModule;
-
-// ============================================================================
-// Test: Copies identical to lens sources
-// ============================================================================
-describe('Core module copies match lens/humble/console-core.js', () => {
-  it('core.js matches lens/humble/console-core.js (functional equivalence)', () => {
-    const webCore = loadText(resolve(CONSOLE_DIR, 'core.js'));
-    const lensCore = loadText(resolve(LENS_DIR, 'console-core.js'));
-    
-    // The web copy has a slightly different comment header but the same code
-    // Check that all exported functions exist and have the same code
-    assert.ok(webCore.includes('export function flight'), 'flight export missing');
-    assert.ok(webCore.includes('export function typeSchedule'), 'typeSchedule export missing');
-    assert.ok(webCore.includes('export { lineFromBeat, lineFromGuideStep }'), 'lineFromBeat export missing');
-    assert.ok(webCore.includes('export function reelPlayer'), 'reelPlayer export missing');
-    assert.ok(webCore.includes('export function onboardingTimeline'), 'onboardingTimeline export missing');
-    
-    // Check core algorithms are identical
-    assert.ok(webCore.includes('3 * u * u - 2 * u * u * u'), 'smoothstep missing');
-    assert.ok(webCore.includes('Math.max(0.6, Math.min(1.4, distance / 800))'), 'duration clamp missing');
-    assert.ok(webCore.includes('Math.min(distance * 0.2, 80)'), 'control point offset missing');
-    assert.ok(webCore.includes('1 + Math.sin(u * Math.PI) * 0.3'), 'scale formula missing');
-    assert.ok(webCore.includes('8 + (scale - 1) * 20'), 'glow formula missing');
-  });
-
-  it('robot.js exports all required symbols', () => {
-    assert.ok(typeof HumbleRobot === 'function', 'HumbleRobot not exported');
-    assert.ok(Array.isArray(HUMBLE_STATES), 'HUMBLE_STATES not exported');
-    assert.ok(typeof AGENT_COLORS === 'object', 'AGENT_COLORS not exported');
-    assert.ok(typeof flightMath === 'object', 'flightMath not exported');
-  });
-});
 
 // ============================================================================
 // Test: Every rendered line text appears in the reel JSON (nothing invented)
@@ -136,42 +100,6 @@ describe('Terminal lines trace to reel data', () => {
       const found = lines.some(l => l.includes(beatText) || beatText.includes(l));
       assert.ok(found || beatText.startsWith('{'), `Beat text not found in lines: "${beatText.slice(0, 80)}..."`);
     }
-  });
-});
-
-// ============================================================================
-// Test: No localStorage crash when it throws
-// ============================================================================
-describe('localStorage safety', () => {
-  it('safeLocalStorage returns false when localStorage throws', async () => {
-    // Import the console module
-    const consoleModule = await import('file://' + resolve(CONSOLE_DIR, 'console.js'));
-    const { safeLocalStorage, getLocalStorage } = consoleModule;
-    
-    // Mock localStorage to throw
-    const originalLS = global.localStorage;
-    global.localStorage = {
-      setItem: () => { throw new Error('Quota exceeded'); },
-      getItem: () => { throw new Error('Quota exceeded'); },
-      removeItem: () => { throw new Error('Quota exceeded'); }
-    };
-    
-    const setResult = safeLocalStorage('test', 'value');
-    const getResult = getLocalStorage('test');
-    
-    assert.strictEqual(setResult, false, 'safeLocalStorage should return false on error');
-    assert.strictEqual(getResult, null, 'getLocalStorage should return null on error');
-    
-    global.localStorage = originalLS;
-  });
-
-  it('safeLocalStorage works normally when available', async () => {
-    const consoleModule = await import('file://' + resolve(CONSOLE_DIR, 'console.js'));
-    const { safeLocalStorage, getLocalStorage } = consoleModule;
-    
-    // Node.js doesn't have localStorage by default - skip this test
-    // This is tested manually in browser context
-    console.log('Skipping localStorage test in Node.js environment');
   });
 });
 
@@ -387,15 +315,13 @@ describe('Line grammar (Section 3)', () => {
     assert.strictEqual(lines[0].prefix, '  + ');
   });
 
-  it('lineFromBeat maps verified to pass kind with replaySeconds', () => {
-    const beat = { kind: 'verified', text: '14' };
+  it('lineFromBeat maps a verified beat (one proven fix) to a pass line, not a fake replay time', () => {
+    const beat = { kind: 'verified', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", evidenceId: 'E1' };
     const lines = lineFromBeat(beat);
-    
     assert.strictEqual(lines.length, 1);
     assert.strictEqual(lines[0].kind, 'pass');
-    assert.ok(lines[0].text.includes('VERIFIED'));
-    assert.ok(lines[0].text.includes('14s'));
-    assert.strictEqual(lines[0].rightAlign, true);
+    assert.ok(lines[0].text.includes('evidence E1'));
+    assert.ok(!lines[0].text.includes('replay from zero in The'), 'must not paste the diagnosis in as seconds');
   });
 
   it('capLines limits to 6 lines + more marker', () => {
@@ -496,19 +422,11 @@ describe('Demo machine data', () => {
 // Test: Total JS size <= 25 KB gzip
 // ============================================================================
 describe('Bundle size budget', () => {
-  it('console.js + core.js + robot.js <= 25 KB gzip', () => {
-    const consoleJS = loadText(resolve(CONSOLE_DIR, 'console.js'));
-    const coreJS = loadText(resolve(CONSOLE_DIR, 'core.js'));
-    const robotJS = loadText(resolve(CONSOLE_DIR, 'robot.js'));
-    const autoloadJS = loadText(resolve(CONSOLE_DIR, 'autoload.js'));
-    
-    const combined = consoleJS + '\n' + coreJS + '\n' + robotJS + '\n' + autoloadJS;
-    const gzipped = gzipSize(combined);
-    const sizeKB = gzipped / 1024;
-    
-    console.log(`Combined JS gzip size: ${sizeKB.toFixed(2)} KB`);
-    
-    assert.ok(sizeKB <= 25, `Combined JS should be <= 25 KB gzip, got ${sizeKB.toFixed(2)} KB`);
+  it('thread-guide.js + emo-bot.js <= 25 KB gzip (the homepage guide and its mascot)', () => {
+    const combined = loadText(resolve(process.cwd(), 'web/public/assets/thread-guide.js')) + '\n' + loadText(resolve(CONSOLE_DIR, 'emo-bot.js'));
+    const sizeKB = gzipSize(combined) / 1024;
+    console.log(`Guide JS gzip size: ${sizeKB.toFixed(2)} KB`);
+    assert.ok(sizeKB <= 25, `Guide JS should be <= 25 KB gzip, got ${sizeKB.toFixed(2)} KB`);
   });
 
   it('console.css is reasonable size', () => {

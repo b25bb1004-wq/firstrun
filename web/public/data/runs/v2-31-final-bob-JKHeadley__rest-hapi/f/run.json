@@ -1,0 +1,193 @@
+{
+  "id": "v2-31-final-bob-JKHeadley__rest-hapi",
+  "repo": "JKHeadley/rest-hapi",
+  "commit": "708ecbcd4f",
+  "startedAt": "2026-09-27T07:20:44.255Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S4": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S5": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0.784338,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "16 (package.json engines (\">=16.13.2\"))",
+      "source": "README.md"
+    },
+    {
+      "what": "mongodb service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"mongoose\"",
+      "source": "package.json"
+    }
+  ],
+  "plan": {
+    "repo": "JKHeadley/rest-hapi",
+    "commit": "708ecbcd4f",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/JKHeadley/rest-hapi-demo.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 84,
+          "endLine": 84,
+          "section": "Quick Start"
+        },
+        "origin": "readme",
+        "skip": "git clone: HUMBLE starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd rest-hapi-demo",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 85,
+          "endLine": 85,
+          "section": "Quick Start"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "npm install",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Quick Start"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S4",
+        "command": "npm start",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 100,
+          "endLine": 100,
+          "section": "Quick Start"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 8080
+        },
+        "status": "needs-human"
+      },
+      {
+        "id": "S5",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "16 (package.json engines (\">=16.13.2\"))",
+        "source": "README.md"
+      },
+      {
+        "what": "mongodb service",
+        "docs": "setup never starts it",
+        "truth": "dependency \"mongoose\"",
+        "source": "package.json"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8080/",
+      "fromDocs": true
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": true,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 43807
+  },
+  "passport": {
+    "repo": "JKHeadley/rest-hapi",
+    "commit": "708ecbcd4f",
+    "verifiedAt": "2026-09-27T07:23:59.819Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 3,
+    "stepsFromReadme": 2,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 2,
+    "repoBreaks": 1,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 44,
+    "packageCache": false,
+    "bobcoins": 0.78,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8080/",
+      "fromDocs": true
+    },
+    "fromCI": true,
+    "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+  },
+  "finishedAt": "2026-09-27T07:24:00.628Z"
+}

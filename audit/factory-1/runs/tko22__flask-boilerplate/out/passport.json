@@ -1,0 +1,26 @@
+{
+  "repo": "tko22/flask-boilerplate",
+  "commit": "8be8976481",
+  "verifiedAt": "2026-09-27T09:47:44.556Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.6",
+  "runtime": "Python 3.6",
+  "stepsTotal": 6,
+  "stepsFromReadme": 6,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 2,
+  "replaySeconds": 3,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5000/"
+  },
+  "fromCI": false
+}

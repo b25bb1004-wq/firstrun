@@ -1,0 +1,46 @@
+{
+  "id": "E2",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 2,
+    "command": "pnpm test",
+    "exitCode": 1,
+    "durationMs": 5455,
+    "logTail": "! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-10.33.0.tgz\n\n> express-typescript-boilerplate@1.0.14 test /workspace\n> vitest run\n\nsh: 1: vitest: not found\n ELIFECYCLE  Test failed. See above for more details.\n WARN   Local package.json exists, but node_modules missing, did you mean to install?",
+    "logFile": "logs/S1-2.log"
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "Dependencies were never installed before \"pnpm test\"; the docs skip `pnpm install`.",
+    "by": "rules",
+    "ruleId": "deps-not-installed",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "pnpm install",
+        "kind": "install"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "pnpm install"
+    },
+    "log": "$ pnpm install → exit 0"
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 3,
+    "command": "pnpm test",
+    "exitCode": 0,
+    "durationMs": 3088,
+    "logTail": "\nstderr | src/api-docs/__tests__/openAPIRouter.test.ts\nValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.\n    at Object.keyGeneratorIpFallback (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:613:13)\n    at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:656:22)\n    at parseOptions (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:726:16)\n    at rateLimit (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:807:18)\n    at /workspace/src/common/middleware/rateLimiter.ts:6:21\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at VitestExecutor.runModule (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:397:4)\n    at VitestExecutor.directRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:375:3)\n    at VitestExecutor.cachedRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:189:11)\n    at VitestExecutor.dependencyRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:239:10) {\n  code: 'ERR_ERL_KEY_GEN_IPV6',\n  help: 'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'\n}\n\nstderr | src/api/user/__tests__/userService.test.ts\nValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.\n    at Object.keyGeneratorIpFallback (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:613:13)\n    at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:656:22)\n    at parseOptions (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:726:16)\n    at rateLimit (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:807:18)\n    at /workspace/src/common/middleware/rateLimiter.ts:6:21\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at VitestExecutor.runModule (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:397:4)\n    at VitestExecutor.directRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:375:3)\n    at VitestExecutor.cachedRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:189:11)\n    at VitestExecutor.dependencyRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:239:10) {\n  code: 'ERR_ERL_KEY_GEN_IPV6',\n  help: 'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'\n}\n\nstderr | src/api/user/__tests__/userRouter.test.ts\nValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.\n    at Object.keyGeneratorIpFallback (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:613:13)\n    at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:656:22)\n    at parseOptions (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:726:16)\n    at rateLimit (file:///workspace/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs:807:18)\n    at /workspace/src/common/middleware/rateLimiter.ts:6:21\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at VitestExecutor.runModule (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:397:4)\n    at VitestExecutor.directRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:375:3)\n    at VitestExecutor.cachedRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:189:11)\n    at VitestExecutor.dependencyRequest (file:///workspace/node_modules/.pnpm/vite-node@3.2.4_@types+node@24.0.13_tsx@4.21.0_yaml@2.8.0/node_modules/vite-node/dist/client.mjs:239:10) {\n  code: 'ERR_ERL_KEY_GEN_IPV6',\n  help: 'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'\n}\n\n{\"level\":50,\"time\":1790467912974,\"pid\":364,\"hostname\":\"100efb1831ab\",\"name\":\"server start\",\"msg\":\"Error finding all users: $Database error\"}\n{\"level\":50,\"time\":1790467912984,\"pid\":364,\"hostname\":\"100efb1831ab\",\"name\":\"server start\",\"msg\":\"Error finding user with id 1:, Database error\"}\n ✓ src/api/user/__tests__/userService.test.ts (6 tests) 20ms\n ✓ src/api/healthCheck/__tests__/healthCheckRouter.test.ts (1 test) 62ms\n ✓ src/api-docs/__tests__/openAPIRouter.test.ts (2 tests) 92ms\n ✓ src/api/user/__tests__/userRouter.test.ts (4 tests) 109ms\n\n Test Files  6 passed (6)\n      Tests  21 passed (21)\n   Start at  00:11:51\n   Duration  1.55s (transform 672ms, setup 0ms, collect 4.01s, tests 452ms, environment 4ms, prepare 1.32s)",
+    "logFile": "logs/S1-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T00:11:53.592Z"
+}

@@ -1,0 +1,28 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -21,6 +21,8 @@ a reference book. These notable elements are covered.
+ 
+ ## Installation
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:16` machine at `2b2dd1dc3b`: clone to running in 19s.
++
+ ### Prerequisites
+ 
+ To get started, you need Node.js. It's also recommend to have Sails.js globally installed. If you don't want to have Sails.js globally installed just use `npm run dev`. Finally, install the Node.js modules.
+@@ -29,6 +31,7 @@ To get started, you need Node.js. It's also recommend to have Sails.js globally
+ 
+ ```bash
+ $ curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ $ sudo apt-get install -y nodejs
+ ```
+ 
+@@ -42,6 +45,7 @@ $ sudo npm install sails -g
+ 
+ ```bash
+ $ cd frontend && npm install
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ $ cd ../backend && npm install
+ ```
+ 

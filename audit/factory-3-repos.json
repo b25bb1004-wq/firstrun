@@ -1,0 +1,30 @@
+{
+ "generatedAt": "2026-09-27T10:33:34.226Z",
+ "note": "Rule factory batch 3: repos that need rules added during batch 2 (PyPI wheel era, django-admin/pre-commit installs, make-run services). Rules only.",
+ "repos": [
+  {
+   "slug": "apryor6__flask_api_example",
+   "url": "https://github.com/apryor6/flask_api_example",
+   "ref": "744239535f1b4a7d122491693ac49590ef761fef",
+   "stack": "python",
+   "stars": 417,
+   "source": "factory-1"
+  },
+  {
+   "slug": "jpadilla__django-project-template",
+   "url": "https://github.com/jpadilla/django-project-template",
+   "ref": "7d442e2bfb13071732a236084048a96fa93cb396",
+   "stack": "python",
+   "stars": 723,
+   "source": "factory-1"
+  },
+  {
+   "slug": "lincolnloop__django-layout",
+   "url": "https://github.com/lincolnloop/django-layout",
+   "ref": "c61297ca496d9befa219a267f36692aceb9b8406",
+   "stack": "python",
+   "stars": 330,
+   "source": "factory-1"
+  }
+ ]
+}

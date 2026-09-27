@@ -1,0 +1,9 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+Dockerfile
+frontend/test/unit/coverage
+node_modules
+package-lock.json
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

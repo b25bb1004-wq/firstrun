@@ -1,0 +1,21 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -25,6 +25,8 @@ The `master` branch contains the core version of NET.ts. However, if you need ad
+ 
+ ## Getting started
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:16` machine at `d731e5cef4`: clone to running in 30s.
++
+ Install `Docker` and `Docker Compose` which are used to maximise the convenience of development on local machine.
+ 
+ When both are installed, build the NET.ts image as follow:
+@@ -87,6 +89,8 @@ There are few rules that you have to obey to enjoy NET.ts fully.
+ The Jest test suites are run by executing
+ 
+ ```sh
++npm install --no-save jest@27
++export NODE_ENV=development
+ npm test
+ ```
+ 

@@ -309,6 +309,15 @@ export async function scout(root) {
       for (const p of sub.ports) if (!facts.ports.includes(p)) facts.ports.push(p);
       const seen = new Set(facts.envVarsInCode.map((v) => v.name));
       facts.envVarsInCode.push(...sub.envVarsInCode.filter((v) => !seen.has(v.name)).map((v) => ({ ...v, file: v.file && `${dir}/${v.file}` })));
+    } else if (dirs.length > 1) {
+      // Several sub-projects of ONE kind (rule factory: mern-stack-example's mern/server + mern/client): the clean
+      // machine still needs that runtime; without it every step ran where there was no node ("node: command not found").
+      const subs = await Promise.all(dirs.slice(0, 4).map((d) => scout(path.join(root, d))));
+      const nodes = subs.filter((s) => s.node);
+      const pys = subs.filter((s) => s.python);
+      if (nodes.length && !pys.length) facts.node = nodes[0].node;
+      else if (pys.length && !nodes.length) facts.python = { ...pys[0].python, requirementsFiles: [] };
+      facts.subProjects = dirs;
     }
   }
 

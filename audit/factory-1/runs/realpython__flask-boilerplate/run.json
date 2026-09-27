@@ -1,0 +1,162 @@
+{
+  "id": "factory-1-realpython__flask-boilerplate",
+  "repo": "realpython/flask-boilerplate",
+  "commit": "488e33624b",
+  "startedAt": "2026-09-27T09:43:27.612Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S4": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "env var PYTHONINSPECT",
+      "docs": "not documented",
+      "truth": "read in _updated/shell.py:6",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "realpython/flask-boilerplate",
+    "commit": "488e33624b",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/realpython/flask-boilerplate.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 93,
+          "endLine": 93,
+          "section": "Project Structure › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "git clone: HUMBLE starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd flask-boilerplate",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 94,
+          "endLine": 94,
+          "section": "Project Structure › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "pip install -r requirements.txt",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 105,
+          "endLine": 105,
+          "section": "Project Structure › Quick Start"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S4",
+        "command": "python app.py",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 110,
+          "endLine": 110,
+          "section": "Project Structure › Quick Start"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 5000
+        },
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "env var PYTHONINSPECT",
+        "docs": "not documented",
+        "truth": "read in _updated/shell.py:6",
+        "source": "README"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:5000/",
+      "fromDocs": true
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 202478
+  },
+  "passport": {
+    "repo": "realpython/flask-boilerplate",
+    "commit": "488e33624b",
+    "verifiedAt": "2026-09-27T09:49:07.918Z",
+    "verdict": "PARTIAL",
+    "image": "python:3.12",
+    "runtime": "Python 3.12",
+    "stepsTotal": 2,
+    "stepsFromReadme": 2,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 0,
+    "suiteIssues": 0,
+    "needsPerson": 0,
+    "humbleUnknowns": 1,
+    "replaySeconds": 202,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:5000/",
+      "fromDocs": true
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T09:49:08.558Z"
+}

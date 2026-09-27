@@ -125,7 +125,9 @@ describe('Honesty Gate - Data Traceability', () => {
     const content = readFileSync(indexHtml, 'utf-8');
     
     // The headline stats must carry data-count and equal the published audit's own summary
-    const audit = JSON.parse(readFileSync(resolve(ROOT, 'audit/v2-31-final/audit.json'), 'utf-8'));
+    // The site publishes v2-31-final combined with the IBM Bob pass (tools/combine-audits.js).
+    const published = existsSync(resolve(ROOT, 'audit/v2-31-final-combined/audit.json')) ? 'audit/v2-31-final-combined' : 'audit/v2-31-final';
+    const audit = JSON.parse(readFileSync(resolve(ROOT, published, 'audit.json'), 'utf-8'));
     const s = audit.summary;
     // Team wording (Karmanya, 27 Sep): "18 of 31 READMEs broke on a clean machine", i.e. out of every audited repo
     assert.ok(content.includes(`data-count="${s.total}" data-stat="total"`), `repos audited stat should be data-count="${s.total}"`);
@@ -166,29 +168,16 @@ describe('Honesty Gate - Data Traceability', () => {
     }
   });
 
-  // Test 3: Prove-live.js RECORDED_RUNS all point to real events.ndjson files
-  it('prove-live recorded runs point to real event files', () => {
-    const proveLive = resolve(ROOT, 'web/public/assets/prove-live.js');
-    const content = readFileSync(proveLive, 'utf-8');
+  // Test 3: Thread-guide.js uses real reel data from /data/reels/
+  it('thread-guide uses real reel data', () => {
+    const threadGuide = resolve(ROOT, 'web/public/assets/thread-guide.js');
+    const content = readFileSync(threadGuide, 'utf-8');
     
-    // Extract RECORDED_RUNS paths
-    const pathMatches = content.matchAll(/path:\s*['"]([^'"]+)['"]/g);
-    for (const match of pathMatches) {
-      const path = match[1];
-      // Paths in prove-live.js are web-root-relative (starting with /data/)
-      // The actual files are at web/public + path
-      const fullPath = resolve(ROOT, 'web/public', path.slice(1)); // remove leading /
-      assert.ok(existsSync(fullPath), `Recorded run path should exist: ${path}`);
-      
-      // Verify it's valid NDJSON
-      const ndjson = readFileSync(fullPath, 'utf-8');
-      const lines = ndjson.trim().split('\n').filter(l => l.trim());
-      assert.ok(lines.length > 0, `Events file should have content: ${path}`);
-      
-      for (const line of lines) {
-        assert.doesNotThrow(() => JSON.parse(line), `Each line should be valid JSON: ${path}`);
-      }
-    }
+    // Verify it loads reels from /data/reels/
+    assert.ok(content.includes("/data/reels/"), 'Thread guide should load reels from /data/reels/');
+    
+    // Verify it uses real recorded runs (acme-shop)
+    assert.ok(content.includes("acme-shop"), 'Thread guide should reference acme-shop reel');
   });
 });
 

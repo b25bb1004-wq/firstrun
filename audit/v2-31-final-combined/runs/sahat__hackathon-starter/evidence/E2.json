@@ -1,0 +1,60 @@
+{
+  "id": "E2",
+  "stepId": "S7",
+  "before": {
+    "stepId": "S7",
+    "n": 1,
+    "command": "npm run test:e2e:replay",
+    "exitCode": 1,
+    "durationMs": 63431,
+    "logTail": "\n> hackathon-starter@10.0.0 pretest:e2e:replay\n> npx playwright install chromium\n\nDownloading Chrome for Testing 153.0.8010.12 (playwright chromium v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-linux64.zip\n|                                                                                |   0% of 186.8 MiB\n|■■■■■■■■                                                                        |  10% of 186.8 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 186.8 MiB\nChrome for Testing 153.0.8010.12 (playwright chromium v1243) downloaded to /root/.cache/ms-playwright/chromium-1243\nDownloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip\n|                                                                                |   0% of 2.3 MiB\n|■■■■■■■■                                                                        |  10% of 2.3 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB\nFFmpeg (playwright ffmpeg v1011) downloaded to /root/.cache/ms-playwright/ffmpeg-1011\nDownloading Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-headless-shell-linux64.zip\n|                                                                                |   0% of 114.3 MiB\n|■■■■■■■■                                                                        |  10% of 114.3 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB\nChrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /root/.cache/ms-playwright/chromium_headless_shell-1243\n\n> hackathon-starter@10.0.0 test:e2e:replay\n> playwright test --config=test/playwright.config.js --project=chromium-replay\n\n\nError: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+    "logFile": "logs/S7-1.log"
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "test/playwright.config.js line 92 sets `reuseExistingServer: !process.env.CI`; the node:22 Docker image sets CI=true in its environment, so reuseExistingServer becomes false — Playwright then refuses to start because the app from step S4 (npm start) is already bound to port 8080.",
+    "confidence": 0.95,
+    "by": "bob",
+    "bobcoins": 0.195612,
+    "taskId": "b01caedc3a04ebbe3a7713468ec9879a",
+    "suggestions": [
+      {
+        "path": "test/playwright.config.js",
+        "why": "test/playwright.config.js line 92 sets `reuseExistingServer: !process.env.CI`; the node:22 Docker image sets CI=true in its environment, so reuseExistingServer becomes false — Playwright then refuses to start because the app from step S4 (npm start) is already bound to port 8080."
+      }
+    ]
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "pkill -f 'node app.js' || true",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "note",
+      "text": "If you have the app already running (e.g. from `npm start`), stop it before running `npm run test:e2e:replay` when the CI environment variable is set; or ensure CI is unset so Playwright can reuse the existing server automatically."
+    },
+    "suggestions": [
+      {
+        "path": "test/playwright.config.js",
+        "why": "test/playwright.config.js line 92 sets `reuseExistingServer: !process.env.CI`; the node:22 Docker image sets CI=true in its environment, so reuseExistingServer becomes false — Playwright then refuses to start because the app from step S4 (npm start) is already bound to port 8080."
+      }
+    ],
+    "log": "$ pkill -f 'node app.js' || true → exit 0"
+  },
+  "after": {
+    "stepId": "S7",
+    "n": 3,
+    "command": "npm run test:e2e:replay",
+    "exitCode": 0,
+    "durationMs": 87515,
+    "logTail": "[nock] skipping e2e/here-maps.e2e.test.js - 3 tests (browser-side map tile loading is not server-side interceptable)\n[nock] skipping e2e/lob.e2e.test.js - because of their browser-side PDF fetch from lob-assets.com\n[nock] skipping e2e/rag.e2e.test.js - 2 tests (Requires Atlas vector-index in addition to REST API record/replay)\n\nRunning 63 tests using 1 worker\n(node:3234) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n·······°°°°°°°°°···°°°··°°····[WebServer] Twilio API Error: RestException [Error]: Invalid 'To' Phone Number: +1500555XXXX\n[WebServer]     at V2010.throwException (/workspace/node_modules/twilio/lib/base/Version.js:50:15)\n[WebServer]     at /workspace/node_modules/twilio/lib/base/Version.js:108:22\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n[WebServer]     at async exports.postTwilio (/workspace/controllers/api.js:550:25) {\n[WebServer]   status: 400,\n[WebServer]   code: 21211,\n[WebServer]   moreInfo: 'https://www.twilio.com/docs/errors/21211',\n[WebServer]   details: undefined\n[WebServer] }\n·[WebServer] Twilio API Error: RestException [Error]: Message cannot be sent with the current combination of 'To' (+1500555XXXX) and/or 'From' (+15005550006) parameters\n[WebServer]     at V2010.throwException (/workspace/node_modules/twilio/lib/base/Version.js:50:15)\n[WebServer]     at /workspace/node_modules/twilio/lib/base/Version.js:108:22\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n[WebServer]     at async exports.postTwilio (/workspace/controllers/api.js:550:25) {\n[WebServer]   status: 400,\n[WebServer]   code: 21612,\n[WebServer]   moreInfo: 'https://www.twilio.com/docs/errors/21612',\n[WebServer]   details: undefined\n[WebServer] }\n·[WebServer] Twilio API Error: RestException [Error]: Permission to send an SMS has not been enabled for the region indicated by the 'To' number: +1500555XXXX\n[WebServer]     at V2010.throwException (/workspace/node_modules/twilio/lib/base/Version.js:50:15)\n[WebServer]     at /workspace/node_modules/twilio/lib/base/Version.js:108:22\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n[WebServer]     at async exports.postTwilio (/workspace/controllers/api.js:550:25) {\n[WebServer]   status: 400,\n[WebServer]   code: 21408,\n[WebServer]   moreInfo: 'https://www.twilio.com/docs/errors/21408',\n[WebServer]   details: undefined\n[WebServer] }\n·[WebServer] Twilio API Error: RestException [Error]: Attempt to send to unsubscribed recipient\n[WebServer]     at V2010.throwException (/workspace/node_modules/twilio/lib/base/Version.js:50:15)\n[WebServer]     at /workspace/node_modules/twilio/lib/base/Version.js:108:22\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n[WebServer]     at async exports.postTwilio (/workspace/controllers/api.js:550:25) {\n[WebServer]   status: 400,\n[WebServer]   code: 21610,\n[WebServer]   moreInfo: 'https://www.twilio.com/docs/errors/21610',\n[WebServer]   details: undefined\n[WebServer] }\n·[WebServer] Twilio API Error: RestException [Error]: 'To' number: +1500555XXXX, is not a valid mobile number\n[WebServer]     at V2010.throwException (/workspace/node_modules/twilio/lib/base/Version.js:50:15)\n[WebServer]     at /workspace/node_modules/twilio/lib/base/Version.js:108:22\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n[WebServer]     at async exports.postTwilio (/workspace/controllers/api.js:550:25) {\n[WebServer]   status: 400,\n[WebServer]   code: 21614,\n[WebServer]   moreInfo: 'https://www.twilio.com/docs/errors/21614',\n[WebServer]   details: undefined\n[WebServer] }\n·····························\n  14 skipped\n  49 passed (1.4m)",
+    "logFile": "logs/S7-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T07:44:52.775Z",
+  "revealed": "E3"
+}

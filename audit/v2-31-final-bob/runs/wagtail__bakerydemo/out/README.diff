@@ -1,0 +1,60 @@
+diff --git a/readme.md b/readme.md
+--- a/readme.md
++++ b/readme.md
+@@ -30,6 +30,8 @@ This demo is aimed primarily at developers wanting to learn more about the inter
+ 
+ # Installation
+ 
++✅ **Verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `c8f8255593+dirty`: clone to running in 4m27s.
++
+ - [Venv](#setup-with-venv)
+ - [Vagrant](#setup-with-vagrant)
+ - [Docker](#setup-with-docker)
+@@ -115,7 +117,7 @@ You can run the Wagtail demo locally without setting up Vagrant or Docker and si
+ 
+ #### Dependencies
+ 
+-- Python 3.10+
++- Python 3.12+
+ - [venv](https://docs.python.org/3/library/venv.html)
+ - Optionally, [uv](https://docs.astral.sh/uv/getting-started/installation/) as a faster alternative to venv & pip
+ 
+@@ -165,8 +167,8 @@ cp .env.example .env
+ 
+ To set up your database and load initial data, run the following commands:
+ ```bash
+-./manage.py migrate
+-./manage.py load_initial_data
++python manage.py migrate
++python manage.py load_initial_data
+ ./manage.py runserver
+ ```
+ 
+@@ -197,7 +199,7 @@ To get started with the v3 API, access the API dashboard at `http://localhost:80
+ ```bash
+ uv tool install wagtail-cli
+ 
+-export WAGTAIL_CLI_TOKEN=wagtail_C3qhlJUUj75vWvK5bbcb73bZ4JC4cQKWt
++export WAGTAIL_CLI_TOKEN=<redacted-by-firstrun>
+ export WAGTAIL_CLI_BASE_URL=http://localhost:8000/api/v3-preview
+ 
+ # Check what account your API token corresponds to
+@@ -236,12 +238,12 @@ The demo data includes users with different roles and preferences. You can use t
+ 
+ | Username    | Password   | Superuser | Groups     | Language  | Timezone      | Active | API token                                             |
+ | ----------- | ---------- | --------- | ---------- | --------- | ------------- | ------ | ----------------------------------------------------- |
+-| `admin`     | `changeme` | Yes       | None       | undefined | undefined     | Yes    | `wagtail_C3qhlJUUj75vWvK5bbcb73bZ4JC4cQKWt`           |
+-| `editor`    | `changeme` | No        | Editors    | undefined | undefined     | Yes    | `wagtail_KbX51h5BjfoVDtzQZSziixrFR2R02g9vI`           |
+-| `moderator` | `changeme` | No        | Moderators | undefined | undefined     | Yes    | `wagtail_XeNIQwWz5Uo876IOD6ct3jUUM1o1SdXxk`           |
+-| `inactive`  | `changeme` | Yes       | None       | undefined | undefined     | No     | `wagtail_3Oo2Tiuz92J63rDsZQMoyKmb2wr0nf9Sf`           |
+-| `german`    | `changeme` | Yes       | None       | German    | Europe/Berlin | Yes    | `wagtail_AXzzlyovkJ7eqJNDrCxlcaFtbNv0sWVGF` (revoked) |
+-| `arabic`    | `changeme` | Yes       | None       | Arabic    | Asia/Beirut   | Yes    | `wagtail_Wk5r5jQli3ieyxuAO2gjHK4RnAF00YejP`           |
++| `admin`     | `changeme` | Yes       | None       | undefined | undefined     | Yes    | `<redacted-by-firstrun>`           |
++| `editor`    | `changeme` | No        | Editors    | undefined | undefined     | Yes    | `<redacted-by-firstrun>`           |
++| `moderator` | `changeme` | No        | Moderators | undefined | undefined     | Yes    | `<redacted-by-firstrun>`           |
++| `inactive`  | `changeme` | Yes       | None       | undefined | undefined     | No     | `<redacted-by-firstrun>`           |
++| `german`    | `changeme` | Yes       | None       | German    | Europe/Berlin | Yes    | `<redacted-by-firstrun>` (revoked) |
++| `arabic`    | `changeme` | Yes       | None       | Arabic    | Asia/Beirut   | Yes    | `<redacted-by-firstrun>`           |
+ 
+ 
+ ### Ownership of demo content

@@ -1,0 +1,48 @@
+{
+  "id": "E1",
+  "stepId": "S3",
+  "before": {
+    "stepId": "S3",
+    "n": 1,
+    "command": "npx prisma migrate deploy",
+    "exitCode": 1,
+    "durationMs": 2070,
+    "logTail": "Prisma schema loaded from src/prisma/schema.prisma\nDatasource \"db\": PostgreSQL database\n\nError: Prisma schema validation - (get-config wasm)\nError code: P1012\nerror: Environment variable not found: DATABASE_URL.\n  -->  schema.prisma:3\n   | \n 2 |   provider = \"postgresql\"\n 3 |   url      = env(\"DATABASE_URL\")\n   | \n\nValidation Error Count: 1\n[Context: getConfig]\n\nPrisma CLI Version : 4.16.2",
+    "logFile": "logs/S3-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-env",
+    "cause": "The app requires DATABASE_URL at startup, but the docs never mention it.",
+    "by": "rules",
+    "ruleId": "missing-env-var",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres",
+        "kind": "env"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "export DATABASE_URL=…",
+      "envVar": "DATABASE_URL"
+    },
+    "log": "$ export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres → exit 0"
+  },
+  "after": {
+    "stepId": "S3",
+    "n": 3,
+    "command": "npx prisma migrate deploy",
+    "exitCode": 0,
+    "durationMs": 2771,
+    "logTail": "Prisma schema loaded from src/prisma/schema.prisma\nDatasource \"db\": PostgreSQL database \"postgres\", schema \"public\" at \"localhost:5432\"\n\n4 migrations found in prisma/migrations\n\nApplying migration `20210924225358_initial`\nApplying migration `20211001143221_implicit_tags`\nApplying migration `20211105153605_api_url`\nApplying migration `20211221184529_deprecated_preview`\n\nThe following migrations have been applied:\n\nmigrations/\n  └─ 20210924225358_initial/\n    └─ migration.sql\n  └─ 20211001143221_implicit_tags/\n    └─ migration.sql\n  └─ 20211105153605_api_url/\n    └─ migration.sql\n  └─ 20211221184529_deprecated_preview/\n    └─ migration.sql\n      \nAll migrations have been successfully applied.\n┌─────────────────────────────────────────────────────────┐\n│  Update available 4.16.2 -> 8.0.0-rc.17                 │\n│                                                         │\n│  This is a major update - please follow the guide at    │\n│  https://pris.ly/d/major-version-upgrade                │\n│                                                         │\n│  Run the following to update                            │\n│    npm i --save-dev prisma@latest                       │\n│    npm i @prisma/client@latest                          │\n└─────────────────────────────────────────────────────────┘",
+    "logFile": "logs/S3-3.log"
+  },
+  "status": "verified",
+  "at": "2026-09-27T07:57:32.314Z",
+  "revealed": "E2"
+}

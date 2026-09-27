@@ -1,0 +1,358 @@
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,117 @@
++# Setup Passport: fastapi/fastapi
++
++🟡 **PARTIAL**: HUMBLE followed this project's setup docs on a clean `python:3.12` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `192b12197e` |
++| Verified | 2026-09-27 09:14 UTC |
++| Runtime | Python 3.12 (`python:3.12`) |
++| Clone to running, from zero | **7m26s** |
++| Steps followed | 3 from the docs, 0 added by HUMBLE |
++| Breaks found / fixed | 1 / 1 |
++| Needs a human | 1 |
++| Done when | `GET http://127.0.0.1:8000/docs` answers |
++| IBM Bob | 0 diagnosises, 2.42 Bobcoins |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `uv sync --no-dev --group tests --extra all` (.github/workflows/test.yml (Install Dependencies step):0).
++
++## Verified setup
++
++```bash
++uv sync --no-dev --group tests --extra all
++mkdir coverage
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing tool <a id="e1"></a>
++
++- **Docs said:** `uv sync --no-dev --group tests --extra all` (.github/workflows/test.yml (Install Dependencies step):0)
++- **Cause:** `uv` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** uv
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-1.sh: line 5: uv: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }
++Collecting uv
++  Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
++Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20.5 MB)
++   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--   ━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.5/20.5 MB 1.9 MB/s eta 0:00:11   ━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.8/20.5 MB 1.8 MB/s eta 0:00:11   ━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/20.5 MB 1.9 MB/s eta 0:00:11   ━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/20.5 MB 2.0 MB/s eta 0:00:10   ━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/20.5 MB 2.0 MB/s eta 0:00:10   ━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.6/20.5 MB 2.1 MB/s eta 0:00:09   ━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.9/20.5 MB 2.1 MB/s eta 0:00:09   ━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/20.5 MB 2.1 MB/s eta 0:00:09   ━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/20.5 MB 2.0 MB/s eta 0:00:09   ━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/20.5 MB 2.0 MB/s eta 0:00:09   ━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/20.5 MB 1.8 MB/s eta 0:00:10   ━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/20.5 MB 1.8 MB/s eta 0:00:10   ━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/20.5 MB 1.6 MB/s eta 0:00:11   ━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/20.5 MB 1.6 MB/s eta 0:00:11   ━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/20.5 MB 1.6 MB/s eta 0:00:11   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/20.5 MB 1.4 MB/s eta 0:00:12   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/20.5 MB 1.4 MB/s eta 0:00:12   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/20.5 MB 1.4 MB/s eta 0:00:12   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/20.5 MB 1.4 MB/s eta 0:00:12   ━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/20.5 MB 1.1 MB/s eta 0:00:15   ━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/20.5 MB 1.1 MB/s eta 0:00:15   ━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/20.5 MB 1.1 MB/s eta 0:00:15   ━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/20.5 MB 1.1 MB/s eta 0:00:15   ━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/20.5 MB 1.0 MB/s eta 0:00:16   ━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/20.5 MB 1.0 MB/s eta 0:00:16   ━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/20.5 MB 1.0 MB/s eta 0:00:16   ━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/20.5 MB 935.5 kB/s eta 0:00:17   ━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/20.5 MB 935.5 kB/s eta 0:00:17   ━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/20.5 MB 935.5 kB/s eta 0:00:17   ━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/20.5 MB 878.7 kB/s eta 0:00:18   ━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/20.5 MB 878.7 kB/s eta 0:00:18   ━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/20.5 MB 878.7 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/20.5 MB 841.0 kB/s eta 0:00:18   ━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/20.5 MB 724.4 kB/s eta 0:00:20   ━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/20.5 MB 724.4 kB/s eta 0:00:20   ━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/20.5 MB 724.4 kB/s eta 0:00:20   ━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/20.5 MB 724.4 kB/s eta 0:00:20   ━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/20.5 MB 724.4 kB/s eta 0:00:20   ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/20.5 MB 670.2 kB/s eta 0:00:22   ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/20.5 MB 670.2 kB/s eta 0:00:22   ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/20.5 MB 670.2 kB/s eta 0:00:22   ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/20.5 MB 649.7 kB/s eta 0:00:22   ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/20.5 MB 649.7 kB/s eta 0:00:22   ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/20.5 MB 649.7 kB/s eta 0:00:22   ━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.8/20.5 MB 642.8 kB/s eta 0:00:22   ━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.8/20.5 MB 642.8 kB/s eta 0:00:22   ━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/20.5 MB 639.1 kB/s eta 0:00:21   ━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/20.5 MB 639.1 kB/s eta 0:00:21   ━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━ 7.3/20.5 MB 639.5 kB/s eta 0:00:21   ━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━ 7.3/20.5 MB 639.5 kB/s eta 0:00:21   ━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/20.5 MB 641.3 kB/s eta 0:00:21   ━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/20.5 MB 641.3 kB/s eta 0:00:21   ━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━ 7.9/20.5 MB 642.7 kB/s eta 0:00:20   ━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━ 7.9/20.5 MB 642.7 kB/s eta 0:00:20   ━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━ 8.1/20.5 MB 645.2 kB/s eta 0:00:20   ━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━ 8.1/20.5 MB 645.2 kB/s eta 0:00:20   ━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━ 8.4/20.5 MB 646.5 kB/s eta 0:00:19   ━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━ 8.7/20.5 MB 653.4 kB/s eta 0:00:19   ━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━ 8.9/20.5 MB 661.5 kB/s eta 0:00:18   ━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━ 9.2/20.5 MB 670.0 kB/s eta 0:00:17   ━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━ 9.4/20.5 MB 678.5 kB/s eta 0:00:17   ━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━ 9.4/20.5 MB 678.5 kB/s eta 0:00:17   ━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━ 9.7/20.5 MB 681.3 kB/s eta 0:00:16   ━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━ 10.0/20.5 MB 687.0 kB/s eta 0:00:16   ━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━ 10.2/20.5 MB 693.2 kB/s eta 0:00:15   ━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━ 10.2/20.5 MB 693.2 kB/s eta 0:00:15   ━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━ 10.5/20.5 MB 699.4 kB/s eta 0:00:15   ━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━ 10.7/20.5 MB 704.7 kB/s eta 0:00:14   ━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━ 10.7/20.5 MB 704.7 kB/s eta 0:00:14   ━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━ 11.0/20.5 MB 706.9 kB/s eta 0:00:14   ━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━ 11.0/20.5 MB 706.9 kB/s eta 0:00:14   ━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━ 11.3/20.5 MB 706.0 kB/s eta 0:00:14   ━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━ 11.5/20.5 MB 706.2 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━ 11.5/20.5 MB 706.2 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━ 11.8/20.5 MB 703.9 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━ 11.8/20.5 MB 703.9 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━ 11.8/20.5 MB 703.9 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━ 11.8/20.5 MB 703.9 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━ 12.1/20.5 MB 691.6 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━ 12.1/20.5 MB 691.6 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━ 12.1/20.5 MB 691.6 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━ 12.1/20.5 MB 691.6 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━ 12.3/20.5 MB 675.0 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━ 12.3/20.5 MB 675.0 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━ 12.3/20.5 MB 675.0 kB/s eta 0:00:13   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 663.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━ 12.8/20.5 MB 639.9 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━ 12.8/20.5 MB 639.9 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━ 12.8/20.5 MB 639.9 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━ 12.8/20.5 MB 639.9 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━ 13.1/20.5 MB 628.2 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━ 13.1/20.5 MB 628.2 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━ 13.4/20.5 MB 626.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━ 13.4/20.5 MB 626.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━ 13.4/20.5 MB 626.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 620.6 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 620.6 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 620.6 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 620.6 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 620.6 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 606.4 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━ 14.2/20.5 MB 565.4 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━ 14.4/20.5 MB 538.0 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 14.7/20.5 MB 518.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 14.7/20.5 MB 518.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 14.7/20.5 MB 518.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 14.7/20.5 MB 518.1 kB/s eta 0:00:12   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14.9/20.5 MB 511.5 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14.9/20.5 MB 511.5 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14.9/20.5 MB 511.5 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14.9/20.5 MB 511.5 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14.9/20.5 MB 511.5 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━ 15.2/20.5 MB 505.1 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━ 15.2/20.5 MB 505.1 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━ 15.2/20.5 MB 505.1 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━ 15.5/20.5 MB 489.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━ 15.5/20.5 MB 489.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━ 15.5/20.5 MB 489.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━ 15.5/20.5 MB 489.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━ 15.7/20.5 MB 446.7 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━ 15.7/20.5 MB 446.7 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━ 15.7/20.5 MB 446.7 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━ 16.0/20.5 MB 413.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━ 16.0/20.5 MB 413.6 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━ 16.3/20.5 MB 408.0 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━ 16.3/20.5 MB 408.0 kB/s eta 0:00:11   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━ 16.5/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━ 16.5/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━ 16.5/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━ 16.8/20.5 MB 410.9 kB/s eta 0:00:10   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━ 17.0/20.5 MB 385.2 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 377.9 kB/s eta 0:00:09   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━ 17.6/20.5 MB 370.4 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━ 17.6/20.5 MB 370.4 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━ 17.6/20.5 MB 370.4 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━ 17.8/20.5 MB 368.2 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━ 17.8/20.5 MB 368.2 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━ 17.8/20.5 MB 368.2 kB/s eta 0:00:08   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━ 18.1/20.5 MB 362.6 kB/s eta 0:00:07   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━ 18.1/20.5 MB 362.6 kB/s eta 0:00:07   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━ 18.4/20.5 MB 361.7 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━ 18.4/20.5 MB 361.7 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━ 18.4/20.5 MB 361.7 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━ 18.6/20.5 MB 358.8 kB/s eta 0:00:06   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━ 18.9/20.5 MB 334.5 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━ 18.9/20.5 MB 334.5 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━ 18.9/20.5 MB 334.5 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━ 18.9/20.5 MB 334.5 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 315.6 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━ 19.4/20.5 MB 262.8 kB/s eta 0:00:05   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━ 19.7/20.5 MB 250.4 kB/s eta 0:00:04   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━ 19.7/20.5 MB 250.4 kB/s eta 0:00:04   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━ 19.7/20.5 MB 250.4 kB/s eta 0:00:04   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━ 19.9/20.5 MB 254.1 kB/s eta 0:00:03   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━ 19.9/20.5 MB 254.1 kB/s eta 0:00:03   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━ 19.9/20.5 MB 254.1 kB/s eta 0:00:03   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 255.1 kB/s eta 0:00:02   ━━━━━━━━━━━━���━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 255.1 kB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 255.1 kB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 255.1 kB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 255.1 kB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 256.6 kB/s eta 0:00:00
++Installing collected packages: uv
++Successfully installed uv-0.12.19
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++ + ty==0.0.74
++ + typer==0.27.1
++ + typing-extensions==4.16.0
++ + typing-inspection==0.4.4
++ + urllib3==2.7.0
++ + uvicorn==0.40.0
++ + uvloop==0.22.1
++ + watchfiles==1.1.1
++ + websockets==15.0.1
++ + werkzeug==3.1.6
++```
++</details>
++
++### E2: Unrecognised failure <a id="e2"></a>
++
++- **Docs said:** `uv run bash scripts/test.sh` (scripts/test.sh (called by scripts/test-cov.sh which is called by CI; scripts/test.sh is the plain test entry point):0)
++- **Cause:** No rule recognises this failure and the Bobcoin budget for this run is spent.
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++created: 8/8 workers
++8 workers [0 items]
++
++
++
++═══════════════════════════════ inline-snapshot ════════════════════════════════
++INFO: CI run was detected because environment variable "CI" was defined. 
++inline-snapshot runs with --inline-snapshot=disable by default in CI. This means
++that tests with snapshots will continue to run, but snapshot(x) will only return
++x and inline-snapshot will not be able to fix snapshots or generate reports. You
++can change this by using --inline-snapshot=report for example.
++
++
++============================ no tests ran in 1.51s =============================
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Python version | not stated | 3.11 (.python-version) | README.md |
++| env var DYLD_FALLBACK_LIBRARY_PATH | not documented | read in scripts/docs.py:129 | README |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 1/1 fixed">
++  <title>HUMBLE: partly verified · 1/1 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 1/1 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "fastapi/fastapi",
++  "commit": "192b12197e",
++  "verifiedAt": "2026-09-27T09:14:05.631Z",
++  "verdict": "PARTIAL",
++  "image": "python:3.12",
++  "runtime": "Python 3.12",
++  "stepsTotal": 3,
++  "stepsFromReadme": 3,
++  "breaksFound": 1,
++  "breaksFixed": 1,
++  "needsHuman": 1,
++  "repoBreaks": 1,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 1,
++  "replaySeconds": 446,
++  "packageCache": false,
++  "bobcoins": 2.42,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8000/docs",
++    "fromDocs": true
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,42 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T09:14:05.631Z",
++  "commit": "192b12197e",
++  "image": "python:3.12",
++  "runtime": {
++    "name": "python",
++    "version": "3.12",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8000/docs",
++    "fromDocs": true
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "uv sync --no-dev --group tests --extra all",
++      "kind": "install",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
++        }
++      ]
++    },
++    {
++      "id": "S2",
++      "command": "mkdir coverage",
++      "kind": "other"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "/firstrun/step-1.sh: line 5: uv: command not found",
++      "cause": "`uv` is not installed; the docs assume it is.",
++      "fix": "uv",
++      "evidence": "E1"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,20 @@
++# Verified setup for fastapi/fastapi
++
++Verified by HUMBLE on 2026-09-27 at commit `192b12197e` on a clean `python:3.12` machine. Clone to running took 446s.
++
++Prerequisites: Python 3.12.
++
++## Steps
++
++1. `uv sync --no-dev --group tests --extra all`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `mkdir coverage`
++   - Kind: other
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `/firstrun/step-1.sh: line 5: uv: command not found` | `uv` is not installed; the docs assume it is. | uv |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,13 @@
++{
++  "name": "fastapi",
++  "image": "python:3.12",
++  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
++  "postCreateCommand": "uv sync --no-dev --group tests --extra all && mkdir coverage",
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "ms-python.python"
++      ]
++    }
++  }
++}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -31,3 +31,6 @@ archive.zip
+ .DS_Store
+ 
+ .codspeed
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

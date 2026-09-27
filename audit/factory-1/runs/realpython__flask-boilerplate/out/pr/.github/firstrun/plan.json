@@ -1,0 +1,24 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:49:07.918Z",
+  "commit": "488e33624b",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5000/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "pip install -r requirements.txt",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

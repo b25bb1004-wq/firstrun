@@ -1,0 +1,282 @@
+<!-- {% comment %} -->
+
+<a href="http://www.djangoproject.com/"><img src="https://www.djangoproject.com/m/img/badges/djangoproject120x25.gif" border="0" alt="A Django project." title="A Django project." /></a>
+
+# Django Layout
+
+[![codecov](https://codecov.io/github/lincolnloop/django-layout/branch/main/graph/badge.svg?token=49GGtPkTeh)](https://codecov.io/github/lincolnloop/django-layout)
+
+`django-layout` provides sane defaults for new Django projects based on established best
+practices and some configuration setups frequently used in Lincoln Loop's projects.
+
+🔒 **Production-hardened from commit one** — Gunicorn, WhiteNoise, Sentry, and settings
+are secure by default.
+
+🚀 **HTML-first** — Alpine.js, htmx, and Tailwind CSS. No complicated JS toolchain.
+Simple, fast, transparent.
+
+🧪 **100% test coverage on day one** — pytest, parallel execution, network isolation,
+and full coverage — configured and passing out of the box.
+
+✅ **Code quality on every commit and on every push** — Pre-commit hooks lint, format,
+and type-check your code locally. GitHub Actions runs the full suite on every push.
+
+🐳 **One image, every environment** — The same Docker image runs on your laptop, in CI,
+and in production.
+
+It includes:
+
+- Always on the latest `django` — kept current with `renovate` automatic dependency
+  updates
+- `alpine.js` (CSP-compatible build), `htmx`, and `tailwindcss` — no JS build step
+- `uv` for fast, deterministic dependency management
+- `goodconf` for structured & documented environment variable configuration
+- `ruff`, `mypy`, and `prettier` for linting, type-checking, and formatting
+- `pytest`, `pytest-xdist`, `pytest-cov`, and `pytest-socket` for testing
+- `gunicorn` and `whitenoise` for production static file serving
+- `sentry-sdk` for error tracking and performance monitoring
+- `docker` multi-stage builds with `docker compose` for local development
+- Content Security Policy (CSP), HSTS, and secure cookie defaults
+- Structured JSON logging in production, pretty logging in development
+- Pre-commit hooks and GitHub Actions CI workflows
+
+## Requirements
+
+- Docker
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended)
+
+## Usage
+
+🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `c61297ca49`: clone to running in 20s.
+
+### Start project
+
+Run the following command (replace `YOUR_PROJECT_NAME` with your preferred name):
+
+```bash
+uv run --with django django-admin startproject \
+  --template=https://github.com/lincolnloop/django-layout/zipball/main \
+  --extension=py,md,gitignore,yaml,json,toml \
+  --name=Makefile,Dockerfile \
+  --exclude=.github \
+  YOUR_PROJECT_NAME
+```
+
+<details>
+<summary>Not using uv? Expand for usage with <code>pip</code></summary>
+
+1. Create and activate a virtualenv:
+
+   ```bash
+   python -m venv --prompt . --upgrade-deps .venv
+   ```
+
+2. Install Django with `pip install django`
+
+3. Run the following command (replace `YOUR_PROJECT_NAME` with your preferred name):
+
+   ```bash
+   django-admin startproject \
+     --template=https://github.com/lincolnloop/django-layout/zipball/main \
+     --extension=py,md,gitignore,yaml,json,toml \
+     --name=Makefile,Dockerfile \
+     --exclude=.github \
+     YOUR_PROJECT_NAME
+   ```
+
+</details>
+
+### Quick start
+
+Enter the project directory:
+
+```bash
+cd YOUR_PROJECT_NAME
+```
+
+Initialize the project & tooling:
+
+```bash
+make init
+# HUMBLE: this step still fails on a clean machine: This step starts Docker containers itself, and HUMBLE's clean machine has no Docker engine inside it (no nested Docker). On a newcomer's laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.
+```
+
+Start the Django test server:
+
+```bash
+make run
+```
+
+Open browser at `http://localhost:8000`
+
+## Contributing
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for instructions on how to contribute to
+and maintain this project.
+
+---
+
+<details>
+<summary>Click to preview the generated project README</summary>
+
+<!-- {% endcomment %} -->
+
+# {{ project_name }}
+
+## Requirements
+
+- Docker
+
+## Installation
+
+Build the project:
+
+```bash
+make init
+# HUMBLE: this step still fails on a clean machine: This step starts Docker containers itself, and HUMBLE's clean machine has no Docker engine inside it (no nested Docker). On a newcomer's laptop with Docker running it would work; HUMBLE cannot prove it here, so it is not counted against the docs.
+```
+
+## Usage
+
+### Run the project
+
+```bash
+make run
+# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+```
+
+Open http://localhost:8000/.
+
+### Admin access
+
+Create super user:
+
+```bash
+docker compose run --rm app python manage.py createsuperuser
+```
+
+Access http://localhost:8000/{{ project_name }}-admin/.
+
+### Running commands
+
+To run Django commands like migrations and shell or to enter the container bash do:
+
+```bash
+docker compose run --rm app bash
+docker compose run --rm app python manage.py createsuperuser
+docker compose run --rm app python manage.py migrate
+docker compose run --rm app python manage.py shell
+```
+
+### Stop containers
+
+To stop containers run:
+
+```bash
+docker compose down
+```
+
+### Update project
+
+To rebuild the project after adding or updating requirements:
+
+```bash
+docker compose build
+```
+
+### Configuration / Environment Variables
+
+These are the environment variables defined in `config.py`. This documentation is
+automatically regenerated by precommit when modified.
+
+<!-- prettier-ignore-start -->
+
+<!-- [[[cog
+import importlib
+import cog
+
+project_name = "{{ project_name }}"
+if project_name.startswith("{{"):
+    project_name = "project_name"
+
+config_module = importlib.import_module(project_name + ".config")
+config = config_module.Config
+print(f"\nReading {config_module.__name__}.Config")
+mdown = config_module.Config.generate_markdown()
+cog.out('\n'.join(mdown.split('\n')[1:]))
+]]] -->
+
+* **DEBUG**
+  * type: `bool`
+  * default: `False`
+* **ALLOWED_HOSTS**
+  * description: Hosts allowed to serve the site https://docs.djangoproject.com/en/{{docs_version}}/ref/settings/#allowed-hosts
+  * type: `list[str]`
+  * default: `['*']`
+* **DATABASE_URL**
+  * description: A string with the database URL as defined in https://github.com/jazzband/dj-database-url#url-schema
+  * type: `str`
+  * default: `sqlite:///./sqlite3.db`
+* **DJANGO_ENV**
+  * description: Toggle deployment settings for local development or production
+  * type: `Literal['development', 'dev', 'production']`
+  * default: `production`
+* **LOG_LEVEL**
+  * description: Python logging level
+  * type: `Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']`
+  * default: `INFO`
+* **SECRET_KEY** _REQUIRED_
+  * description: A long random string you keep secret https://docs.djangoproject.com/en/{{docs_version}}/ref/settings/#secret-key
+  * type: `str`
+* **ENVIRONMENT**
+  * description: Name of deployed environment (e.g. 'staging', 'production')
+  * type: `str`
+  * default: `development`
+* **BASIC_AUTH_CREDENTIALS**
+  * description: Basic Auth credentials for the site in the format 'username:password'
+  * type: `str`
+  * default: ``
+* **SENTRY_DSN**
+  * description: Sentry DSN to enable error logging
+  * type: `str`
+  * default: ``
+* **SENTRY_TRACES_SAMPLE_RATE**
+  * description: Sentry trace sample rate https://docs.sentry.io/product/sentry-basics/concepts/tracing/trace-view/
+  * type: `float`
+  * default: `0.25`
+* **TEMPLATE_DEBUG**
+  * description: Enable to measure template coverage
+  * type: `bool`
+  * default: `False`
+      <!-- [[[end]]] -->
+
+<!-- prettier-ignore-end -->
+
+## Makefile commands
+
+<!-- prettier-ignore-start -->
+
+<!-- [[[cog
+import cog
+import subprocess
+cog.out(
+    "```\n" +
+    subprocess.check_output(["make", "help"]).decode() +
+    "```"
+)
+]]] -->
+```
+Available make commands:
+
+init                      Initialize the project
+run                       Run the project
+test                      Run tests
+upgrade-requirements      Upgrade all dependencies in uv.lock
+```
+<!-- [[[end]]] -->
+
+<!-- prettier-ignore-end -->
+
+<!-- {% comment %} -->
+</details>
+<!-- {% endcomment %} -->

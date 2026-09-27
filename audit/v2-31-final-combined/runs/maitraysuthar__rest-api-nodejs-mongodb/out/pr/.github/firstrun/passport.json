@@ -1,0 +1,26 @@
+{
+  "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+  "commit": "6a1ba2da70",
+  "verifiedAt": "2026-09-27T00:03:36.553Z",
+  "verdict": "PARTIAL",
+  "image": "node:16",
+  "runtime": "Node.js 16",
+  "stepsTotal": 4,
+  "stepsFromReadme": 4,
+  "breaksFound": 2,
+  "breaksFixed": 2,
+  "needsHuman": 1,
+  "repoBreaks": 2,
+  "suiteIssues": 1,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 39,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

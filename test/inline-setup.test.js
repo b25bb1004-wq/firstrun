@@ -62,3 +62,9 @@ test('a README URL on another port (the backend API) does not override the start
   const plan = buildPlan(await scout(dir));
   assert.equal(plan.verify.target, 'http://127.0.0.1:4100/');
 });
+
+test('rule factory: plain numbered commands and code-only lines are steps; prose items are not', () => {
+  const md = parseMarkdown('## Install and Running\n\n`git clone https://github.com/a/b.git`\n1. cd b\n2. npm install\n3. npm start\n4. Navigate to localhost:3000\n- npm install to get the deps\n- Features are great\n');
+  assert.deepEqual(md.blocks.map((b) => blockCommands(b)[0]?.text), ['git clone https://github.com/a/b.git', 'cd b', 'npm install', 'npm start']);
+  assert.equal(md.blocks.find((b) => b.code.trim() === 'npm install').plain, true);
+});

@@ -1,0 +1,45 @@
+{
+  "id": "E3",
+  "stepId": "S14",
+  "before": {
+    "stepId": "S14",
+    "n": 2,
+    "command": "yarn test",
+    "exitCode": 127,
+    "durationMs": 152,
+    "logTail": "/firstrun/step-3.sh: line 5: yarn: command not found",
+    "logFile": "logs/S14-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`yarn` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "corepack enable"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Yarn (via `corepack enable`)",
+      "command": "corepack enable"
+    },
+    "log": "$ corepack enable\n/firstrun/step-4.sh: line 5: corepack: command not found\n(exit 127)\nfix not applied: `corepack enable` exited 127"
+  },
+  "after": {
+    "stepId": "S14",
+    "n": 2,
+    "command": "corepack enable",
+    "exitCode": 127,
+    "durationMs": 137,
+    "logTail": "/firstrun/step-4.sh: line 5: corepack: command not found"
+  },
+  "status": "failed",
+  "at": "2026-09-27T08:52:38.431Z"
+}

@@ -1,0 +1,16 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -66,6 +66,12 @@ Check out the [`5.x` branch](https://github.com/fastify/fastify/tree/5.x) for `v
+ 
+ ### Quick start
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:26` machine at `f7f73aa7d0`: clone to running in 3s.
++
++Prerequisites verified by HUMBLE:
++
++- Yarn (via `corepack enable`)
++
+ Create a folder and make it your current working directory:
+ 
+ ```sh

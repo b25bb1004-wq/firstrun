@@ -1,5 +1,5 @@
 // Audit (swarm) view: many repos, audited in parallel, filling in live.
-import { h, api, secs, PHASE_LABEL, STATUS_LABEL, CLASS_LABEL, icon } from '../lib.js';
+import { h, api, secs, PHASE_LABEL, STATUS_LABEL, CLASS_LABEL, icon, vlabel } from '../lib.js';
 
 function repoStats(r) {
   const p = r.passport || r.run?.passport || null;
@@ -38,7 +38,7 @@ function tileHTML(r) {
     <div class="t-mid">${mid}</div>
     ${run?.repairs?.length ? h`<ul class="t-reps">${run.repairs.map(x => h`<li class="r-${x.status} ${x.by === 'bob' ? 'r-bob' : ''}" title="${x.id} on ${x.stepId}">${CLASS_LABEL[x.class] || x.class || x.id}</li>`)}</ul>` : ''}
     <div class="t-foot">
-      ${state === 'done' ? h`<span class="t-verdict" ${r.error ? h`title="${r.error}"` : ''}>${verdict}</span><span class="t-time mono">${verdict === 'VERIFIED' && p?.replaySeconds ? secs(p.replaySeconds) + ' from zero' : verdict === 'NO-SETUP-DOCS' ? 'finding' : 'not running yet'}</span>` : h`<span class="t-state">${state === 'queued' ? 'Queued' : 'Running'}</span>`}
+      ${state === 'done' ? h`<span class="t-verdict" ${r.error ? h`title="${r.error}"` : ''}>${vlabel(verdict)}</span><span class="t-time mono">${verdict === 'VERIFIED' && p?.replaySeconds ? secs(p.replaySeconds) + ' from zero' : verdict === 'NO-SETUP-DOCS' ? 'finding' : 'not running yet'}</span>` : h`<span class="t-state">${state === 'queued' ? 'Queued' : 'Running'}</span>`}
     </div>
   </a>`;
 }
@@ -86,7 +86,7 @@ export function mountAudit(root, auditId) {
         <div class="gauge g-bob"><span class="gl">Bobcoins</span><span class="gv mono">${coins}</span></div>
         <div class="gauge"><span class="gl">Median clone to running</span><span class="gv mono">${median ? secs(median) : '--'}</span></div>
         <div class="au-verdicts" aria-label="Verdicts">
-          ${['VERIFIED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE', 'CI-ONLY', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${v}"><b>${counts[v] || ''}</b></span>`)}
+          ${['VERIFIED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE', 'CI-ONLY', 'NO-SETUP-DOCS'].map(v => h`<span class="vb v-${v.toLowerCase()}" style="flex:${counts[v] || 0.0001}" title="${counts[v] || 0} ${vlabel(v)}"><b>${counts[v] || ''}</b></span>`)}
           <span class="vb v-pending" style="flex:${M - done || 0.0001}"></span>
         </div>
       </div>`);

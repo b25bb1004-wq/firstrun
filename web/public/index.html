@@ -25,6 +25,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="stylesheet" href="/humble-console/console.css">
+<link rel="stylesheet" href="/assets/thread-guide.css">
 <script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <script>document.documentElement.classList.add('js');</script>
@@ -144,54 +145,19 @@
         <a class="link" href="/proof">Proof logs</a>
       </div>
 
-      <!-- PROVE IT LIVE Hero Panel -->
-      <div class="prove-live" id="prove-live" aria-labelledby="h-prove-live">
-        <div class="prove-panel construction-corner">
-          <div class="prove-progress-track">
-            <div class="prove-progress-bar" id="prove-progress-bar" style="width: 0%;"></div>
-          </div>
-          
-          <div class="prove-panel-header">
-            <p class="eyebrow mono">Recorded runs · or any public repo · no sign-in</p>
-            <h2 id="h-prove-live" class="prove-headline">Watch a README get proven.</h2>
-            <p class="prove-sub">Replay a recorded run step by step, or paste a public repo to run the whole check on a clean machine. The clean machine proves. Bob explains.</p>
-          </div>
-
-          <div class="prove-input-block">
-            <div class="prove-chips" role="radiogroup" aria-label="Preset public repositories">
-              <button type="button" class="prove-chip active" data-repo="b25bb1004-wq/acme-shop"><span class="prove-tag">[recorded run]</span> acme-shop demo</button>
-              <button type="button" class="prove-chip" data-repo="GeekyAnts/express-typescript"><span class="prove-tag">[recorded run]</span> GeekyAnts/express-typescript</button>
-              <button type="button" class="prove-chip" data-repo="addyosmani/git2txt"><span class="prove-tag">[recorded run]</span> addyosmani/git2txt</button>
-            </div>
-            
-            <div class="prove-field-row">
-              <input type="text" id="prove-repo-input" class="prove-input mono" placeholder="or paste a public GitHub repo (owner/name)" value="b25bb1004-wq/acme-shop" spellcheck="false" autocomplete="off" aria-label="Public GitHub repository">
-              <button type="button" id="prove-btn" class="btn prove-btn">Prove it</button>
-            </div>
-            <div class="prove-brand-story mono" id="prove-brand-story">
-              <span class="story-label">In the art & in real proof:</span>
-              <span class="story-chip-break">⚡ <span class="crack-text">pink crack</span>: npm install breaks</span>
-              <span class="story-thread-arrow" aria-hidden="true">→</span>
-              <span class="story-chip-fix"><span class="thread-text">blue thread</span>: npm install --legacy-peer-deps</span>
-            </div>
-          </div>
-
-          <!-- HUMBLE Web Console Mount Point -->
-          <div id="humble-console-mount"></div>
-
-          <!-- Live Streaming Console (legacy, hidden when console mounts) -->
-          <div class="prove-console" id="prove-console" style="display: none;">
-            <div class="prove-mascot-edge" id="prove-mascot">
-              <img id="prove-mascot-img" src="/assets/mascot/think.svg" alt="HUMBLE mascot thinking" width="64" height="80">
-            </div>
-            <div class="prove-stream-wrapper">
-              <div class="prove-stream-rows" id="prove-stream-rows" role="log" aria-live="polite"></div>
-              <div class="prove-result-line" id="prove-result-line" style="display: none;"></div>
-            </div>
-          </div>
-
-          <p class="prove-footer mono">Live checks run on GitHub Actions and take 3–10 minutes. We never store your code.</p>
+      <!-- THREAD GUIDE Hero Panel -->
+      <div class="thread-guide-panel" id="thread-guide-panel" aria-labelledby="h-thread-guide">
+        <div class="thread-guide-header">
+          <div class="thread-emo" id="thread-emo" aria-hidden="true"></div>
+          <p class="eyebrow mono">Recorded run · <span class="prove-tag">[recorded run]</span> acme-shop demo · no sign-in</p>
+          <h2 id="h-thread-guide" class="thread-guide-headline">Watch a README get proven.</h2>
+          <p class="thread-guide-sub">A blue thread stitches every step. Pink crack = break. Blue stitch = fix. Taut replay = verified. Every command, failure, diagnosis, fix and duration comes from the real recorded run.</p>
         </div>
+        
+        <!-- Thread Guide Mount Point -->
+        <div id="thread-guide-mount"></div>
+        
+        <p class="thread-guide-footer mono">This is the recorded acme-shop run. For live checks on any public repo, <a href="#try" class="link">Check a README</a>.</p>
       </div>
       <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
         <div class="hero-agents-label">
@@ -268,8 +234,8 @@
       </div>
       <div class="stats figures">
         <div><b data-count="31" data-stat="total">31</b><span>public repos audited on a clean machine</span></div>
-        <div><b data-count="18" data-suffix=" of 31" data-stat="broke">18 of 31</b><span>READMEs broke on a clean machine</span></div>
-        <div><b data-count="28" data-stat="fixed">28</b><span>breaks fixed and proven from zero</span></div>
+        <div><b data-count="19" data-suffix=" of 31" data-stat="broke">19 of 31</b><span>READMEs broke on a clean machine</span></div>
+        <div><b data-count="36" data-stat="fixed">36</b><span>breaks fixed and proven from zero</span></div>
       </div>
     </div>
   </section>
@@ -452,7 +418,7 @@
       <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
-          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard for audit v2-31-final: 18 of 31 READMEs broke on a clean machine, 34 breaks found, 28 fixed with evidence, one card per repository with its verdict." data-run="v2-31-final">
+          <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard for the first pass of audit v2-31-final, before the IBM Bob pass: 18 of 31 READMEs broke on a clean machine, 34 breaks found, 28 fixed with evidence, one card per repository with its verdict." data-run="v2-31-final">
           <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3 data-stat="caption">31 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
         <article class="card-diff-slider">
@@ -574,13 +540,29 @@
 <script src="/assets/intro.js" defer></script>
 <script src="/assets/heal.js" defer></script>
 <script src="/assets/check.js" defer></script>
-<script src="/assets/prove-live.js" defer></script>
+<script type="module" src="/assets/thread-guide.js"></script>
 <script src="/assets/site.js" defer></script>
 <script src="/assets/fluid.js" defer></script>
 <script src="/assets/sections.js" defer></script>
 <script src="/assets/wall.js" defer></script>
 <script src="/assets/diff-slider.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
-<script type="module" src="/humble-console/autoload.js"></script>
+<script type="module">
+  import { EmoBot } from '/humble-console/emo-bot.js';
+  // The bot rides the thread guide's rail (assets/thread-guide.js). Only under reduced motion does it dock here,
+  // beside the headline, while the thread is shown already complete.
+  const el = matchMedia('(prefers-reduced-motion: reduce)').matches ? document.getElementById('thread-emo') : null;
+  if (el) {
+    el.closest('.thread-guide-header')?.classList.add('has-dock');
+    const bot = new EmoBot(el, { size: 132 });
+    const mood = { step: 'think', fail: 'worried', fix: 'point', verdict: 'celebrate' };
+    let calm;
+    document.addEventListener('humble:beat', (e) => {
+      const s = mood[e.detail.type]; if (!s) return;
+      bot.setState(s); clearTimeout(calm);
+      calm = setTimeout(() => bot.setState('idle'), e.detail.type === 'verdict' ? 4000 : 2200);
+    });
+  }
+</script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:36:30.304Z",
+  "commit": "d8fbaadc1e",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install --legacy-peer-deps",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm error ERESOLVE could not resolve",
+      "cause": "Current npm refuses the project's conflicting peer dependencies (older npm versions only warned); the lockfile resolves with --legacy-peer-deps.",
+      "fix": "npm install --legacy-peer-deps",
+      "evidence": "E1"
+    }
+  ]
+}

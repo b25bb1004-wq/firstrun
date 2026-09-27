@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide lab · Blue thread</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/lab/lab.css">
+<style>
+  /* The thread: drawn in the gutter left of the log, step to step. Nothing moves over the text. */
+  .thread { position: absolute; left: 12px; top: 0; width: 22px; overflow: visible; pointer-events: none; }
+  .thread .seg { stroke: var(--c-thread); stroke-width: 1.8; stroke-linecap: round; fill: none; }
+  .thread .seg.replay { stroke: #9fb2ff; stroke-width: 2.2; }
+  .thread .node { fill: var(--c-term); stroke: var(--c-thread); stroke-width: 1.6; transition: stroke 200ms ease, fill 200ms ease; }
+  .thread .node.fail { stroke: var(--c-crack); }
+  .thread .node.pass { fill: var(--c-thread); }
+  .thread .crack { stroke: var(--c-crack); stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .thread .stitch { stroke: var(--c-thread); stroke-width: 1.7; stroke-linecap: round; }
+  .thread .pulse { fill: #cfd8ff; filter: drop-shadow(0 0 5px #9fb2ff); }
+  .thread .knot { fill: none; stroke: var(--c-ok); stroke-width: 1.8; }
+  .draw { animation: draw var(--d, 280ms) var(--ease-out) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) { .draw { animation: none; stroke-dashoffset: 0 !important; } }
+</style>
+</head>
+<body>
+<main class="lab">
+  <h1>Blue thread</h1>
+  <p class="sub">No character moves. A thread stitches the steps together: the break is a pink crack, the fix is a stitch, and the replay pulls it taut.</p>
+
+  <div class="panel" role="region" aria-label="HUMBLE console prototype">
+    <header>
+      <div class="dock" id="dock"></div>
+      <div>
+        <div class="title">HUMBLE</div>
+        <div class="subtitle">onboarding acme-shop</div>
+      </div>
+      <span class="status" id="status">starting</span>
+    </header>
+    <div class="term" id="term">
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <div class="controls"><button type="button" id="again">Play again</button></div>
+  <p class="src">Prototype. Recorded acme-shop run (a demo repo with seeded breaks): every command, failure, diagnosis, fix and duration comes from /data/reels/acme-shop.json. Only the pacing is tuned for reading.</p>
+</main>
+
+<script type="module">
+import { loadReel, toScript, play } from '/lab/reel-engine.js';
+
+const MARK = '<svg viewBox="0 0 716.94 537.7" aria-hidden="true"><polygon fill="#fffefe" points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/><polygon fill="#fffefe" points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/></svg>';
+const NS = 'http://www.w3.org/2000/svg';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const term = document.getElementById('term'), status = document.getElementById('status'), dock = document.getElementById('dock');
+dock.innerHTML = MARK;
+const speed = Number(new URLSearchParams(location.search).get('speed')) || 1;
+let token = { stop: false };
+const X = 11;
+
+function face(color, glow = false) {
+  dock.style.setProperty('--ring', color); dock.classList.toggle('glow', glow);
+  if (!reduced && dock.animate) dock.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease-out' });
+}
+
+async function run() {
+  token.stop = true; token = { stop: false };
+  const reel = await loadReel();
+  const script = toScript(reel);
+  const content = document.getElementById('content');
+  let svg, lastY = null, broken = null, replaying = false;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms / speed));
+  const add = (tag, attrs, cls) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (cls) e.setAttribute('class', cls); svg.append(e); return e; };
+  const fit = () => { svg.setAttribute('height', content.scrollHeight); svg.style.height = content.scrollHeight + 'px'; };
+  const cy = (node) => node.offsetTop + node.offsetHeight / 2;
+  // A line that draws itself: dasharray = its length, animate the offset to zero.
+  const stroke = (e, len, ms) => { e.style.strokeDasharray = len; e.style.strokeDashoffset = len; e.style.setProperty('--d', (ms / speed) + 'ms'); e.classList.add('draw'); return sleep(ms); };
+  const segment = async (y0, y1) => { const s = add('line', { x1: X, y1: y0, x2: X, y2: y1 }, 'seg' + (replaying ? ' replay' : '')); await stroke(s, Math.abs(y1 - y0), Math.min(420, 120 + Math.abs(y1 - y0) * 2)); };
+  const node = (y) => add('circle', { cx: X, cy: y, r: 3.4 }, 'node');
+
+  const hooks = {
+    onStart() {
+      content.textContent = '';
+      svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'thread'); svg.setAttribute('width', 22);
+      content.append(svg);
+      face('var(--c-core)'); status.textContent = 'following the README';
+    },
+    async onCmd(row) {
+      fit();
+      const y = cy(row);
+      // After a break the thread only continues once the fix has been stitched (onFix clears `broken`).
+      if (lastY != null) await segment(lastY + (broken ? 8 : 4), y - 4);
+      row._node = node(y); lastY = y; broken = null;
+    },
+    async onFail(row) {
+      fit(); face('var(--c-crack)'); status.textContent = 'a step broke';
+      row._node.classList.add('fail');
+      const y = cy(row);
+      const c = add('polyline', { points: `${X - 7},${y + 5} ${X - 3},${y + 1} ${X},${y + 7} ${X + 3},${y + 1} ${X + 7},${y + 6}` }, 'crack');
+      await stroke(c, 34, 240);
+      broken = { y, crack: c };
+    },
+    async onDiag(row, note) { fit(); note.classList.add('unfold'); face('var(--c-bob)'); status.textContent = 'DR.BO is reading the log'; },
+    async onFix(row, note) {
+      fit(); note.classList.add('unfold'); face('var(--c-thread)'); status.textContent = 'stitching the fix into the README';
+      if (broken) {
+        const y = broken.y;
+        for (const dx of [-5, 0, 5]) { const s = add('line', { x1: X + dx - 2, y1: y - 4, x2: X + dx + 2, y2: y + 9 }, 'stitch'); await stroke(s, 14, 110); }
+        row._node.classList.remove('fail');
+        // Carry the thread down past the notes to where the next step will start.
+        const bottom = note.offsetTop + note.offsetHeight;
+        await segment(y + 8, bottom); lastY = bottom; broken = null;
+      }
+    },
+    async onPass(row, ev) { row._node?.classList.add('pass'); if (!replaying) { face('var(--c-ok)'); status.textContent = 'step passed'; } },
+    async onPhase(banner) {
+      fit(); face('var(--c-muted)'); status.textContent = 'replaying from zero';
+      // The machine is thrown away: a light runs down the whole thread once, then the replay draws its own, taut.
+      const top = 10, bottom = cy(banner);
+      const p = add('circle', { cx: X, cy: top, r: 3 }, 'pulse');
+      if (!reduced && p.animate) await p.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${bottom - top}px)` }], { duration: 900 / speed, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' }).finished;
+      p.remove(); replaying = true; lastY = bottom;
+    },
+    async onVerdict(stamp) {
+      fit(); face('var(--c-ok)', true); status.textContent = 'verified';
+      const y = cy(stamp);
+      await segment(lastY + 4, y - 6);
+      const k = add('circle', { cx: X, cy: y, r: 5.5 }, 'knot'); await stroke(k, 35, 320);
+      add('circle', { cx: X, cy: y, r: 2.4 }, 'node pass');
+    },
+  };
+  await play(script, { content, scroller: term, hooks, speed, reduced, token });
+}
+document.getElementById('again').addEventListener('click', run);
+run().catch((e) => { status.textContent = 'could not load the recorded run'; console.error(e); });
+</script>
+</body>
+</html>

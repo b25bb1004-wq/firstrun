@@ -1,0 +1,24 @@
+{
+  "id": "E5",
+  "stepId": "S13",
+  "before": {
+    "stepId": "S13",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 124,
+    "durationMs": 300408,
+    "logTail": "\n> aws-nestjs-starter@0.0.1 test\n> jest --verbose\n\nts-jest[ts-compiler] (WARN) Got a `.js` file to compile while `allowJs` option is not set to `true` (file: /workspace/jest-dynamodb-config.js). To fix this:\n  - if you want TypeScript to process JS files, set `allowJs` to `true` in your TypeScript config (usually tsconfig.json)\n  - if you do not want TypeScript to process your `.js` files, in your Jest config change the `transform` key which value is `ts-jest` so that it does not match `.js` files anymore\n\n[firstrun] step timed out after 300s",
+    "logFile": "logs/S13-1.log"
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T09:37:36.505Z",
+  "diagnosis": {
+    "class": "slow-tests",
+    "by": "rules",
+    "ruleId": "test-timeout",
+    "confidence": 0.9,
+    "cause": "`npm test` did not finish within 5 min on a clean machine. The setup before it is proven; the docs should name a quick subset for newcomers and say the full suite is for CI."
+  }
+}

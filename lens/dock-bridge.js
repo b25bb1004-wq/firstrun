@@ -96,6 +96,12 @@ export function runAgent({ agent, target, outDir, onState }) {
   });
   child.stderr.on('data', () => {}); // suppress; errors come through events.ndjson
 
+  child.on('error', (err) => {
+    if (cancelled) return;
+    stopTimers();
+    onState({ ...state, type: 'error', agent, data: { message: `spawn failed: ${err.message}` } });
+  });
+
   child.on('spawn', () => {
     // The run dir may not exist yet; poll until events.ndjson appears.
     eventsFile = path.join(effectiveOut, 'events.ndjson');

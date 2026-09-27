@@ -1,0 +1,26 @@
+{
+  "repo": "jpadilla/django-project-template",
+  "commit": "7d442e2bfb",
+  "verifiedAt": "2026-09-27T09:30:43.969Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 3,
+  "stepsFromReadme": 3,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 2,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "fromCI": false
+}

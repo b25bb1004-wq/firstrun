@@ -207,12 +207,15 @@ describe('console-core', () => {
       assert.strictEqual(lines[0].prefix, '  + ');
     });
 
-    test('maps verified beats to VERIFIED line', () => {
-      const beat = { kind: 'verified', text: '14', agent: 'doctor', t: 8, stepId: 'S1', evidenceId: 'E1' };
+    test('maps a verified beat (one proven fix) to a pass line with its evidence id', () => {
+      // Recorded doctor 'verified' beats carry the diagnosis as text, not seconds (it used to render as
+      // "VERIFIED · replay from zero in <diagnosis>s"). The run's own VERIFIED line is emitted at the end.
+      const beat = { kind: 'verified', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", agent: 'doctor', t: 8, stepId: 'S1', evidenceId: 'E1' };
       const lines = lineFromBeat(beat);
       assert.strictEqual(lines[0].kind, 'pass');
-      assert.ok(lines[0].text.includes('VERIFIED'));
-      assert.ok(lines[0].text.includes('14'));
+      assert.strictEqual(lines[0].proven, true);
+      assert.ok(lines[0].text.includes('evidence E1'));
+      assert.ok(!lines[0].text.includes('replay from zero in The'));
     });
 
     test('Phase steps become sys lines', () => {
@@ -316,10 +319,12 @@ describe('console-core', () => {
       for (const actionText of actionTexts) {
         // The text should be derived from a beat (possibly transformed)
         // At minimum, it should contain content from the original beats
-        const hasSource = sourceTexts.some(src => 
-          actionText.includes(src) || src.includes(actionText) || 
+        // 'fix proven … · evidence E1' is derived from a verified beat's evidenceId, so it counts only if that id is real.
+        const proven = actionText.match(/^fix proven on a clean machine(?: · evidence (\S+))?$/);
+        const hasSource = sourceTexts.some(src =>
+          actionText.includes(src) || src.includes(actionText) ||
           actionText === 'VERIFIED · replay from zero in 14s'
-        );
+        ) || (proven && (!proven[1] || demoReel.beats.some(b => b.kind === 'verified' && b.evidenceId === proven[1])));
         assert.ok(hasSource, `Action text "${actionText}" not traceable to source beats`);
       }
     });

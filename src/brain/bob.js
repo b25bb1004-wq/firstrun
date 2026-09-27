@@ -95,11 +95,15 @@ export async function askBob({ mode, request, workspace, maxCost = 1.5, maxTurns
   const bobcoins = Number(result?.stats?.session_costs) || 0;
   if (!result) {
     const hint = /login|authenticat|api key|unauthori[sz]ed|not logged in|IBMid/i.test(r.out)
-      ? 'Bob Shell is not signed in (run `bob` once and log in with the hackathon IBMid)'
+      ? 'Sign in to Bob Shell first (open a terminal, run bob)'
       : errors[0] || tail(r.out, 6) || `bob exited with ${r.code}`;
     return { ok: false, error: hint, bobcoins, ms: r.durationMs };
   }
   const text = typeof result.last_message === 'string' ? result.last_message : JSON.stringify(result.last_message);
   const json = extractJson(text);
-  return { ok: !!json, json, text, bobcoins, taskId: result.stats?.task_id, error: json ? null : `Bob replied without the expected JSON: ${tail(text, 4)}`, ms: r.durationMs, errors };
+  // Out of turns: Bob spent every turn reading files and never answered (rest-hapi: 12 turns, 15 tool calls; the
+  // "last message" was a file listing). Say so, instead of "replied without the expected JSON".
+  const turnLimit = !json && errors.some((e) => /maximum of \d+ turns/i.test(String(e)));
+  const error = json ? null : turnLimit ? `Bob used all ${maxTurns} turns investigating and did not answer` : `Bob replied without the expected JSON: ${tail(text, 4)}`;
+  return { ok: !!json, json, text, bobcoins, taskId: result.stats?.task_id, error, turnLimit, ms: r.durationMs, errors };
 }

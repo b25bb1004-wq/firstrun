@@ -1,0 +1,42 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T09:00:57.809Z",
+  "commit": "f7f73aa7d0",
+  "image": "node:26",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "yarn test"
+  },
+  "steps": [
+    {
+      "id": "S13",
+      "command": "yarn",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "corepack enable"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "command": "npm install",
+      "kind": "install",
+      "origin": "repair"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 5: yarn: command not found",
+      "cause": "`yarn` is not installed; the docs assume it is.",
+      "fix": "Yarn (via `corepack enable`)",
+      "evidence": "E1"
+    }
+  ]
+}

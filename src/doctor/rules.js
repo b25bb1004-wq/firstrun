@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
@@ -589,6 +590,10 @@ export const RULES = [
       if (!port && m && /MySQL/.test(m[0])) port = 3306;
       if (!port && socket) port = 5432;
       if (!port && /redis/i.test(log) && /ECONNREFUSED|connection refused/i.test(log)) port = 6379;
+      // Prisma names host and port (P1001, gothinkster: IBM Bob's fix in the Bob pass, now a free rule).
+      if (!port) { const pr = log.match(/P1001: Can't reach database server at `?[\w.-]+`?:`?(\d+)/); if (pr) port = Number(pr[1]); }
+      // Mongoose / NestJS print no port (rule factory: nestjs-email-authentication): MongoDB's default.
+      if (!port && /MongooseModule\] Unable to connect to the database|Mongoose ?ServerSelectionError|MongoServerSelectionError/i.test(log)) port = 27017;
       const kind = PORT_TO_SERVICE[port];
       if (!kind) return null;
       if (sandbox.services.some((s) => serviceKind(s.image, s.name) === kind)) return null;
@@ -736,6 +741,10 @@ export const RULES = [
         python: 'ln -sf "$(command -v python3)" /usr/local/bin/python', pip: 'apt-get update && apt-get install -y python3-pip python3-venv',
         node: 'apt-get update && apt-get install -y nodejs npm', npm: 'apt-get update && apt-get install -y nodejs npm', npx: 'apt-get update && apt-get install -y nodejs npm',
         uvicorn: 'pip install uvicorn', gunicorn: 'pip install gunicorn', flask: 'pip install flask', pytest: 'pip install pytest',
+        // CLIs READMEs assume are installed (rule factory: django-project-template runs django-admin before any pip install).
+        'django-admin': 'pip install django', alembic: 'pip install alembic', celery: 'pip install celery', black: 'pip install black',
+        cookiecutter: 'pip install cookiecutter', virtualenv: 'pip install virtualenv', pipx: 'pip install pipx',
+        'pre-commit': 'pip install pre-commit', tox: 'pip install tox', invoke: 'pip install invoke', nox: 'pip install nox',
         'docker-compose': null, docker: null,
       };
       // CLIs that READMEs assume are installed globally but the project doesn't depend on.
@@ -1070,6 +1079,19 @@ export const RULES = [
     },
   },
   {
+    // Rule factory (jpadilla/django-project-template): Django 4 removed `django-admin.py`; the command is `django-admin`.
+    id: 'django-admin-renamed',
+    test({ log, step }) {
+      if (!/\bdjango-admin\.py\b/.test(step.command) || !/django-admin\.py: (command )?not found/.test(log)) return null;
+      const cmd = step.command.replace(/\bdjango-admin\.py\b/g, 'django-admin');
+      return {
+        ruleId: 'django-admin-renamed', class: 'missing-tool', confidence: 0.95,
+        cause: 'The docs run `django-admin.py`, which Django removed in 4.0; the command is now `django-admin`.',
+        fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+      };
+    },
+  },
+  {
         // wagtail (final run): ./manage.py migrate fails with exit 127 because the shebang points to
         // a Python version not in the image (e.g. #!/usr/bin/env python3.12 on python:3.11).
         // Replace ./X.py with python X.py.
@@ -1081,7 +1103,9 @@ export const RULES = [
           const script = m[1];
           const args = m[2] || '';
           // Shebang failure patterns: exit 127, bad interpreter, no such file or directory for the interpreter
-          if (!/exit(?:ed)?\s+127|bad interpreter|python.*No such file or directory|No such file or directory.*python|exec format error|Exec format error/.test(log)) return null;
+          // Also "Permission denied" (exit 126): the clone lost the executable bit (wagtail in the Bob pass; IBM Bob's
+          // fix there, `python manage.py`, is now this free rule).
+          if (!/exit(?:ed)?\s+12[67]|bad interpreter|python.*No such file or directory|No such file or directory.*python|exec format error|Exec format error|\.py: Permission denied/.test(log)) return null;
           // The file must exist in the repo
           if (!facts.files?.includes(script)) return null;
           // Only for Python runtime
@@ -1280,8 +1304,177 @@ export const RULES = [
         };
       },
     },
+    // ── General rules from the most common setup failures on GitHub (27 Sep research; issue counts in brackets) ──
+    {
+      // [~3.7k "No module named 'distutils'"] Python 3.12 removed distutils; setuptools restores it (its .pth shim), so
+      // install that first. Other removed stdlib modules: move to the last Python that still shipped them.
+      id: 'python-stdlib-removed',
+      test({ log, plan, tried }) {
+        if (plan.runtime.name !== 'python') return null;
+        const m = log.match(/No module named '(distutils|imp|asynchat|asyncore|smtpd|cgi|cgitb|pipes|crypt|telnetlib|nntplib)'|module 'collections' has no attribute '(Mapping|MutableMapping|Sequence|MutableSet|Iterable|Callable|OrderedDict|Hashable)'/);
+        if (!m) return null;
+        const mod = m[1] || `collections.${m[2]}`;
+        if (mod === 'distutils' && ![...(tried || [])].some((t) => String(t).includes('setuptools'))) {
+          return {
+            ruleId: 'python-stdlib-removed', class: 'runtime-version', confidence: 0.85,
+            cause: 'Python 3.12 removed `distutils`, which this project (or one of its dependencies) still imports; `setuptools` provides a drop-in replacement.',
+            fix: { actions: [{ type: 'insert-before', command: 'pip install setuptools', kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: 'pip install setuptools' } },
+          };
+        }
+        // Last Python version that still had the module (general: any newer image hits the same removal).
+        const last = /^collections\./.test(mod) ? '3.9' : /^(cgi|cgitb|pipes|crypt|telnetlib|nntplib)$/.test(mod) ? '3.12' : '3.11';
+        if (String(plan.runtime.version) === last) return null;
+        return {
+          ruleId: 'python-stdlib-removed', class: 'runtime-version', confidence: 0.85,
+          cause: `\`${mod}\` was removed from newer Python; the project (or a dependency) still uses it. Python ${last} is the last version that ships it.`,
+          fix: { actions: [{ type: 'rebase', image: imageFor('python', last), runtime: { name: 'python', version: last, source: `\`${mod}\` removed after Python ${last}` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${last} (\`${mod}\` was removed in later versions)`, runtime: { name: 'python', version: last } } },
+        };
+      },
+    },
+    {
+      // [ImportError drift: markupsafe soft_unicode ~500, werkzeug url_quote ~320, jinja2 escape ~280, wtforms, …]
+      // A dependency released a new major that removed an API the project uses, because requirements are unpinned.
+      // General fix, no per-library table: install every dependency as it was on the repo's commit date.
+      id: 'python-dependency-drift',
+      test({ log, plan, facts, step, tried }) {
+        if (plan.runtime.name !== 'python') return null;
+        const m = log.match(/cannot import name '(\w+)' from '([\w.]+)'|module '([\w.]+)' has no attribute '(\w+)'/);
+        if (!m) return null;
+        const pkg = String(m[2] || m[3]).split('.')[0];
+        if (!pkg || /^(collections|os|sys|typing|asyncio|json|re|time|datetime)$/.test(pkg)) return null; // stdlib: not drift
+        const local = facts.files?.some((f) => f === `${pkg}.py` || f.startsWith(`${pkg}/`) || f.includes(`/${pkg}/__init__.py`));
+        if (local) return null; // the project's own module, not a dependency
+        const date = commitDate(facts);
+        const req = facts.python?.requirementsFiles?.[0];
+        if (!date || !req) return null;
+        // The date cutoff must not apply to build tools (realpython: setuptools<=38 under a 2018 cutoff vs >=40.8 needed
+        // to build): current setuptools/wheel first, then the project's own requirements as of the date, no build isolation.
+        const cmd = `pip install uv setuptools wheel && uv pip install --system --no-build-isolation --exclude-newer ${date} -r ${req}`;
+        if ([...(tried || [])].some((t) => String(t).includes('--exclude-newer'))) return null;
+        return {
+          ruleId: 'python-dependency-drift', class: 'missing-dependency', confidence: 0.8,
+          cause: `\`${pkg}\` has released a newer version that no longer has \`${m[1] || m[4]}\`; the requirements don't pin it, so a clean install today gets the incompatible release. Installing dependencies as they were on the commit date (${date}) restores the versions the project was written against.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'note', text: `Pin \`${pkg}\` (and other unpinned requirements): a fresh install today pulls a release that removed \`${m[1] || m[4]}\`.` } },
+        };
+      },
+    },
+    {
+      // [~2.9k "error:0308010C:digital envelope routines::unsupported"] webpack 4 / old react-scripts hash with MD4, which
+      // OpenSSL 3 (Node 17+) disabled. Works for every Node >= 17.
+      id: 'node-openssl-legacy',
+      test({ log, plan, tried }) {
+        if (plan.runtime.name !== 'node' || !/error:0308010C:digital envelope routines::unsupported|ERR_OSSL_EVP_UNSUPPORTED/.test(log)) return null;
+        if ([...(tried || [])].some((t) => String(t).includes('openssl-legacy-provider'))) return null;
+        return {
+          ruleId: 'node-openssl-legacy', class: 'runtime-version', confidence: 0.9,
+          cause: 'The build tool (webpack 4 era) uses a hash that Node 17+ disables with OpenSSL 3; `NODE_OPTIONS=--openssl-legacy-provider` re-enables it.',
+          fix: { actions: [{ type: 'exec', command: 'export NODE_OPTIONS=--openssl-legacy-provider' }], patches: [], doc: { kind: 'note', text: 'On Node 17+, run with `NODE_OPTIONS=--openssl-legacy-provider` (the build uses a hash OpenSSL 3 disables).' } },
+        };
+      },
+    },
+    {
+      // [pg_config ~630, mysql_config ~710, Python.h / ffi.h] a native Python package builds from source and needs headers.
+      id: 'python-native-headers',
+      test({ log, plan }) {
+        if (plan.runtime.name !== 'python') return null;
+        const need = /pg_config executable not found|libpq-fe\.h/.test(log) ? 'libpq-dev'
+          : /mysql_config not found|mysqlclient|mariadb_config/.test(log) && /not found|No such file/.test(log) ? 'default-libmysqlclient-dev pkg-config'
+          : /ffi\.h: No such file/.test(log) ? 'libffi-dev'
+          : /Python\.h: No such file/.test(log) ? 'python3-dev'
+          : /libxml\/\w+\.h: No such file|xmlversion\.h/.test(log) ? 'libxml2-dev libxslt1-dev' : null;
+        if (!need) return null;
+        const cmd = `apt-get update && apt-get install -y build-essential ${need}`;
+        return {
+          ruleId: 'python-native-headers', class: 'missing-tool', confidence: 0.85,
+          cause: `A dependency compiles native code and needs system headers the docs never mention (\`${need}\`).`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'prerequisite', text: `System packages: build-essential ${need}` } },
+        };
+      },
+    },
+    {
+      // ["No matching distribution found" / "Could not build wheels for X": exact pins from years ago have no wheel
+      // for today's Python.] General fix: the Python that was current when the repo was last committed.
+      id: 'python-era-runtime',
+      async test({ log, plan, facts }) {
+        if (plan.runtime.name !== 'python') return null;
+        if (!/No matching distribution found for [\w.-]+==|Could not build wheels for [\w.-]+|Failed building wheel for [\w.-]+|metadata-generation-failed|Preparing metadata \(pyproject\.toml\): finished with status 'error'/.test(log)) return null;
+        const cur = String(plan.runtime.version || '');
+        const older = (v) => cur && Number(v.split('.')[1]) < Number(cur.split('.')[1]);
+        // Best evidence: the failing pin's own wheels on PyPI (numpy==1.17.0 ships cp35..cp37 wheels -> Python 3.7).
+        // General for any package and version; the last "Collecting X==V" before the error is the one that failed.
+        const pins = [...log.matchAll(/Collecting ([\w.-]+)==([\w.!+-]+)/g)];
+        const pin = pins.at(-1);
+        if (pin) {
+          const wheelPy = await newestWheelPython(pin[1], pin[2]);
+          if (wheelPy && older(wheelPy)) {
+            return {
+              ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.85,
+              cause: `\`${pin[1]}==${pin[2]}\` is pinned, and PyPI only has builds of it up to Python ${wheelPy}; on Python ${cur} it tries to compile from source and fails. The docs don't say which Python to use.`,
+              fix: { actions: [{ type: 'rebase', image: imageFor('python', wheelPy), runtime: { name: 'python', version: wheelPy, source: `newest Python with a ${pin[1]}==${pin[2]} wheel on PyPI` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${wheelPy} (the pinned ${pin[1]}==${pin[2]} has no build for newer Python)`, runtime: { name: 'python', version: wheelPy } } },
+            };
+          }
+        }
+        // Fallback: the Python that was current when the repo was last committed.
+        const date = commitDate(facts);
+        if (!date) return null;
+        const y = Number(date.slice(0, 4));
+        const era = y <= 2017 ? '3.6' : y === 2018 ? '3.7' : y <= 2020 ? '3.8' : y === 2021 ? '3.9' : y === 2022 ? '3.10' : y === 2023 ? '3.11' : '3.12';
+        if (!older(era)) return null;
+        return {
+          ruleId: 'python-era-runtime', class: 'runtime-version', confidence: 0.7,
+          cause: `The requirements pin packages that have no build for Python ${cur}; the docs don't say which Python to use. Python ${era} was current when the repo was last committed (${date}).`,
+          fix: { actions: [{ type: 'rebase', image: imageFor('python', era), runtime: { name: 'python', version: era, source: `the repo's last commit (${date})` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${era} (the pinned packages predate newer Python releases)`, runtime: { name: 'python', version: era } } },
+        };
+      },
+    },
+    {
+      // [~2.2k "npm ci can only install packages when your package.json and package-lock.json … are in sync"]
+      id: 'npm-ci-lock-mismatch',
+      test({ log, step }) {
+        if (!/^npm ci\b/.test(step.command) || !/npm ci` can only install packages when your package\.json and package-lock\.json|are not in sync|Missing: [\w@/.-]+ from lock file/.test(log)) return null;
+        const cmd = step.command.replace(/^npm ci\b/, 'npm install');
+        return {
+          ruleId: 'npm-ci-lock-mismatch', class: 'missing-dependency', confidence: 0.85,
+          cause: 'The committed package-lock.json is out of date with package.json, so `npm ci` refuses; `npm install` resolves and updates it.',
+          fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+        };
+      },
+    },
+    {
+      // [yarn frozen lockfile ~160+, Yarn berry YN0028] the lockfile is stale for the committed package.json.
+      id: 'yarn-frozen-lockfile',
+      test({ log, step }) {
+        if (!/^yarn\b/.test(step.command) || !/Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`|YN0028|The lockfile would have been modified by this install, which is explicitly forbidden/.test(log)) return null;
+        const cmd = step.command.replace(/\s--(frozen-lockfile|immutable)\b/g, '') + (/--(frozen-lockfile|immutable)/.test(step.command) ? '' : ' --no-immutable');
+        return {
+          ruleId: 'yarn-frozen-lockfile', class: 'missing-dependency', confidence: 0.8,
+          cause: "The committed yarn.lock doesn't match package.json, and this install forbids changing it.",
+          fix: { actions: [{ type: 'replace-step', command: cmd.trim() }], patches: [], doc: { kind: 'note', text: 'yarn.lock is out of date with package.json; run `yarn install` and commit the updated lockfile.' } },
+        };
+      },
+    },
   ];
+
+// The repo's last commit date (YYYY-MM-DD) for time-travel installs; null when git can't tell.
+function commitDate(facts) {
+  try {
+    const out = execFileSync('git', ['-C', facts.root, 'log', '-1', '--format=%cs'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return /^\d{4}-\d\d-\d\d$/.test(out) ? out : null;
+  } catch { return null; }
+}
 
 function label(kind) {
   return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;
+}
+
+// Newest CPython "3.x" that has a wheel for pkg==version on PyPI (from its cpXY wheel tags); null when unknown.
+async function newestWheelPython(pkg, version) {
+  try {
+    const res = await fetch(`https://pypi.org/pypi/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const minors = (j.urls || []).filter((u) => u.packagetype === 'bdist_wheel')
+      .map((u) => (u.filename.match(/-cp3(\d+)-/) || [])[1]).filter(Boolean).map(Number);
+    return minors.length ? `3.${Math.max(...minors)}` : null;
+  } catch { return null; }
 }

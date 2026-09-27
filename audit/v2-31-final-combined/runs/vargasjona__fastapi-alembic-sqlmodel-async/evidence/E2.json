@@ -1,0 +1,45 @@
+{
+  "id": "E2",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "source \"$(poetry env info --path)/bin/activate\"",
+    "exitCode": 1,
+    "durationMs": 1043,
+    "logTail": "\nPoetry could not find a pyproject.toml file in /workspace or its parents\n/firstrun/step-5.sh: line 5: /bin/activate: No such file or directory",
+    "logFile": "logs/S8-2.log"
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "`source \"$(poetry env info --path)/bin/activate\"` activates the project's Poetry environment, but none exists yet: the docs never run `poetry install`, so the path is empty.",
+    "by": "rules",
+    "ruleId": "venv-not-created",
+    "confidence": 0.88
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "poetry install",
+        "kind": "install"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "insert-step",
+      "text": "poetry install"
+    },
+    "log": "$ poetry install → exit 1\nfix not applied: `poetry install` exited 1"
+  },
+  "after": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "poetry install",
+    "exitCode": 1,
+    "durationMs": 747,
+    "logTail": "\nPoetry could not find a pyproject.toml file in /workspace or its parents"
+  },
+  "status": "failed",
+  "at": "2026-09-27T07:31:59.204Z"
+}

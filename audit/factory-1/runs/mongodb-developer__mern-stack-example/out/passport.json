@@ -1,0 +1,27 @@
+{
+  "repo": "mongodb-developer/mern-stack-example",
+  "commit": "6a5e9397b1",
+  "verifiedAt": "2026-09-27T09:45:26.849Z",
+  "verdict": "FAILED",
+  "image": "buildpack-deps:bookworm",
+  "runtime": "other 22",
+  "stepsTotal": 6,
+  "stepsFromReadme": 6,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:5173/",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

@@ -1,0 +1,96 @@
+{
+  "repo": "mdn/express-locallibrary-tutorial",
+  "commit": "b378f3dd48",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 23,
+        "endLine": 23,
+        "section": "express-locallibrary-tutorial › Quick Start"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S2",
+      "command": "DEBUG=express-locallibrary-tutorial:* npm run devstart",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 30,
+        "endLine": 30,
+        "section": "express-locallibrary-tutorial › Quick Start"
+      },
+      "origin": "readme",
+      "serve": {
+        "port": 3000
+      },
+      "status": "passed",
+      "probe": {
+        "status": 302,
+        "body": "Found. Redirecting to /catalog"
+      }
+    },
+    {
+      "id": "S3",
+      "command": "$ENV:DEBUG = \"express-locallibrary-tutorial:*\"; npm start",
+      "kind": "prereq",
+      "source": {
+        "file": "README.md",
+        "line": 33,
+        "endLine": 33,
+        "section": "express-locallibrary-tutorial › Quick Start"
+      },
+      "origin": "readme",
+      "skip": "Windows-only command",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 51,
+        "endLine": 51,
+        "section": "express-locallibrary-tutorial › Contributing"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "mongodb service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"mongoose\"",
+      "source": "package.json"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/",
+    "fromDocs": true
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "fromCI": false,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

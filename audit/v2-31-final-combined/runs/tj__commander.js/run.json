@@ -1,0 +1,450 @@
+{
+  "id": "v2-31-final-tj__commander.js",
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4",
+  "startedAt": "2026-09-27T00:51:47.328Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S11": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S12": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S13": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S14": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S15": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S16": {
+      "status": "needs-human",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "file split.js",
+      "docs": "node split.js -s - --fits a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:94"
+    },
+    {
+      "what": "file split.js",
+      "docs": "node split.js -s - --first a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:97"
+    },
+    {
+      "what": "file string-util.js",
+      "docs": "node string-util.js help split",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:128"
+    },
+    {
+      "what": "file string-util.js",
+      "docs": "node string-util.js split --separator=- a-b-c",
+      "truth": "does not exist in the repo",
+      "source": "Readme.md:141"
+    },
+    {
+      "what": "env var FORCE_COLOR",
+      "docs": "not documented",
+      "truth": "read in lib/command.js:2783",
+      "source": "README"
+    },
+    {
+      "what": "env var CLICOLOR_FORCE",
+      "docs": "not documented",
+      "truth": "read in lib/command.js:2787",
+      "source": "README"
+    },
+    {
+      "what": "Setup path",
+      "docs": "none documented",
+      "truth": "CI runs `npm ci`, `npm test`",
+      "source": "Readme.md",
+      "ci": ".github/workflows/tests.yml:27",
+      "from": "ci-reference"
+    }
+  ],
+  "plan": {
+    "repo": "tj/commander.js",
+    "commit": "ba6d13ddb4",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install commander",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 64,
+          "endLine": 64,
+          "section": "Commander.js › Installation"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "node split.js -s - --fits a-b-c",
+        "kind": "serve",
+        "source": {
+          "file": "Readme.md",
+          "line": 94,
+          "endLine": 94,
+          "section": "Commander.js › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "node split.js -s - --first a-b-c",
+        "kind": "serve",
+        "source": {
+          "file": "Readme.md",
+          "line": 97,
+          "endLine": 97,
+          "section": "Commander.js › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "node string-util.js help split",
+        "kind": "serve",
+        "source": {
+          "file": "Readme.md",
+          "line": 128,
+          "endLine": 128,
+          "section": "Commander.js › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "alternative start command (using \"node string-util.js split --separator=- a-b-c\")",
+        "status": "skipped"
+      },
+      {
+        "id": "S5",
+        "command": "node string-util.js split --separator=- a-b-c",
+        "kind": "serve",
+        "source": {
+          "file": "Readme.md",
+          "line": 141,
+          "endLine": 141,
+          "section": "Commander.js › Quick Start"
+        },
+        "origin": "readme",
+        "skip": "usage example: `string-util.js` is not in the repo at that path",
+        "status": "skipped"
+      },
+      {
+        "id": "S6",
+        "command": "extra --help",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 431,
+          "endLine": 431,
+          "section": "Commander.js › Options › More configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `extra` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S7",
+        "command": "extra --drink huge",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 443,
+          "endLine": 443,
+          "section": "Commander.js › Options › More configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `extra` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S8",
+        "command": "PORT=80 extra --donate --free-drink",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 446,
+          "endLine": 446,
+          "section": "Commander.js › Options › More configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `extra` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S9",
+        "command": "extra --disable-server --port 8000",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 449,
+          "endLine": 449,
+          "section": "Commander.js › Options › More configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `extra` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S10",
+        "command": "program -b subcommand",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 996,
+          "endLine": 996,
+          "section": "Commander.js › Bits and pieces › Parsing Configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `program` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S11",
+        "command": "program subcommand -b",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 997,
+          "endLine": 997,
+          "section": "Commander.js › Bits and pieces › Parsing Configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `program` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S12",
+        "command": "program --port=80 arg",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 1010,
+          "endLine": 1010,
+          "section": "Commander.js › Bits and pieces › Parsing Configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `program` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S13",
+        "command": "program arg --port=80",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 1011,
+          "endLine": 1011,
+          "section": "Commander.js › Bits and pieces › Parsing Configuration"
+        },
+        "origin": "readme",
+        "skip": "usage example: `program` is an example program in the docs, not a command this repo provides",
+        "status": "skipped"
+      },
+      {
+        "id": "S14",
+        "command": "npm run-script <command> [-- <args>]",
+        "kind": "other",
+        "source": {
+          "file": "Readme.md",
+          "line": 1091,
+          "endLine": 1091,
+          "section": "Commander.js › Bits and pieces › npm run-script"
+        },
+        "origin": "readme",
+        "skip": "needs a value only you have (placeholder)",
+        "status": "skipped"
+      },
+      {
+        "id": "S15",
+        "command": "npm ci",
+        "kind": "install",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "passed"
+      },
+      {
+        "id": "S16",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "CI",
+          "line": 0,
+          "section": "GitHub Actions"
+        },
+        "origin": "ci",
+        "synthetic": "from CI workflow",
+        "status": "needs-human"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "file split.js",
+        "docs": "node split.js -s - --fits a-b-c",
+        "truth": "does not exist in the repo",
+        "source": "Readme.md:94"
+      },
+      {
+        "what": "file split.js",
+        "docs": "node split.js -s - --first a-b-c",
+        "truth": "does not exist in the repo",
+        "source": "Readme.md:97"
+      },
+      {
+        "what": "file string-util.js",
+        "docs": "node string-util.js help split",
+        "truth": "does not exist in the repo",
+        "source": "Readme.md:128"
+      },
+      {
+        "what": "file string-util.js",
+        "docs": "node string-util.js split --separator=- a-b-c",
+        "truth": "does not exist in the repo",
+        "source": "Readme.md:141"
+      },
+      {
+        "what": "env var FORCE_COLOR",
+        "docs": "not documented",
+        "truth": "read in lib/command.js:2783",
+        "source": "README"
+      },
+      {
+        "what": "env var CLICOLOR_FORCE",
+        "docs": "not documented",
+        "truth": "read in lib/command.js:2787",
+        "source": "README"
+      },
+      {
+        "what": "Setup path",
+        "docs": "none documented",
+        "truth": "CI runs `npm ci`, `npm test`",
+        "source": "Readme.md",
+        "ci": ".github/workflows/tests.yml:27",
+        "from": "ci-reference"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "docsUsed": [
+      "Readme.md"
+    ],
+    "fromCI": true,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 9113
+  },
+  "passport": {
+    "repo": "tj/commander.js",
+    "commit": "ba6d13ddb4",
+    "verifiedAt": "2026-09-27T00:52:17.952Z",
+    "verdict": "PARTIAL",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 2,
+    "stepsFromReadme": 0,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 0,
+    "suiteIssues": 1,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 9,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "fromCI": true,
+    "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+  },
+  "finishedAt": "2026-09-27T00:52:18.529Z"
+}

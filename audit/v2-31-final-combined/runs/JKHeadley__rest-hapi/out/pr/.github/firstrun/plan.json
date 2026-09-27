@@ -1,0 +1,24 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T07:23:59.819Z",
+  "commit": "708ecbcd4f",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}
