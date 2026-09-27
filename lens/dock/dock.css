@@ -61,10 +61,7 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   padding: 16px;
-  background:
-    radial-gradient(120% 60% at 0% 0%, rgba(31,59,255,.18), transparent 60%),
-    radial-gradient(90% 50% at 100% 100%, rgba(240,40,122,.07), transparent 60%),
-    linear-gradient(180deg, #0B1130 0%, #080C1F 100%);
+  background: #0B0F24;
 }
 
 /* Header & Bob Brand */
@@ -89,12 +86,12 @@ html, body {
 }
 
 .bob-avatar-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: linear-gradient(145deg, #3552FF, #1F3BFF 60%, #1428B8);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 6px 16px -4px var(--bob-glow);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--electric);
+  border: 0;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,10 +99,7 @@ html, body {
   transition: transform .15s, box-shadow .15s;
   flex: none;
 }
-.bob-avatar-btn:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 16px var(--bob);
-}
+.bob-avatar-btn:hover { background: #3552FF; }
 .bob-avatar-btn svg { width: 21px; height: 16px; fill: #FFFFFF; } /* HUMBLE face is 4:3 */
 
 .dock-title-wrap { flex: 1; min-width: 0; }
@@ -149,11 +143,10 @@ html, body {
 
 /* Target Repo Input Box */
 .repo-box {
-  background: rgba(16,22,58,.72);
-  border: 1px solid var(--rule-2);
-  border-radius: 14px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
   padding: 12px;
-  box-shadow: 0 10px 30px -18px rgba(31,59,255,.6);
   margin-bottom: 12px;
 }
 .repo-label {
@@ -228,14 +221,13 @@ html, body {
   border-color: var(--bob);
 }
 .btn-prove {
-  background: linear-gradient(180deg, #3552FF, var(--electric));
+  background: var(--electric);
   color: #FFFFFF;
-  border-color: rgba(255,255,255,.14);
-  box-shadow: 0 6px 18px -6px var(--bob-glow), inset 0 1px 0 rgba(255,255,255,.18);
+  border-color: var(--electric);
 }
 .btn-prove:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 8px 22px -6px var(--bob-glow), inset 0 1px 0 rgba(255,255,255,.22);
+  background: #3552FF;
+  border-color: #3552FF;
 }
 .btn-action:focus-visible { outline: 2px solid var(--bob); outline-offset: 2px; }
 
@@ -259,7 +251,8 @@ html, body {
 .agents-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  border-top: 1px solid var(--rule);
 }
 
 /* Agent Card Row */
@@ -267,19 +260,17 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(16,22,58,.72);
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  padding: 9px 12px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 9px 2px;
   cursor: pointer;
   transition: all .18s ease;
   position: relative;
   overflow: hidden;
 }
-.agent-row:hover {
-  background: var(--panel-2);
-  border-color: var(--rule);
-}
+.agent-row:hover { background: rgba(255,255,255,.03); }
 .agent-row.selected {
   border-color: var(--agent-color, var(--rule-2)) !important;
   background: var(--panel-3) !important;
@@ -305,12 +296,12 @@ html, body {
 .agent-avatar {
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  background: rgba(255,255,255,.04);
+  background: transparent;
   border: 1px solid var(--rule);
   transition: all .2s;
 }
@@ -363,8 +354,8 @@ html, body {
   font: 600 10.5px "IBM Plex Mono", monospace;
   text-transform: uppercase;
   letter-spacing: .06em;
-  padding: 2px 7px;
-  border-radius: 999px;
+  padding: 2px 6px;
+  border-radius: 3px;
   flex: none;
 }
 
@@ -377,7 +368,7 @@ html, body {
 /* 2. Working (Pulse & Glow) */
 .state-working {
   border-color: var(--agent-color, var(--bob));
-  box-shadow: 0 0 10px rgba(94,158,255,.15);
+  box-shadow: none;
 }
 .state-working .agent-avatar {
   background: var(--agent-glow, rgba(94,158,255,.2));
@@ -422,8 +413,8 @@ html, body {
 }
 
 @keyframes agentPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 4px var(--agent-glow, rgba(94,158,255,.2)); }
-  50% { transform: scale(1.05); box-shadow: 0 0 14px var(--agent-glow, rgba(94,158,255,.4)); }
+  0%, 100% { transform: scale(1); box-shadow: none; opacity: 1; }
+  50% { transform: scale(1); box-shadow: none; opacity: .6; }
 }
 @keyframes agentShake {
   0%, 85%, 100% { transform: rotate(0deg); }
