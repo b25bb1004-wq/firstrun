@@ -76,7 +76,7 @@
 
 .thread-content {
   position: relative;
-  padding: 14px 16px 60px 44px;
+  padding: 14px 16px 60px 64px; /* a 60px rail on the left: the rider and its thread live there */
   font: 13px/1.55 var(--mono, ui-monospace, monospace);
 }
 
@@ -299,7 +299,7 @@
 /* Responsive */
 @media (max-width: 480px) {
   .thread-content {
-    padding-left: 38px;
+    padding-left: 56px;
     font-size: 12px;
   }
   .thread-res {
@@ -314,9 +314,16 @@
   outline-offset: 2px;
 }
 /* HUMBLE mascot beside the guide headline (web/public/humble-console/emo-bot.js) */
-.thread-guide-header { position: relative; padding-left: 148px; min-height: 132px; }
+.thread-guide-header { position: relative; }
+/* The docked bot only appears under reduced motion; otherwise it rides the rail inside the log. */
+.thread-guide-header.has-dock { padding-left: 148px; min-height: 132px; }
 .thread-emo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 132px; height: 132px; }
 @media (max-width: 560px) {
-  .thread-guide-header { padding-left: 0; padding-top: 120px; }
+  .thread-guide-header.has-dock { padding-left: 0; padding-top: 120px; }
   .thread-emo { top: 0; left: 50%; transform: translateX(-50%); width: 112px; height: 112px; }
 }
+
+/* The rider: the EMO bot at small size, riding the rail beside the log (never over it). */
+.thread-rider { position: absolute; left: 6px; top: 0; width: 44px; height: 44px; z-index: 2; pointer-events: none; will-change: transform; }
+.thread-rider-bot { width: 44px; height: 44px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .45)); }
+@media (max-width: 480px) { .thread-rider { left: 2px; } }

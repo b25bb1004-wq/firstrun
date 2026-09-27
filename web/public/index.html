@@ -549,8 +549,11 @@
 <script type="module" src="/assets/motion/index.js"></script>
 <script type="module">
   import { EmoBot } from '/humble-console/emo-bot.js';
-  const el = document.getElementById('thread-emo');
+  // The bot rides the thread guide's rail (assets/thread-guide.js). Only under reduced motion does it dock here,
+  // beside the headline, while the thread is shown already complete.
+  const el = matchMedia('(prefers-reduced-motion: reduce)').matches ? document.getElementById('thread-emo') : null;
   if (el) {
+    el.closest('.thread-guide-header')?.classList.add('has-dock');
     const bot = new EmoBot(el, { size: 132 });
     const mood = { step: 'think', fail: 'worried', fix: 'point', verdict: 'celebrate' };
     let calm;
