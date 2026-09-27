@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recorded Run Replay</title>
+<!--
+  Terminal-style render of a REAL recorded HUMBLE run, for the submission video.
+  It reads the run's events.ndjson (nothing here is invented: every line comes from an event)
+  and draws the state at a given video time. tools/video/capture.cjs drives it frame by frame:
+    window.setup({ src, pieces:[{runFrom, runTo, speed}], hold })  then  window.renderAt(videoSeconds)
+  Serve the repo root over http (the page fetches the events file by path).
+-->
+<style>
+  :root { --bg:#0f0e0c; --panel:#171512; --ink:#ece6da; --dim:#8a8378; --pink:#ff3d7f; --blue:#4f7cff; --green:#35d07f; --amber:#ffb020; --line:#2a2622; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); width:1920px; height:1080px; overflow:hidden;
+    font-family: "Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace; }
+  .top { height:64px; display:flex; align-items:center; gap:18px; padding:0 40px; border-bottom:1px solid var(--line); background:var(--panel); }
+  .dots span { display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:8px; background:#3a352f; }
+  .title { font-size:20px; color:var(--dim); }
+  .title b { color:var(--ink); font-weight:600; }
+  .badge { margin-left:auto; font-size:20px; font-weight:700; letter-spacing:.06em; color:#fff; background:var(--pink); padding:8px 16px; border-radius:6px; }
+  .wrap { display:flex; height:calc(1080px - 64px - 54px); }
+  .term { flex:1; padding:22px 40px; font-size:23px; line-height:1.42; white-space:pre; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; }
+  .side { width:360px; border-left:1px solid var(--line); padding:28px 30px; background:var(--panel); font-size:20px; }
+  .side h4 { margin:0 0 14px; font-size:15px; letter-spacing:.14em; color:var(--dim); font-weight:600; }
+  .agent { display:flex; justify-content:space-between; padding:9px 12px; margin-bottom:6px; border-radius:6px; color:var(--dim); border:1px solid transparent; }
+  .agent.on { color:#fff; border-color:var(--blue); background:rgba(79,124,255,.15); }
+  .agent small { font-size:15px; }
+  .stat { margin-top:26px; }
+  .stat .n { font-size:44px; font-weight:700; color:var(--ink); }
+  .stat .l { font-size:15px; color:var(--dim); letter-spacing:.08em; }
+  .foot { height:54px; display:flex; align-items:center; padding:0 40px; border-top:1px solid var(--line); font-size:17px; color:var(--dim); }
+  .c-dim { color:var(--dim); } .c-pink { color:var(--pink); } .c-blue { color:var(--blue); } .c-green { color:var(--green); } .c-amber { color:var(--amber); }
+  .c-head { color:#fff; font-weight:700; }
+  .verdict { position:absolute; left:40px; right:400px; bottom:90px; padding:26px 34px; border:3px solid var(--green); border-radius:10px;
+    background:rgba(15,14,12,.96); font-size:40px; font-weight:700; color:var(--green); display:none; }
+  .verdict small { display:block; font-size:22px; color:var(--ink); font-weight:400; margin-top:8px; }
+  .cursor { display:inline-block; width:12px; background:var(--ink); }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="title"><b>node bin/firstrun.js verify</b> GeekyAnts/express-typescript @ <span id="commit">…</span> --brain rules</div>
+    <div class="badge" id="badge">RECORDED RUN</div>
+  </div>
+  <div class="wrap">
+    <div class="term" id="term"></div>
+    <div class="side">
+      <h4>AGENTS</h4>
+      <div class="agent" data-a="scout">HARVEY <small>reads</small></div>
+      <div class="agent" data-a="planner">UNITY <small>plans</small></div>
+      <div class="agent" data-a="runner">MACH <small>runs</small></div>
+      <div class="agent" data-a="doctor">DR.BO <small>diagnoses</small></div>
+      <div class="agent" data-a="verifier">LARP <small>replays</small></div>
+      <div class="agent" data-a="scribe">ECHO <small>proves</small></div>
+      <div class="stat"><div class="n" id="found">0</div><div class="l">BREAKS FOUND</div></div>
+      <div class="stat"><div class="n c-green" id="fixed">0</div><div class="l">FIXED WITH EVIDENCE</div></div>
+      <div class="stat"><div class="n" id="clock">0:00</div><div class="l">RUN CLOCK (REAL TIME)</div></div>
+    </div>
+  </div>
+  <div class="verdict" id="verdict"></div>
+  <div class="foot" id="foot">Terminal-style render of the recorded run's events.ndjson · audit v2-31-final · 27 Sep 2026</div>
+<script>
+const AG = { scout:'HARVEY', planner:'UNITY', runner:'MACH', doctor:'DR.BO', verifier:'LARP', scribe:'ECHO', swarm:'HUMBLE' };
+let EV = [], T0 = 0, PIECES = [], LINES = [];
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+
+function linesFor(e, seenPlan) {
+  const d = e.data || {}, a = AG[e.agent] || e.agent, out = [];
+  const L = (cls, txt) => out.push({ cls, txt: clip(txt, 104) });
+  switch (e.type) {
+    case 'phase':
+      if (d.phase === 'scout') L('c-head', `■ ${a}  Reading the docs and manifests`);
+      else if (d.phase === 'plan') L('c-head', `■ ${a}  Planning the run`);
+      else if (d.phase === 'repair') L('c-head', `■ DR.BO  Diagnosing and repairing`);
+      else if (d.phase === 'replay') L('c-head', `■ LARP  Replaying the repaired guide from zero`);
+      else if (d.phase === 'publish') L('c-head', `■ ECHO  Writing the proof`);
+      break;
+    case 'facts':
+      L('c-dim', `  ${d.stack} project · docs: ${(d.docs||[]).join(', ')}`);
+      if (d.compose) L('c-dim', `  compose: ${d.compose.services.join(', ')} · env vars used in code: ${(d.envVarsInCode||[]).length}`);
+      break;
+    case 'plan':
+      if (!seenPlan.v) { seenPlan.v = true;
+        L('c-dim', `  ${d.steps.length} steps from the README on ${d.image} (${d.runtime && d.runtime.source || ''})`);
+        d.steps.forEach(s => L('c-dim', `    ${s.id}  ${s.command}`)); }
+      break;
+    case 'note': L('c-dim', `  · ${d.message}`); break;
+    case 'step.start': L('', `▸ ${d.stepId}  ${d.command}${d.n > 1 ? `   (attempt ${d.n})` : ''}`); break;
+    case 'step.log':
+      String(d.chunk).split('\n').filter(x => x.trim()).slice(0, 4).forEach(x => L(/error|ERR/i.test(x) ? 'c-pink' : 'c-dim', '    ' + x));
+      break;
+    case 'step.end':
+      if (d.exitCode === 0) L('c-green', `  ✓ exit 0 · ${(d.durationMs/1000).toFixed(1)} s`);
+      else L('c-pink', `  ✗ exit ${d.exitCode} · ${(d.durationMs/1000).toFixed(1)} s`);
+      break;
+    case 'diagnosis': { const g = d.diagnosis; L('c-blue', `  » ${g.class}: ${g.cause}`); L('c-blue', `    [${g.by} · ${g.ruleId}]`); break; }
+    case 'fix': (d.fix.actions||[]).forEach(x => {
+        if (x.command) L('c-blue', `  ⚒ ${x.type}: ${x.command}`);
+        else if (x.type === 'service') L('c-blue', `  ⚒ service: ${x.image} on port ${x.port}`); }); break;
+    case 'step.inserted': L('c-amber', `  + ${a} inserted ${d.step.id} before ${d.before}: ${d.step.command}`); break;
+    case 'evidence': L(d.status === 'verified' ? 'c-green' : 'c-amber', `  ✔ evidence ${d.id} (${d.stepId}): ${d.status === 'verified' ? 'fixed and verified' : d.status}`); break;
+    case 'replay.start': L('c-dim', `  clean container, ${d.image}, ${d.steps} steps, no cached packages`); break;
+    case 'replay.end': L(d.status === 'passed' ? 'c-green' : 'c-pink', `  replay ${d.status} · ${(d.durationMs/1000).toFixed(0)} s from zero`); break;
+    case 'artifact': L('c-dim', `  wrote ${d.path}`); break;
+    case 'passport': L('c-green', `  passport: ${d.verdict} · ${d.breaksFound} found · ${d.breaksFixed} fixed · replay ${d.replaySeconds} s · ${d.bobcoins} Bobcoins`); break;
+  }
+  return out;
+}
+
+// video time <-> run time through the speed pieces
+function runAt(v) {
+  let acc = 0;
+  for (const p of PIECES) { const len = (p.runTo - p.runFrom) / p.speed;
+    if (v <= acc + len) return { run: p.runFrom + (v - acc) * p.speed, speed: p.speed };
+    acc += len; }
+  const last = PIECES[PIECES.length - 1]; return { run: last.runTo, speed: last.speed, done: true };
+}
+function vidAt(r) {
+  let acc = 0;
+  for (const p of PIECES) { const len = (p.runTo - p.runFrom) / p.speed;
+    if (r <= p.runTo) return acc + Math.max(0, r - p.runFrom) / p.speed; acc += len; }
+  return acc;
+}
+
+window.setup = async (opts) => {
+  PIECES = opts.pieces;
+  const txt = await (await fetch(opts.src)).text();
+  EV = txt.trim().split('\n').map(l => JSON.parse(l));
+  T0 = Date.parse(EV[0].t);
+  const seenPlan = { v:false };
+  LINES = [];
+  for (const e of EV) { const r = (Date.parse(e.t) - T0) / 1000;
+    for (const l of linesFor(e, seenPlan)) LINES.push({ ...l, r, agent: e.agent, e }); }
+  const pass = EV.find(e => e.type === 'passport'); if (pass) document.getElementById('commit').textContent = pass.data.commit;
+  if (opts.foot) document.getElementById('foot').textContent = opts.foot;
+  return LINES.length;
+};
+
+window.renderAt = (v) => {
+  const { run, speed } = runAt(v);
+  const badge = document.getElementById('badge');
+  badge.textContent = speed === 1 ? 'RECORDED RUN · REAL TIME' : `RECORDED RUN · SPED UP ${speed}×`;
+  // lines already emitted; stagger lines of the same event so they type in, 40 ms of video apart
+  const shown = []; let lastVideo = -1, k = 0;
+  for (const l of LINES) { if (l.r > run) break;
+    const vt = vidAt(l.r); k = (vt === lastVideo) ? k + 1 : 0; lastVideo = vt;
+    if (vt + k * 0.04 <= v) shown.push(l); }
+  const term = document.getElementById('term');
+  term.innerHTML = shown.slice(-26).map(l => `<div class="${l.cls}">${esc(l.txt)}</div>`).join('') + '<div><span class="cursor">&nbsp;</span></div>';
+  const cur = shown.length ? shown[shown.length - 1].agent : null;
+  document.querySelectorAll('.agent').forEach(n => n.classList.toggle('on', n.dataset.a === cur));
+  const evs = EV.filter(e => (Date.parse(e.t) - T0) / 1000 <= run);
+  document.getElementById('found').textContent = evs.filter(e => e.type === 'diagnosis').length;
+  document.getElementById('fixed').textContent = new Set(evs.filter(e => e.type === 'evidence' && e.data.status === 'verified').map(e => e.data.id)).size;
+  const s = Math.floor(run); document.getElementById('clock').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  const done = evs.find(e => e.type === 'done'); const vd = document.getElementById('verdict');
+  if (done) { const p = done.data.passport; vd.style.display = 'block';
+    vd.innerHTML = `✔ ${esc(p.verdict)} · ${p.breaksFixed} of ${p.breaksFound} breaks fixed<small>replayed from zero in ${p.replaySeconds} s on ${esc(p.image)}, no package cache · out/FIRSTRUN.md · out/README.diff · Setup Passport</small>`; }
+  else vd.style.display = 'none';
+};
+</script>
+</body>
+</html>
