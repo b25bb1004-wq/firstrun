@@ -88,3 +88,24 @@ signatures, prompt-injection scanning) are later.
 3. Relabel honest partials (setup proven, a few upstream tests fail) and fix the serve-detection bug.
 4. HUMBLE MVP (console + robot + guide on GeekyAnts) and the security pre-flight MVP.
 5. Landing: switch numbers to the final audit; merge landing + numbers in one deploy.
+
+## 6. What they actually built (repo inspection of all 171, 27 Sep 08:00 IST)
+Method: every submission page's declared repo was inspected through the GitHub API (file tree, commits, languages).
+This measures **build substance**, not quality, UX or pitch; videos were not watched. (Demo/video/slide flags from the
+page template were unreliable and are ignored.)
+
+| Metric (170 public repos) | Median | 75th pct | 90th pct | Max | **HUMBLE** |
+|---|---|---|---|---|---|
+| Code files | 17 | 37 | 74 | 1618 | **146** |
+| Test files | 2 | 7 | 19 | 352 | **390** |
+| Commits | 8 | 16 | 35 | 374 | **193** |
+
+Only 103/170 have any tests, 24 Docker, 30 CI, 47 Bob custom modes, 95 bob_sessions, 21 MCP. HUMBLE has all six.
+On a simple substance score (code, tests, commits, Docker, CI, Bob modes/sessions) HUMBLE scores ~44; the top
+competitor scores 38 (PHANTOM GRID: 443 code files, 374 commits), then Adhera, ForgeFlow, TestGenAI, Cutover,
+Nightshift, CodeGuardian, ShipSafe, Proofline (#9). No onboarding competitor is in the top 10 except RepoDoc/Lawang
+Onboard around 11-14.
+
+**BLOCKER:** our repo (b25bb1004-wq/firstrun) is **private**; lablab requires a public repo. It also still has a
+token-shaped string in history (commit 21daab3, flagged by tools/check-secrets.sh) that must be purged before it goes
+public (issue #75).
