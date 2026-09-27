@@ -52,7 +52,8 @@ test('collections ABC aliases removed in 3.10: Python 3.9, whatever newer versio
 test('dependency drift (markupsafe, werkzeug, wtforms …): one general fix, install as of the commit date', () => {
   for (const log of ["ImportError: cannot import name 'soft_unicode' from 'markupsafe'", "ImportError: cannot import name 'url_quote' from 'werkzeug.urls'", "ImportError: cannot import name 'TextField' from 'wtforms'"]) {
     const r = rule('python-dependency-drift').test({ log, plan: py(), facts: pyFacts, step: { command: 'python app.py' }, tried: new Set() });
-    assert.match(r.fix.actions[0].command, /uv pip install --system --exclude-newer \d{4}-\d\d-\d\d -r requirements\.txt/);
+    assert.match(r.fix.actions[0].command, /uv pip install --system --no-build-isolation --exclude-newer \d{4}-\d\d-\d\d -r requirements\.txt/);
+    assert.match(r.fix.actions[0].command, /^pip install uv setuptools wheel && /, 'build tools stay current');
   }
   const own = rule('python-dependency-drift').test({ log: "ImportError: cannot import name 'x' from 'app'", plan: py(), facts: pyFacts, step: { command: 'python app.py' }, tried: new Set() });
   assert.equal(own, null, "the project's own module is not drift");
