@@ -83,6 +83,7 @@ ipcMain.on('dock:run', (_e, { agent, target }) => {
 ipcMain.on('dock:cancel', () => { dockBridge?.cancel(); dockBridge = null; });
 
 ipcMain.on('dock:open', (_e, { what, runDir }) => { openArtifact(what, runDir); });
+ipcMain.on('dock:console', (_e, { runDir }) => { openConsole(runDir); });
 
 ipcMain.on('dock:lens', () => openLens());
 ipcMain.on('dock:toggle', () => toggleDockPanel());
@@ -125,6 +126,22 @@ async function openLens() {
   } finally {
     busy = false;
   }
+}
+
+function openConsole(runDir) {
+  if (dockPanel && !dockPanel.isDestroyed()) {
+    dockPanel.webContents.send('dock:state', { what: 'console', runDir });
+  }
+  // Also open the console window
+  const consoleWindow = new BrowserWindow({
+    x: 100, y: 100, width: 380, height: 600, frame: false, resizable: false, movable: true,
+    minimizable: false, maximizable: false, skipTaskbar: true, alwaysOnTop: true,
+    webPreferences: dockWebPrefs(),
+  });
+  consoleWindow.setAlwaysOnTop(true, 'floating');
+  consoleWindow.setVisibleOnAllWorkspaces(true);
+  consoleWindow.loadFile(path.join(HERE, 'humble', 'console.html'), { query: { project: runDir || project } });
+  consoleWindow.on('closed', () => { consoleWindow = null; });
 }
 
 // The overlay sends the circled area; answer from proven fixes first, then offer Bob.

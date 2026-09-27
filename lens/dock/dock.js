@@ -328,6 +328,11 @@
     openDrawer('guide');
   });
 
+  const consoleBtn = document.getElementById('console-btn');
+  consoleBtn?.addEventListener('click', () => {
+    openConsole();
+  });
+
   function triggerSoloRun(agent, target) {
     const t = target || getTarget();
     bobPrompt.textContent = `I'm dispatching the ${agent} on ${t}…`;
@@ -347,6 +352,16 @@
   function openArtifact(what) {
     if (!callDockOpen(what, currentRunDir)) {
       bobPrompt.textContent = `Artifact: ${what} (run completed artifacts view)`;
+    }
+  }
+
+  function openConsole() {
+    if (window.dock?.open) {
+      window.dock.open('console', currentRunDir || getTarget());
+    } else {
+      bobPrompt.textContent = 'Opening HUMBLE Console…';
+      // Fallback: open console.html in a new Electron window would be handled by main process
+      console.log('Console button clicked - would open lens/humble/console.html');
     }
   }
 
