@@ -21,6 +21,14 @@
   --c-deep: #e0701c;
   --c-ink: #16181b;
 
+  /* Agent Cartridge Colors (§5) */
+  --agent-scout: #4589ff;
+  --agent-planner: #8a3ffc;
+  --agent-runner: #0072c3;
+  --agent-doctor: #fa4d56;
+  --agent-verifier: #1192e8;
+  --agent-scribe: #009d9a;
+
   /* Surface & Base System Tokens */
   --robot-bg: #efe7da;
   --robot-body: #ece5d8;

@@ -120,10 +120,9 @@ export class HumbleRobot {
   }
 
   /**
-   * Spec Section 5: CRT Boot Sequence (first open only)
-   * CRT flicker: opacity 0 -> 0.8 -> 0.2 -> 1 over 420ms (steps)
-   * 1px scanline sweeps top to bottom in 300ms
-   * Eyes open last with one blink
+   * Spec Section 5: IRIS-SHUTTER Boot Sequence (first open only)
+   * 5 blades open over 420ms (steps), while belly lantern warms from 0 to full glow.
+   * Lenses focus last with one iris blink (120ms).
    * @returns {Promise<void>}
    */
   async boot() {
@@ -135,26 +134,27 @@ export class HumbleRobot {
 
     this.el.classList.add('humble-robot-booting');
     
-    // Add sweep scanline
-    const scanline = document.createElement('div');
-    scanline.className = 'humble-robot-scanline';
-    this.el.appendChild(scanline);
+    // Lantern warm-up 0 to full glow over 420ms
+    const lantern = this.el.querySelector('path[fill*="lantern"], circle[filter*="blur"]');
+    if (lantern && lantern.animate) {
+      lantern.animate([
+        { opacity: 0.1, filter: 'brightness(0.2)' },
+        { opacity: 0.4, filter: 'brightness(0.6)' },
+        { opacity: 1, filter: 'brightness(1)' }
+      ], { duration: 420, easing: 'steps(5)' });
+    }
 
-    // 420ms boot sequence
-    await new Promise(r => setTimeout(r, 300));
-    scanline.remove();
-
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 420));
     this.el.classList.remove('humble-robot-booting');
 
-    // Eyes open last with one blink, transition to talk/think
+    // Lenses focus last with one iris blink (120ms)
     this.blink();
     this.setState('talk');
   }
 
   /**
    * Spec Section 5: Idle Life
-   * Random blinks every 3-6s
+   * Random iris close/open blinks every 3-6s (120ms)
    */
   startIdleLife() {
     const scheduleNextBlink = () => {
@@ -175,7 +175,7 @@ export class HumbleRobot {
   }
 
   /**
-   * Blink animation on the eye lenses
+   * Quick iris blink (120ms)
    */
   blink() {
     const eyes = this.el.querySelectorAll('circle[cx="83"], circle[cx="117"], path[d*="77 Q83"]');
@@ -183,12 +183,12 @@ export class HumbleRobot {
       eye.classList.remove('hb-eye-blink');
       void eye.offsetWidth; // trigger reflow
       eye.classList.add('hb-eye-blink');
-      setTimeout(() => eye.classList.remove('hb-eye-blink'), 200);
+      setTimeout(() => eye.classList.remove('hb-eye-blink'), 120);
     });
   }
 
   /**
-   * Spec Section 5: Eyes dart toward new terminal line (150ms)
+   * Spec Section 5: Visor lenses swivel toward new terminal line (150ms)
    * @param {number} [offsetY=0]
    */
   dartEyes(offsetY = 0) {
@@ -204,17 +204,22 @@ export class HumbleRobot {
   }
 
   /**
-   * Signature move: Telescoping Eyestalk Peek
+   * Spec Section 5: Signature Peek Move
+   * Eyestalk telescopes up and leans toward something new: 280ms out, 200ms back.
+   * @returns {Promise<void>}
    */
-  peek() {
+  async peek() {
     this.setState('think');
-    const head = this.el.querySelector('.bot-head-think, .hb-head, .bot-sleep-float');
+    const head = this.el.querySelector('.bot-head-think, .hb-head, .bot-sleep-float, .bot-point-float');
     if (head && head.animate) {
-      head.animate([
-        { transform: 'translateY(0)' },
-        { transform: 'translateY(-14px) scaleY(1.08)' },
-        { transform: 'translateY(0)' }
-      ], { duration: 600, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+      await head.animate([
+        { transform: 'translateY(0) scaleY(1)' },
+        { transform: 'translateY(-16px) scaleY(1.12)' },
+        { transform: 'translateY(0) scaleY(1)' }
+      ], {
+        duration: 480, // 280ms out, 200ms back
+        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+      }).finished;
     }
   }
 
@@ -245,13 +250,29 @@ export class HumbleRobot {
   }
 
   /**
-   * Set active agent cartridge color
+   * Set active agent cartridge color (§5)
+   * The backpack cartridge for the active agent glows when that agent's line prints.
    * @param {string} agentName - 'harvey' | 'unity' | 'mach' | 'drbo' | 'larp' | 'echo' | 'vigil'
    */
   setAgent(agentName) {
     this.agent = agentName.toLowerCase();
     const color = AGENT_COLORS[this.agent] || AGENT_COLORS.default;
     this.setAntennaColor(color);
+
+    // Highlight specific cartridge on backpack
+    const cartridges = this.el.querySelectorAll('rect[width="7"][height="12"]');
+    const agentMap = { harvey: 0, unity: 1, mach: 2, drbo: 3, larp: 4, echo: 5 };
+    const targetIdx = agentMap[this.agent];
+
+    cartridges.forEach((c, idx) => {
+      if (idx === targetIdx) {
+        c.style.opacity = '1';
+        c.style.filter = `drop-shadow(0 0 6px ${color})`;
+      } else {
+        c.style.opacity = '0.4';
+        c.style.filter = 'none';
+      }
+    });
   }
 
   /**
