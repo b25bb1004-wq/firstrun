@@ -237,3 +237,21 @@ Rules for all of them: evidence first (every claim links to a log line, snapshot
 
 Acceptance (debugger concepts): D1 keyboard shortcuts work and pause-on-failure stops before the next step; D2 fingerprint test on real audit failures (two different repos with the same root cause hash equal; different causes differ); D3 ddmin unit test with a fake sandbox runner (4 differences, 1 culprit found in ≤ 6 runs); D5 rewind only uses recorded undo steps; D6 strace summariser tested on a recorded strace log.
 
+## 16. One engine: the debugger and the guard run on the Bob engine (Arnav's direction)
+
+The debugger (13, 15) and the security guard (14) are not separate tools: they are two **AI-assisted modes of the same engine** that already plans, diagnoses and reviews in HUMBLE (`src/brain/`: `askBob`, Bob custom modes in `modes.js`, rules first). The console is the face; the Bob engine is the brain.
+
+**Engine contract (same for both modes):**
+1. **Deterministic layer first** (free, instant, offline): doctor rules, fingerprint (D2), guard rules (14), syscall summary (D6). If it is sure, it answers and says `rules`.
+2. **Bob layer** for anything the rules are not sure about: one `askBob` call with a dedicated mode, the redacted evidence pack, and a hard `maxCost`. Bob's answer must be JSON (use `extractJson`) and must cite the evidence line ids it used; an answer without citations is discarded.
+3. **Verification layer**: nothing Bob says is trusted until it is checked: a Bob fix is re-run and the original checker must pass (debugger); a Bob security verdict can only make a command STRICTER (ok → warn → block), never looser than the rules (guard). Same principle as the plan review: Bob can hide or stop, never smuggle in.
+4. **Attribution on screen**: every line shows who decided: `[rules]`, `[BOB]` in `--c-bob`, `[verified]` in `--c-ok`. The spend is shown: `Bob · 0.14 Bobcoins`.
+
+**New Bob modes** (add to `src/brain/modes.js`, installed like the others):
+- `firstrun-debugger` "🐞 HUMBLE Debugger": input = breadcrumbs, redacted capture, host-vs-proof diff, fingerprint matches, syscall summary, the step's proven command and checker. Output JSON: `{ cause, evidence: [ids], fix: { command, why, checker, undo }, confidence }`. Must not propose commands outside the repo; the proposed fix goes through the guard like any step.
+- `firstrun-security` "🛡️ HUMBLE Security": input = the command, cwd, the guard's rule result, the proven run's commands and domains. Output JSON: `{ verdict: ok|warn|block, reason, evidence: [ids] }`. Called only when the rules return `warn` or the command is not in the proven run; cheap (`maxCost` 0.05). The final verdict is the STRICTER of rules and Bob.
+
+**Budgets and fallback:** default session cap 0.5 Bobcoins, per-call caps above, shown before the call (`ask Bob · ≤ 0.2`). No Bob configured or cap reached → rules-only mode with a visible `rules only` chip; nothing breaks. Tests use a fake `askBob` (injectable), never real coins; one real Bob call per mode is recorded for the demo only with Arnav's go-ahead from Karmanya's coins.
+
+**Pitch line:** "One engine. It plans your setup, proves it, debugs it on your machine, and guards every command, with IBM Bob as the brain and a rules engine as the seatbelt."
+
