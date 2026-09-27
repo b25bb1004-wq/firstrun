@@ -486,6 +486,26 @@
     </div>
   </section>
 
+  <section class="wrap" id="honest-stops" aria-labelledby="h-stops">
+    <h2 id="h-stops" data-reveal>When HUMBLE stops, it tells you exactly why.</h2>
+    <p class="sub" data-reveal>No silent failures. Every stop becomes a clear next step, and every stop makes the next run smarter.</p>
+    <div class="stops" data-reveal>
+      <div class="stop"><b>Written down, line by line</b><p>The exact README line, the command, the error and every fix it tried, in the run's report.</p></div>
+      <div class="stop"><b>It asks only for what you hold</b><p>An API key, a paid service, a login. 12 of 31 repos are fixed up to that one step and wait on you.</p></div>
+      <div class="stop"><b>Every stop trains a rule</b><p>Today's stops are tomorrow's automatic fixes. IBM Bob's fixes already became free rules.</p></div>
+    </div>
+    <p class="stops-ex mono" data-reveal><span class="prove-tag">[recorded run]</span> maitraysuthar/rest-api-nodejs-mongodb: bcrypt and the MongoDB placeholder fixed, 1 step left for you · sahat/hackathon-starter: MongoDB started for you, 4 steps flagged for the maintainer with the failing line.</p>
+  </section>
+
+  <style>
+    #honest-stops .stops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:28px}
+    #honest-stops .stop{border:1px solid var(--line,rgba(0,0,0,.12));border-radius:8px;padding:20px 22px}
+    #honest-stops .stop b{display:block;font-size:1.05rem;margin-bottom:6px}
+    #honest-stops .stop p{margin:0;opacity:.8;line-height:1.55}
+    #honest-stops .stops-ex{margin-top:18px;font-size:.85rem;opacity:.75;line-height:1.6}
+    @media (max-width:720px){#honest-stops .stops{grid-template-columns:1fr}}
+  </style>
+
   <section class="wrap" id="try" aria-labelledby="h-try">
     <h2 id="h-try" data-reveal>Check a README</h2>
     <p class="sub" data-reveal>Paste a public GitHub repo. In a few seconds HUMBLE shows where its docs and its code disagree, without running anything.</p>
