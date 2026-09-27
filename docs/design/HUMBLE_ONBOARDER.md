@@ -31,7 +31,8 @@ work, and every fix has evidence behind it.
 
 ## 2. Principles
 
-1. **Proven before shown.** HUMBLE only teaches or applies steps Larp has replayed from zero. Nothing is guessed live.
+1. **Solve first, alone; then teach.** HUMBLE completes the whole setup in isolation before the user sees a single
+   step, and only teaches or applies steps Larp has replayed from zero. It never works it out in parallel with the user.
 2. **Never act without consent.** Every command is shown before it runs. Secrets are never typed by the robot.
 3. **Point, don't describe.** "Click here" with the robot standing next to the button beats a paragraph of text.
 4. **Check every step.** A step is done when HUMBLE has *seen* it succeed (exit code, file, port, page), not when
@@ -67,16 +68,25 @@ work, and every fix has evidence behind it.
 - Opens with a click or a hotkey (Ctrl/⌘ + Shift + H). It detects the current repo from the focused VS Code / Bob IDE
   window, the terminal's working directory, or asks.
 
-### 3.2 The background run
+### 3.2 Phase 1: HUMBLE does the whole job first, alone, in isolation
+**HUMBLE never works in parallel with the user.** Before the user is shown a single step, HUMBLE completes the entire
+setup by itself on an isolated clean machine (Docker), hits every error there, solves it, and proves the solution by
+throwing the machine away and replaying the finished guide from zero. The user only ever meets a guide that is
+already **complete and proven**.
 - Uses the existing engine (`firstrun verify`) through the Lens bridge (`lens/dock-bridge.js`), streaming
-  `events.ndjson`. Every engine event maps to a robot state and a console line (section 5.3).
-- Two things are checked, not one:
-  1. **The clean machine** (Docker): does the README work from zero, and what fixes it? (what the engine does today)
-  2. **The user's machine** (read-only probe): which tools, versions, services and ports the user already has.
-     `node -v`, `python --version`, `docker info`, free ports, existing `.env`. Nothing is installed or changed here.
-- The **gap** between "what the proven guide needs" and "what your machine has" becomes the personalised plan.
+  `events.ndjson`. Every engine event maps to a robot state and a console line (section 5.3), so the user can watch
+  HUMBLE work if they want, or leave it running.
+- The isolated run ends one of two ways:
+  1. **Solved:** every step passes from zero. HUMBLE moves to the report and the two choices.
+  2. **Not solved:** a step HUMBLE could not fix in isolation (after the rules and IBM Bob). HUMBLE does **not** start
+     a half-finished guide. It says exactly what is left and why (with the log), and offers only the solved part, clearly
+     marked, or hands the open problem to a human.
+- Also before any step is shown: a **read-only snapshot of the user's machine** (tool versions, running services,
+  free ports, existing `.env`), taken once. Nothing is installed or changed. The proven guide is then fitted to it:
+  steps the user already satisfies are marked "you already have this". This comparison happens up front, not during
+  the walkthrough.
 
-### 3.3 The report
+### 3.3 Phase 2: the report (only after Phase 1 is complete)
 One short paragraph, plain words, then the two big choices. Example:
 
 > I ran this repo's setup on a clean machine. 4 steps broke; I fixed all 4 and proved it from zero in 1m53s.
@@ -101,15 +111,18 @@ One short paragraph, plain words, then the two big choices. Example:
 This is the heart of it: a learner-friendly, interactive walkthrough on the user's real screen.
 - The robot **walks** from the corner to where the action is (the terminal, a file in the editor, the browser),
   **points** at the exact spot, and says one or two sentences.
-- The user does the step. HUMBLE **watches for success** (terminal output, file saved, port open, page responds) and
-  only then celebrates briefly and walks to the next step.
+- The user does the step themselves. HUMBLE is not solving anything now: the answer is already known and proven.
+  It only **confirms the step landed** (terminal output, file saved, port open, page responds) using the same check the
+  isolated replay used, then celebrates briefly and walks to the next step.
 - Each step has three levels of help: **Hint** (where), **Show** (the exact text, copy button), **Do it** (fall back to
   Autopilot for just this step).
 - **Why?** button on every step: the evidence from the clean-machine run ("on a clean machine `npm install` failed
   with ERESOLVE; `--legacy-peer-deps` fixes it; here is the log").
-- **When the user's step fails** (a different error than expected), Lens reads the error on screen (OCR). A known
-  failure gets its proven fix instantly; an unknown one goes to DR.BO (rules, then IBM Bob). This is the bridge to the
-  future debugging feature.
+- **If the user's step doesn't land**, it is almost always a difference between the user's machine and the proven one
+  (a typo, a missing tool the snapshot flagged, a busy port). HUMBLE points at the difference and shows the proven
+  command again; it does not improvise new fixes mid-walkthrough. If something truly new appears, HUMBLE pauses the
+  guide, goes back to isolation to solve it there first (Phase 1 again, for that step), and only returns with a proven
+  answer. Live diagnosis on the user's screen is the separate, later debugging feature (with Lens).
 - **Adapts to the learner:** "I'm new to this" (explains terms: what a port is, what `.env` does) vs "I know what I'm
   doing" (short, faster, fewer stops).
 - **Progress** is saved: close the window mid-way, and HUMBLE resumes at the same step.
