@@ -1,0 +1,45 @@
+{
+  "id": "E3",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 3,
+    "command": "poetry install",
+    "exitCode": 1,
+    "durationMs": 12542,
+    "logTail": "        License :: OSI Approved :: Apache Software License\n\n        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.\n        ********************************************************************************\n\n!!\n  self._finalize_license_expression()\n/tmp/tmpje1oonlv/.venv/lib/python3.11/site-packages/setuptools/_distutils/dist.py:318: BuildBackendWarning: Unknown distribution option: 'tests_require'\n  warnings.warn(msg)\n/tmp/tmpje1oonlv/.venv/lib/python3.11/site-packages/setuptools/dist.py:765: BuildBackendWarning: License classifiers are deprecated.\n!!\n\n        ********************************************************************************\n        Please consider removing the following classifiers in favor of a SPDX license expression:\n\n        License :: OSI Approved :: Apache Software License\n\n        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.\n        ********************************************************************************\n\n!!\n  self._finalize_license_expression()\n/tmp/tmp1q9g7bcz/.venv/lib/python3.11/site-packages/setuptools/_distutils/dist.py:318: BuildBackendWarning: Unknown distribution option: 'tests_require'\n  warnings.warn(msg)\n/tmp/tmp1q9g7bcz/.venv/lib/python3.11/site-packages/setuptools/dist.py:765: BuildBackendWarning: License classifiers are deprecated.\n!!\n\n        ********************************************************************************\n        Please consider removing the following classifiers in favor of a SPDX license expression:\n\n        License :: OSI Approved :: Apache Software License\n\n        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.\n        ********************************************************************************\n\n!!\n  self._finalize_license_expression()\n/tmp/tmpje1oonlv/.venv/lib/python3.11/site-packages/setuptools/_distutils/dist.py:318: BuildBackendWarning: Unknown distribution option: 'tests_require'\n  warnings.warn(msg)\n/tmp/tmpje1oonlv/.venv/lib/python3.11/site-packages/setuptools/dist.py:765: BuildBackendWarning: License classifiers are deprecated.\n!!\n\n        ********************************************************************************\n        Please consider removing the following classifiers in favor of a SPDX license expression:\n\n        License :: OSI Approved :: Apache Software License\n\n        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.\n        ********************************************************************************\n\n!!\n  self._finalize_license_expression()\nInstalling /root/.cache/pypoetry/virtualenvs/fastapi-boilerplate-xS3fZVNL-py3.11/lib/python3.11/site-packages/tests/__init__.py over existing file\n\nInstalling the current project: fastapi-boilerplate (0.2.0)\n\nError: The current project could not be installed: No file/folder found for package fastapi-boilerplate\nIf you do not want to install the current project use --no-root.\nIf you want to use Poetry only for dependency management but not for packaging, you can disable package mode by setting package-mode = false in your pyproject.toml file.\nIf you did intend to install the current project, you may need to set `packages` in your pyproject.toml file.",
+    "logFile": "logs/S2-3.log"
+  },
+  "diagnosis": {
+    "class": "missing-dependency",
+    "cause": "The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.",
+    "by": "rules",
+    "ruleId": "poetry-no-root",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "poetry install --no-root"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "poetry install --no-root"
+    },
+    "log": "step command → poetry install --no-root"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 4,
+    "command": "poetry install --no-root",
+    "exitCode": 0,
+    "durationMs": 1420,
+    "logTail": "Installing dependencies from lock file\n\nNo dependencies to install or update",
+    "logFile": "logs/S2-4.log"
+  },
+  "status": "verified",
+  "at": "2026-09-26T23:01:55.133Z"
+}

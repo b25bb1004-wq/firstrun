@@ -1,0 +1,53 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:00:39.859Z",
+  "commit": "d731e5cef4",
+  "image": "node:16",
+  "runtime": {
+    "name": "node",
+    "version": "16",
+    "source": "README.md:60 (\"node version 16\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "docker-compose up",
+      "kind": "services"
+    },
+    {
+      "id": "R1",
+      "command": "npm install --no-save jest@27",
+      "kind": "install",
+      "origin": "repair"
+    },
+    {
+      "id": "R2",
+      "command": "export NODE_ENV=development",
+      "kind": "env",
+      "origin": "repair"
+    },
+    {
+      "id": "S3",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "sh: 1: jest: not found",
+      "cause": "The test script runs `jest`, but jest is not in package.json, so installing the project never installs it. It only works on machines that already have it.",
+      "fix": "npm install --save-dev jest@27",
+      "evidence": "E1"
+    },
+    {
+      "signature": "Test Suites: 5 failed, 1 passed, 6 total",
+      "cause": "The app only accepts NODE_ENV = production | integration | development, but this step runs with another value (Jest sets NODE_ENV=test, and the config rejects that); the docs never say to set it.",
+      "fix": "export NODE_ENV=development",
+      "evidence": "E2"
+    }
+  ]
+}

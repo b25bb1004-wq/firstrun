@@ -1,0 +1,12 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -164,6 +164,8 @@ the general Koa guide.
+ 
+ ## Running tests
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `824c1cf8de`: clone to running in 14s.
++
+ ```
+ $ npm test
+ ```
