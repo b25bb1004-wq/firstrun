@@ -135,6 +135,11 @@ export function translate(step, hostOs, { repoRoot = process.cwd() } = {}) {
   const translated = pieces.map((piece) => translateSegment(piece, hostOs, repoRoot));
   const manualPart = translated.find((item) => item.manual);
   if (manualPart) return manual(original, hostOs, manualPart.reason, manualPart.hint, manualPart.needsWsl ? 'needs-wsl' : 'manual');
+  // Nothing needed translating (npm install, git clone, docker compose up): the same command runs here, so it is
+  // not a platform gap. It was still proven on Linux, which the text says.
+  if (pieces.length === 1 && translated[0].command === pieces[0]) {
+    return { status: 'unchanged', hostOs, original, proven: { os: 'linux', command: original }, command: original, commands: [...pieces], text: `Same command on ${hostOs}; proven on Linux.` };
+  }
   return {
     status: 'translated', hostOs, original, proven: { os: 'linux', command: original },
     command: translated.map((item) => item.command).join('\n'),

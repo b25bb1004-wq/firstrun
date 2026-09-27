@@ -38,7 +38,7 @@ test('Windows translations are labeled as unproven and retain the Linux command'
   ];
   for (const [command, expected] of rows) {
     const result = translate({ id: 'S1', do: { command } }, 'win32', { repoRoot: root });
-    assert.equal(result.status, 'translated', command);
+    assert.equal(result.status, command === expected ? 'unchanged' : 'translated', command); // identical command: not a platform gap
     assert.equal(result.original, command);
     assert.equal(result.proven.command, command);
     assert.equal(result.command, expected, command);
@@ -81,7 +81,7 @@ test('macOS adds BSD sed syntax and gives Homebrew alternatives for Linux packag
   ];
   for (const [command, expected] of rows) {
     const result = translate({ do: { command } }, 'darwin', { repoRoot: root });
-    assert.equal(result.status, 'translated');
+    assert.equal(result.status, command === expected ? 'unchanged' : 'translated'); // an identical command is not a platform gap
     assert.equal(result.command, expected);
     assert.equal(result.proven.command, command);
   }

@@ -200,7 +200,10 @@ function buildPlatformGaps(steps, hostProbe) {
 function buildSummary(guide, satisfied, missingCount, gapsCount, missingTools, warnings) {
   const parts = [];
 
-  parts.push(`I set this repo up on a clean machine, fixed what broke and proved it from zero in ${guide.provenOn.replaySeconds}s.`);
+  // Say what actually happened: breaks fixed or not, and the replay time only when the run recorded one.
+  const fixed = (guide.steps || []).filter((s) => s.why?.evidenceId).length;
+  const secs = guide.provenOn?.replaySeconds;
+  parts.push(`I set this repo up on a clean machine${fixed ? `, fixed ${fixed} step${fixed === 1 ? '' : 's'} that broke` : '; it worked as written'} and proved it from zero${secs != null ? ` in ${secs}s` : ''}.`);
   parts.push(`Proven for you: ${guide.steps.length} steps (${satisfied} already done on your machine).`);
 
   if (missingCount > 0) {

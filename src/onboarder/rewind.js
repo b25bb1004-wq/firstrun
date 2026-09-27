@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -211,6 +212,13 @@ export async function undoStep(stepId, guardCheck) {
       case 'none':
         success = true; // Nothing to do
         break;
+      case 'created-only':
+        // The removal itself is removeCreationsForStep below: only what this step recorded creating.
+        success = true;
+        break;
+      case 'stop-started':
+        success = stopStartedProcess(undo.pid);
+        break;
       default:
         error = `Unknown undo type: ${undo.type}`;
     }
@@ -417,4 +425,13 @@ export async function getAppliedSteps() {
  */
 export async function clearOnboardState() {
   await fs.rm(STATE_DIR, { recursive: true, force: true });
+}
+/** Stop the server process the guide started (its pid was recorded with the step), whole tree on Windows. */
+function stopStartedProcess(pid) {
+  if (!pid) return true; // nothing was started in this session
+  try {
+    if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+    else process.kill(pid, 'SIGTERM');
+  } catch { /* already gone */ }
+  return true;
 }

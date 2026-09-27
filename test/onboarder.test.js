@@ -75,7 +75,7 @@ test('buildGuide: each step has proper check, undo, timeoutMs', () => {
       `step ${step.id} check.type must be valid, got ${step.check.type}`);
 
     // Undo has valid type
-    assert.ok(['run', 'restore-file', 'none'].includes(step.undo.type),
+    assert.ok(['run', 'restore-file', 'none', 'created-only', 'stop-started'].includes(step.undo.type),
       `step ${step.id} undo.type must be valid, got ${step.undo.type}`);
 
     // TimeoutMs is reasonable
@@ -95,9 +95,10 @@ test('buildGuide: S3 (npm install) has correct fields', () => {
   assert.ok(s3, 'S3 must exist');
   assert.equal(s3.kind, 'install');
   assert.ok(s3.do.command.includes('npm install'), 'S3 command should be npm install');
-  assert.equal(s3.check.type, 'file-has', 'S3 check should be file-has for package.json');
-  assert.equal(s3.undo.type, 'run', 'S3 undo should be run');
-  assert.ok(s3.undo.command.includes('rm -rf node_modules'), 'S3 undo should remove node_modules');
+  assert.equal(s3.check.type, 'file-has', 'S3 check: a marker npm writes only after installing');
+  assert.equal(s3.check.file, 'node_modules/.package-lock.json');
+  assert.equal(s3.undo.type, 'created-only', 'S3 undo removes only what the step created');
+  assert.ok(!JSON.stringify(s3.undo).includes('package-lock'), 'S3 undo must never touch the lockfile');
 });
 
 test('buildGuide: S4 (env) has correct fields', () => {

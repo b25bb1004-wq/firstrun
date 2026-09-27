@@ -9,6 +9,8 @@ import { buildReport } from './report.js';
 import { runManualChecker } from './manual-checker.js';
 import { runEnvWizard } from './env-wizard.js';
 import { sessionEnvironment } from './platform.js';
+import { recordAppliedStep, recordNodeModules } from './rewind.js';
+import net from 'node:net';
 
 /**
  * HUMBLE onboarder MVP CLI
@@ -112,7 +114,7 @@ export async function onboard(args) {
       const statusIcon = status === 'satisfied' ? green('✓') : status === 'needs-human' ? yellow('!') : status === 'gap' ? yellow('⚠') : dim('○');
       console.log(`  ${statusIcon} ${i + 1}. ${step.title} (${step.id})`);
       console.log(`     ${dim('Command:')} ${stepReportCommand(step, report.steps[i])}`);
-      console.log(`     ${dim('Check:')} ${JSON.stringify(stepReport?.manual?.checker || step.check)}`);
+      console.log(`     ${dim('Check:')} ${JSON.stringify(report.steps[i]?.manual?.checker || step.check)}`);
       console.log(`     ${dim('Timeout:')} ${step.timeoutMs}ms`);
       console.log(`     ${dim('Undo:')} ${JSON.stringify(step.undo)}`);
       console.log(`     ${dim('Status:')} ${status}`);
@@ -142,6 +144,7 @@ async function runGuide(guide, report) {
 
   let rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const shell = process.platform === 'win32' ? 'powershell.exe' : '/bin/bash';
+  const servers = [];
   const sessionEnv = {};
 
   try {
@@ -222,12 +225,38 @@ async function runGuide(guide, report) {
       // Run the step
       console.log(dim('   Running...'));
       Object.assign(sessionEnv, sessionEnvironment(step, process.platform, { repoRoot: process.cwd(), baseEnv: { ...process.env, ...sessionEnv } }));
-      const result = await runStep(shell, step, process.cwd(), stepReport?.translatedCommand, sessionEnv);
+      // A server never exits: start it in the background and wait for the URL the proof checked.
+      if (step.kind === 'serve') {
+        const srv = startServer(shell, stepReport?.translatedCommand ?? step.do?.command, process.cwd(), sessionEnv);
+        const up = await waitForHttp(step.check?.url, step.timeoutMs || 150000, srv);
+        if (up.ok) {
+          servers.push(srv);
+          await recordAppliedStep(step.id, step.kind, { ...step.undo, pid: srv.child.pid });
+          console.log(`   ${green('✓ running')} ${dim(`${step.check.url} answered ${up.status}`)}\n`);
+          continue;
+        }
+        stopProcess(srv.child);
+        console.log(`   ${red('✗ not answering')} ${dim(up.message)}`);
+        console.log(dim('   Last output:'));
+        console.log(srv.output().split('\n').slice(-6).map(l => '     ' + l).join('\n'));
+        const again = (await rl.question(dim('   retry (r), continue (c), or quit (q)? '))).trim().toLowerCase();
+        if (again === 'q') return 1;
+        if (again === 'r') i--;
+        continue;
+      }
 
-      if (result.code === 0) {
-        console.log(`   ${green('✓ done')}\n`);
+      const nodeModules = path.join(process.cwd(), 'node_modules');
+      const hadNodeModules = fs.existsSync(nodeModules);
+      const result = await runStep(shell, step, process.cwd(), stepReport?.translatedCommand, sessionEnv);
+      // ✓ only when the command exited 0 AND the step's own check passes on this machine.
+      const check = result.code === 0 ? await runStepCheck(step.check, process.cwd(), result.code) : { passed: false, message: `exit ${result.code}` };
+
+      if (result.code === 0 && check.passed) {
+        if (step.kind === 'install' && !hadNodeModules && fs.existsSync(nodeModules)) await recordNodeModules(nodeModules, step.id);
+        await recordAppliedStep(step.id, step.kind, step.undo);
+        console.log(`   ${green('✓ done')} ${dim(check.message)}\n`);
       } else {
-        console.log(`   ${red('✗ exit ' + result.code)}`);
+        console.log(`   ${red(result.code === 0 ? '✗ check failed: ' + check.message : '✗ exit ' + result.code)}`);
         console.log(dim('   Last output:'));
         console.log(result.output.split('\n').slice(-6).map(l => '     ' + l).join('\n'));
         console.log();
@@ -246,13 +275,14 @@ async function runGuide(guide, report) {
     console.log(bold('Final verification...'));
     const doneResult = await runDoneCheck(guide.done, process.cwd());
     if (doneResult.success) {
-      console.log(green(bold('You are set up. Welcome aboard.')));
+      console.log(green(bold('You are set up. Welcome aboard.')), dim(doneResult.message));
     } else {
       console.log(red('Verification failed:'), doneResult.message);
     }
-
+    if (servers.length) await rl.question(dim('   The app is running. Press Enter to stop it and exit. '));
     return doneResult.success ? 0 : 1;
   } finally {
+    for (const srv of servers) stopProcess(srv.child);
     rl.close();
   }
 }
@@ -332,3 +362,71 @@ async function runDoneCheck(done, cwd) {
 }
 
 import { spawn } from 'node:child_process';
+
+// ── step checks and background servers ──────────────────────────────────────────────────────────────────────
+// ✓ only on evidence from this machine: the step's own check, run after the command.
+async function runStepCheck(check, cwd, code) {
+  if (!check || check.type === 'exit') {
+    const want = check?.code ?? 0;
+    return code === want ? { passed: true, message: `exit ${code}` } : { passed: false, message: `exit ${code}` };
+  }
+  if (check.type === 'file-has') {
+    const f = path.join(cwd, check.file);
+    if (!fs.existsSync(f)) return { passed: false, message: `${check.file} was not created` };
+    return new RegExp(check.pattern, 'm').test(fs.readFileSync(f, 'utf8'))
+      ? { passed: true, message: `${check.file} is there` }
+      : { passed: false, message: `${check.file} does not contain ${check.pattern}` };
+  }
+  if (check.type === 'http') {
+    const r = await waitForHttp(check.url, 10000);
+    return { passed: r.ok, message: r.ok ? `${check.url} answered ${r.status}` : r.message };
+  }
+  if (check.type === 'port') {
+    const ports = (check.ports || []).map(Number).filter(Boolean);
+    const open = await Promise.all(ports.map((p) => new Promise((res) => {
+      const c = net.connect(p, '127.0.0.1');
+      c.once('connect', () => { c.destroy(); res(true); });
+      c.once('error', () => res(false));
+    })));
+    const closed = ports.filter((_, i) => !open[i]);
+    return closed.length ? { passed: false, message: `nothing listening on ${closed.join(', ')}` } : { passed: true, message: `listening on ${ports.join(', ')}` };
+  }
+  return { passed: false, message: `unknown check type ${check.type}` };
+}
+
+// Poll a URL until it answers 200 (or the server exits, or time runs out).
+async function waitForHttp(url, timeoutMs, srv) {
+  if (!url) return { ok: false, message: 'no URL to check' };
+  const until = Date.now() + timeoutMs;
+  let last = 'no answer yet';
+  while (Date.now() < until) {
+    if (srv?.exited()) return { ok: false, message: `the server exited (code ${srv.exited().code}) before answering` };
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (r.status === 200) return { ok: true, status: r.status };
+      last = `HTTP ${r.status}`;
+    } catch (e) {
+      last = e.cause?.code || e.message;
+    }
+    await new Promise((res) => setTimeout(res, 1500));
+  }
+  return { ok: false, message: `${url} did not answer within ${Math.round(timeoutMs / 1000)}s (${last})` };
+}
+
+function startServer(shell, command, cwd, sessionEnv) {
+  const args = process.platform === 'win32' ? ['-NoProfile', '-NonInteractive', '-Command', command] : ['-c', command];
+  const child = spawn(shell, args, { cwd, env: { ...process.env, ...sessionEnv, BROWSER: 'none' }, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  let out = '';
+  let exit = null;
+  child.stdout.on('data', (d) => { out += d; });
+  child.stderr.on('data', (d) => { out += d; });
+  child.on('exit', (code) => { exit = { code }; });
+  return { child, output: () => out, exited: () => exit };
+}
+
+function stopProcess(child) {
+  if (!child || child.exitCode !== null) return;
+  // A shell's children (node, webpack) outlive child.kill() on Windows: take down the whole tree.
+  if (process.platform === 'win32') spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+  else child.kill('SIGTERM');
+}

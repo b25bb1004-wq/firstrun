@@ -43,7 +43,11 @@ export function buildGuide(runDir) {
     : 'PARTIAL';
 
   // Get replay seconds from run or estimate
-  const replaySeconds = run.durationMs ? Math.round(run.durationMs / 1000) : 0;
+  // The proof's replay time: run.replay.durationMs (engine v2), else the passport; never a made-up 0.
+  const passportFile = path.join(runDir, 'out', 'passport.json');
+  const passport = run.passport || (fs.existsSync(passportFile) ? JSON.parse(fs.readFileSync(passportFile, 'utf8')) : null);
+  const replaySeconds = run.replay?.durationMs ? Math.round(run.replay.durationMs / 1000)
+    : passport?.replaySeconds ?? (run.durationMs ? Math.round(run.durationMs / 1000) : null);
 
   // Filter to only steps that were proven (passed on first try, or repaired with verified evidence)
   const provenSteps = plan.steps.filter(step => {
@@ -62,11 +66,11 @@ export function buildGuide(runDir) {
     const lastEvidence = verifiedEvidence[verifiedEvidence.length - 1];
 
     // Determine check type based on step kind and evidence
-    const check = buildCheck(step, lastEvidence, evidenceByStep, runDir);
+    const check = buildCheck(step, lastEvidence, evidenceByStep, runDir, plan.verify);
     const undo = buildUndo(step, lastEvidence);
     const timeoutMs = getTimeoutMs(step.kind);
     const platform = getPlatform(step);
-    const why = buildWhy(step, lastEvidence);
+    const why = buildWhy(step, lastEvidence, plan);
     const alreadySatisfiedIf = buildAlreadySatisfiedIf(step, lastEvidence);
 
     return {
@@ -125,14 +129,11 @@ export function buildGuide(runDir) {
   return guide;
 }
 
-function buildCheck(step, evidence, evidenceByStep, runDir) {
-  // For serve steps, use http check
+function buildCheck(step, evidence, evidenceByStep, runDir, verify) {
+  // Serve steps: the URL the proof itself checked (plan.verify), never an invented /health.
   if (step.kind === 'serve' && step.serve?.port) {
-    return {
-      type: 'http',
-      url: `http://127.0.0.1:${step.serve.port}/health`,
-      expect: 200
-    };
+    const proven = verify?.kind === 'http' && verify.target.includes(`:${step.serve.port}`) ? verify.target : `http://127.0.0.1:${step.serve.port}/`;
+    return { type: 'http', url: proven, expect: 200 };
   }
 
   // For services, check port and protocol
@@ -152,8 +153,14 @@ function buildCheck(step, evidence, evidenceByStep, runDir) {
   }
 
   // For install, check exit or file-has (node_modules)
+  // Install: a marker the package manager writes only after a successful install (package.json already has
+  // "dependencies" before anything runs, so it proved nothing).
   if (step.kind === 'install') {
-    return { type: 'file-has', file: 'package.json', pattern: '"dependencies"' };
+    const cmd = String(evidence?.after?.command || step.command);
+    if (/^npm\b/.test(cmd)) return { type: 'file-has', file: 'node_modules/.package-lock.json', pattern: '^' };
+    if (/^pnpm\b/.test(cmd)) return { type: 'file-has', file: 'node_modules/.modules.yaml', pattern: '^' };
+    if (/^yarn\b/.test(cmd)) return { type: 'file-has', file: 'node_modules/.yarn-integrity', pattern: '^' };
+    return { type: 'exit', code: 0 };
   }
 
   // For env, check file-has
@@ -171,8 +178,9 @@ function buildCheck(step, evidence, evidenceByStep, runDir) {
 }
 
 function buildUndo(step, evidence) {
+  // Install: remove only what this step created (recorded by the runner); never the repo's own lockfile.
   if (step.kind === 'install') {
-    return { type: 'run', command: 'rm -rf node_modules package-lock.json' };
+    return { type: 'created-only', note: 'removes node_modules only if this step created it' };
   }
   if (step.kind === 'env') {
     return { type: 'restore-file', file: '.env' };
@@ -188,8 +196,9 @@ function buildUndo(step, evidence) {
     // Migrations are typically irreversible; return empty undo
     return { type: 'none' };
   }
+  // Serve: the runner stops the server process it started (it holds the pid); no pkill guesswork.
   if (step.kind === 'serve') {
-    return { type: 'run', command: 'pkill -f "node.*server.js" || true' };
+    return { type: 'stop-started', note: 'stops the server HUMBLE started' };
   }
   if (step.kind === 'test') {
     return { type: 'none' };
@@ -216,15 +225,17 @@ function getPlatform(step) {
   return { linux: 'proven', darwin: 'translated', win32: 'translated' };
 }
 
-function buildWhy(step, evidence) {
-  if (!evidence) {
-    return { evidenceId: null, cause: 'Step passed on first try', log: null };
-  }
-  return {
-    evidenceId: evidence.id,
-    cause: evidence.diagnosis?.cause || 'Step passed on first try',
-    log: evidence.before?.logFile || null
-  };
+const PURPOSE = {
+  install: "installs the project's dependencies", env: 'creates your local config from the example',
+  services: 'starts the services the app needs', migrate: 'sets up the database schema', build: 'builds the project',
+  serve: 'starts the app', test: "runs the project's tests", other: 'a setup step from the docs',
+};
+// The reason for a step: what it does and where the docs say it, plus the break and fix if it needed one.
+function buildWhy(step, evidence, plan) {
+  const src = step.source?.file ? ` (${step.source.file}${step.source.line ? ':' + step.source.line : ''})` : '';
+  const purpose = `${PURPOSE[step.kind] || PURPOSE.other}${src}`;
+  if (!evidence) return { evidenceId: null, cause: purpose, proof: `worked first time on a clean ${plan?.image || 'machine'}`, log: null };
+  return { evidenceId: evidence.id, cause: evidence.diagnosis?.cause || purpose, proof: 'fixed, then replayed from zero', log: evidence.before?.logFile || null };
 }
 
 function buildSay(step, evidence, mode) {
