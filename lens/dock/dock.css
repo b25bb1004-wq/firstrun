@@ -1,25 +1,30 @@
 @import url('../../ui/theme.css');
 
+/* Brand tokens (docs/design/BRAND.md). Literal values on purpose: the old
+   `--ink: var(--ink, …)` form was a self-reference, which CSS treats as invalid,
+   so every colour in the Dock silently failed and the panel rendered murky. */
 :root {
-  --bg: var(--ground, #0E1726);
-  --panel: var(--panel, #132035);
-  --panel-2: var(--panel-2, #192A43);
-  --panel-3: var(--raise, #213551);
-  --rule: var(--rule, #22354F);
-  --rule-2: var(--rule-2, #2F4667);
-  --ink: var(--ink, #E6ECF5);
-  --ink-2: var(--ink-2, #A3B4CB);
-  --ink-3: var(--ink-3, #6D819D);
-  --pass: var(--pass, #3DD68C);
-  --pass-t: var(--pass-t, rgba(61,214,140,.11));
+  --bg: #080C1F;           /* brand ink, deepened for a window background */
+  --panel: #10163A;
+  --panel-2: #161E4A;
+  --panel-3: #1D2860;
+  --rule: #232E66;
+  --rule-2: #2C3A7A;
+  --ink: #F3F5FF;
+  --ink-2: #B9C2EA;
+  --ink-3: #8390C4;
+  --pass: #3DD68C;
+  --pass-t: rgba(61,214,140,.12);
   --pass-glow: rgba(61,214,140,.35);
-  --bob: var(--bob, #5E9EFF);
-  --bob-t: var(--bob-t, rgba(94,158,255,.13));
-  --bob-glow: rgba(94,158,255,.35);
-  --fail: var(--fail, #FF6167);
-  --fail-t: var(--fail-t, rgba(255,97,103,.11));
-  --repair: var(--repair, #FFB224);
-  --repair-t: var(--repair-t, rgba(255,178,36,.10));
+  --bob: #6F8BFF;          /* readable electric blue on navy */
+  --bob-t: rgba(31,59,255,.16);
+  --bob-glow: rgba(31,59,255,.45);
+  --electric: #1F3BFF;     /* the fix / primary action */
+  --crack: #F0287A;        /* the break */
+  --fail: #F0287A;
+  --fail-t: rgba(240,40,122,.12);
+  --repair: #FFB224;
+  --repair-t: rgba(255,178,36,.12);
 
   --agent-scout: #10B981;
   --agent-planner: #06B6D4;
@@ -55,8 +60,11 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 14px;
-  background: linear-gradient(180deg, #101B2E 0%, #0B1220 100%);
+  padding: 16px;
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(31,59,255,.18), transparent 60%),
+    radial-gradient(90% 50% at 100% 100%, rgba(240,40,122,.07), transparent 60%),
+    linear-gradient(180deg, #0B1130 0%, #080C1F 100%);
 }
 
 /* Header & Bob Brand */
@@ -81,12 +89,12 @@ html, body {
 }
 
 .bob-avatar-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #1A365D, #2B6CB0);
-  border: 1px solid var(--bob);
-  box-shadow: 0 0 12px var(--bob-glow);
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #3552FF, #1F3BFF 60%, #1428B8);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 6px 16px -4px var(--bob-glow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,21 +106,21 @@ html, body {
   transform: scale(1.06);
   box-shadow: 0 0 16px var(--bob);
 }
-.bob-avatar-btn svg { width: 22px; height: 17px; fill: var(--bob); } /* HUMBLE face is 4:3 */
+.bob-avatar-btn svg { width: 21px; height: 16px; fill: #FFFFFF; } /* HUMBLE face is 4:3 */
 
 .dock-title-wrap { flex: 1; min-width: 0; }
 .dock-title {
   font-weight: 700;
-  font-size: 14.5px;
-  letter-spacing: .02em;
+  font-size: 15px;
+  letter-spacing: .08em;
   color: var(--ink);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .dock-subtitle {
-  font-size: 11.5px;
-  color: var(--ink-3);
+  font-size: 12px;
+  color: var(--ink-2);
   margin-top: 1px;
 }
 
@@ -141,10 +149,11 @@ html, body {
 
 /* Target Repo Input Box */
 .repo-box {
-  background: var(--panel);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 10px;
+  background: rgba(16,22,58,.72);
+  border: 1px solid var(--rule-2);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 30px -18px rgba(31,59,255,.6);
   margin-bottom: 12px;
 }
 .repo-label {
@@ -219,13 +228,16 @@ html, body {
   border-color: var(--bob);
 }
 .btn-prove {
-  background: var(--pass);
-  color: #04140D;
+  background: linear-gradient(180deg, #3552FF, var(--electric));
+  color: #FFFFFF;
+  border-color: rgba(255,255,255,.14);
+  box-shadow: 0 6px 18px -6px var(--bob-glow), inset 0 1px 0 rgba(255,255,255,.18);
 }
 .btn-prove:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 0 12px var(--pass-glow);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 22px -6px var(--bob-glow), inset 0 1px 0 rgba(255,255,255,.22);
 }
+.btn-action:focus-visible { outline: 2px solid var(--bob); outline-offset: 2px; }
 
 /* Agent Characters Grid */
 .agents-section {
@@ -255,10 +267,10 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--panel);
-  border: 1px solid var(--rule-2);
-  border-radius: 9px;
-  padding: 7px 10px;
+  background: rgba(16,22,58,.72);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 9px 12px;
   cursor: pointer;
   transition: all .18s ease;
   position: relative;
@@ -319,11 +331,18 @@ html, body {
   gap: 6px;
 }
 .agent-name {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: .08em;
   color: var(--ink);
 }
+.agent-role {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
 .agent-cmd {
+  display: none; /* CLI names live in the row tooltip; the list reads as a crew, not a man page */
   font: 11px Consolas, "IBM Plex Mono", monospace;
   color: var(--ink-3);
   background: rgba(0,0,0,.25);
@@ -351,7 +370,8 @@ html, body {
 
 /* States per DOCK_CONTRACT.md: idle · working · done · needs_you */
 /* 1. Idle */
-.state-idle .agent-avatar { opacity: .55; }
+.state-idle .agent-avatar { opacity: .85; }
+.state-idle .agent-avatar svg { color: var(--agent-color, var(--ink-2)); }
 .state-idle .agent-state-badge { color: var(--ink-3); background: rgba(255,255,255,.04); }
 
 /* 2. Working (Pulse & Glow) */
