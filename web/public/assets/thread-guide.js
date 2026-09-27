@@ -88,7 +88,8 @@ export class ThreadGuide {
     this.mounted = false;
     this.playing = false;
     this.token = { stop: false };
-    this.X = 11; // thread x position in gutter
+    this.X = 24; // thread x in the gutter; the rider (EMO bot) is centred on it
+    this.rider = null; this.bot = null; this.riderPos = null;
     
     // DOM refs
     this.content = null;
@@ -161,6 +162,60 @@ export class ThreadGuide {
       this.dock.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], 
         { duration: 260, easing: 'ease-out' });
     }
+  }
+
+  // -- The rider (Arnav's pick C): the EMO bot rides the gutter and the thread is left behind it --------------
+  // Reduced motion: no rider; the thread is drawn complete and the bot stays docked beside the headline.
+  async mountRider() {
+    if (this.reduced) return;
+    if (!this.rider) {
+      this.rider = document.createElement('div');
+      this.rider.className = 'thread-rider';
+      this.rider.setAttribute('aria-hidden', 'true');
+      const seat = document.createElement('div');
+      seat.className = 'thread-rider-bot';
+      this.rider.append(seat);
+      try {
+        const { EmoBot } = await import('/humble-console/emo-bot.js');
+        this.bot = new EmoBot(seat, { size: 44, interactive: false });
+      } catch (e) { console.warn('[thread] rider bot not loaded', e); }
+      let y = 8, v = 0, target = 8, raf = 0, last = 0, done = null;
+      const apply = () => {
+        const st = Math.min(0.12, Math.abs(v) / 2800); // stretch a little along the motion, settle round
+        this.rider.style.transform = 'translate3d(0, ' + y.toFixed(1) + 'px, 0) scale(' + (1 - st * 0.5).toFixed(3) + ', ' + (1 + st).toFixed(3) + ')';
+      };
+      const tick = (now) => {
+        const dt = Math.min(0.032, (now - last) / 1000 || 0.016); last = now;
+        v += (190 * (target - y) - 21 * v) * dt; y += v * dt; apply();
+        if (Math.abs(target - y) < 0.3 && Math.abs(v) < 4) { y = target; v = 0; apply(); raf = 0; if (done) done(); done = null; return; }
+        raf = requestAnimationFrame(tick);
+      };
+      this.riderPos = {
+        to: (t) => { target = t; if (done) { done(); done = null; } if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } return new Promise((r) => { done = r; }); },
+        jump: (t) => { y = target = t; v = 0; apply(); },
+      };
+    }
+    this.content.append(this.rider); // content was cleared for this run
+    this.riderPos.jump(8);
+    this.mood('idle');
+  }
+
+  // Glide the rider beside a node; the script waits at most ~300 ms (the spring keeps settling on its own).
+  glide(node, dy = 0) {
+    if (!this.riderPos || !node) return Promise.resolve();
+    const y = this.cy(node) - 22 + dy;
+    return Promise.race([this.riderPos.to(y), sleep(300 / this.speed)]);
+  }
+
+  mood(state, look) {
+    if (!this.bot) return;
+    this.bot.setState(state);
+    if (look) this.bot.look(look[0], look[1]);
+  }
+
+  riderMove(keyframes, ms) {
+    if (!this.rider || this.reduced || !this.rider.firstChild.animate) return Promise.resolve();
+    return this.rider.firstChild.animate(keyframes, { duration: ms / this.speed, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }).finished.catch(() => {});
   }
 
   // Calculate Y center of a DOM node
@@ -295,14 +350,15 @@ export class ThreadGuide {
     // Create SVG thread layer
     this.svg = document.createElementNS(NS, 'svg');
     this.svg.setAttribute('class', 'thread');
-    this.svg.setAttribute('width', '22');
+    this.svg.setAttribute('width', '48');
     this.svg.style.position = 'absolute';
-    this.svg.style.left = '12px';
+    this.svg.style.left = '4px';
     this.svg.style.top = '0';
-    this.svg.style.width = '22px';
+    this.svg.style.width = '48px';
     this.svg.style.overflow = 'visible';
     this.svg.style.pointerEvents = 'none';
     this.content.append(this.svg);
+    await this.mountRider();
     
     this.setDockState('var(--c-core, #ff9a3c)');
     this.status.textContent = 'following the README';
@@ -327,11 +383,14 @@ export class ThreadGuide {
           this.fit();
           const y = this.cy(row);
           
-          // Draw thread from last position
+          // The rider glides to the new row while the thread segment draws behind it; its eyes glance at the line.
+          this.mood(replay ? 'idle' : 'think', [0.9, 0.1]);
+          const glided = this.glide(row);
           if (this.lastY != null) {
             const gap = this.broken ? 8 : 4;
             await this.segment(this.lastY + gap, y - 4);
           }
+          await glided;
           
           row._node = this.node(y);
           this.svg.append(row._node);
@@ -353,7 +412,9 @@ export class ThreadGuide {
             
             if (row._node) row._node.classList.add('fail');
             const y = this.cy(row);
-            const crack = await this.drawCrack(y);
+            this.mood('worried', [0.8, 0]);
+            const shiver = [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }];
+            const [crack] = await Promise.all([this.drawCrack(y), this.riderMove(shiver, 320)]);
             this.broken = { y, crack };
           }
           await sleep(pace.fail / this.speed, this.reduced);
@@ -364,6 +425,8 @@ export class ThreadGuide {
           const note = this.createNote(row, 'diag', ev.text);
           note.classList.add('unfold');
           this.follow(note);
+          this.mood('think', [1, 0.2]);
+          await this.glide(note); // it moves down to read the diagnosis, uncovering the crack above it
           this.setDockState('#5e9eff');
           this.status.textContent = 'DR.BO is reading the log';
           await sleep(pace.diag / this.speed, this.reduced);
@@ -374,6 +437,8 @@ export class ThreadGuide {
           const note = this.createNote(row, 'fix', ev.text);
           note.classList.add('unfold');
           this.follow(note);
+          this.mood('point', [-0.6, -0.4]); // it looks back up at the crack it is stitching
+          await this.glide(note);
           this.setDockState(THREAD_COLOR);
           this.status.textContent = 'stitching the fix into the README';
           
@@ -411,6 +476,8 @@ export class ThreadGuide {
           
           const banner = this.createPhaseBanner();
           this.follow(banner);
+          this.mood('think', [0, -0.5]);
+          await this.glide(banner);
           const top = 10;
           const bottom = this.cy(banner);
           
@@ -426,6 +493,9 @@ export class ThreadGuide {
           
           const stamp = this.createVerdict(ev.text);
           this.follow(stamp);
+          await this.glide(stamp, 34); // it lands just below the verdict so the knot it tied stays visible
+          this.mood('celebrate', [0, -0.6]);
+          this.riderMove([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-10px) scale(.94, 1.08)', offset: .45 }, { transform: 'translateY(0) scale(1.1, .88)', offset: .8 }, { transform: 'translateY(0) scale(1)' }], 560);
           const y = this.cy(stamp);
           await this.segment(this.lastY + 4, y - 6);
           await this.drawKnot(y);
