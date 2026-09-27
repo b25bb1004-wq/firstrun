@@ -19,8 +19,9 @@ describe('Debugger', () => {
   
   it('redacts secrets from output', () => {
       // Build fake token at runtime - not a literal in source
+      // Token pattern requires 10+ chars after prefix, so build one that matches
       const tokenPrefix = 'ghp_';
-      const tokenSuffix = 'ab...3456';
+      const tokenSuffix = 'abcdefghijklmnopqrst'; // 20 chars - matches pattern
       const fakeToken = tokenPrefix + tokenSuffix;
       const output = `Error: ${fakeToken}\nMore output`;
       const capture = captureFailure({ exitCode: 1, output, command: 'npm test', cwd: repoDir, duration: 1000, hostSnapshot: {}, stepId: 'S1' });
@@ -260,37 +261,38 @@ describe('Debugger', () => {
   // ===== debugReport tests =====
   
   it('generates redacted markdown report', () => {
-      // Build fake token at runtime - not a literal in source
-      const tokenPrefix = 'ghp_';
-      const tokenSuffix = 'ab...3456';
-      const fakeToken = tokenPrefix + tokenSuffix;
-      const capture = captureFailure({
-        exitCode: 1,
-        output: `Error: ${fakeToken}\nMore output`,
-        command: 'npm test',
-        cwd: repoDir,
-        duration: 1000,
-        hostSnapshot: {},
-        stepId: 'S1'
+        // Build fake token at runtime - not a literal in source
+        // Token pattern requires 10+ chars after prefix, so build one that matches
+        const tokenPrefix = 'ghp_';
+        const tokenSuffix = 'abcdefghijklmnopqrst'; // 20 chars - matches pattern
+        const fakeToken = tokenPrefix + tokenSuffix;
+        const capture = captureFailure({
+          exitCode: 1,
+          output: `Error: ${fakeToken}\nMore output`,
+          command: 'npm test',
+          cwd: repoDir,
+          duration: 1000,
+          hostSnapshot: {},
+          stepId: 'S1'
+        });
+      
+        const diagnosis = {
+          cause: 'Test failure',
+          evidence: ['E1'],
+          fix: { command: 'npm install pg', why: 'Missing pg', checker: { type: 'exit', code: 0 }, undo: { type: 'none' } },
+          attributedTo: 'rules',
+          evidencePack: [{ id: 'E1', source: 'capture', data: {} }],
+          bobCost: 0
+        };
+      
+        const report = debugReport(diagnosis, capture, { runDir: '.firstrun/run-1' });
+      
+        assert(report.includes('# Debug Report for Step S1'));
+        assert(report.includes('npm test'));
+        assert(!report.includes(fakeToken));
+        assert(report.includes('<redacted-by-firstrun>'));
+        assert(report.includes('Attribution: rules'));
       });
-    
-      const diagnosis = {
-        cause: 'Test failure',
-        evidence: ['E1'],
-        fix: { command: 'npm install pg', why: 'Missing pg', checker: { type: 'exit', code: 0 }, undo: { type: 'none' } },
-        attributedTo: 'rules',
-        evidencePack: [{ id: 'E1', source: 'capture', data: {} }],
-        bobCost: 0
-      };
-    
-      const report = debugReport(diagnosis, capture, { runDir: '.firstrun/run-1' });
-    
-      assert(report.includes('# Debug Report for Step S1'));
-      assert(report.includes('npm test'));
-      assert(!report.includes(fakeToken));
-      assert(report.includes('<redacted-by-firstrun>'));
-      assert(report.includes('Attribution: rules'));
-    });
   
   it('includes Bob spend in report when attributed to BOB', () => {
     const capture = captureFailure({

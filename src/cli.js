@@ -10,10 +10,13 @@ import { attachPrinter, bold, dim, green, red, yellow, cyan } from './terminal.j
 import { cleanupAll } from './sandbox.js';
 import { installGlobalModes } from './brain/modes.js';
 import { bobStatus } from './brain/bob.js';
-import { runScout, runPlanner, runDoctor, runScribe, runRunner, runVerifier } from './solo.js';
-import { run, readJson, fmtDuration } from './util.js';
+import { buildGuide, writeGuide } from './onboarder/guide.js';
+import { probeHost } from './onboarder/probe.js';
+import { buildReport } from './onboarder/report.js';
+import { onboard } from './onboarder/onboard.js';
 import { classify, securityReview } from './onboarder/guard.js';
 import { logEntry, readLog, summarize } from './onboarder/audit-log.js';
+import { run, readJson, fmtDuration } from './util.js';
 
 const HELP = `${bold('HUMBLE')}: your README, proven.
 
@@ -35,6 +38,7 @@ ${bold('Usage')}
   firstrun guard  --self                 self-check: run every command from HUMBLE's setup docs through the guard
   firstrun guide  [path]                 walk through the verified setup on your own machine
   firstrun onboard <repo> --from <run-dir> [--guide] [--dry-run] [--debug] [--security-log]  run the HUMBLE onboarder (MVP)
+  firstrun publish-guide --from <run-dir> --out <dir>  write .humble/guide.json (+ passport.json) from a VERIFIED run
   firstrun apply  [path]                 copy the corrected files from .firstrun/out/pr into the repo
   firstrun pr     [path]                 apply on a new branch and open a pull request (gh)
   firstrun ui     [--port 4173] [--root <dir>...]
@@ -207,6 +211,9 @@ export async function main(argv) {
       args.securityLog = args['security-log'] === true || args['security-log'] === 'true';
       return onboard(args);
     }
+    case 'publish-guide': {
+      return publishGuide(args);
+    }
     case 'apply': {
       const root = path.resolve(args._[0] || '.');
       const pr = path.join(args.run || path.join(root, '.firstrun'), 'out', 'pr');
@@ -299,14 +306,14 @@ async function runGuardSelfCheck() {
   const { bold, dim, green, red, yellow, cyan } = await import('./terminal.js');
   const { readJson } = await import('./util.js');
   const { RULES } = await import('./doctor/rules.js');
-  
+
   console.log(`${bold(cyan('HUMBLE Guard Self-Check'))}`);
-  console.log(`${dim('Testing guard rules against HUMBLE\'s own setup commands...')}\n`);
-  
+  console.log(`${dim("Testing guard rules against HUMBLE's own setup commands...")}\n`);
+
   // Load HUMBLE's own package.json scripts and README commands
   const pkg = readJson(path.join(process.cwd(), 'package.json'));
   const scripts = pkg?.scripts || {};
-  
+
   // Common HUMBLE commands from setup
   const humbleCommands = [
     'npm install',
@@ -328,46 +335,46 @@ async function runGuardSelfCheck() {
     'node bin/firstrun.js guard --self',
     ...Object.values(scripts).map(s => `npm run ${Object.keys(scripts).find(k => scripts[k] === s)}`),
   ];
-  
+
   // Also check doctor rule fix commands
   const doctorFixCommands = [];
   for (const rule of RULES) {
     // We can't easily extract fix commands without running the rules
     // But we can test some known patterns
   }
-  
+
   const allCommands = [...new Set(humbleCommands)];
-  
+
   let passed = 0;
   let warned = 0;
   let blocked = 0;
   let errors = 0;
-  
+
   const results = [];
-  
+
   for (const cmd of allCommands) {
     const result = classify(cmd, { repoDir: process.cwd() });
     results.push({ command: cmd, ...result });
-    
+
     if (result.verdict === 'ok') passed++;
     else if (result.verdict === 'warn') warned++;
     else if (result.verdict === 'block') blocked++;
     else errors++;
   }
-  
+
   // Print table
   console.log(`${bold('Command')} | ${bold('Verdict')} | ${bold('Rule')} | ${bold('Reason')}`);
   console.log(`${'─'.repeat(80)}`);
-  
+
   for (const r of results) {
     const verdictColor = r.verdict === 'ok' ? green : r.verdict === 'warn' ? yellow : red;
     const cmdDisplay = r.command.length > 50 ? r.command.slice(0, 47) + '...' : r.command;
     console.log(`${dim(cmdDisplay.padEnd(50))} | ${verdictColor(r.verdict.padEnd(7))} | ${dim(r.ruleId.padEnd(25))} | ${r.reason}`);
   }
-  
+
   console.log(`\n${'─'.repeat(80)}`);
   console.log(`${green('Passed:')} ${passed}  ${yellow('Warned:')} ${warned}  ${red('Blocked:')} ${blocked}  ${dim('Errors:')} ${errors}`);
-  
+
   // Check that no HUMBLE fix command is blocked
   const humbleFixCommands = [
     'npm install',
@@ -383,11 +390,11 @@ async function runGuardSelfCheck() {
     'node bin/firstrun.js guard "npm install"',
     'node bin/firstrun.js guard --self',
   ];
-  
-  const blockedHumble = results.filter(r => 
+
+  const blockedHumble = results.filter(r =>
     r.verdict === 'block' && humbleFixCommands.some(h => r.command.includes(h))
   );
-  
+
   if (blockedHumble.length > 0) {
     console.log(`\n${red(bold('FAIL'))}: HUMBLE's own commands are blocked:`);
     for (const b of blockedHumble) {
@@ -395,7 +402,82 @@ async function runGuardSelfCheck() {
     }
     return 1;
   }
-  
+
   console.log(`\n${green(bold('PASS'))}: No HUMBLE commands are blocked.`);
+  return 0;
+}
+
+/**
+ * firstrun publish-guide --from <run-dir> --out <dir>
+ * Writes .humble/guide.json (+ .humble/passport.json) into the target repo from a VERIFIED run.
+ * Schema versioned.
+ */
+async function publishGuide(args) {
+  const { bold, dim, green, red, yellow, cyan } = await import('./terminal.js');
+  const { buildGuide, writeGuide } = await import('./onboarder/guide.js');
+  const { readJson } = await import('./util.js');
+
+  const runDir = args.from;
+  const outDir = args.out || process.cwd();
+
+  if (!runDir) {
+    console.error('Usage: firstrun publish-guide --from <run-dir> --out <dir>');
+    return 2;
+  }
+
+  const resolvedRunDir = path.resolve(runDir);
+  const resolvedOutDir = path.resolve(outDir);
+
+  if (!fs.existsSync(resolvedRunDir)) {
+    console.error(`${red('Error:')} run directory not found: ${resolvedRunDir}`);
+    return 1;
+  }
+
+  const runFile = path.join(resolvedRunDir, 'run.json');
+  if (!fs.existsSync(runFile)) {
+    console.error(`${red('Error:')} run.json not found in ${resolvedRunDir}`);
+    return 1;
+  }
+
+  const run = readJson(runFile);
+
+  // Check verdict is VERIFIED
+  if (run.phase !== 'done' || run.verdict !== 'VERIFIED') {
+    console.error(`${red('Error:')} Can only publish guide from a VERIFIED run (got ${run.verdict || run.phase})`);
+    return 1;
+  }
+
+  console.log(`${bold(cyan('HUMBLE Publish Guide'))} ${dim('·')} ${resolvedRunDir}`);
+  console.log(dim(`Writing guide to ${resolvedOutDir}\n`));
+
+  // Build guide from the verified run
+  const guide = buildGuide(resolvedRunDir);
+
+  // Write guide.json
+  const humbleDir = path.join(resolvedOutDir, '.humble');
+  fs.mkdirSync(humbleDir, { recursive: true });
+
+  const guidePath = path.join(humbleDir, 'guide.json');
+  writeGuide(guide, guidePath);
+  console.log(`${green('✓')} ${guidePath}`);
+
+  // Write passport.json
+  const passportPath = path.join(humbleDir, 'passport.json');
+  const passport = {
+    schema: 'humble.passport/1',
+    repo: guide.repo,
+    commit: guide.commit,
+    verdict: guide.verdict,
+    provenOn: guide.provenOn,
+    scorecard: guide.scorecard,
+    publishedAt: new Date().toISOString(),
+    guideHash: guide.hash
+  };
+  fs.writeFileSync(passportPath, JSON.stringify(passport, null, 2));
+  console.log(`${green('✓')} ${passportPath}`);
+
+  console.log(`\n${green(bold('Guide published successfully.'))}`);
+  console.log(dim(`To use: copy .humble/ to your repo and run 'humble onboard' or 'npx humble onboard'`));
+
   return 0;
 }
