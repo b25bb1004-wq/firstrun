@@ -99,6 +99,7 @@ html, body {
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   flex: none;
+  overflow: hidden;
 }
 .bob-avatar-btn:hover { background: #3552FF; }
 .bob-avatar-btn svg { width: 21px; height: 16px; fill: #FFFFFF; } /* HUMBLE face is 4:3 */

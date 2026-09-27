@@ -116,13 +116,18 @@ describe('Console Honesty Gate', () => {
     assert.strictEqual(curlPipe.verdict, 'warn', 'curl | bash must be warned');
   });
 
-  test('Console UI uses HUMBLE brand face asset (sideways ? + wink arrow on #0d1030)', () => {
+  test('Console UI mounts the EMO mascot in the header avatar', () => {
     const htmlPath = path.join(REPO_ROOT, 'lens', 'humble', 'console.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
 
-    // Header avatar must have brand-avatar with the brand face polygon points
+    // Header avatar is the EmoBot mount point (console.js fills it at runtime)
     assert.ok(html.includes('class="brand-avatar"'), 'console.html must contain brand-avatar in header');
-    assert.ok(html.includes('0 358.46 179.23 358.46'), 'console.html must use HUMBLE brand face polygons');
+
+    const jsPath = path.join(REPO_ROOT, 'lens', 'humble', 'console.js');
+    const js = fs.readFileSync(jsPath, 'utf8');
+    assert.ok(js.includes("from '../../web/public/humble-console/emo-bot.js'"), 'console.js must import EmoBot');
+    assert.ok(js.includes('new EmoBot(this.brandAvatar'), 'console.js must mount EmoBot on the brand avatar');
+    assert.ok(js.includes('vendor/three.module.js'), 'console.js must point EmoBot at the vendored three.js (Electron CSP has no CDN)');
 
     const cssPath = path.join(REPO_ROOT, 'lens', 'humble', 'console.css');
     const css = fs.readFileSync(cssPath, 'utf8');
