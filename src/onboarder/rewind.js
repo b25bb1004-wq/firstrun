@@ -41,7 +41,8 @@ export async function initOnboardState() {
  */
 export async function loadOnboardState() {
   try {
-    return await readJson(STATE_FILE);
+    // readJson returns null for a missing file (it does not throw): start a fresh session state then.
+    return (await readJson(STATE_FILE)) || await initOnboardState();
   } catch {
     return await initOnboardState();
   }

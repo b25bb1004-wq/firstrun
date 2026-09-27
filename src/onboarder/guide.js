@@ -241,7 +241,7 @@ function buildWhy(step, evidence, plan) {
 function buildSay(step, evidence, mode) {
   const base = {
     install: {
-      new: 'This installs the libraries the app needs. The README might be missing a flag; I\'ve added it.',
+      new: 'This installs the libraries the app needs.',
       experienced: 'npm install with proven flags from the verified run.'
     },
     env: {
@@ -253,7 +253,7 @@ function buildSay(step, evidence, mode) {
       experienced: 'docker compose up -d with the verified services.'
     },
     migrate: {
-      new: 'This prepares the database schema and sample data. The README might have the wrong script name; I fixed it.',
+      new: 'This prepares the database schema and sample data.',
       experienced: 'Run the verified migration command.'
     },
     build: {
@@ -261,7 +261,7 @@ function buildSay(step, evidence, mode) {
       experienced: 'Run the verified build command.'
     },
     serve: {
-      new: 'This starts the app. It will keep running; open another terminal to check it works.',
+      new: 'This starts the app. I keep it running and check that it answers.',
       experienced: 'Start the dev server on the verified port.'
     },
     test: {
@@ -275,6 +275,8 @@ function buildSay(step, evidence, mode) {
   };
 
   const s = base[step.kind] || base.other;
+  // Only claim a fix when the proof has one (it used to say "I've added a flag" for steps that never broke).
+  if (evidence && mode === 'new') return `${s.new} The README's version broke on a clean machine: ${evidence.diagnosis?.cause || 'see the proof'} This is the fixed command.`;
   return s[mode];
 }
 

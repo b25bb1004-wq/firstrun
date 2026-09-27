@@ -71,7 +71,7 @@ export async function onboard(args) {
   console.log();
 
   // Print platform gaps
-  if (report.platformGaps.length > 0) {
+  if (report.platformGaps.some((g) => g.type !== 'neutral')) {
     console.log(bold('PLATFORM GAPS:'));
     for (const gap of report.platformGaps) {
       if (gap.type !== 'neutral') {
@@ -100,7 +100,7 @@ export async function onboard(args) {
   if (report.warnings.length > 0) {
     console.log(bold('VERSION WARNINGS:'));
     for (const w of report.warnings) {
-      console.log(`  ${yellow('⚠')} ${w.tool}: ${w.found} < ${w.required}`);
+      console.log(`  ${yellow('⚠')} ${w.reason || `${w.tool}: ${w.found} vs ${w.required}`}${w.fix ? dim(`  (if a step fails: ${w.fix})`) : ''}`);
     }
     console.log();
   }
@@ -227,7 +227,7 @@ async function runGuide(guide, report) {
       Object.assign(sessionEnv, sessionEnvironment(step, process.platform, { repoRoot: process.cwd(), baseEnv: { ...process.env, ...sessionEnv } }));
       // A server never exits: start it in the background and wait for the URL the proof checked.
       if (step.kind === 'serve') {
-        const srv = startServer(shell, stepReport?.translatedCommand ?? step.do?.command, process.cwd(), sessionEnv);
+        const srv = startServer(shell, stepReport?.translatedCommand || step.do?.command, process.cwd(), sessionEnv);
         const up = await waitForHttp(step.check?.url, step.timeoutMs || 150000, srv);
         if (up.ok) {
           servers.push(srv);
@@ -239,6 +239,7 @@ async function runGuide(guide, report) {
         console.log(`   ${red('✗ not answering')} ${dim(up.message)}`);
         console.log(dim('   Last output:'));
         console.log(srv.output().split('\n').slice(-6).map(l => '     ' + l).join('\n'));
+        runtimeHint(report);
         const again = (await rl.question(dim('   retry (r), continue (c), or quit (q)? '))).trim().toLowerCase();
         if (again === 'q') return 1;
         if (again === 'r') i--;
@@ -259,6 +260,7 @@ async function runGuide(guide, report) {
         console.log(`   ${red(result.code === 0 ? '✗ check failed: ' + check.message : '✗ exit ' + result.code)}`);
         console.log(dim('   Last output:'));
         console.log(result.output.split('\n').slice(-6).map(l => '     ' + l).join('\n'));
+        runtimeHint(report);
         console.log();
 
         const retry = await rl.question(dim('   retry (r), continue (c), or quit (q)? '));
@@ -297,7 +299,7 @@ function stepReportCommand(step, stepReport) {
 
 function runStep(shell, step, cwd, commandOverride = null, sessionEnv = {}) {
   return new Promise((resolve) => {
-    const command = commandOverride ?? step.do?.command;
+    const command = commandOverride || step.do?.command;
     if (!command) {
       resolve({ code: 0, output: 'No command to run' });
       return;
@@ -309,7 +311,7 @@ function runStep(shell, step, cwd, commandOverride = null, sessionEnv = {}) {
     const child = spawn(shell, shellArgs, {
       cwd,
       env: { ...process.env, ...sessionEnv },
-      stdio: ['inherit', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe'] /* steps run non-interactively; stdin stays with the guide's prompts */,
       windowsHide: true,
     });
     let output = '';
@@ -429,4 +431,10 @@ function stopProcess(child) {
   // A shell's children (node, webpack) outlive child.kill() on Windows: take down the whole tree.
   if (process.platform === 'win32') spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
   else child.kill('SIGTERM');
+}
+
+// When a step fails on a machine whose runtime differs from the proof, say so: it is the likeliest cause.
+function runtimeHint(report) {
+  const w = (report.warnings || []).find((x) => x.runtimeMismatch);
+  if (w) console.log(`   ${yellow('Likely cause:')} ${w.reason} ${dim(`Try: ${w.fix}, then retry (r).`)}`);
 }

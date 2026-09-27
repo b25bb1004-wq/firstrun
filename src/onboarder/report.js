@@ -211,7 +211,7 @@ function buildSummary(guide, satisfied, missingCount, gapsCount, missingTools, w
   }
 
   if (warnings.length > 0) {
-    parts.push(`Version warnings: ${warnings.map(w => `${w.tool} ${w.found} < ${w.required}`).join(', ')}.`);
+    parts.push(`Version warnings: ${warnings.map(w => w.reason || `${w.tool} ${w.found} vs ${w.required}`).join(' ')}`);
   }
 
   if (gapsCount > 0) {
@@ -240,8 +240,14 @@ function findMissingTools(host, plan) {
     } else {
       const hostMajor = parseInt(host.node.replace('v', '').split('.')[0], 10);
       const requiredMajor = parseInt(requiredVersion.split('.')[0], 10);
-      if (hostMajor < requiredMajor) {
-        warnings.push({ tool: 'node', required: requiredVersion, found: host.node, reason: `Node.js version ${hostMajor} < required ${requiredMajor}` });
+      // Any major difference from the proof matters, newer too: Node 24 removed internals old dev servers use
+      // (react-scripts' spdy: "No such module: http_parser"), while the proof on Node 22 served fine.
+      if (hostMajor !== requiredMajor) {
+        warnings.push({
+          tool: 'node', required: requiredVersion, found: host.node, runtimeMismatch: true,
+          reason: `Proven on Node.js ${requiredMajor}; this machine has ${host.node}${hostMajor > requiredMajor ? ' (newer)' : ' (older)'}.`,
+          fix: `nvm install ${requiredMajor} && nvm use ${requiredMajor}`,
+        });
       }
     }
   }
