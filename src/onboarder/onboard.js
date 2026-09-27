@@ -175,8 +175,9 @@ async function runGuide(guide, report) {
           try {
             const result = await runEnvWizard({ projectDir: process.cwd() });
             console.log(`   ${green('Saved locally to .env.')} ${result.keysWritten} field(s) written; values were not displayed or transmitted.`);
-            const checked = await runManualChecker(step.check, { cwd: process.cwd() });
-            if (!checked.passed) console.log(`   ${yellow('Check not satisfied yet.')} ${checked.message}`);
+            const checked = await runManualChecker(result.checker, { cwd: process.cwd() });
+            if (checked.passed) console.log(`   ${green('Environment check passed.')}`);
+            else console.log(`   ${yellow('Check not satisfied yet.')} ${checked.message}`);
           } catch (error) {
             console.log(`   ${yellow('Could not write .env:')} ${error.message}`);
           } finally {

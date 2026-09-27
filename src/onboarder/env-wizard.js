@@ -111,6 +111,7 @@ export async function writeEnvFile({ projectDir = process.cwd(), values = {} } =
   return {
     path: outputPath,
     keysWritten: keys.filter((key) => supplied.has(key) && (!originalKeys.has(key) || needsValue(current.get(key)))).length + extras.length,
+    checker: { type: 'env-complete', keys },
   };
 }
 

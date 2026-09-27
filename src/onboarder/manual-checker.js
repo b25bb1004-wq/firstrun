@@ -31,6 +31,32 @@ function checkPort(port, host = '127.0.0.1', timeoutMs = 1500) {
 /** Run only declarative, repo-local and loopback checks. Unsupported checks fail closed. */
 export async function runManualChecker(checker, { cwd = process.cwd() } = {}) {
   if (!checker || typeof checker !== 'object') return { passed: false, message: 'No completion checker is defined.' };
+  if (checker.type === 'env-complete') {
+    if (!Array.isArray(checker.keys) || checker.keys.some((key) => typeof key !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(key))) {
+      return { passed: false, message: 'The environment checker is invalid.' };
+    }
+    const filePath = repoFile(cwd, '.env');
+    if (!filePath) return { passed: false, message: 'Environment file must stay inside the project.' };
+    try {
+      const stat = await fs.lstat(filePath);
+      if (stat.isSymbolicLink() || !stat.isFile()) return { passed: false, message: 'Expected a regular local environment file.' };
+      const values = new Map();
+      const contents = await fs.readFile(filePath, 'utf8');
+      for (const line of contents.split(/\r?\n/)) {
+        const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/);
+        if (match && !values.has(match[1])) values.set(match[1], match[2].trim().replace(/^(?:"(.*)"|'(.*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted));
+      }
+      const incomplete = checker.keys.some((key) => {
+        const value = values.get(key) || '';
+        return !value || /^(?:<[^>]+>|your[-_].*|changeme|change[-_.]me|replace[-_].*|example|sample)$/i.test(value);
+      });
+      return incomplete
+        ? { passed: false, message: 'Fill all required environment values through the masked wizard.' }
+        : { passed: true, message: 'All required environment fields are present.' };
+    } catch {
+      return { passed: false, message: 'The local environment file is not available yet.' };
+    }
+  }
   if (checker.type === 'file-has') {
     const filePath = repoFile(cwd, checker.file);
     if (!filePath) return { passed: false, message: 'Checker file must stay inside the project.' };

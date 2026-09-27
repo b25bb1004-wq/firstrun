@@ -47,10 +47,21 @@ test('env wizard masks prompts, writes locally with restrictive mode, and never 
   const env = fs.readFileSync(path.join(root, '.env'), 'utf8');
   assert.match(env, new RegExp(fakeToken));
   assert.deepEqual(prompts, ['API_TOKEN: ', 'DATABASE_URL: ']);
+  const checked = await runManualChecker(result.checker, { cwd: root });
+  assert.equal(checked.passed, true);
   assert.equal(JSON.stringify(result).includes(fakeToken), false);
   assert.equal(JSON.stringify(result).includes('postgres://local/db'), false);
   assert.equal(Object.hasOwn(result, 'values'), false);
   if (process.platform !== 'win32') assert.equal((fs.statSync(path.join(root, '.env')).mode & 0o777), 0o600);
+});
+
+test('env checker rejects skipped or placeholder values without revealing them', async () => {
+  const root = tempProject();
+  const result = await runEnvWizard({ projectDir: root, ask: async () => '' });
+  const checked = await runManualChecker(result.checker, { cwd: root });
+  assert.equal(checked.passed, false);
+  assert.match(checked.message, /masked wizard/);
+  assert.equal(checked.message.includes('your-database-url'), false);
 });
 
 test('masked input returns the secret but echoes only masking bullets', async () => {
