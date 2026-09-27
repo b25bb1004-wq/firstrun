@@ -1396,3 +1396,10 @@ section .sub, section .prose { max-width: 46ch; }
   }
 }
 
+
+/* ── v25: the full proof page (/proof) is the deepest look at a run: the one filled CTA in the hero ── */
+.hero-full .actions .btn.btn-proof { background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 13px 24px; font-weight: 700;
+  box-shadow: 0 12px 30px -14px var(--blue); transition: transform 160ms var(--ease-out), filter 200ms ease; }
+.hero-full .actions .btn.btn-proof:hover { background: var(--blue); color: #fff; filter: brightness(1.1); }
+.hero-full .actions .btn.btn-proof:active { transform: scale(0.97); }
+.proof-cta { font-weight: 700; color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
