@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { closest, shq } from '../util.js';
 import { imageFor } from '../plan.js';
@@ -1299,7 +1300,126 @@ export const RULES = [
         };
       },
     },
+    // ── General rules from the most common setup failures on GitHub (27 Sep research; issue counts in brackets) ──
+    {
+      // [~3.7k "No module named 'distutils'"] Python 3.12 removed distutils; setuptools restores it (its .pth shim), so
+      // install that first. Other removed stdlib modules: move to the last Python that still shipped them.
+      id: 'python-stdlib-removed',
+      test({ log, plan, tried }) {
+        if (plan.runtime.name !== 'python') return null;
+        const m = log.match(/No module named '(distutils|imp|asynchat|asyncore|smtpd|cgi|cgitb|pipes|crypt|telnetlib|nntplib)'|module 'collections' has no attribute '(Mapping|MutableMapping|Sequence|MutableSet|Iterable|Callable|OrderedDict|Hashable)'/);
+        if (!m) return null;
+        const mod = m[1] || `collections.${m[2]}`;
+        if (mod === 'distutils' && ![...(tried || [])].some((t) => String(t).includes('setuptools'))) {
+          return {
+            ruleId: 'python-stdlib-removed', class: 'runtime-version', confidence: 0.85,
+            cause: 'Python 3.12 removed `distutils`, which this project (or one of its dependencies) still imports; `setuptools` provides a drop-in replacement.',
+            fix: { actions: [{ type: 'insert-before', command: 'pip install setuptools', kind: 'install' }], patches: [], doc: { kind: 'insert-step', text: 'pip install setuptools' } },
+          };
+        }
+        // Last Python version that still had the module (general: any newer image hits the same removal).
+        const last = /^collections\./.test(mod) ? '3.9' : /^(cgi|cgitb|pipes|crypt|telnetlib|nntplib)$/.test(mod) ? '3.12' : '3.11';
+        if (String(plan.runtime.version) === last) return null;
+        return {
+          ruleId: 'python-stdlib-removed', class: 'runtime-version', confidence: 0.85,
+          cause: `\`${mod}\` was removed from newer Python; the project (or a dependency) still uses it. Python ${last} is the last version that ships it.`,
+          fix: { actions: [{ type: 'rebase', image: imageFor('python', last), runtime: { name: 'python', version: last, source: `\`${mod}\` removed after Python ${last}` } }], patches: [], doc: { kind: 'prerequisite', text: `Python ${last} (\`${mod}\` was removed in later versions)`, runtime: { name: 'python', version: last } } },
+        };
+      },
+    },
+    {
+      // [ImportError drift: markupsafe soft_unicode ~500, werkzeug url_quote ~320, jinja2 escape ~280, wtforms, …]
+      // A dependency released a new major that removed an API the project uses, because requirements are unpinned.
+      // General fix, no per-library table: install every dependency as it was on the repo's commit date.
+      id: 'python-dependency-drift',
+      test({ log, plan, facts, step, tried }) {
+        if (plan.runtime.name !== 'python') return null;
+        const m = log.match(/cannot import name '(\w+)' from '([\w.]+)'|module '([\w.]+)' has no attribute '(\w+)'/);
+        if (!m) return null;
+        const pkg = String(m[2] || m[3]).split('.')[0];
+        if (!pkg || /^(collections|os|sys|typing|asyncio|json|re|time|datetime)$/.test(pkg)) return null; // stdlib: not drift
+        const local = facts.files?.some((f) => f === `${pkg}.py` || f.startsWith(`${pkg}/`) || f.includes(`/${pkg}/__init__.py`));
+        if (local) return null; // the project's own module, not a dependency
+        const date = commitDate(facts);
+        const req = facts.python?.requirementsFiles?.[0];
+        if (!date || !req) return null;
+        const cmd = `pip install uv && uv pip install --system --exclude-newer ${date} -r ${req}`;
+        if ([...(tried || [])].some((t) => String(t).includes('--exclude-newer'))) return null;
+        return {
+          ruleId: 'python-dependency-drift', class: 'missing-dependency', confidence: 0.8,
+          cause: `\`${pkg}\` has released a newer version that no longer has \`${m[1] || m[4]}\`; the requirements don't pin it, so a clean install today gets the incompatible release. Installing dependencies as they were on the commit date (${date}) restores the versions the project was written against.`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'install' }], patches: [], doc: { kind: 'note', text: `Pin \`${pkg}\` (and other unpinned requirements): a fresh install today pulls a release that removed \`${m[1] || m[4]}\`.` } },
+        };
+      },
+    },
+    {
+      // [~2.9k "error:0308010C:digital envelope routines::unsupported"] webpack 4 / old react-scripts hash with MD4, which
+      // OpenSSL 3 (Node 17+) disabled. Works for every Node >= 17.
+      id: 'node-openssl-legacy',
+      test({ log, plan, tried }) {
+        if (plan.runtime.name !== 'node' || !/error:0308010C:digital envelope routines::unsupported|ERR_OSSL_EVP_UNSUPPORTED/.test(log)) return null;
+        if ([...(tried || [])].some((t) => String(t).includes('openssl-legacy-provider'))) return null;
+        return {
+          ruleId: 'node-openssl-legacy', class: 'runtime-version', confidence: 0.9,
+          cause: 'The build tool (webpack 4 era) uses a hash that Node 17+ disables with OpenSSL 3; `NODE_OPTIONS=--openssl-legacy-provider` re-enables it.',
+          fix: { actions: [{ type: 'exec', command: 'export NODE_OPTIONS=--openssl-legacy-provider' }], patches: [], doc: { kind: 'note', text: 'On Node 17+, run with `NODE_OPTIONS=--openssl-legacy-provider` (the build uses a hash OpenSSL 3 disables).' } },
+        };
+      },
+    },
+    {
+      // [pg_config ~630, mysql_config ~710, Python.h / ffi.h] a native Python package builds from source and needs headers.
+      id: 'python-native-headers',
+      test({ log, plan }) {
+        if (plan.runtime.name !== 'python') return null;
+        const need = /pg_config executable not found|libpq-fe\.h/.test(log) ? 'libpq-dev'
+          : /mysql_config not found|mysqlclient|mariadb_config/.test(log) && /not found|No such file/.test(log) ? 'default-libmysqlclient-dev pkg-config'
+          : /ffi\.h: No such file/.test(log) ? 'libffi-dev'
+          : /Python\.h: No such file/.test(log) ? 'python3-dev'
+          : /libxml\/\w+\.h: No such file|xmlversion\.h/.test(log) ? 'libxml2-dev libxslt1-dev' : null;
+        if (!need) return null;
+        const cmd = `apt-get update && apt-get install -y build-essential ${need}`;
+        return {
+          ruleId: 'python-native-headers', class: 'missing-tool', confidence: 0.85,
+          cause: `A dependency compiles native code and needs system headers the docs never mention (\`${need}\`).`,
+          fix: { actions: [{ type: 'insert-before', command: cmd, kind: 'prereq' }], patches: [], doc: { kind: 'prerequisite', text: `System packages: build-essential ${need}` } },
+        };
+      },
+    },
+    {
+      // [~2.2k "npm ci can only install packages when your package.json and package-lock.json … are in sync"]
+      id: 'npm-ci-lock-mismatch',
+      test({ log, step }) {
+        if (!/^npm ci\b/.test(step.command) || !/npm ci` can only install packages when your package\.json and package-lock\.json|are not in sync|Missing: [\w@/.-]+ from lock file/.test(log)) return null;
+        const cmd = step.command.replace(/^npm ci\b/, 'npm install');
+        return {
+          ruleId: 'npm-ci-lock-mismatch', class: 'missing-dependency', confidence: 0.85,
+          cause: 'The committed package-lock.json is out of date with package.json, so `npm ci` refuses; `npm install` resolves and updates it.',
+          fix: { actions: [{ type: 'replace-step', command: cmd }], patches: [], doc: { kind: 'replace-command', text: cmd } },
+        };
+      },
+    },
+    {
+      // [yarn frozen lockfile ~160+, Yarn berry YN0028] the lockfile is stale for the committed package.json.
+      id: 'yarn-frozen-lockfile',
+      test({ log, step }) {
+        if (!/^yarn\b/.test(step.command) || !/Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`|YN0028|The lockfile would have been modified by this install, which is explicitly forbidden/.test(log)) return null;
+        const cmd = step.command.replace(/\s--(frozen-lockfile|immutable)\b/g, '') + (/--(frozen-lockfile|immutable)/.test(step.command) ? '' : ' --no-immutable');
+        return {
+          ruleId: 'yarn-frozen-lockfile', class: 'missing-dependency', confidence: 0.8,
+          cause: "The committed yarn.lock doesn't match package.json, and this install forbids changing it.",
+          fix: { actions: [{ type: 'replace-step', command: cmd.trim() }], patches: [], doc: { kind: 'note', text: 'yarn.lock is out of date with package.json; run `yarn install` and commit the updated lockfile.' } },
+        };
+      },
+    },
   ];
+
+// The repo's last commit date (YYYY-MM-DD) for time-travel installs; null when git can't tell.
+function commitDate(facts) {
+  try {
+    const out = execFileSync('git', ['-C', facts.root, 'log', '-1', '--format=%cs'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return /^\d{4}-\d\d-\d\d$/.test(out) ? out : null;
+  } catch { return null; }
+}
 
 function label(kind) {
   return { postgres: 'PostgreSQL', redis: 'Redis', mongo: 'MongoDB', mysql: 'MySQL', rabbitmq: 'RabbitMQ', memcached: 'Memcached', elasticsearch: 'Elasticsearch', minio: 'MinIO', mailpit: 'a local mail catcher (Mailpit)' }[kind] || kind;
