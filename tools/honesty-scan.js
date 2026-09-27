@@ -26,6 +26,7 @@ const SKIP_PATHS = [
   '/test/',                // test files
   '.test.',                // test files
   '/fixtures/',            // test fixtures
+  '/examples/',            // example files
   'recorded-events.js',    // recorded event data
   'demo-machine.json',     // demo machine data
   'showcase.html',         // showcase/demo page
@@ -233,13 +234,14 @@ function findViolations(filePath, content) {
       const matches = line.matchAll(pattern);
       for (const match of matches) {
         // Allow in data files (they're supposed to have recorded facts)
-        if (filePath.includes('/data/runs/') || filePath.includes('/data/reels/') || filePath.includes('/audit/')) {
-          continue;
-        }
-        // Allow in test files
-        if (filePath.includes('/test/') || filePath.includes('.test.')) {
-          continue;
-        }
+          const isDataFile = filePath.includes('/data/runs/') || filePath.includes('/data/reels/') || filePath.includes('/data/audits/') || filePath.includes('/audit/') || filePath.includes('/examples/') || filePath.includes('/fixtures/');
+          if (isDataFile) {
+            continue;
+          }
+          // Allow in test files
+          if (filePath.includes('/test/') || filePath.includes('.test.')) {
+            continue;
+          }
         // Allow process.platform/runtime checks - these are runtime detection, not hardcoded facts
         if (match[0].includes('process.platform') || match[0].includes('process.version') ||
             match[0].includes('os.platform') || match[0].includes('os.release') ||

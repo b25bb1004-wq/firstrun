@@ -240,7 +240,7 @@ ipcMain.handle('dock:getReel', async (_e, name = 'acme-shop') => {
 });
 
 async function evaluateStepCheck(check, repoRoot) {
-  if (!check) return true;
+  if (!check) return false; // missing check = unknown, never pass
   if (check.type === 'file-has') {
     const f = path.join(repoRoot, check.file);
     if (!fs.existsSync(f)) return false;
@@ -248,7 +248,9 @@ async function evaluateStepCheck(check, repoRoot) {
     return new RegExp(check.pattern).test(content);
   }
   if (check.type === 'exit') {
-    return true;
+    // exit check must run the step and use its real exit code
+    // This is evaluated in runStep after the command completes
+    return false; // will be re-evaluated with actual exit code
   }
   if (check.type === 'http') {
     try {
@@ -291,9 +293,15 @@ ipcMain.handle('dock:runStep', async (_e, { command, cwd, check }) => {
     });
 
     proc.on('close', async (code) => {
-      let checkPassed = code === 0;
-      if (check && code === 0) {
-        checkPassed = await evaluateStepCheck(check, repoRoot);
+      let checkPassed = false;
+      if (check) {
+        if (check.type === 'exit') {
+          checkPassed = code === 0;
+        } else {
+          checkPassed = await evaluateStepCheck(check, repoRoot);
+        }
+      } else {
+        checkPassed = code === 0;
       }
       resolve({
         ok: checkPassed && code === 0,
