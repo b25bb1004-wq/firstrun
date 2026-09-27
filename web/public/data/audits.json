@@ -1,1 +1,1 @@
-[{"id":"v2-31-final","startedAt":"2026-09-26T22:44:33.375Z","repos":31,"done":31,"verdicts":{"VERIFIED":11,"PARTIAL":11,"FAILED":2,"NO-SETUP-DOCS":2,"INCONCLUSIVE":4,"CI-ONLY":1},"broke":21}]
+[{"id":"v2-31-final","startedAt":"2026-09-26T22:44:33.375Z","repos":31,"done":31,"verdicts":{"VERIFIED":11,"PARTIAL":11,"FAILED":2,"NO-SETUP-DOCS":2,"INCONCLUSIVE":4,"CI-ONLY":1},"broke":18}]
