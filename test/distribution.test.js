@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
@@ -7,7 +8,7 @@ import crypto from 'node:crypto';
 import { buildGuide, writeGuide } from '../src/onboarder/guide.js';
 import { readJson } from '../src/util.js';
 
-const here = path.dirname(new URL(import.meta.url).pathname);
+const here = path.dirname(fileURLToPath(import.meta.url));
 const runsDir = path.join(here, '..', 'web', 'public', 'data', 'runs');
 const acmeRunDir = path.join(runsDir, 'acme-shop-3c0bc2b2', 'f');
 

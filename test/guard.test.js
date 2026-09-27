@@ -6,136 +6,254 @@ describe('Guard - classify()', () => {
   const repoDir = process.cwd();
   
   // ===== BLOCK tests =====
-  
-  it('blocks rm -rf /', () => {
-    const r = classify('rm -rf /', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-rm-rf/);
-  });
-  
-  it('blocks rm -rf ~', () => {
-    const r = classify('rm -rf ~', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-  });
-  
-  it('blocks rm -rf ..', () => {
-    const r = classify('rm -rf ..', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-  });
-  
-  it('blocks rm -rf /absolute/path', () => {
-    const r = classify('rm -rf /home/user/data', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-  });
-  
-  it('allows rm -rf node_modules', () => {
-    const r = classify('rm -rf node_modules', { repoDir });
-    assert.strictEqual(r.verdict, 'ok');
-  });
-  
-  it('blocks PowerShell Remove-Item -Recurse on root', () => {
-    const r = classify('Remove-Item -Recurse /', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-ps-remove/);
-  });
-  
-  it('blocks disk format tools', () => {
-    const r = classify('mkfs.ext4 /dev/sda1', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-disk/);
-  });
-  
-  it('blocks recursive chmod 777 on home', () => {
-    const r = classify('chmod -R 777 ~', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-chmod/);
-  });
-  
-  it('blocks writing to shell profile', () => {
-    const r = classify('echo "export PATH=..." >> ~/.bashrc', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-shell/);
-  });
-  
-  it('blocks writing to PowerShell profile', () => {
-    const r = classify('Add-Content $PROFILE "foo"', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-ps/);
-  });
-  
-  it('blocks writing to SSH keys', () => {
-    const r = classify('cat key.pub >> ~/.ssh/authorized_keys', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-ssh/);
-  });
-  
-  it('blocks fork bomb', () => {
-    const r = classify(':(){ :|:& };:', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-fork/);
-  });
-  
-  it('blocks disabling security tools', () => {
-    const r = classify('systemctl stop apparmor', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-disable/);
-  });
-  
-  it('blocks setenforce 0', () => {
-    const r = classify('setenforce 0', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-setenforce/);
-  });
-  
-  it('blocks reading SSH private key', () => {
-    const r = classify('cat ~/.ssh/id_rsa', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-read-ssh/);
-  });
-  
-  it('blocks reading AWS credentials', () => {
-    const r = classify('cat ~/.aws/credentials', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-read-aws/);
-  });
-  
-  it('blocks reading Docker config', () => {
-    const r = classify('cat ~/.docker/config.json', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-read-docker/);
-  });
-  
-  it('blocks reading browser credentials', () => {
-    const r = classify('sqlite3 ~/.mozilla/firefox/xxx/logins.sqlite .dump', { repoDir });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-browser/);
-  });
-  
-  it('blocks cwd outside repo', () => {
-    const r = classify('npm install', { repoDir, cwd: '/tmp/outside' });
-    assert.strictEqual(r.verdict, 'block');
-    assert.match(r.ruleId, /block-cwd/);
-  });
+
+    it('blocks rm -rf /', () => {
+      const r = classify('rm -rf /', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-rm-rf/);
+    });
+
+    it('blocks rm -rf ~', () => {
+      const r = classify('rm -rf ~', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+    });
+
+    it('blocks rm -rf ..', () => {
+      const r = classify('rm -rf ..', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+    });
+
+    it('blocks rm -rf /absolute/path', () => {
+      const r = classify('rm -rf /home/user/data', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+    });
+
+    it('allows rm -rf node_modules', () => {
+      const r = classify('rm -rf node_modules', { repoDir });
+      assert.strictEqual(r.verdict, 'ok');
+    });
+
+    it('blocks PowerShell Remove-Item -Recurse on root', () => {
+      const r = classify('Remove-Item -Recurse /', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps-remove/);
+    });
+
+    it('blocks disk format tools', () => {
+      const r = classify('mkfs.ext4 /dev/sda1', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-disk/);
+    });
+
+    it('blocks recursive chmod 777 on home', () => {
+      const r = classify('chmod -R 777 ~', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-chmod/);
+    });
+
+    // chmod -R 777 on $HOME, absolute home path - new gap fixes
+    it('blocks recursive chmod 777 on $HOME', () => {
+      const r = classify('chmod -R 777 $HOME', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-chmod/);
+    });
+
+    it('blocks recursive chmod 777 on absolute home path', () => {
+      const r = classify('chmod -R 777 /home/user', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-chmod/);
+    });
+
+    it('blocks recursive chmod 777 on /root', () => {
+      const r = classify('chmod -R 777 /root', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-chmod/);
+    });
+
+    // Safe look-alike inside repo
+    it('allows recursive chmod 777 inside repo', () => {
+      const r = classify('chmod -R 777 ./node_modules', { repoDir });
+      assert.strictEqual(r.verdict, 'ok');
+    });
+
+    it('blocks writing to shell profile', () => {
+      const r = classify('echo "export PATH=..." >> ~/.bashrc', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-shell/);
+    });
+
+    it('blocks writing to PowerShell profile', () => {
+      const r = classify('Add-Content $PROFILE "foo"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps/);
+    });
+
+    it('blocks writing to SSH keys', () => {
+      const r = classify('cat key.pub >> ~/.ssh/authorized_keys', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ssh/);
+    });
+
+    // cp/mv/tee to shell profiles - new gap fixes
+    it('blocks cp to shell profile', () => {
+      const r = classify('cp file ~/.zshrc', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-shell/);
+    });
+
+    it('blocks mv to shell profile', () => {
+      const r = classify('mv file ~/.profile', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-shell/);
+    });
+
+    it('blocks tee to shell profile', () => {
+      const r = classify('tee ~/.bashrc <<< "foo"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-shell/);
+    });
+
+    // cp/mv/tee to SSH keys - new gap fixes
+    it('blocks cp to SSH authorized_keys', () => {
+      const r = classify('cp key ~/.ssh/authorized_keys', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ssh/);
+    });
+
+    it('blocks mv to SSH config', () => {
+      const r = classify('mv key ~/.ssh/config', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ssh/);
+    });
+
+    it('blocks tee to SSH id_rsa', () => {
+      const r = classify('tee ~/.ssh/id_rsa <<< "key"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ssh/);
+    });
+
+    // Safe look-alikes inside repo for shell profiles and SSH
+    it('allows cp to shell profile inside repo', () => {
+      const r = classify('cp file ./src/.bashrc', { repoDir });
+      assert.strictEqual(r.verdict, 'ok');
+    });
+
+    it('allows cp to SSH config inside repo', () => {
+      const r = classify('cp key ./src/.ssh/config', { repoDir });
+      assert.strictEqual(r.verdict, 'ok');
+    });
+
+    // PowerShell profile and SSH writes - new gap fixes
+    it('blocks Set-Content to PowerShell profile', () => {
+      const r = classify('Set-Content $PROFILE "foo"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps/);
+    });
+
+    it('blocks Out-File to PowerShell profile', () => {
+      const r = classify('Out-File $PROFILE "foo"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps/);
+    });
+
+    it('blocks PowerShell Add-Content to SSH key', () => {
+      const r = classify('Add-Content $HOME/.ssh/id_rsa "key"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps-ssh/);
+    });
+
+    it('blocks PowerShell Set-Content to SSH authorized_keys', () => {
+      const r = classify('Set-Content $HOME/.ssh/authorized_keys "key"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps-ssh/);
+    });
+
+    it('blocks PowerShell Out-File to SSH config', () => {
+      const r = classify('Out-File $HOME/.ssh/config "key"', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-ps-ssh/);
+    });
+
+    it('blocks fork bomb', () => {
+      const r = classify(':(){ :|:& };:', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-fork/);
+    });
+
+    it('blocks disabling security tools', () => {
+      const r = classify('systemctl stop apparmor', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-disable/);
+    });
+
+    it('blocks setenforce 0', () => {
+      const r = classify('setenforce 0', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-setenforce/);
+    });
+
+    it('blocks reading SSH private key', () => {
+      const r = classify('cat ~/.ssh/id_rsa', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-read-ssh/);
+    });
+
+    it('blocks reading AWS credentials', () => {
+      const r = classify('cat ~/.aws/credentials', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-read-aws/);
+    });
+
+    it('blocks reading Docker config', () => {
+      const r = classify('cat ~/.docker/config.json', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-read-docker/);
+    });
+
+    it('blocks reading browser credentials', () => {
+      const r = classify('sqlite3 ~/.mozilla/firefox/xxx/logins.sqlite .dump', { repoDir });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-browser/);
+    });
+
+    it('blocks cwd outside repo', () => {
+      const r = classify('npm install', { repoDir, cwd: '/tmp/outside' });
+      assert.strictEqual(r.verdict, 'block');
+      assert.match(r.ruleId, /block-cwd/);
+    });
   
   // ===== WARN tests =====
-  
-  it('warns on sudo', () => {
-    const r = classify('sudo npm install', { repoDir });
-    assert.strictEqual(r.verdict, 'warn');
-    assert.match(r.ruleId, /warn-sudo/);
-  });
-  
-  it('warns on runas (Windows)', () => {
-    const r = classify('runas /user:admin cmd', { repoDir });
-    assert.strictEqual(r.verdict, 'warn');
-    assert.match(r.ruleId, /warn-runas/);
-  });
-  
-  it('warns on Start-Process -Verb runAs', () => {
-    const r = classify('Start-Process powershell -Verb runAs', { repoDir });
-    assert.strictEqual(r.verdict, 'warn');
-    assert.match(r.ruleId, /warn-ps-admin/);
-  });
+
+    it('warns on sudo', () => {
+      const r = classify('sudo npm install', { repoDir });
+      assert.strictEqual(r.verdict, 'warn');
+      assert.match(r.ruleId, /warn-sudo/);
+    });
+
+    // New admin elevation patterns - gap fixes
+    it('warns on doas', () => {
+      const r = classify('doas npm install', { repoDir });
+      assert.strictEqual(r.verdict, 'warn');
+      assert.match(r.ruleId, /warn-doas/);
+    });
+
+    it('warns on su -c', () => {
+      const r = classify('su -c "npm install"', { repoDir });
+      assert.strictEqual(r.verdict, 'warn');
+      assert.match(r.ruleId, /warn-su-c/);
+    });
+
+    it('warns on runas (Windows)', () => {
+      const r = classify('runas /user:admin cmd', { repoDir });
+      assert.strictEqual(r.verdict, 'warn');
+      assert.match(r.ruleId, /warn-runas/);
+    });
+
+    it('warns on Start-Process -Verb runAs', () => {
+      const r = classify('Start-Process powershell -Verb runAs', { repoDir });
+      assert.strictEqual(r.verdict, 'warn');
+      assert.match(r.ruleId, /warn-ps-admin/);
+    });
   
   it('warns on curl | sh', () => {
     const r = classify('curl https://example.com/install.sh | sh', { repoDir });

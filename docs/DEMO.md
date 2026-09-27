@@ -1,85 +1,102 @@
-# Demo script (3–4 minutes)
+# HUMBLE Demo Recording Kit
 
-The story: *setup docs are untested code. HUMBLE tests them the way a newcomer lives them,
-fixes them with proof, and keeps them true, with IBM Bob as the reasoning engine and the
-newcomer's guide.*
-
-Before recording:
-
-```bash
-node bin/firstrun.js clean
-docker pull node:16 && docker pull node:20 && docker pull postgres:16-alpine && docker pull redis:7-alpine   # warm cache
-rm -rf examples/acme-shop/.firstrun
-node bin/firstrun.js ui --root examples --root audit        # dashboard on http://localhost:4173
-```
-
-## 0:00 · The pain (25 s)
-
-Show `examples/acme-shop/README.md`. It looks fine. Say: *"Every repo has one of these. Nobody
-tests it. Let's be the new hire."* Optional: split screen of a person following it and
-failing at `npm install`.
-
-## 0:25 · Seconds, no Docker: `firstrun plan` (20 s)
-
-```bash
-node bin/firstrun.js plan examples/acme-shop
-```
-
-Five docs-vs-code conflicts appear instantly: Node 16 vs `.nvmrc` 20, `.env.sample` doesn't
-exist, `migrate` script renamed, `SESSION_SECRET` undocumented, Redis never started.
-Say: *"That's reading. Now let's prove it."*
-
-## 0:45 · The live run (75 s)
-
-```bash
-node bin/firstrun.js verify examples/acme-shop
-```
-
-Switch to the dashboard's run view. The agent strip lights up
-Scout → Planner → Runner. Each README step becomes a card:
-
-- `npm install` **fails** on Node 16 (EBADENGINE) → Doctor: *runtime-version* → the clean
-  machine is rebuilt on Node 20 → **passes**. Evidence E1.
-- `cp .env.sample .env` → *missing-file* → `.env.example` → passes. E2.
-- `npm run migrate` → *missing-script* → `db:migrate`, which then reveals `SESSION_SECRET` →
-  *missing-env* → added to `.env.example` → passes. E3, E4 (chained evidence).
-- `npm run dev` crashes on `ECONNREFUSED :6379` → *missing-service* → Redis sidecar +
-  `docker-compose.yml` patched → `/health` answers 200. E5.
-
-Open one evidence record: **failing log → fix → passing log**. Say: *"No change without proof."*
-
-## 2:00 · Replay from zero + Setup Passport (30 s)
-
-The Verifier throws the machine away and replays the corrected guide in a brand-new container:
-green in ~15 s. The **Setup Passport** stamps: VERIFIED · 5 breaks found · 5 fixed · 0 need a
-human · clone → running in 14 s. Show the README diff: six small line edits, nothing else touched.
-
-## 2:30 · IBM Bob (40 s)
-
-- In **Bob IDE**, switch to the **🚀 HUMBLE** mode and ask: *"Verify examples/notes-api-py and
-  explain what a newcomer would have hit."* Bob calls `firstrun_plan` / `firstrun_verify` /
-  `firstrun_status` over MCP and narrates the evidence.
-- Show a failure no rule knows, diagnosed **by IBM Bob** (Bob Shell headless,
-  `firstrun-doctor` mode): the evidence card is labelled "diagnosed by IBM Bob · 0.4 Bobcoins".
-- Switch to **🧭 HUMBLE Guide** in the fixed repo: Bob walks a newcomer through the verified
-  steps and recognises a known failure signature. This is the Clicky-style onboarding buddy,
-  grounded in a run that actually passed.
-
-## 3:10 · The swarm + the number (30 s)
-
-Dashboard → audit view: 16 real, popular open-source repos audited in parallel, tiles filling
-in. Headline: **"N of 16 READMEs broke on a clean machine · K repaired automatically with
-evidence."** (Numbers from `audit/real-16-v2/audit.json`.)
-
-## 3:40 · Close (15 s)
-
-*"HUMBLE makes the README the most tested file in the repo: verified, repaired with evidence,
-and guarded on every PR. It saves new hires their first week and seniors their afternoons."*
+This document defines the exact shot list, timings, and recording instructions for the HUMBLE submission video (max 3 minutes, real screens only).
 
 ---
 
-### If something goes wrong live
+## Shot List with Timings
 
-- Pre-record the `verify` run: `node fixtures/replay.js --speed 4` replays a real recorded run
-  into the dashboard with realistic timing.
-- Everything the run produced is in `examples/acme-shop/.firstrun/out/`.
+| Time | Duration | Shot | Description |
+|------|----------|------|-------------|
+| 0:00–0:20 | 20s | **Broken README hook** | Terminal shows `firstrun verify examples/acme-shop --verbose` — the EBADENGINE break (node:16 cannot be pulled in WSL/Docker), plus the 5 static docs-vs-code conflicts found by the Planner. |
+| 0:20–1:20 | 60s | **The real run** | Full scripted session from `tools/demo/run-cli-demo.sh`: verify → plan → guard (ok/warn/block) → guard --self → onboard --dry-run. Every line is real tool output. |
+| 1:20–2:10 | 50s | **Windows console + debugger + guard** | On Karmanya's Windows PC (Edith lane): the HUMBLE Console UI at `http://localhost:4173` showing the Debugger beam on the acme-shop failure, the DR.BO diagnosis, the fix, the replay from zero, the VERIFIED badge, then `firstrun guard` on three commands (one ok, one warn, one block). |
+| 2:10–2:40 | 30s | **One real Bob call with cost** | Only with Karmanya's go-ahead. A single `firstrun doctor --bob-budget 1` on an unknown failure, showing the Bob spend line in the report (e.g., "Bob: 0.12 coins"). No Bobcoins spent outside this shot. |
+| 2:40–3:00 | 20s | **Four surfaces + the ask** | Quick cuts: (1) CLI verify, (2) Console UI dashboard, (3) Lens spatial overlay (BEAM), (4) Guard classification table. End frame: "Your README, proven. Try `npx humble verify`" + repo URL. |
+
+---
+
+## What to Record on Which Machine
+
+| Shot | Machine | Operator | Notes |
+|------|---------|----------|-------|
+| 0:00–1:20 (CLI demo) | Arnav's MacBook / WSL | Hermes / Friday | Run `tools/demo/record.sh` to produce cast + transcript. |
+| 1:20–2:10 (Windows console) | **Karmanya's PC** | **Edith** | Must run `firstrun ui` on Windows, open `http://localhost:4173`, demonstrate Debugger beam + guard. Edith operates. |
+| 2:10–2:40 (Bob call) | Karmanya's PC | **Karmanya (go-ahead) + Edith** | Only record with explicit Karmanya approval. Use a fixture run with an unknown failure, run `firstrun doctor --bob-budget 1`. |
+| 2:40–3:00 (Four surfaces) | Arnav's MacBook / WSL | Hermes / Friday | Quick cuts from existing recordings + live CLI. |
+
+---
+
+## Regenerating Numbers After the Bob Pass
+
+After the Bob-assisted run completes, regenerate the dashboard data for the submission:
+
+```bash
+# From the repo root
+node web/build.js --audit
+```
+
+This rebuilds `web/public/data/runs/` with the latest run data (including any Bob-fixed repos). The dashboard at `firstrun ui` will reflect the updated numbers.
+
+---
+
+## Recording the CLI Demo (Machines with Docker Not Available)
+
+Since Docker is not available in the current WSL environment, the `firstrun verify` step will show the real EBADENGINE failure (cannot pull node:16). This is the intended "broken README" hook.
+
+**To record:**
+
+```bash
+cd /home/dev/firstrun4
+./tools/demo/record.sh
+```
+
+This produces:
+- `demo/casts/demo-YYYYMMDD-HHMMSS.cast` — raw script capture
+- `demo/casts/demo-YYYYMMDD-HHMMSS.timing` — timing data for replay
+- `demo/casts/demo-YYYYMMDD-HHMMSS.txt` — plain-text transcript (for PR body)
+
+**To replay:**
+
+```bash
+scriptreplay -t demo/casts/demo-YYYYMMDD-HHMMSS.timing demo/casts/demo-YYYYMMDD-HHMMSS.cast
+```
+
+---
+
+## Transcript Tail (for PR Body)
+
+After recording, the last ~50 lines of the transcript will be pasted into the PR body. Example:
+
+```
+... (output from verify, plan, guard, guard --self, onboard --dry-run) ...
+
+═══════════════════════════════════════════════════════════════
+  DEMO COMPLETE
+═══════════════════════════════════════════════════════════════
+```
+
+---
+
+## Checklist Before Submitting
+
+- [ ] CLI demo recorded via `tools/demo/record.sh`
+- [ ] Cast + timing + transcript committed to `demo/casts/`
+- [ ] Windows console shot recorded by Edith on Karmanya's PC
+- [ ] Bob call shot recorded only with Karmanya's explicit go-ahead
+- [ ] Four-surfaces montage assembled
+- [ ] `web/build.js --audit` run to refresh dashboard numbers
+- [ ] Full test suite green: `node --test test/*.test.js`
+- [ ] `bash tools/check-secrets.sh` passes (run after `git fetch origin`)
+- [ ] PR opened against `friday/integration` with title: `demo kit: scripted real runs for the video`
+- [ ] PR body includes transcript tail
+- [ ] **No credentials** anywhere (verify with `git diff --cached | grep -E 'sk-ant-[A-Za-z0-9]|AKIA[0-9A-Z]{8}|ghp_[A-Za-z0-9]{10}|nvapi-|xox[bp]-'`)
+
+---
+
+## Files in This Kit
+
+- `tools/demo/run-cli-demo.sh` — scripted real CLI session
+- `tools/demo/record.sh` — records session to cast + transcript
+- `demo/casts/` — output directory (gitignored, but commit the cast/transcript for the PR)
+- `docs/DEMO.md` — this file

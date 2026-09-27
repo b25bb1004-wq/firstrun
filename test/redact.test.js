@@ -201,3 +201,11 @@ test('redactDeep supports tokensOnly option for structured file data', () => {
   assert.equal(logData.steps[1].cmd, mk('export WAGTAIL_CLI_TOK', `EN=${REDACTED}`));
 });
 
+
+test('redact keeps repo slugs that look like token prefixes (wagtail__bakerydemo)', async () => {
+  const { redactTokens } = await import('../src/redact.js');
+  const slug = 'v2-31-final-wagtail__bakerydemo';
+  assert.equal(redactTokens(slug), slug);
+  const token = 'wagtail_' + 'a1b2c3d4e5f6g7h8i9';
+  assert.notEqual(redactTokens(token), token);
+});

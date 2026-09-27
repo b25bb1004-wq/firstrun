@@ -17,34 +17,19 @@ import { askBob as realAskBob } from '../brain/bob.js';
 
 const BLOCK_PATTERNS = [
   // rm -rf on dangerous paths
-  { regex: /\brm\s+.*-rf\s+(\/(\s|$)|~(\s|$)|\.\.(\s|$)|[A-Za-z]:\\|\\\\\w)/i, id: 'block-rm-rf-root', reason: 'deletes outside repo' },
+  { regex: /\brm\s+.*-rf\s+(\/(\s|$)|~(\s|$)|\.\.(\s|$)|[A-Za-z]:\\|\\\\)\w/i, id: 'block-rm-rf-root', reason: 'deletes outside repo' },
   { regex: /\brm\s+.*-rf\s+\//i, id: 'block-rm-rf-root-abs', reason: 'deletes from root' },
   { regex: /\brm\s+.*-rf\s+~/i, id: 'block-rm-rf-home', reason: 'deletes home directory' },
   { regex: /\brm\s+.*-rf\s+\.\./i, id: 'block-rm-rf-parent', reason: 'deletes parent directory' },
   
   // PowerShell Remove-Item -Recurse on dangerous paths
-  { regex: /Remove-Item\s+.*-Recurse\s+(\/|~|\.\.|[A-Za-z]:\\|\\\\\w)/i, id: 'block-ps-remove-recurse', reason: 'deletes outside repo' },
+  { regex: /Remove-Item\s+.*-Recurse\s+(\/|~|\.\.|[A-Za-z]:\\|\\\\)/i, id: 'block-ps-remove-recurse', reason: 'deletes outside repo' },
   
   // Disk/format tools
   { regex: /\b(mkfs|fdisk|parted|format|dd\s+if=.*of=\/(dev|disk))\b/i, id: 'block-disk-tools', reason: 'disk/format tool' },
   
   // Recursive chmod 777 on home/root
-  { regex: /\bchmod\s+.*-R\s+.*777\s+(\/(\s|$)|~(\s|$)|\.\.(\s|$)|home|root)/i, id: 'block-chmod-777', reason: 'recursive chmod 777 on sensitive path' },
-  
-  // Writing to shell profiles
-  { regex: /\b(echo|printf|cat|tee)\s+.*\s*>>?\s*~?\/?\.(bashrc|zshrc|profile|bash_profile|zprofile|config\/fish)\b/i, id: 'block-shell-profile', reason: 'writes to shell profile' },
-  { regex: /\b(Add-Content|Set-Content|Out-File)\s+.*\$PROFILE\b/i, id: 'block-ps-profile', reason: 'writes to PowerShell profile' },
-  
-  // Writing to SSH keys
-  { regex: /\b(echo|printf|cat|tee)\s+.*\s*>>?\s*~?\/\.ssh\/(id_|authorized_keys|known_hosts|config)\b/i, id: 'block-ssh-keys', reason: 'writes to SSH keys' },
-  
-  // Fork bombs
-  { regex: /:\s*\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}/, id: 'block-fork-bomb-bash', reason: 'fork bomb' },
-  { regex: /while\s*\(\s*true\s*\)\s*\{\s*fork\s*&\s*\}/i, id: 'block-fork-bomb-while', reason: 'fork bomb' },
-  
-  // Disabling security tools
-  { regex: /\b(systemctl|service)\s+(stop|disable)\s+(apparmor|selinux|firewalld|ufw|iptables)\b/i, id: 'block-disable-security', reason: 'disables security tool' },
-  { regex: /setenforce\s+0\b/i, id: 'block-setenforce', reason: 'disables SELinux' },
+  { regex: /\bchmod\s+.*-R\s+.*777\s+(\/(\s|$)|~(\s|$)|\.\.(\s|$)|home|root|\$HOME|\/home\/\w+|\/root)/i, id: 'block-chmod-777', reason: 'recursive chmod 777 on sensitive path' },
   
   // Reading credential stores
   { regex: /\b(cat|less|more|head|tail)\s+~?\/\.ssh\/(id_rsa|id_ed25519|id_ecdsa|id_dsa)\b/i, id: 'block-read-ssh-private', reason: 'reads SSH private key' },
@@ -55,11 +40,29 @@ const BLOCK_PATTERNS = [
   // Browser profile reading
   { regex: /\b(cat|less|more|head|tail|sqlite3)\s+~?\/\.(mozilla|firefox|chrome|chromium|google-chrome|brave|edge)\/.*\/(Login Data|cookies|logins\.json|signons\.sqlite)\b/i, id: 'block-browser-creds', reason: 'reads browser credentials' },
   { regex: /\b(cat|less|more|head|tail|sqlite3)\s+~?\/\.(mozilla|firefox|chrome|chromium|google-chrome|brave|edge)\b/i, id: 'block-browser-profile', reason: 'reads browser profile' },
+  
+  // Writing to shell profiles (bash: redirects, tee, cp, mv)
+  { regex: /\b(echo|printf|cat|tee|cp|mv)\b.*?(?:>>?|<<<|\s)(~?\/?\.(bashrc|zshrc|profile|bash_profile|zprofile|config\/fish))\b/i, id: 'block-shell-profile', reason: 'writes to shell profile' },
+  { regex: /\b(Add-Content|Set-Content|Out-File)\s+.*\$PROFILE\b/i, id: 'block-ps-profile', reason: 'writes to PowerShell profile' },
+  
+  // Writing to SSH keys (bash: redirects, tee, cp, mv; PowerShell: Add-Content, Set-Content, Out-File)
+  { regex: /\b(echo|printf|cat|tee|cp|mv)\b.*?(?:>>?|<<<|\s)(~?\/\.ssh\/(id_rsa|id_ed25519|id_ecdsa|id_dsa|authorized_keys|known_hosts|config))\b/i, id: 'block-ssh-keys', reason: 'writes to SSH keys' },
+  { regex: /\b(Add-Content|Set-Content|Out-File)\s+.*\$HOME[\\\/]\.ssh[\\\/](id_rsa|id_ed25519|id_ecdsa|id_dsa|authorized_keys|known_hosts|config)\b/i, id: 'block-ps-ssh-keys', reason: 'writes to SSH keys (PowerShell)' },
+  
+  // Fork bombs
+  { regex: /:\s*\(\s*\)\s*\{\s*:\s*\|\s*:\s*&\s*\}/, id: 'block-fork-bomb-bash', reason: 'fork bomb' },
+  { regex: /while\s*\(\s*true\s*\)\s*\{\s*fork\s*&\s*\}/i, id: 'block-fork-bomb-while', reason: 'fork bomb' },
+  
+  // Disabling security tools
+  { regex: /\b(systemctl|service)\s+(stop|disable)\s+(apparmor|selinux|firewalld|ufw|iptables)\b/i, id: 'block-disable-security', reason: 'disables security tool' },
+  { regex: /setenforce\s+0\b/i, id: 'block-setenforce', reason: 'disables SELinux' },
 ];
 
 const WARN_PATTERNS = [
   // sudo/admin elevation
   { regex: /^\s*sudo\s+/i, id: 'warn-sudo', reason: 'requires sudo/admin elevation' },
+  { regex: /^\s*doas\s+/i, id: 'warn-doas', reason: 'requires admin elevation' },
+  { regex: /^\s*su\s+-c\s+/i, id: 'warn-su-c', reason: 'requires admin elevation' },
   { regex: /^\s*runas\s+/i, id: 'warn-runas', reason: 'requires admin elevation' },
   { regex: /^\s*Start-Process\s+.*-Verb\s+runAs\b/i, id: 'warn-ps-admin', reason: 'requires admin elevation' },
   
@@ -215,7 +218,7 @@ Decide: ok, warn, or block.
 Your verdict can ONLY make the command stricter (ok → warn → block), NEVER looser than the rules.
 Rules said: ${ruleResult.verdict}
 - If rules say "ok", you may say "warn" or "block"
-- If rules say "warn", you may say "block"  
+- If rules say "warn", you may say "block" 
 - You can NEVER loosen (block → warn, warn → ok, block → ok are forbidden)
 
 Block criteria: deleting outside repo, disk/format tools, recursive chmod 777 on home/root, writing to shell profiles/SSH keys, fork bombs, disabling security tools, reading credential stores (~/.ssh, ~/.aws, browser profiles, keychains), any step whose cwd resolves outside the repo.

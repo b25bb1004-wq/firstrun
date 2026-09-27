@@ -101,9 +101,9 @@
 
           <div class="prove-input-block">
             <div class="prove-chips" role="radiogroup" aria-label="Preset public repositories">
-              <button type="button" class="prove-chip active" data-repo="b25bb1004-wq/acme-shop">acme-shop demo</button>
-              <button type="button" class="prove-chip" data-repo="GeekyAnts/express-typescript">GeekyAnts/express-typescript</button>
-              <button type="button" class="prove-chip" data-repo="addyosmani/git2txt">addyosmani/git2txt</button>
+              <button type="button" class="prove-chip active" data-repo="b25bb1004-wq/acme-shop"><span class="prove-tag">[recorded run]</span> acme-shop demo</button>
+              <button type="button" class="prove-chip" data-repo="GeekyAnts/express-typescript"><span class="prove-tag">[recorded run]</span> GeekyAnts/express-typescript</button>
+              <button type="button" class="prove-chip" data-repo="addyosmani/git2txt"><span class="prove-tag">[recorded run]</span> addyosmani/git2txt</button>
             </div>
             
             <div class="prove-field-row">
@@ -411,7 +411,7 @@
 <span class="c-comment"># 2. Boot dependencies and global runner</span>
 <span class="c-add"><span class="c-sym">+</span> docker compose up -d mongo</span>
 <span class="c-add"><span class="c-sym">+</span> docker compose up -d redis</span>
-<span class="c-add"><span class="c-sym">+</span> npm install --global nodemon</span>
+<span class="c-add"><span class="c-sym">+</span> npm install --global nodemon <span class="prove-tag">[recorded run]</span></span>
 
 <span class="c-comment"># 3. Start TypeScript dev server</span>
 <span class="c-ctx">  npm run dev;</span></code></pre>
@@ -428,7 +428,7 @@
 
 <span class="c-comment"># 2. Missing database and background services</span>
 <span class="c-dim">  (docs omit MongoDB &amp; Redis containers)</span>
-<span class="c-dim">  (docs omit global nodemon compiler)</span>
+<span class="c-dim">  (docs omit global nodemon compiler) <span class="prove-tag">[recorded run]</span></span>
 
 <span class="c-comment"># 3. Start TypeScript dev server</span>
 <span class="c-del"><span class="c-sym">-</span> npm run dev;</span> <span class="c-err"># ECONNREFUSED 127.0.0.1:27017</span></code></pre>
@@ -457,7 +457,7 @@
         </article>
         <article>
           <div class="big" style="color:var(--c-doctor)">5/5</div>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-doctor) 18%,transparent);color:var(--c-doctor)">Recorded replay</span><h3>acme-shop: five breaks, all fixed</h3><p>A demo repo whose README drifted in five realistic ways (we seeded them). Watch every command, every repair and the replay.</p><a class="link" href="/proof">Watch the recording</a></div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-doctor) 18%,transparent);color:var(--c-doctor)">Recorded replay</span><h3><span class="prove-tag">[recorded run]</span> acme-shop: five breaks, all fixed</h3><p>A demo repo whose README drifted in five realistic ways (we seeded them). Watch every command, every repair and the replay.</p><a class="link" href="/proof">Watch the recording</a></div>
         </article>
       </div>
       <div class="gallery-nav"><button type="button" data-dir="-1" aria-label="Previous">&lsaquo;</button><button type="button" data-dir="1" aria-label="Next">&rsaquo;</button></div>

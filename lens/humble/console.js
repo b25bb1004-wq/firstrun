@@ -433,7 +433,7 @@ export class HumbleConsole {
       repo: plan.repo || 'acme-shop',
       commit: plan.commit || 'c0661ce19b',
       verdict: 'VERIFIED',
-      provenOn: { image: plan.image || 'node:20', os: 'linux', replaySeconds: 14, runId: 'acme-shop-3c0bc2b2' },
+      provenOn: { image: plan.image, os: 'linux', replaySeconds: plan.replay?.durationMs ? Math.round(plan.replay.durationMs / 1000) : 14, runId: plan.runId || 'acme-shop-3c0bc2b2' },
       steps: guideSteps,
       done: { type: 'http', url: 'http://127.0.0.1:3000/health', expect: 200 }
     };
@@ -540,8 +540,12 @@ export class HumbleConsole {
   }
 
   typeInstallHint(tool) {
+    // Prefer version from guide's proven plan; fallback to version-less hint
+    const guideImage = this.guide?.provenOn?.image;
     const hints = {
-      'Node.js': 'Download Node.js 20+ from https://nodejs.org or run: nvm install 20',
+      'Node.js': guideImage
+        ? `Download Node.js ${guideImage.replace('node:', '')}+ from https://nodejs.org or run: nvm install ${guideImage.replace('node:', '')}`
+        : 'Download a supported Node.js version from https://nodejs.org or run: nvm install <version>',
       'npm': 'npm comes bundled with Node.js',
       'Docker': 'Install Docker Desktop: https://www.docker.com/products/docker-desktop',
       'Docker Compose': 'Included with Docker Desktop or: sudo apt install docker-compose-plugin',
@@ -672,52 +676,28 @@ export class HumbleConsole {
       if (res.ok) return await res.json();
     } catch {}
 
-    // Verified real acme-shop reel data (EBADENGINE -> Node 20 / .nvmrc fix)
-    return {
-      name: 'acme-shop',
-      replaySeconds: 14,
-      firstFailIndex: 10,
-      fixIndex: 12,
-      lines: [
-        { kind: 'cmd', text: 'git clone https://github.com/acme-commerce/acme-shop.git', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'cd acme-shop', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm install', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'cp .env.sample .env', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'docker compose up -d', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm run migrate', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm run db:seed', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm run dev', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm test', agent: 'planner', seconds: 0 },
-        { kind: 'cmd', text: 'npm install', agent: 'runner', seconds: 1.8 },
-        { kind: 'fail', text: 'npm install', agent: 'runner', seconds: 2.6 },
-        { kind: 'diag', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", agent: 'doctor', seconds: 2.8 },
-        { kind: 'fix', text: 'Node.js 20 (see .nvmrc)', agent: 'doctor', seconds: 2.8 },
-        { kind: 'pass', text: 'npm install', agent: 'runner', seconds: 7.5 },
-        { kind: 'verified', text: "The README's Node.js 16 is too old: the project needs Node.js 20 (.nvmrc).", agent: 'doctor', seconds: 7.5 },
-        { kind: 'cmd', text: 'cp .env.sample .env', agent: 'runner', seconds: 7.5 },
-        { kind: 'fail', text: 'cp .env.sample .env', agent: 'runner', seconds: 7.8 },
-        { kind: 'diag', text: '.env.sample does not exist; the repo ships .env.example.', agent: 'doctor', seconds: 8 },
-        { kind: 'fix', text: 'cp .env.example .env', agent: 'doctor', seconds: 8 },
-        { kind: 'cmd', text: 'cp .env.example .env', agent: 'runner', seconds: 8 },
-        { kind: 'pass', text: 'cp .env.example .env', agent: 'runner', seconds: 8.3 },
-        { kind: 'verified', text: '.env.sample does not exist; the repo ships .env.example.', agent: 'doctor', seconds: 8.3 },
-        { kind: 'cmd', text: 'docker compose up -d', agent: 'runner', seconds: 8.3 },
-        { kind: 'pass', text: 'docker compose up -d', agent: 'runner', seconds: 12.8 },
-        { kind: 'cmd', text: 'npm run db:migrate', agent: 'runner', seconds: 13.3 },
-        { kind: 'pass', text: 'npm run db:migrate', agent: 'runner', seconds: 14.9 },
-        { kind: 'cmd', text: 'npm run dev', agent: 'runner', seconds: 15.3 },
-        { kind: 'pass', text: 'npm run dev', agent: 'runner', seconds: 27.9 },
-        { kind: 'cmd', text: 'npm test', agent: 'runner', seconds: 27.9 },
-        { kind: 'pass', text: 'npm test', agent: 'runner', seconds: 28.6 },
-        { kind: 'verified', text: 'VERIFIED · replay from zero in 14s', agent: 'verifier', seconds: 43.3 }
-      ]
-    };
+    // No recorded reel available — do not fake one
+    return null;
   }
 
   async playReel({ instant = false } = {}) {
     this.mascot.setState('think');
     const reel = await this.loadReel();
-    const lines = reel.lines || [];
+    
+    if (!reel || !reel.lines || reel.lines.length === 0) {
+      // No recorded reel available — show error state, never fake data
+      if (this.terminalContent) {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'term-line fail';
+        lineEl.textContent = '  > No verified reel available for this project. Run FirstRun scout/plan first.';
+        this.terminalContent.appendChild(lineEl);
+        this.terminalContent.scrollTop = this.terminalContent.scrollHeight;
+      }
+      this.mascot.setState('worried');
+      return;
+    }
+    
+    const lines = reel.lines;
 
     if (instant) {
       for (const line of lines) {
@@ -888,16 +868,53 @@ export class HumbleConsole {
   }
 
   async showAlreadyDone(step) {
+    // Find the command line for this specific step (not the last one)
+    // We need to create a new line or find the one matching this step's command
+    const command = step.do?.command || step.command || step.kind;
     const cmdLines = this.terminalContent?.querySelectorAll('.term-line.cmd');
-    const lastCmd = cmdLines ? cmdLines[cmdLines.length - 1] : null;
-    if (lastCmd) {
-      const status = lastCmd.querySelector('.status');
+    let targetLine = null;
+    
+    if (cmdLines && cmdLines.length > 0) {
+      // Look for a command line that matches this step's command (might be the last one if we just ran it)
+      for (const line of cmdLines) {
+        const cmdText = line.querySelector('.cmd-text');
+        if (cmdText && cmdText.textContent.includes(command)) {
+          targetLine = line;
+          break;
+        }
+      }
+      // Fallback to last command line if no match
+      if (!targetLine) {
+        targetLine = cmdLines[cmdLines.length - 1];
+      }
+    }
+    
+    if (targetLine) {
+      const status = targetLine.querySelector('.status');
       if (status) {
         status.className = 'status ok';
         status.textContent = '✓ already done';
         status.style.color = 'var(--c-ink-3)';
       }
+    } else {
+      // No command line found - create one for this already-done step
+      const lineEl = document.createElement('div');
+      lineEl.className = 'term-line cmd';
+      const prompt = document.createElement('span');
+      prompt.className = 'prompt';
+      prompt.textContent = '$ ';
+      const cmd = document.createElement('span');
+      cmd.className = 'cmd-text';
+      cmd.textContent = command;
+      const status = document.createElement('span');
+      status.className = 'status ok';
+      status.textContent = '✓ already done';
+      status.style.color = 'var(--c-ink-3)';
+      lineEl.append(prompt, cmd, status);
+      this.terminalContent?.appendChild(lineEl);
+      this.scrollToBottom();
     }
+    
     this.mascot.setState('celebrate');
     await sleep(600);
     this.mascot.setState('talk');

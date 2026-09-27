@@ -9,7 +9,8 @@ export const TOKEN_PATTERNS = [
   /\bAKIA[0-9A-Z]{16}\b/g,
   /\bbob_prod_[A-Za-z0-9_-]{8,}\b/g,
   /\bnvapi-[A-Za-z0-9_-]{10,}\b/g,
-  /\bwagtail_[A-Za-z0-9_-]{8,}\b/g,
+  // Not repo slugs like wagtail__bakerydemo: a token has a digit, no leading second underscore, 16+ chars.
+  /\bwagtail_(?!_)(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{16,}\b/g,
   // SonarQube tokens: squ_/sqp_/sqa_ prefixed, and the legacy 40-hex value after sonar.login= (vargasjona's README).
   /\bsq[upa]_[A-Za-z0-9]{20,}\b/g,
   /(?<=sonar\.(?:login|token)\s*[=:]\s*['"]?)[0-9a-f]{40}\b/g,
