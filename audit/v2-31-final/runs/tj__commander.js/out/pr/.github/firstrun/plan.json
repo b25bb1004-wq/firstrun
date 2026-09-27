@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:52:17.952Z",
+  "commit": "ba6d13ddb4",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S15",
+      "command": "npm ci",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

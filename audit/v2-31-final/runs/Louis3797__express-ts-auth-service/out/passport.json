@@ -1,0 +1,26 @@
+{
+  "repo": "Louis3797/express-ts-auth-service",
+  "commit": "fc6722badf",
+  "verifiedAt": "2026-09-26T22:57:59.271Z",
+  "verdict": "VERIFIED",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 5,
+  "stepsFromReadme": 4,
+  "breaksFound": 2,
+  "breaksFixed": 2,
+  "needsHuman": 0,
+  "repoBreaks": 2,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 113,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:4000/"
+  },
+  "fromCI": false
+}

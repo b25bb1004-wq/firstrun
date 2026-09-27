@@ -1,0 +1,501 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,5 +1,7 @@
+ ![](https://lh4.googleusercontent.com/-PVw-ZUM9vV8/UuWeH51os0I/AAAAAAAAD6M/0Ikg7viJftQ/w1286-h566-no/hackathon-starter-logo.jpg)
+ Hackathon Starter
++
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `node:22` machine at `410fccec23`: clone to running in 1m28s.
+ =======================
+ 
+ [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sahat/hackathon-starter)
+@@ -140,6 +142,7 @@ cd myproject
+ npm install
+ 
+ # Then simply start your app
++docker run -d --name mongo -p 27017:27017 mongo:7
+ npm start
+ ```
+ 
+@@ -1557,6 +1560,7 @@ You can run the tests using:
+ npm test                  # unit tests (core functions)
+ npm run test:e2e:live     # All E2E tests with previously recorded API responses
+ npm run test:e2e:replay   # E2E (replay fixtures - recorded API responses)
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ You can run a single E2E Test file like the following:
+@@ -1564,12 +1568,15 @@ You can run a single E2E Test file like the following:
+ ```bash
+ # Run tests in a single test file against live APIs
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # Run tests in a single test file while replaying recorded API responses from the fixtures
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-replay
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ 
+ # Run tests in a single test file against live APIs and capture the API responses as fixtures for replay later
+ npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-record
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ For more information on creating or running E2E tests see [test/TESTING.md](https://github.com/sahat/hackathon-starter/blob/master/test/TESTING.md)
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,174 @@
++# Setup Passport: sahat/hackathon-starter
++
++🟡 **PARTIAL**: HUMBLE followed this project's setup docs on a clean `node:22` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `410fccec23` |
++| Verified | 2026-09-27 00:30 UTC |
++| Runtime | Node.js 22 (`node:22`) |
++| Clone to running, from zero | **1m28s** |
++| Steps followed | 7 from the docs, 1 added by HUMBLE |
++| Breaks found / fixed | 1 / 1 |
++| Needs a human | 4 |
++| Done when | `GET http://127.0.0.1:8080/auth/facebook/callback` answers |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `npm start` (README.md:143).
++
++## Verified setup
++
++```bash
++npm install
++docker run -d --name mongo -p 27017:27017 mongo:7
++npm start
++npm test
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Undocumented backing service <a id="e1"></a>
++
++- **Docs said:** `npm start` (README.md:143)
++- **Cause:** The app connects to MongoDB on localhost:27017, but the docs never start it.
++- **Diagnosed by:** HUMBLE rule `missing-service`, confidence 92%
++- **Doc change:** docker run -d --name mongo -p 27017:27017 mongo:7
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++    errorLabelSet: Set(3) { 'SystemOverloadedError', 'RetryableError', 'ResetPool' },
++    beforeHandshake: false,
++    [cause]: Error: connect ECONNREFUSED 127.0.0.1:27017
++        at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1638:16) {
++      errno: -111,
++      code: 'ECONNREFUSED',
++      syscall: 'connect',
++      address: '127.0.0.1',
++      port: 27017
++    }
++  }
++}
++MongoDB connection error. Please make sure MongoDB is running.
++[firstrun] the server process has exited
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++started mongo:7 as "mongo" on localhost:27017
++$ docker run -d --name mongo -p 27017:27017 mongo:7 → exit 0
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++
++> hackathon-starter@10.0.0 start
++> npm run scss && node app.js
++
++
++> hackathon-starter@10.0.0 scss
++> sass --no-source-map --silence-deprecation=import --quiet-deps --load-path=./ --update ./public/css:./public/css
++
++
++[firstrun] GET http://127.0.0.1:8080/auth/facebook/callback → 302
++```
++</details>
++
++### E2: Unrecognised failure <a id="e2"></a>
++
++- **Docs said:** `npm run test:e2e:replay` (README.md:1559)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.3 MiB
++|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB
++Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /root/.cache/ms-playwright/chromium_headless_shell-1243
++
++> hackathon-starter@10.0.0 test:e2e:replay
++> playwright test --config=test/playwright.config.js --project=chromium-replay
++
++
++Error: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
++```
++</details>
++
++### E3: Unrecognised failure <a id="e3"></a>
++
++- **Docs said:** `npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium` (README.md:1566)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++
++Error: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
++```
++</details>
++
++### E4: Unrecognised failure <a id="e4"></a>
++
++- **Docs said:** `npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-replay` (README.md:1569)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++
++Error: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
++```
++</details>
++
++### E5: Unrecognised failure <a id="e5"></a>
++
++- **Docs said:** `npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-record` (README.md:1572)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++
++Error: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Node.js version | not stated | 24 (package.json engines (">=24.18.0")) | README.md |
++| env var RATE_LIMIT_GLOBAL | not documented | read in app.js:42 | .env.example |
++| env var RATE_LIMIT_STRICT | not documented | read in app.js:43 | .env.example |
++| env var RATE_LIMIT_LOGIN | not documented | read in app.js:44 | .env.example |
++| mongodb service | setup never starts it | dependency "mongodb" | package.json |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 1/1 fixed">
++  <title>HUMBLE: partly verified · 1/1 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 1/1 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "sahat/hackathon-starter",
++  "commit": "410fccec23",
++  "verifiedAt": "2026-09-27T00:30:02.278Z",
++  "verdict": "PARTIAL",
++  "image": "node:22",
++  "runtime": "Node.js 22",
++  "stepsTotal": 8,
++  "stepsFromReadme": 7,
++  "breaksFound": 1,
++  "breaksFixed": 1,
++  "needsHuman": 4,
++  "repoBreaks": 1,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 4,
++  "replaySeconds": 88,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8080/auth/facebook/callback",
++    "fromDocs": true
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,61 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:30:02.278Z",
++  "commit": "410fccec23",
++  "image": "node:22",
++  "runtime": {
++    "name": "node",
++    "version": "22",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8080/auth/facebook/callback",
++    "fromDocs": true
++  },
++  "steps": [
++    {
++      "id": "S3",
++      "command": "npm install",
++      "kind": "install"
++    },
++    {
++      "id": "R1",
++      "command": "docker run -d --name mongo -p 27017:27017 mongo:7",
++      "kind": "services",
++      "origin": "repair"
++    },
++    {
++      "id": "S4",
++      "command": "npm start",
++      "kind": "serve",
++      "serve": {
++        "port": 8080
++      },
++      "prereqs": [
++        {
++          "type": "service",
++          "name": "mongo",
++          "image": "mongo:7",
++          "env": {},
++          "port": 27017,
++          "volumes": [],
++          "composeDir": null
++        }
++      ]
++    },
++    {
++      "id": "S5",
++      "command": "npm test",
++      "kind": "test"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "[cause]: Error: connect ECONNREFUSED 127.0.0.1:27017",
++      "cause": "The app connects to MongoDB on localhost:27017, but the docs never start it.",
++      "fix": "docker run -d --name mongo -p 27017:27017 mongo:7",
++      "evidence": "E1"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,26 @@
++# Verified setup for sahat/hackathon-starter
++
++Verified by HUMBLE on 2026-09-27 at commit `410fccec23` on a clean `node:22` machine. Clone to running took 88s.
++
++Prerequisites: Node.js 22, Docker (for backing services).
++
++## Steps
++
++1. `npm install`
++   - Kind: install
++   - Expect: exits with code 0.
++2. `docker run -d --name mongo -p 27017:27017 mongo:7`
++   - Kind: services (added by HUMBLE: the README missed it)
++   - Expect: exits with code 0.
++3. `npm start`
++   - Kind: serve
++   - Expect: the app answers at http://127.0.0.1:8080/auth/facebook/callback (HTTP 302). Leave it running in its own terminal.
++4. `npm test`
++   - Kind: test
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `[cause]: Error: connect ECONNREFUSED 127.0.0.1:27017` | The app connects to MongoDB on localhost:27017, but the docs never start it. | docker run -d --name mongo -p 27017:27017 mongo:7 |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "hackathon-starter",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "npm install",
++  "forwardPorts": [
++    8080
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "dbaeumer.vscode-eslint"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,10 @@
++services:
++  app:
++    image: node:22
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  mongo:
++    image: mongo:7
++    network_mode: service:app
++    restart: unless-stopped
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -58,3 +58,6 @@ Thumbs.db
+ .Trashes
+ .VolumeIcon.icns
+ .com.apple.timemachine.donotpresent
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/
