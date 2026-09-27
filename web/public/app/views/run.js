@@ -8,12 +8,12 @@ import { passportHTML } from '../passport.js';
 import { renderDiff } from '../diff.js';
 
 const AGENT_INFO = {
-  scout: { name: 'Scout', job: 'Reads docs, manifests, CI' },
-  planner: { name: 'Planner', job: 'Turns the README into steps' },
-  runner: { name: 'Runner', job: 'Runs steps in a clean container' },
-  doctor: { name: 'Doctor', job: 'Diagnoses and repairs failures' },
-  verifier: { name: 'Verifier', job: 'Replays the fix from zero' },
-  scribe: { name: 'Scribe', job: 'Writes README, passport' },
+  scout: { name: 'Harvey', role: 'Scout · reads the repo', job: 'Scout · reads the repo' },
+  planner: { name: 'Unity', role: 'Planner · sequences the run', job: 'Planner · sequences the run' },
+  runner: { name: 'Mach', role: 'Runner · runs on a clean machine', job: 'Runner · runs on a clean machine' },
+  doctor: { name: 'DR.BO', role: 'Doctor · diagnoses and fixes', job: 'Doctor · diagnoses and fixes' },
+  verifier: { name: 'Larp', role: 'Verifier · proves from zero', job: 'Verifier · proves from zero' },
+  scribe: { name: 'Echo', role: 'Scribe · rewrites the README', job: 'Scribe · rewrites the README' },
 };
 
 function agentLine(m, a) {
@@ -112,7 +112,7 @@ function stepHTML(m, s, open) {
         <span class="chip c-${st}">${st === 'pending' && m.phase === 'done' ? 'Not reached' : STATUS_LABEL[st] || st}</span>
       </header>
       <div class="card-sub">
-        ${repair ? h`<span class="added">${icon('wrench')} Added by the Doctor</span>` : def.source ? h`<span class="src">${def.source.file}:${def.source.line}</span><span class="sec">${def.source.section}</span>` : ''}
+        ${repair ? h`<span class="added">${icon('wrench')} Added by DR.BO</span>` : def.source ? h`<span class="src">${def.source.file}:${def.source.line}</span><span class="sec">${def.source.section}</span>` : ''}
         <span class="kind">${def.kind}</span>
         ${s.attempts > 1 ? h`<span class="att">${s.attempts} attempts</span>` : ''}
         ${totalMs && !isRunning ? h`<span class="dur">${dur(totalMs)}</span>` : ''}
@@ -297,6 +297,7 @@ export function mountRun(root, runId, sub) {
       const has = !!m.agentLast[a];
       return h`<div class="agent ${a === act ? 'on' : ''} ${has ? 'has' : ''}" data-agent="${a}">
         <div class="ag-top"><span class="ag-name">${AGENT_INFO[a].name}</span><span class="ag-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+        <div class="ag-sub mono" style="font-size: 0.72rem; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${AGENT_INFO[a].role}</div>
         <div class="ag-line" title="${agentLine(m, a)}">${agentLine(m, a)}</div>
       </div>`;
     })}`);

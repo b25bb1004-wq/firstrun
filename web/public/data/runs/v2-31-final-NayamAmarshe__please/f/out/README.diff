@@ -1,0 +1,24 @@
+diff --git a/README.MD b/README.MD
+--- a/README.MD
++++ b/README.MD
+@@ -29,6 +29,12 @@
+ 
+ # 🚀 Installation
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.12` machine at `10e94b3e7e`: clone to running in 1m24s.
++
++Prerequisites verified by HUMBLE:
++
++- poetry
++
+ ### Method 1:
+ 
+ 1. Make sure you have Python 3 installed on your computer.
+@@ -203,6 +209,7 @@ poetry install
+ 
+ ```bash
+ python please/please.py
++# HUMBLE: this step still fails on a clean machine: `python please/please.py` stops to ask a question ("Hello! What can I call you?") and waits for a person to type an answer. Everything before it is proven; this step needs you at the keyboard, and the docs don't say so.
+ ```
+ 
+ 6. To build a WHL package:

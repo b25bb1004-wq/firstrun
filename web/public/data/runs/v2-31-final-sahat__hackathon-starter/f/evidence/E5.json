@@ -1,0 +1,23 @@
+{
+  "id": "E5",
+  "stepId": "S10",
+  "before": {
+    "stepId": "S10",
+    "n": 1,
+    "command": "npx playwright test test/e2e.../testfile.e2e.test.js --config=test/playwright.config.js --project=chromium-record",
+    "exitCode": 1,
+    "durationMs": 1300,
+    "logTail": "\nError: http://127.0.0.1:8080 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+    "logFile": "logs/S10-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T00:28:29.237Z"
+}

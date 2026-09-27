@@ -548,19 +548,15 @@
     morph: drawMorph
   };
 
+  // Palette only (docs/design/ANTI_VIBECODE.md): blue = scouting/proving, hot pink = running/breaking, ink for the Scribe.
+  const BLUE = [36, 64, 255], DEEP = [27, 43, 184], PINK = [255, 45, 135];
   const AGENT_TINTS = {
-    searching: [79, 140, 255],  // Scout #4f8cff
-    globe:     [79, 140, 255],
-    shaping:   [96, 120, 255],  // Planner #1b2bb8 / #6078ff
-    morph:     [96, 120, 255],
-    working:   [255, 138, 61],  // Runner #ff8a3d
-    orbits:    [255, 138, 61],
-    solving:   [255, 92, 122],  // Doctor #ff5c7a
-    rubik:     [255, 92, 122],
-    listening: [47, 191, 133],  // Verifier #2fbf85
-    wave:      [47, 191, 133],
-    composing: [245, 197, 66],  // Scribe #f5c542
-    ribbon:    [245, 197, 66]
+    searching: BLUE, globe: BLUE,       // Scout
+    shaping: DEEP, morph: DEEP,         // Planner
+    working: PINK, orbits: PINK,        // Runner
+    solving: PINK, rubik: PINK,         // Doctor
+    listening: BLUE, wave: BLUE,        // Verifier
+    composing: null, ribbon: null       // Scribe: plain ink
   };
 
   // --- ThinkingOrb Controller ---
@@ -617,11 +613,16 @@
       draw(ctx, size, tSec, dark, resolved.opts, tint);
     }
 
-    function loop() {
-      const resolved = resolvePreset(state, size);
-      const effSpeed = resolved.speed * speed;
-      const t = (performance.now() / 1000) * effSpeed;
-      render(t);
+    let lastT = 0;
+    function loop(now) {
+      if (!running) return;
+      if (!now || now - lastT >= 30) {
+        lastT = now || performance.now();
+        const resolved = resolvePreset(state, size);
+        const effSpeed = resolved.speed * speed;
+        const t = (lastT / 1000) * effSpeed;
+        render(t);
+      }
       if (running) raf = requestAnimationFrame(loop);
     }
 
@@ -638,13 +639,26 @@
 
     // Visibility & Viewport Intersection
     let io = null;
+    let initialRenderDone = false;
     if (typeof IntersectionObserver !== 'undefined') {
+      visible = false;
       io = new IntersectionObserver(([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && document.visibilityState !== 'hidden') start();
-        else stop();
+        if (visible && document.visibilityState !== 'hidden') {
+          if (!initialRenderDone) {
+            render(0.6);
+            initialRenderDone = true;
+          }
+          start();
+        } else {
+          stop();
+        }
       });
       io.observe(canvas);
+    } else {
+      visible = true;
+      render(0.6);
+      if (!isReduced()) start();
     }
 
     const onVisibility = () => {
@@ -652,10 +666,6 @@
       else if (visible) start();
     };
     document.addEventListener('visibilitychange', onVisibility);
-
-    // Initial paint
-    render(0.6);
-    if (!isReduced()) start();
 
     return {
       setState(newState, newTint) {
@@ -681,13 +691,25 @@
     };
   }
 
-  // Auto-init all canvases with [data-orb]
+  // Auto-init all canvases with [data-orb] lazily
   function initAll() {
     const list = document.querySelectorAll('canvas[data-orb]');
     const orbs = [];
-    list.forEach(c => {
-      orbs.push(createThinkingOrb(c));
-    });
+    if (typeof IntersectionObserver !== 'undefined') {
+      const initObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            obs.unobserve(entry.target);
+            orbs.push(createThinkingOrb(entry.target));
+          }
+        });
+      }, { rootMargin: '100px' });
+      list.forEach(c => initObserver.observe(c));
+    } else {
+      list.forEach(c => {
+        orbs.push(createThinkingOrb(c));
+      });
+    }
     return orbs;
   }
 

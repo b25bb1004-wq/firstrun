@@ -1,0 +1,60 @@
+{
+  "id": "v2-31-final-psf__requests",
+  "repo": "psf/requests",
+  "commit": "611c6162cb",
+  "startedAt": "2026-09-27T00:36:08.222Z",
+  "phase": "error",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    }
+  },
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "psf/requests",
+    "commit": "611c6162cb",
+    "image": "python:3.10",
+    "runtime": {
+      "name": "python",
+      "version": "3.10",
+      "source": "README.md:38 (\"Python 3.10+\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "python -m pip install requests",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 35,
+          "endLine": 35,
+          "section": "Requests › Installing Requests and Supported Versions"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [],
+    "notes": [
+      "The docs only show installing the published package. No setup from source was found in the README, CONTRIBUTING or CI, so there is no contributor path to prove."
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "fromCI": false,
+    "originalImage": "python:3.10",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.10",
+      "source": "README.md:38 (\"Python 3.10+\")"
+    }
+  },
+  "error": "No setup docs: read README.md, found no setup commands a newcomer could follow; skipped \"python -m pip install requests\" (installs the published package; you already have its source).",
+  "finishedAt": "2026-09-27T00:36:08.434Z"
+}

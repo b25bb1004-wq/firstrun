@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:46:07.228Z",
+  "commit": "5b604c37c6",
+  "image": "python:3.7",
+  "runtime": {
+    "name": "python",
+    "version": "3.7",
+    "source": "README.md:281 (\"Python 3.7+\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "make test"
+  },
+  "steps": [
+    {
+      "id": "S5",
+      "command": "make install",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

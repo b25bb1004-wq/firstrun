@@ -1,0 +1,47 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "poetry install",
+    "exitCode": 127,
+    "durationMs": 192,
+    "logTail": "/firstrun/step-1.sh: line 5: poetry: command not found",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`poetry` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "poetry",
+      "command": "command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }"
+    },
+    "log": "$ command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }\nDownloading secretstorage-3.5.0-py3-none-any.whl (15 kB)\nDownloading urllib3-2.8.0-py3-none-any.whl (135 kB)\nDownloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)\nDownloading jaraco_context-6.1.2-py3-none-any.whl (7.9 kB)\nDownloading jaraco_functools-4.6.0-py3-none-any.whl (11 kB)\nDownloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/4.7 MB ? eta -:--:--\r   ━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/4.7 MB 9.5 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━ 4.2/4.7 MB 11.8 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 11.3 MB/s eta 0:00:00\nDownloading anyio-4.15.1-py3-none-any.whl (132 kB)\nDownloading more_itertools-11.1.0-py3-none-any.whl (72 kB)\nDownloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)\nDownloading h11-0.16.0-py3-none-any.whl (37 kB)\nDownloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)\nDownloading pycparser-3.0-py3-none-any.whl (48 kB)\nInstalling collected packages: trove-classifiers, distlib, urllib3, typing_extensions, tomlkit, shellingham, rapidfuzz, pyproject-hooks, pycparser, poetry-core, platformdirs, pkginfo, pbs-installer, packaging, msgpack, more-itertools, jeepney, jaraco.context, installer, idna, h11, filelock, fastjsonschema, crashtest, charset_normalizer, certifi, backports.zstd, requests, python-discovery, jaraco.functools, jaraco.classes, httpcore, findpython, dulwich, cleo, cffi, build, anyio, virtualenv, requests-toolbelt, httpx, cryptography, cachecontrol, SecretStorage, keyring, poetry\nSuccessfully installed SecretStorage-3.5.0 anyio-4.15.1 backports.zstd-1.7.0 build-1.6.1 cachecontrol-0.14.4 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 cleo-2.1.0 crashtest-0.4.1 cryptography-50.0.1 distlib-0.4.3 dulwich-1.2.15 fastjsonschema-2.22.2 filelock-4.0.4 findpython-0.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 installer-1.0.1 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jeepney-0.9.0 keyring-25.7.0 more-itertools-11.1.0 msgpack-1.2.2 packaging-26.3 pbs-installer-2026.9.24 pkginfo-1.13 platformdirs-4.12.0 poetry-2.5.1 poetry-core-2.5.0 pycparser-3.0 pyproject-hooks-1.3.3 python-discovery-1.6.1 rapidfuzz-3.14.6 requests-2.34.2 requests-toolbelt-1.0.0 shellingham-1.5.4 tomlkit-0.15.1 trove-classifiers-2026.9.21.13 typing_extensions-4.16.0 urllib3-2.8.0 virtualenv-21.13.0"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 4,
+    "command": "poetry install --no-root",
+    "exitCode": 0,
+    "durationMs": 1420,
+    "logTail": "Installing dependencies from lock file\n\nNo dependencies to install or update",
+    "logFile": "logs/S2-4.log"
+  },
+  "status": "verified",
+  "at": "2026-09-26T23:00:43.600Z",
+  "revealed": "E2"
+}

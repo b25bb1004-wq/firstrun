@@ -33,10 +33,11 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0;
+  overflow-x: clip;
   background-color: var(--bg);
   background-image: 
     linear-gradient(to right, color-mix(in srgb, var(--brand-line) 14%, transparent) 1px, transparent 1px),
@@ -156,7 +157,7 @@ section { padding: clamp(72px, 11vw, 140px) 0; }
 /* Footer */
 .foot { border-top: 1px solid var(--line); padding: 48px 0 56px; }
 .foot-in { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: baseline; }
-.foot .muted { margin: 0; font-size: 15px; } .foot nav { display: flex; gap: 20px; }
+.foot .muted { margin: 0; font-size: 15px; } .foot nav { display: flex; gap: 20px; flex-wrap: wrap; }
 @media (max-width: 860px) { .foot-in { grid-template-columns: 1fr; } }
 
 /* Plain pages (terms, privacy) */
@@ -308,10 +309,10 @@ h3 { letter-spacing: -0.012em; }
    Oat is the default look (never #fff); blue means proven/fixed and is the primary action; hot pink means broken.
    The theme toggle switches to a deep-navy night version. Agent colours are remapped into the same family. */
 :root, :root:not([data-theme="dark"]) {
-  --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1;
+  --bg: #eae4d7; --surface: #dfd7c8; --line: #cec4b2;
   --ink: #15163a; --muted: #5f5b6b;
   --blue: #2440ff; --pink: #ff2d87;
-  --accent: var(--blue); --accent-ink: #efe7da; --del: var(--pink);
+  --accent: var(--blue); --accent-ink: #eae4d7; --del: var(--pink);
   --c-scout: #2440ff; --c-planner: #6a5cff; --c-runner: #ff5fa8; --c-doctor: #ff2d87; --c-verifier: #2440ff; --c-scribe: #15163a;
   color-scheme: light;
 }
@@ -323,7 +324,21 @@ h3 { letter-spacing: -0.012em; }
   --c-scout: #5b73ff; --c-planner: #8f84ff; --c-runner: #ff7ab8; --c-doctor: #ff4d9b; --c-verifier: #5b73ff; --c-scribe: #efe7da;
   color-scheme: dark;
 }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #efe7da; --surface: #e6dcca; --line: #d2c6b1; --ink: #15163a; --muted: #5f5b6b; --accent: var(--blue); --accent-ink: #efe7da; } }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #eae4d7; --surface: #dfd7c8; --line: #cec4b2; --ink: #15163a; --muted: #5f5b6b; --accent: var(--blue); --accent-ink: #eae4d7; } }
+
+/* Static poster frame for hero when prefers-reduced-motion is active */
+.hero-poster {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--blue) 5%, transparent), transparent 65%);
+}
+:root[data-theme="dark"] .hero-poster {
+  background-image: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 65%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-full canvas.field { display: none !important; }
+}
 .eyebrow { color: var(--pink); }
 .btn { background: var(--blue); border-color: var(--blue); color: #fff; }
 .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
@@ -353,15 +368,13 @@ h1, h2, h3, .stats b, .gallery .big, .mark {
   font-family: var(--display);
   font-optical-sizing: auto;               /* Bricolage's opsz axis: tighter, more characterful at display sizes */
 }
-h1 { font-weight: 700; letter-spacing: -0.035em; line-height: 0.98; }
-.hero-full h1 { font-size: clamp(60px, 11vw, 156px); letter-spacing: -0.045em; font-variation-settings: "opsz" 96; }
-h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+h1 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+.hero-full h1 { font-size: clamp(48px, 6.8vw, 84px); letter-spacing: -0.032em; font-weight: 700; line-height: 1.04; font-variation-settings: "opsz" 96; }
+h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
 h3 { font-weight: 600; letter-spacing: -0.015em; }
 .stats b, .gallery .big { font-weight: 800; letter-spacing: -0.04em; }
 .mark { font-weight: 800; letter-spacing: 0.02em; font-size: 17px; }
 /* body, eyebrows, buttons, nav and code stay on the system stack (SF Pro / Segoe UI Variable) */
-/* v10 tune: Bricolage at hero size needs a little air */
-.hero-full h1 { letter-spacing: -0.028em; font-weight: 650; }
 h1 { letter-spacing: -0.025em; } h2 { letter-spacing: -0.022em; font-weight: 650; }
 .stats b, .gallery .big { letter-spacing: -0.03em; font-weight: 750; }
 
@@ -664,9 +677,15 @@ section[id] {
 .agent-chip-role {
   font-size: 10px;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  text-align: center;
+}
+.crew-role {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 6px;
+  letter-spacing: 0.02em;
 }
 
 .crew-orb-wrap {
@@ -804,16 +823,40 @@ section[id] {
 }
 
 .prove-btn {
+  background: var(--brand-electric, var(--blue, #1f3bff)) !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
   border-radius: 2px !important;
   font: 600 13px var(--mono) !important;
   padding: 10px 22px !important;
   white-space: nowrap;
   cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.prove-btn:hover {
+  opacity: 0.9;
+  background: var(--brand-electric, var(--blue, #1f3bff)) !important;
+  color: #fff !important;
 }
 
 .prove-btn:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+#humble-console-mount {
+  padding: 16px 28px 24px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+@media (max-width: 600px) {
+  #humble-console-mount {
+    padding: 12px 14px 18px;
+  }
 }
 
 .prove-console {
@@ -905,6 +948,31 @@ section[id] {
   font-size: 11px;
   color: var(--muted);
   margin: 0;
+}
+
+@media (max-width: 600px) {
+  .prove-panel-header {
+    padding: 18px 16px 14px;
+  }
+  .prove-input-block {
+    padding: 16px;
+  }
+  .prove-field-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .prove-btn {
+    width: 100%;
+    text-align: center;
+  }
+  .prove-console {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .prove-footer {
+    padding: 10px 16px;
+  }
 }
 
 /* Construction-line motifs */
@@ -1017,6 +1085,385 @@ section[id] {
   }
   .prove-progress-bar {
     transition: none !important;
+  }
+}
+
+/* ===== v13 (Edith): the self-healing opener (#heal, heal.js). The raw layer deliberately looks unstyled
+   (browser-default serif, Courier), HUMBLE's annotations cut into it in the site's type; then it heals. ===== */
+.heal[hidden] { display: none; }
+.heal { position: relative; height: 620vh; }
+.heal-stick { position: sticky; top: 64px; height: calc(100vh - 64px); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); overflow: hidden; }
+.heal-doc { position: relative; }
+.heal-raw { font-family: "Times New Roman", Times, serif; font-size: 17px; line-height: 1.35; color: var(--ink); transition: opacity 400ms var(--ease-out); }
+.heal-raw h1 { font: 700 32px/1.15 "Times New Roman", Times, serif; margin: 0 0 12px; letter-spacing: 0; }
+.heal-raw p { margin: 0 0 14px; max-width: none; font: inherit; }
+.heal-raw pre { font: 14.5px/1.5 "Courier New", Courier, monospace; margin: 0; white-space: pre-wrap; }
+.heal-raw .ln { display: block; position: relative; transform-origin: 0 0; padding: 0 4px; margin: 0 -4px; transition: background-color 240ms ease, color 240ms ease; }
+.heal-raw .ln .t { display: inline-block; transform-origin: 0 0; }
+.heal-raw .ln.gap { height: 1.2em; }
+.heal-raw .ln.cm { color: color-mix(in srgb, var(--ink) 62%, var(--bg)); }
+.heal-raw .ln.add { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 420ms var(--ease-out), opacity 420ms var(--ease-out), background-color 240ms ease; color: var(--blue); font-weight: 700; }
+.heal-raw .ln.add > * { overflow: hidden; }
+.heal-raw .ln.add.hid { grid-template-rows: 0fr; opacity: 0; }
+.heal-raw .ln.add .t::before { content: "+ "; }
+.heal-raw .ln.now { background: color-mix(in srgb, var(--blue) 9%, transparent); }
+.heal-raw .ln.fail { background: color-mix(in srgb, var(--pink) 13%, transparent); }
+.heal-raw .ln.struck .t { text-decoration: line-through 2px var(--pink); color: var(--pink); }
+.heal-raw .ln.assume { background: color-mix(in srgb, var(--pink) 13%, transparent); color: var(--pink); }
+.heal-raw .res { display: block; font: 500 12.5px/1.45 var(--mono); padding: 1px 0 5px 2ch; }
+.heal-raw .res:empty { display: none; }
+.heal-raw .res i { display: block; font-style: normal; opacity: .9; }
+.heal-raw .res.r-fail { color: var(--pink); }
+.heal-raw .res.r-pass { color: var(--blue); }
+.heal-raw .res.r-skip { color: var(--muted); }
+.heal-raw .res.r-fail, .heal-raw .res.r-pass { animation: heal-in 360ms var(--ease-out) both; }
+@keyframes heal-in { from { opacity: 0; transform: translateY(-4px); filter: blur(2px); } }
+.heal-raw .stamp { position: absolute; right: 2%; top: 38%; font: 800 clamp(44px, 7vw, 96px)/1 var(--display); letter-spacing: -.02em; color: var(--blue); border: 4px solid var(--blue); border-radius: 2px; padding: 6px 18px 10px; transform: rotate(-7deg) scale(1.25); opacity: 0; transition: opacity 260ms var(--ease-out), transform 420ms cubic-bezier(.2,1.6,.4,1); pointer-events: none; transform-origin: 50% 50%; }
+.heal-raw.stamped .stamp { opacity: 1; transform: rotate(-7deg) scale(1); }
+.heal-raw.replay .ln.struck { opacity: .35; }
+
+.heal-done { position: absolute; inset: 0 0 auto 0; pointer-events: none; }
+.heal.healed .heal-done { pointer-events: auto; }
+.heal-done [data-k] { transform-origin: 0 0; opacity: 0; will-change: transform, opacity; }
+.heal-done .kicker { font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; transition: opacity 300ms ease; opacity: 0; }
+.heal.healed .heal-done .kicker { opacity: 1; }
+.heal-done h2 { font: 700 clamp(40px, 5.2vw, 72px)/.98 var(--display); letter-spacing: -.03em; margin: 0 0 16px; }
+.heal-done .lede { font: 400 19px/1.5 var(--sans); color: var(--muted); margin: 0 0 22px; max-width: 46ch; }
+.heal-done .cmds { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.heal-done .cmds li { font: 500 15.5px/1.6 var(--mono); }
+.heal-done .cmds li.cm { font: 400 14px/1.5 var(--sans); color: var(--muted); margin-top: 10px; }
+.heal-done .cmds li.add { color: var(--blue); }
+.heal-done .cmds li b { display: inline-block; width: 2ch; font-weight: 700; }
+.heal-done .proof { margin: 22px 0 0; font-size: 13px; color: var(--blue); border-top: 1px solid var(--line); padding-top: 14px; }
+
+.heal-panel { display: grid; gap: 14px; align-content: center; }
+.heal-panel p { margin: 0; max-width: none; }
+.heal-panel .phase { font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.heal[data-beat="2"] .phase, .heal[data-beat="6"] .phase, .heal[data-beat="8"] .phase, .heal[data-beat="10"] .phase { color: var(--pink); }
+.heal-panel .cap { font: 700 clamp(28px, 3.2vw, 46px)/1.04 var(--display); letter-spacing: -.025em; text-wrap: balance; min-height: 3.2em; }
+.heal-panel .doctor { font-size: 15.5px; line-height: 1.5; border-top: 1px solid var(--line); padding-top: 12px; }
+.heal-panel .doctor b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--pink); margin-bottom: 4px; }
+.heal-panel .count { display: flex; gap: 28px; font-size: 15px; color: var(--muted); }
+.heal-panel .count b { display: block; font: 700 clamp(44px, 5vw, 68px)/1 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.heal-panel .count span:first-child b { color: var(--pink); }
+.heal-panel .count span:last-child b { color: var(--blue); }
+.heal-panel .src { font-size: 12px; color: var(--muted); }
+.heal-panel .heal-out { font-size: 17px; opacity: 0; }
+.heal-panel .bar { height: 2px; background: var(--line); overflow: hidden; }
+.heal-panel .bar i { display: block; height: 100%; background: var(--ink); transform-origin: 0 50%; transform: scaleX(0); }
+.heal-panel .skipintro { font-size: 12.5px; color: var(--muted); justify-self: start; }
+.heal-panel .skipintro:hover { color: var(--ink); }
+.heal.healing .heal-panel .doctor { display: none; }
+
+.heal.static { height: auto; }
+.heal.static .heal-stick { position: static; height: auto; padding-block: 64px; }
+.heal.static .heal-raw { display: none; }
+.heal.static .heal-done { position: static; }
+.heal.static .heal-panel .bar, .heal.static .heal-panel .skipintro { display: none; }
+
+@media (max-width: 900px) {
+  .heal { height: 700vh; }
+  .heal-stick { grid-template-columns: 1fr; align-content: start; gap: 14px; padding-top: 16px; }
+  .heal-panel { order: -1; gap: 8px; }
+  .heal-panel .cap { font-size: 24px; min-height: 2.2em; }
+  .heal-panel .count b { font-size: 34px; }
+  .heal-panel .src, .heal-panel .doctor { display: none; }
+  .heal-raw { font-size: 15px; } .heal-raw h1 { font-size: 24px; } .heal-raw pre { font-size: 12.5px; }
+  .heal-raw .ln.cm:not(.assume) { display: none; }
+  .heal-done h2 { font-size: 36px; } .heal-done .lede { display: none; }
+}
+.heal-raw .res { display: inline; padding: 0; margin-left: 2ch; }
+.heal-raw .res i { display: block; padding: 0 0 4px 2ch; }
+.heal-done h2 { font-size: clamp(34px, 3.8vw, 56px); margin-bottom: 10px; }
+.heal-done .lede { font-size: 16px; margin-bottom: 14px; }
+.heal-done .cmds li { font-size: 14px; line-height: 1.45; }
+.heal-done .cmds li.cm { font-size: 12.5px; margin-top: 7px; }
+.heal-done .proof { margin-top: 14px; padding-top: 10px; }
+
+/* ===== v14 (Edith): the HUMBLE intro (intro.js). A drafting board after alche.studio's outro: hairline guides,
+   each agent's name condenses to its letter, and the letters spell HUMBLE. Palette only, no shadows. ===== */
+.intro { display: none; }
+html.js .intro { display: block; position: fixed; inset: 0; z-index: 50; pointer-events: auto; }
+html.intro-on { overflow: hidden; }
+html.intro-on .top .mark { opacity: 0; }
+.intro-board { position: absolute; inset: 0; background: var(--bg); }
+.intro-guides { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-guides line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 0; vector-effect: non-scaling-stroke; }
+.intro-guides line.faint { stroke-dasharray: 1; opacity: .55; }
+.intro-guides .compass { fill: none; stroke: var(--blue); stroke-width: 1; stroke-dasharray: 2 5; transform-box: fill-box; transform-origin: center; opacity: .9; }
+.intro-word { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; top: 38%; translate: 0 -50%; display: flex; gap: .02em;
+  font: 800 clamp(64px, 15vw, 220px)/1 var(--display); letter-spacing: -.035em; color: var(--ink); white-space: nowrap; transform-origin: 0 50%; }
+.intro-word span { display: inline-block; min-width: .56em; text-align: center; opacity: 0; }
+.intro-word span.in { opacity: 1; }
+.intro-stage { position: absolute; left: 0; right: 0; top: 66%; display: grid; justify-items: center; gap: 10px; }
+.intro-name { display: flex; font: 750 clamp(40px, 8vw, 116px)/1 var(--display); letter-spacing: -.03em; color: var(--ink); white-space: nowrap; }
+.intro-name span { display: inline-block; overflow: hidden; }
+.intro-name span.hot { color: var(--pink); }
+.intro-role { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.intro-skip { position: absolute; right: clamp(16px, 3vw, 32px); bottom: clamp(16px, 3vw, 28px); background: none; border: 0; padding: 6px 0;
+  font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.intro-skip:hover { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .intro-word span { opacity: 1; } }
+.intro-stage { display: block; height: 1px; }
+.intro-agent { position: absolute; left: 0; right: 0; top: 0; display: grid; justify-items: center; gap: 10px; }
+
+/* ===== v15 (Edith): the intro is scroll-driven, not a video. A pinned section; scroll moves H to E. ===== */
+html.js .intro { display: block; position: relative; inset: auto; z-index: auto; height: calc(100vh + 6 * 55vh); pointer-events: auto; }
+.intro-stick { position: sticky; top: 64px; height: calc(100vh - 64px); overflow: hidden; background: var(--bg); }
+.intro-word { top: 34%; }
+.intro-stage { position: absolute; left: 0; right: 0; top: 64%; }
+.intro-guides line { stroke-dasharray: 1; }
+.intro-hint { position: absolute; left: 0; right: 0; bottom: clamp(20px, 5vh, 44px); margin: 0 auto; max-width: none; text-align: center;
+  font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.intro.static { height: auto; }
+.intro.static .intro-stick { position: static; height: 50vh; }
+.intro.static .intro-hint, .intro.static .intro-stage { display: none; }
+.intro-word span { opacity: 0; }
+
+/* ===== v16 (Edith): dark mode is "roasted oat", not navy (Karmanya: the plain blue isn't cutting it). A warm
+   espresso near-black from the oat family, so blue and hot pink read cleanly; never pure black, no purple.
+   A faint film grain (texture, not a pattern) keeps large areas from looking flat. ===== */
+:root[data-theme="dark"] {
+  --bg: #16120e; --surface: #1f1a15; --line: #342c24;
+  --ink: #efe7da; --muted: #a89b88;
+  --blue: #5b73ff; --pink: #ff4d9b;
+  --accent: var(--blue); --accent-ink: #16120e; --del: var(--pink);
+  --c-scout: #5b73ff; --c-planner: #3a4df0; --c-runner: #ff4d9b; --c-doctor: #ff4d9b; --c-verifier: #5b73ff; --c-scribe: #efe7da;
+}
+:root[data-theme="dark"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .88  0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* v17 (Edith): "Scroll through a real run" removed (it repeated the self-healing opener); the opener gets a shorter
+   scroll now that it is the one run walkthrough on the page. */
+.heal { height: 480vh; }
+@media (max-width: 900px) { .heal { height: 560vh; } }
+
+/* v18 (Edith): the 5-second story. The intro's first frame says what HUMBLE does before any scrolling. */
+html.js .intro { height: calc(100vh + 6 * 55vh + 25vh); }
+.intro-promise { position: absolute; left: 0; right: 0; top: 58%; padding: 0 clamp(16px, 4vw, 40px); display: grid; justify-items: center; gap: 18px; text-align: center; }
+.intro-line { margin: 0; max-width: none; font: 700 clamp(26px, 3.6vw, 48px)/1.08 var(--display); letter-spacing: -.025em; color: var(--ink); text-wrap: balance; }
+.intro-steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px;
+  font-size: 13px; letter-spacing: .02em; color: var(--muted); }
+.intro-steps li { counter-increment: s; }
+.intro-steps li::before { content: "0" counter(s) " "; color: var(--blue); font-weight: 600; }
+.intro.static .intro-promise { position: static; margin-top: 24px; }
+@media (max-width: 700px) { .intro-steps { flex-direction: column; align-items: center; gap: 6px; } .intro-promise { top: 54%; } }
+
+/* v19 (Edith): the README breaks and heals with more force. Once-per-event motion, GPU only, never looped. */
+.heal-raw { position: relative; }
+.heal-raw .ln.fail .t { animation: heal-glitch 460ms steps(1, end) 1; }
+@keyframes heal-glitch {
+  0% { transform: none; clip-path: none; }
+  12% { transform: translateX(-5px); clip-path: inset(8% 0 58% 0); }
+  24% { transform: translateX(6px); clip-path: inset(52% 0 12% 0); }
+  36% { transform: translateX(-3px); clip-path: inset(28% 0 38% 0); }
+  48% { transform: translateX(2px); clip-path: none; }
+  60%, 100% { transform: none; clip-path: none; }
+}
+.heal-raw.scan::after { content: ""; position: absolute; left: -3%; right: -3%; top: 0; height: 2px; background: var(--pink);
+  animation: heal-scan 1100ms cubic-bezier(.45, 0, .2, 1) both; pointer-events: none; }
+@keyframes heal-scan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(var(--scan-h, 400px)); opacity: 0; }
+}
+.heal-raw .ln.add:not(.hid) .t { animation: heal-reset 520ms cubic-bezier(.23, 1, .32, 1) both; }
+@keyframes heal-reset { from { opacity: 0; filter: blur(4px); transform: scaleX(1.12); } to { opacity: 1; filter: blur(0); transform: none; } }
+@media (prefers-reduced-motion: reduce) { .heal-raw .ln.fail .t, .heal-raw .ln.add .t { animation: none; } .heal-raw.scan::after { display: none; } }
+
+/* ===== v17 (Zeus): 3-step visual & alche.studio typography & clean crew cards ===== */
+.hero-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  gap: 16px;
+  margin: 52px auto 0;
+  max-width: 960px;
+  width: 100%;
+}
+.flow-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 2px);
+  padding: 22px 20px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+.flow-card:hover {
+  border-color: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.flow-num {
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.flow-body h3 {
+  font-size: 17px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.flow-body p {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--line);
+  font-size: 22px;
+  user-select: none;
+  font-family: var(--mono);
+}
+@media (max-width: 820px) {
+  .hero-flow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 36px;
+  }
+  .flow-arrow {
+    display: none;
+  }
+}
+.agent-chip-desc {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+
+/* v20 (Edith): the intro moves slower: more scroll per agent (Arnav: "not this fast"). */
+html.js .intro { height: calc(100vh + 6 * 80vh + 35vh); }
+
+/* ===== v21 (Edith): alche.studio's design language, in HUMBLE's palette. One site-wide liquid background (fluid.js)
+   that ripples a beat behind the cursor, and two full-height hairline column rules. ===== */
+html.has-fluid { background: var(--bg); }
+html.has-fluid body { background: transparent; }
+.fluid-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+html.has-fluid body > *:not(.fluid-bg) { position: relative; z-index: 1; }
+html.has-fluid .top { position: sticky; z-index: 5; }
+html.has-fluid .intro-stick { background: transparent; }
+html::after { content: ""; position: fixed; top: 0; bottom: 0; left: 33.333%; right: 33.333%; z-index: 0; pointer-events: none;
+  border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+@media (max-width: 700px) { html::after { left: 50%; right: auto; border-right: 0; } }
+
+/* v22 (Edith): alche-style section headers and the construction-line outro (sections.js). */
+.sec-head { display: grid; gap: 10px; margin: 0 0 18px; }
+.sec-index { margin: 0; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.sec-index span { color: var(--blue); }
+.sec-rule { display: block; height: 1px; background: var(--line); transform: scaleX(0); transform-origin: 0 50%; transition: transform 900ms cubic-bezier(.23, 1, .32, 1); }
+.sec-head.drawn .sec-rule { transform: scaleX(1); }
+.outro { position: relative; padding: clamp(80px, 14vh, 160px) clamp(16px, 4vw, 40px) clamp(48px, 8vh, 96px); text-align: center; overflow: hidden; }
+.outro-guides { position: absolute; left: 0; right: 0; top: clamp(80px, 14vh, 160px); width: 100%; height: clamp(160px, 22vw, 320px); pointer-events: none; }
+.outro-guides .g { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 1400; stroke-dashoffset: 1400; transition: stroke-dashoffset 1400ms cubic-bezier(.23, 1, .32, 1); }
+.outro-guides .v { transition-delay: 150ms; }
+.outro-guides .arc { fill: none; stroke: var(--blue); stroke-width: 1; stroke-dasharray: 2 6; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity 700ms ease 500ms; }
+.outro-guides .a2, .outro-guides .a3 { stroke: var(--pink); transition-delay: 700ms; }
+.outro-word { position: relative; margin: 0; display: flex; justify-content: center; font: 800 clamp(72px, 19vw, 300px)/1 var(--display); letter-spacing: -.04em; color: var(--ink); }
+.outro-word span { display: inline-block; opacity: 0; transform: translateY(18%); filter: blur(8px); transition: opacity 700ms cubic-bezier(.23, 1, .32, 1), transform 900ms cubic-bezier(.23, 1, .32, 1), filter 700ms ease; }
+.outro-word span:nth-child(1) { transition-delay: 900ms; } .outro-word span:nth-child(2) { transition-delay: 980ms; } .outro-word span:nth-child(3) { transition-delay: 1060ms; }
+.outro-word span:nth-child(4) { transition-delay: 1140ms; } .outro-word span:nth-child(5) { transition-delay: 1220ms; } .outro-word span:nth-child(6) { transition-delay: 1300ms; }
+.outro-line { position: relative; margin: 18px 0 0; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 700ms ease 1500ms; }
+.outro.drawn .g { stroke-dashoffset: 0; } .outro.drawn .arc { opacity: .9; }
+.outro.drawn .outro-word span { opacity: 1; transform: none; filter: blur(0); } .outro.drawn .outro-line { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sec-rule { transform: none; } .outro-guides .g { stroke-dashoffset: 0; } .outro-guides .arc, .outro-word span, .outro-line { opacity: 1; transform: none; filter: none; } }
+
+/* ===== v23 (Edith): the visible alche pass. No panels: one continuous liquid field. Giant editorial type, big air,
+   content aligned to the column rules, cards become thin-rule rows. ===== */
+html.has-fluid .band { background: transparent; border-bottom: 0; }
+section.band, section.wrap, #how, #try { padding-top: clamp(120px, 18vh, 220px); padding-bottom: clamp(60px, 10vh, 120px); }
+/* Hero: editorial, left-aligned on the first column rule, huge. */
+.hero-full { text-align: left; border-bottom: 0; padding: clamp(140px, 22vh, 260px) 0 clamp(80px, 12vh, 140px); }
+.hero-full .inner { max-width: none; padding-left: calc(33.333vw - clamp(16px, 4vw, 40px)); padding-right: clamp(16px, 4vw, 40px); }
+.hero-full .eyebrow, .hero-full .lede { margin-left: 0; margin-right: 0; }
+.hero-full h1 { font-size: clamp(72px, 13.5vw, 232px); line-height: .9; letter-spacing: -.045em; margin: 18px 0 28px; }
+.hero-full .lede { max-width: 34ch; font-size: clamp(18px, 1.5vw, 22px); }
+.hero-full .actions { justify-content: flex-start; gap: 28px; }
+.hero-full .actions .btn { background: none; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 0 0 4px; color: var(--ink); font-weight: 600; }
+.hero-full .actions .btn:hover { background: none; color: var(--blue); border-color: var(--blue); }
+.hero-full .stats.figures { margin-top: clamp(56px, 9vh, 96px); gap: clamp(32px, 6vw, 96px); }
+/* Headings get room; body copy sits in the middle column band. */
+section h2 { font-size: clamp(40px, 6vw, 96px); line-height: .95; letter-spacing: -.035em; max-width: 14ch; }
+section .sub, section .prose { max-width: 46ch; }
+/* Cards → thin-rule rows: no fills, no boxes. */
+.gallery article, .gallery figure, .crew li, .agent-chip, .wall .tile, .bob-list li {
+  background: transparent !important; border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important; }
+.gallery article, .gallery figure { padding-top: 24px; }
+@media (max-width: 700px) {
+  .hero-full .inner { padding-left: clamp(16px, 4vw, 40px); }
+  .c-timeline {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+  .c-pill {
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+  }
+  .c-spotlight {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+  .c-shape-hero {
+    width: 56px !important;
+    height: 56px !important;
+  }
+  .c-stage-orb {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .hero-agents-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .h-seq {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  .h-step {
+    flex-wrap: wrap !important;
+  }
+  .h-step-cmd {
+    flex-basis: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: break-word !important;
+    word-break: break-all !important;
+  }
+  .h-caption {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+  .heal-stick {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  .heal-doc {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  .heal-raw pre {
+    word-break: break-all !important;
+  }
+  .c-art-pre {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
   }
 }
 

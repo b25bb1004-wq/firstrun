@@ -1,0 +1,28 @@
+{
+  "repo": "JKHeadley/rest-hapi",
+  "commit": "708ecbcd4f",
+  "verifiedAt": "2026-09-26T22:59:46.181Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 3,
+  "stepsFromReadme": 2,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 2,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 47,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/",
+    "fromDocs": true
+  },
+  "fromCI": true,
+  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
+}

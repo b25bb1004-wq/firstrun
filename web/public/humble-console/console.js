@@ -232,17 +232,41 @@ export class HumbleWebConsole {
   }
 
   renderMascotInline(state) {
-    const svgs = {
-      sleep: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#342c24"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#ff9a3c" stroke-width="2" opacity="0.4"/><circle cx="22" cy="24" r="3" fill="#ff9a3c"/><circle cx="34" cy="24" r="3" fill="#ff9a3c"/></svg>',
-      think: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#342c24"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#ff9a3c" stroke-width="2"/><circle cx="22" cy="24" r="4" fill="#ff9a3c"/><circle cx="34" cy="24" r="4" fill="#ff9a3c"/><circle cx="22" cy="24" r="1.5" fill="#1a0e04"/><circle cx="34" cy="24" r="1.5" fill="#1a0e04"/></svg>',
-      talk: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#342c24"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#ff9a3c" stroke-width="2"/><circle cx="22" cy="24" r="4" fill="#ff9a3c"/><circle cx="34" cy="24" r="4" fill="#ff9a3c"/><circle cx="22" cy="24" r="1.5" fill="#1a0e04"/><circle cx="34" cy="24" r="1.5" fill="#1a0e04"/></svg>',
-      point: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#342c24"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#ff9a3c" stroke-width="2"/><circle cx="22" cy="24" r="4" fill="#ff9a3c"/><circle cx="34" cy="24" r="4" fill="#ff9a3c"/><circle cx="22" cy="24" r="1.5" fill="#1a0e04"/><circle cx="34" cy="24" r="1.5" fill="#1a0e04"/></svg>',
-      celebrate: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#3dd68c"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#3dd68c" stroke-width="2"/><circle cx="22" cy="24" r="4" fill="#3dd68c"/><circle cx="34" cy="24" r="4" fill="#3dd68c"/><circle cx="22" cy="24" r="1.5" fill="#1a0e04"/><circle cx="34" cy="24" r="1.5" fill="#1a0e04"/></svg>',
-      worried: '<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="24" fill="#1c1712" stroke="#ff5c7a"/><path d="M16 28 Q28 20 40 28 Q28 36 16 28" fill="none" stroke="#ff5c7a" stroke-width="2"/><circle cx="22" cy="24" r="4" fill="#ff5c7a"/><circle cx="34" cy="24" r="4" fill="#ff5c7a"/><circle cx="22" cy="24" r="1.5" fill="#1a0e04"/><circle cx="34" cy="24" r="1.5" fill="#1a0e04"/></svg>'
+    const borderColors = {
+      sleep: 'rgba(255, 255, 255, 0.18)',
+      think: 'var(--c-core, #ff9a3c)',
+      talk: 'var(--c-core, #ff9a3c)',
+      point: 'var(--c-hi, #ffc47a)',
+      celebrate: 'var(--c-ok, #3dd68c)',
+      worried: 'var(--brand-crack, #f0287a)'
     };
-    
+    const glowColors = {
+      sleep: 'none',
+      think: 'drop-shadow(0 0 6px rgba(255,154,60,0.45))',
+      talk: 'drop-shadow(0 0 5px rgba(255,154,60,0.35))',
+      point: 'drop-shadow(0 0 8px rgba(255,196,122,0.6))',
+      celebrate: 'drop-shadow(0 0 8px rgba(61,214,140,0.6))',
+      worried: 'drop-shadow(0 0 8px rgba(240,40,122,0.6))'
+    };
+
+    const stroke = borderColors[state] || borderColors.sleep;
+    const filter = glowColors[state] || 'none';
+    const markOpacity = state === 'sleep' ? '0.75' : '1';
+
+    const svg = `
+      <svg viewBox="0 0 56 56" width="56" height="56" aria-label="HUMBLE mascot: ${state}" style="filter: ${filter}; transition: filter 240ms ease;">
+        <circle cx="28" cy="28" r="25" fill="#0d1030" stroke="${stroke}" stroke-width="1.75"/>
+        <g opacity="${markOpacity}">
+          <svg x="13" y="16.75" width="30" height="22.5" viewBox="0 0 716.94 537.7">
+            <polygon fill="#fffefe" points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/>
+            <polygon fill="#fffefe" points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/>
+          </svg>
+        </g>
+      </svg>
+    `.trim();
+
     if (this.mascotContainer) {
-      this.mascotContainer.innerHTML = svgs[state] || svgs.sleep;
+      this.mascotContainer.innerHTML = svg;
     }
   }
 
@@ -523,6 +547,11 @@ export class HumbleWebConsole {
   }
 
   async fadeInTerminal() {
+    if (isReducedMotion()) {
+      this.terminal.style.transition = 'none';
+      this.terminal.style.opacity = '1';
+      return;
+    }
     this.terminal.style.opacity = '0';
     this.terminal.style.transition = 'opacity 2s ease';
     await this.sleep(50);
@@ -918,6 +947,7 @@ export class HumbleWebConsole {
   }
 
   sleep(ms) {
+    if (isReducedMotion()) return Promise.resolve();
     return new Promise(resolve => {
       const timer = setTimeout(resolve, ms);
       this.typingTimers.push(timer);

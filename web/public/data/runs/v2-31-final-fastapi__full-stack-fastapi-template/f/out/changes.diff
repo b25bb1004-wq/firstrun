@@ -1,0 +1,564 @@
+diff --git a/development.md b/development.md
+--- a/development.md
++++ b/development.md
+@@ -14,7 +14,7 @@ Then, from the `backend` directory, install the dependencies and prepare the dat
+ 
+ ```bash
+ uv sync
+-uv run bash scripts/prestart.sh
++cd backend && uv run bash scripts/prestart.sh
+ ```
+ 
+ Start the FastAPI development server:
+@@ -28,6 +28,7 @@ In another terminal, from the project root, install the frontend dependencies an
+ ```bash
+ bun install
+ bun run dev
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ Now you can open these URLs:
+@@ -48,6 +49,7 @@ Build the frontend from the `frontend` directory:
+ 
+ ```bash
+ bun run build
++# HUMBLE: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ The build is written to `backend/app/frontend` and served by FastAPI at <http://localhost:8000>. Rebuild the frontend after making frontend changes.
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,214 @@
++# Setup Passport: fastapi/full-stack-fastapi-template
++
++🔵 **INCONCLUSIVE**: HUMBLE followed this project's setup docs on a clean `python:3.12` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `cb740b656d` |
++| Verified | 2026-09-27 00:40 UTC |
++| Runtime | Python 3.12 (`python:3.12`) |
++| Clone to running, from zero | **n/a** |
++| Steps followed | 9 from the docs, 0 added by HUMBLE |
++| Breaks found / fixed | 3 / 3 |
++| Needs a human | 2 |
++| Done when | `GET http://127.0.0.1:8000/docs` answers |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `uv sync` (development.md:16).
++
++## Verified setup
++
++```bash
++docker compose up -d db mailpit
++uv sync
++cd backend && uv run bash scripts/prestart.sh
++bun install
++uv run prek install -f
++git commit
++uv run prek run --all-files
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: Missing tool <a id="e1"></a>
++
++- **Docs said:** `uv sync` (development.md:16)
++- **Cause:** `uv` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** uv
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-1.sh: line 5: uv: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }
++Collecting uv
++  Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
++Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20.5 MB)
++   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--   ╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.3/20.5 MB ? eta -:--:--   ━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/20.5 MB 9.2 MB/s eta 0:00:02   ━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/20.5 MB 9.6 MB/s eta 0:00:02   ━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/20.5 MB 10.7 MB/s eta 0:00:02   ━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━ 9.7/20.5 MB 11.3 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━ 12.1/20.5 MB 11.6 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━ 13.9/20.5 MB 11.1 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━ 16.0/20.5 MB 10.9 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━ 18.4/20.5 MB 11.0 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺ 20.2/20.5 MB 10.9 MB/s eta 0:00:01   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 10.3 MB/s eta 0:00:00
++Installing collected packages: uv
++Successfully installed uv-0.12.19
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++ + ty==0.0.74
++ + typer==0.27.1
++ + typing-extensions==4.15.0
++ + typing-inspection==0.4.2
++ + urllib3==2.7.0
++ + uvicorn==0.49.0
++ + uvloop==0.22.1
++ + watchfiles==1.2.0
++ + websockets==16.0
++ + zizmor==1.29.0
++```
++</details>
++
++### E2: Missing or out-of-order step <a id="e2"></a>
++
++- **Docs said:** `uv run bash scripts/prestart.sh` (development.md:17)
++- **Cause:** `uv run bash scripts/prestart.sh` must run inside `backend/` (the file is `backend/scripts/prestart.sh`), but the docs never say to change into that folder.
++- **Diagnosed by:** HUMBLE rule `wrong-directory`, confidence 85%
++- **Doc change:** cd backend && uv run bash scripts/prestart.sh
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++bash: scripts/prestart.sh: No such file or directory
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++step command → cd backend && uv run bash scripts/prestart.sh
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++INFO  [alembic.runtime.migration] Running upgrade 1a31ce608336 -> fe56fa70289e, Add created_at to User and Item
+++ python app/initial_data.py
++/workspace/backend/app/core/config.py:75: UserWarning: The value of SECRET_KEY is "changethis", for security, please change it, at least for deployments.
++  warnings.warn(message, stacklevel=1)
++/workspace/backend/app/core/config.py:75: UserWarning: The value of DATABASE_URL password is "changethis", for security, please change it, at least for deployments.
++  warnings.warn(message, stacklevel=1)
++/workspace/backend/app/core/config.py:75: UserWarning: The value of FIRST_SUPERUSER_PASSWORD is "changethis", for security, please change it, at least for deployments.
++  warnings.warn(message, stacklevel=1)
++INFO:__main__:Creating initial data
++INFO:__main__:Initial data created
++```
++</details>
++
++### E3: Missing tool <a id="e3"></a>
++
++- **Docs said:** `bun install` (development.md:29)
++- **Cause:** `bun` is not installed; the docs assume it is.
++- **Diagnosed by:** HUMBLE rule `missing-tool`, confidence 80%
++- **Doc change:** bun
++- **Result:** fixed and verified
++
++<details><summary>Before (failing output)</summary>
++
++```
++/firstrun/step-6.sh: line 5: bun: command not found
++```
++</details>
++
++<details><summary>Fix applied</summary>
++
++```
++$ command -v bun >/dev/null || { if command -v npm >/dev/null; then npm install -g bun; else apt-get update -qq && apt-get install -y -qq unzip curl >/dev/null && curl -fsSL https://bun.sh/install | bash && ln -sf "$HOME/.bun/bin/bun" /usr/local/bin/bun; fi; }
++#=#=#                                                                          ##O#-#                                                                         ##O=#  #                                                                       #=#=-#  #                                                                      -#O#- #   #                                                                    -=#=#   #   #                                                                                                                                             0.1%                                                                           0.3%                                                                           0.7%                                                                           1.3%#                                                                          2.7%###                                                                        4.7%####                                                                       6.7%######                                                                     8.9%########                                                                  11.2%#########                                                                 13.4%###########                                                               15.3%############                                                              17.7%##############                                                            20.7%################                                                          23.2%###################                                                       26.6%#####################                                                     30.1%#######################                                                   33.3%##########################                                                36.6%############################                                              38.9%#############################                                             41.5%###############################                                           43.6%##################################                                        47.6%####################################                                      50.7%######################################                                    54.0%#########################################                                 57.7%###########################################                               61.1%#############################################                             62.9%##############################################                            64.7%################################################                          67.3%##################################################                        69.7%####################################################                      72.6%######################################################                    76.0%########################################################                  78.6%##########################################################                81.9%#############################################################             85.6%#################################################################         90.3%###################################################################       94.1%######################################################################    97.9%######################################################################## 100.0%
++bun was installed successfully to ~/.bun/bin/bun 
++
++Added "~/.bun/bin" to $PATH in "~/.bashrc" 
++
++To get started, run: 
++
++  source /root/.bashrc 
++  bun --help 
++```
++</details>
++
++<details><summary>After (passing output)</summary>
++
++```
++[0.04ms] ".env"
++bun install v1.4.2 (744846f84)
++
++399 packages installed [31.97s]
++```
++</details>
++
++### E4: Unrecognised failure <a id="e4"></a>
++
++- **Docs said:** `bun run dev` (development.md:30)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++$ bun run --filter frontend dev
++frontend dev: [vite:react-swc] We recommend switching to `@vitejs/plugin-react` for improved performance as no swc plugins are used. More information at https://vite.dev/rolldown
++frontend dev: 
++frontend dev:   VITE v8.2.0  ready in 1850 ms
++frontend dev: 
++frontend dev:   ➜  Local:   http://localhost:5173/
++frontend dev:   ➜  Network: use --host to expose
++
++[firstrun] server did not become ready on port 8000 within 150s
++```
++</details>
++
++### E5: Unrecognised failure <a id="e5"></a>
++
++- **Docs said:** `bun run build` (development.md:50)
++- **Cause:** No rule recognises this failure (run with --brain auto to ask IBM Bob).
++- **Diagnosed by:** HUMBLE rule `undefined`, confidence 0%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++error: Script not found "build"
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Python version | not stated | 3.14 (.python-version) | README.md |
++| npm script "build" | bun run build | not in package.json scripts | development.md:50 |
++| env var PLAYWRIGHT_BASE_URL | not documented | read in frontend/playwright.config.ts:4 | README |
++
++## Notes
++
++- The repo has both Node.js and Python; HUMBLE used the Python image because the first install step is python. The Node.js part was not set up separately.
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="297" height="20" role="img" aria-label="HUMBLE: inconclusive · 2 humble unknowns">
++  <title>HUMBLE: inconclusive · 2 humble unknowns</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="297" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="227" height="20" fill="#6366f1"/>
++    <rect width="297" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="183.5" y="14">inconclusive · 2 humble unknowns</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "fastapi/full-stack-fastapi-template",
++  "commit": "cb740b656d",
++  "verifiedAt": "2026-09-27T00:40:37.021Z",
++  "verdict": "INCONCLUSIVE",
++  "image": "python:3.12",
++  "runtime": "Python 3.12",
++  "stepsTotal": 9,
++  "stepsFromReadme": 9,
++  "breaksFound": 3,
++  "breaksFixed": 3,
++  "needsHuman": 2,
++  "repoBreaks": 3,
++  "suiteIssues": 0,
++  "needsPerson": 0,
++  "humbleUnknowns": 2,
++  "replaySeconds": 0,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8000/docs",
++    "fromDocs": true
++  },
++  "fromCI": false
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,85 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:40:37.021Z",
++  "commit": "cb740b656d",
++  "image": "python:3.12",
++  "runtime": {
++    "name": "python",
++    "version": "3.12",
++    "source": "docs do not say; a newcomer installs the current LTS"
++  },
++  "verify": {
++    "kind": "http",
++    "target": "http://127.0.0.1:8000/docs",
++    "fromDocs": true
++  },
++  "steps": [
++    {
++      "id": "S1",
++      "command": "docker compose up -d db mailpit",
++      "kind": "services"
++    },
++    {
++      "id": "S2",
++      "command": "uv sync",
++      "kind": "install",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
++        }
++      ]
++    },
++    {
++      "id": "S3",
++      "command": "cd backend && uv run bash scripts/prestart.sh",
++      "kind": "other"
++    },
++    {
++      "id": "S5",
++      "command": "bun install",
++      "kind": "install",
++      "prereqs": [
++        {
++          "type": "exec",
++          "command": "command -v bun >/dev/null || { if command -v npm >/dev/null; then npm install -g bun; else apt-get update -qq && apt-get install -y -qq unzip curl >/dev/null && curl -fsSL https://bun.sh/install | bash && ln -sf \"$HOME/.bun/bin/bun\" /usr/local/bin/bun; fi; }"
++        }
++      ]
++    },
++    {
++      "id": "S8",
++      "command": "uv run prek install -f",
++      "kind": "other"
++    },
++    {
++      "id": "S9",
++      "command": "git commit",
++      "kind": "other"
++    },
++    {
++      "id": "S10",
++      "command": "uv run prek run --all-files",
++      "kind": "other"
++    }
++  ],
++  "knownFailures": [
++    {
++      "signature": "/firstrun/step-1.sh: line 5: uv: command not found",
++      "cause": "`uv` is not installed; the docs assume it is.",
++      "fix": "uv",
++      "evidence": "E1"
++    },
++    {
++      "signature": "bash: scripts/prestart.sh: No such file or directory",
++      "cause": "`uv run bash scripts/prestart.sh` must run inside `backend/` (the file is `backend/scripts/prestart.sh`), but the docs never say to change into that folder.",
++      "fix": "cd backend && uv run bash scripts/prestart.sh",
++      "evidence": "E2"
++    },
++    {
++      "signature": "/firstrun/step-6.sh: line 5: bun: command not found",
++      "cause": "`bun` is not installed; the docs assume it is.",
++      "fix": "bun",
++      "evidence": "E3"
++    }
++  ]
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,37 @@
++# Verified setup for fastapi/full-stack-fastapi-template
++
++Verified by HUMBLE on 2026-09-27 at commit `cb740b656d` on a clean `python:3.12` machine. Clone to running took 0s.
++
++Prerequisites: Python 3.12, Docker (for backing services).
++
++## Steps
++
++1. `docker compose up -d db mailpit`
++   - Kind: services
++   - Expect: exits with code 0.
++2. `uv sync`
++   - Kind: install
++   - Expect: exits with code 0.
++3. `cd backend && uv run bash scripts/prestart.sh`
++   - Kind: other (the README used to say `uv run bash scripts/prestart.sh`)
++   - Expect: exits with code 0.
++4. `bun install`
++   - Kind: install
++   - Expect: exits with code 0.
++5. `uv run prek install -f`
++   - Kind: other
++   - Expect: exits with code 0.
++6. `git commit`
++   - Kind: other
++   - Expect: exits with code 0.
++7. `uv run prek run --all-files`
++   - Kind: other
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
++| `/firstrun/step-1.sh: line 5: uv: command not found` | `uv` is not installed; the docs assume it is. | uv |
++| `bash: scripts/prestart.sh: No such file or directory` | `uv run bash scripts/prestart.sh` must run inside `backend/` (the file is `backend/scripts/prestart.sh`), but the docs never say to change into that folder. | cd backend && uv run bash scripts/prestart.sh |
++| `/firstrun/step-6.sh: line 5: bun: command not found` | `bun` is not installed; the docs assume it is. | bun |
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,17 @@
++{
++  "name": "full-stack-fastapi-template",
++  "dockerComposeFile": "docker-compose.yml",
++  "service": "app",
++  "workspaceFolder": "/workspace",
++  "postCreateCommand": "uv sync && bun install && uv run prek install -f && git commit && uv run prek run --all-files",
++  "forwardPorts": [
++    8000
++  ],
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "ms-python.python"
++      ]
++    }
++  }
++}
+diff --git a/.devcontainer/docker-compose.yml b/.devcontainer/docker-compose.yml
+--- /dev/null
++++ b/.devcontainer/docker-compose.yml
+@@ -0,0 +1,13 @@
++services:
++  app:
++    image: python:3.12
++    command: sleep infinity
++    volumes:
++      - ..:/workspace:cached
++  db:
++    image: postgres:18
++    network_mode: service:app
++    restart: unless-stopped
++    environment:
++      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Variable not set}
++      POSTGRES_DB: app
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -6,3 +6,6 @@ backend/app/frontend/
+ /playwright-report/
+ /blob-report/
+ /playwright/.cache/
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

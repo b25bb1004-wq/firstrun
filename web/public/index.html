@@ -8,22 +8,25 @@
 <link rel="icon" type="image/svg+xml" href="/brand/humble-mark.svg">
 <meta property="og:title" content="HUMBLE: The README, that fixes itself">
 <meta property="og:description" content="Your setup docs, tested from a clean machine.">
-<meta property="og:image" content="/brand/og-1200.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="675">
+<meta property="og:image" content="/brand/cover-1920.jpg">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
 <meta property="og:image:alt" content="HUMBLE — The README, that fixes itself">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="HUMBLE: The README, that fixes itself">
 <meta name="twitter:description" content="Your setup docs, tested from a clean machine.">
-<meta name="twitter:image" content="/brand/og-1200.jpg">
+<meta name="twitter:image" content="/brand/cover-1920.jpg">
 <meta name="theme-color" content="#f4e9dc">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Jost:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/thinking-orb.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('humble.theme'));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>document.documentElement.classList.add('js');</script>
 <script>if (location.hash) { document.addEventListener('DOMContentLoaded', function () { var el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }); }</script>
 </head>
 <body>
@@ -57,14 +60,29 @@
 
 <main id="main">
 
-  <section class="hero-full blueprint-grid" aria-labelledby="h1">
+  <section class="intro" id="intro" aria-label="HUMBLE: six agents, Harvey, Unity, Mach, Dr.BO, Larp and Echo">
+    <div class="intro-stick">
+      <svg class="intro-guides" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="intro-word" aria-hidden="true"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></div>
+      <div class="intro-stage" aria-hidden="true"></div>
+      <div class="intro-promise">
+        <p class="intro-line">Your README, proven on a clean machine.</p>
+        <ol class="intro-steps mono"><li>Reads your setup docs</li><li>Runs every step on a brand-new machine</li><li>Hands back a fixed README, with proof</li></ol>
+      </div>
+      <p class="intro-hint mono">Scroll to meet the crew</p>
+    </div>
+  </section>
+
+  <!-- Section 2: Hero with Prove it live panel -->
+  <section class="hero-full blueprint-grid" id="hero" aria-labelledby="h1">
     <div class="wrap inner">
       <p class="eyebrow mono">Your setup docs, tested from a clean machine</p>
       <h1 id="h1">The README,<br>that <span class="brand-blue-accent">fixes itself.</span></h1>
       <p class="lede">HUMBLE follows your setup docs on a brand-new machine, the way your next teammate will. It fixes the steps that break, proves every fix by doing the whole setup again from zero, and hands you a README that works.</p>
       <div class="actions">
         <a class="btn" href="#try">Check a README</a>
-        <a class="link" href="/proof">Watch a real run</a>
+        <a class="link" href="#heal">Watch a real run &darr;</a>
+        <a class="link" href="/proof">Proof logs</a>
       </div>
 
       <!-- PROVE IT LIVE Hero Panel -->
@@ -100,7 +118,7 @@
           </div>
 
           <!-- HUMBLE Web Console Mount Point -->
-          <div id="humble-console-mount" style="display: none;"></div>
+          <div id="humble-console-mount"></div>
 
           <!-- Live Streaming Console (legacy, hidden when console mounts) -->
           <div class="prove-console" id="prove-console" style="display: none;">
@@ -190,83 +208,180 @@
         </div>
       </div>
       <div class="stats figures">
-        <div><b data-count="16">16</b><span>public repos audited on a clean machine</span></div>
-        <div><b data-count="9" data-suffix=" of 14">9 of 14</b><span>READMEs with setup docs broke</span></div>
-        <div><b data-count="11">11</b><span>breaks fixed and proven from zero</span></div>
+        <div><b data-count="31" data-stat="total">31</b><span>public repos audited on a clean machine</span></div>
+        <div><b data-count="18" data-suffix=" of 29" data-stat="broke">18 of 29</b><span>READMEs with setup docs broke</span></div>
+        <div><b data-count="28" data-stat="fixed">28</b><span>breaks fixed and proven from zero</span></div>
       </div>
     </div>
   </section>
 
+  <!-- Section 3: Self-healing README opener -->
+  <section class="heal" id="heal" aria-label="A real setup guide, followed on a clean machine and repaired" hidden>
+    <div class="heal-stick">
+      <div class="heal-doc">
+        <div class="heal-raw"></div>
+        <div class="heal-done" aria-hidden="true"></div>
+      </div>
+      <aside class="heal-panel" aria-live="polite">
+        <p class="phase mono" data-k="phase"></p>
+        <p class="cap" data-k="cap"></p>
+        <p class="doctor" hidden><b class="mono">DR.BO</b><span></span></p>
+        <p class="count"><span><b data-k="found">0</b> found</span><span><b data-k="fixed">0</b> fixed</span></p>
+        <p class="src mono" data-k="src">GeekyAnts/express-typescript · audit v2-31-final</p>
+        <p class="heal-out">That was a real run on a real repo. <a class="link" href="#try">Now check yours.</a></p>
+        <div class="bar" aria-hidden="true"><i></i></div>
+        <a class="skipintro mono" href="#problem">Skip the run</a>
+      </aside>
+    </div>
+  </section>
+
   <section class="wrap" aria-label="A run, illustrated">
-    <div class="hero-stage" data-motion="hero" aria-hidden="true"></div>
-    <p class="fact" data-reveal>Numbers from an audit of 16 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
+    <div class="hero-stage" data-motion="hero"></div>
+    <p class="fact" data-stat="fact" data-reveal>Numbers from an audit of 31 public repositories pinned to exact commits. <a class="link" href="/audit">See the audit</a></p>
   </section>
 
   <section class="band" id="problem" aria-labelledby="h-problem">
     <div class="wrap split">
       <h2 id="h-problem" data-reveal>Day one is where setup docs fail.</h2>
       <div class="prose" data-reveal>
-        <p>Nobody breaks a README on purpose. A version moves on, a service gets added, a step lives in someone's head. The docs still read fine; they just stopped being true.</p>
-        <p>The person who finds out is the newest one on the team, on their first morning, with nobody to ask.</p>
+        <p>Docs drift. A version moves on, a service gets added, a step lives in someone's head.</p>
+        <p>The newest teammate finds out on day one, alone.</p>
       </div>
     </div>
   </section>
 
   <section class="wrap" id="how" aria-labelledby="h-how">
     <h2 id="h-how" data-reveal>How it works</h2>
-    <p class="sub" data-reveal>IBM Bob runs HUMBLE. He reads the repo, sends in a crew of six agents, and steps in when the rules can't explain a failure.</p>
+    <p class="sub" data-reveal>Six agents do the work. IBM Bob steps in when the rules can't explain a failure.</p>
+    <div class="hero-agents" aria-label="HUMBLE Six-Agent Pipeline">
+      <div class="hero-agents-label">
+        <span class="mono">Six specialized agents · orchestrated by IBM Bob</span>
+      </div>
+      <div class="hero-agents-grid">
+        <button type="button" class="agent-chip" data-agent="scout" aria-label="Agent 01 Harvey: Scout · reads the repo">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-scout)">01</span>
+            <span class="agent-chip-name">Harvey</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="searching" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Scout · reads the repo</span>
+        </button>
+
+        <button type="button" class="agent-chip" data-agent="planner" aria-label="Agent 02 Unity: Planner · sequences the run">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-planner)">02</span>
+            <span class="agent-chip-name">Unity</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="shaping" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Planner · sequences the run</span>
+        </button>
+
+        <button type="button" class="agent-chip" data-agent="runner" aria-label="Agent 03 Mach: Runner · runs on a clean machine">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-runner)">03</span>
+            <span class="agent-chip-name">Mach</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="working" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Runner · runs on a clean machine</span>
+        </button>
+
+        <button type="button" class="agent-chip" data-agent="doctor" aria-label="Agent 04 DR.BO: Doctor · diagnoses and fixes">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-doctor)">04</span>
+            <span class="agent-chip-name">DR.BO</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="solving" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Doctor · diagnoses and fixes</span>
+        </button>
+
+        <button type="button" class="agent-chip" data-agent="verifier" aria-label="Agent 05 Larp: Verifier · proves from zero">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-verifier)">05</span>
+            <span class="agent-chip-name">Larp</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="listening" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Verifier · proves from zero</span>
+        </button>
+
+        <button type="button" class="agent-chip" data-agent="scribe" aria-label="Agent 06 Echo: Scribe · rewrites the README">
+          <span class="agent-chip-header">
+            <span class="agent-chip-id mono" style="color:var(--c-scribe)">06</span>
+            <span class="agent-chip-name">Echo</span>
+          </span>
+          <span class="agent-chip-orb">
+            <canvas class="agent-orb" data-orb="composing" width="44" height="44" aria-hidden="true"></canvas>
+          </span>
+          <span class="agent-chip-role mono">Scribe · rewrites the README</span>
+        </button>
+      </div>
+    </div>
     <div class="crew-stage" data-motion="crew" aria-hidden="true"></div>
     <ol class="crew">
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="searching" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="currentColor"/></svg>01</span>
-        <div><h3>Scout</h3><p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p></div>
+        <div>
+          <h3>Harvey</h3>
+          <p class="crew-role mono">Scout · reads the repo</p>
+          <p>Reads the docs next to what is actually true: manifests, lockfiles, compose files, CI and code.</p>
+        </div>
       </li>
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="shaping" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="14" fill="currentColor"/></svg>02</span>
-        <div><h3>Planner</h3><p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p></div>
+        <div>
+          <h3>Unity</h3>
+          <p class="crew-role mono">Planner · sequences the run</p>
+          <p>Turns the prose into the exact commands a newcomer would run, in order, and flags where docs and code disagree.</p>
+        </div>
       </li>
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="working" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="currentColor"/></svg>03</span>
-        <div><h3>Runner</h3><p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p></div>
+        <div>
+          <h3>Mach</h3>
+          <p class="crew-role mono">Runner · runs on a clean machine</p>
+          <p>Runs every step on a brand-new machine. Nothing installed, nothing assumed.</p>
+        </div>
       </li>
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="solving" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><path d="M36 4h28v32h32v28H64v32H36V64H4V36h32z" fill="currentColor"/></svg>04</span>
-        <div><h3>Doctor</h3><p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p></div>
+        <div>
+          <h3>DR.BO</h3>
+          <p class="crew-role mono">Doctor · diagnoses and fixes</p>
+          <p>When a step breaks, finds out why. Known causes get known fixes; the rest go to IBM Bob.</p>
+        </div>
       </li>
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="listening" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="16"/></svg>05</span>
-        <div><h3>Verifier</h3><p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p></div>
+        <div>
+          <h3>Larp</h3>
+          <p class="crew-role mono">Verifier · proves from zero</p>
+          <p>Throws the machine away and replays the repaired guide from zero. A fix only counts if it passes here.</p>
+        </div>
       </li>
       <li data-reveal>
         <div class="crew-orb-wrap"><canvas class="agent-orb" data-orb="composing" width="48" height="48" aria-hidden="true"></canvas></div>
         <span class="n mono"><svg class="glyph" viewBox="0 0 100 100"><polygon points="50,2 98,50 50,98 2,50" fill="currentColor"/></svg>06</span>
-        <div><h3>Scribe</h3><p>Writes the smallest README change that makes it true, with the evidence for every line.</p></div>
+        <div>
+          <h3>Echo</h3>
+          <p class="crew-role mono">Scribe · rewrites the README</p>
+          <p>Writes the smallest README change that makes it true, with the evidence for every line.</p>
+        </div>
       </li>
     </ol>
-  </section>
-
-  <section class="scrub" id="run" data-events="/data/runs/acme-shop-3c0bc2b2/f/events.ndjson" aria-labelledby="h-run">
-    <div class="scrub-stick">
-      <div class="wrap scrub-grid">
-        <div class="scrub-meta">
-          <p class="eyebrow mono">Scroll through a real run</p>
-          <h2 id="h-run"><span class="prove-tag">[recorded run]</span> acme-shop, from broken README to verified.</h2>
-          <p class="scrub-phase" data-k="phase">Following the README on a clean machine</p>
-          <dl class="scrub-count">
-            <div><dt>Breaks found</dt><dd data-k="found">0</dd></div>
-            <div><dt>Fixed</dt><dd data-k="fixed">0</dd></div>
-            <div><dt>Event</dt><dd data-k="step">1 / 1</dd></div>
-          </dl>
-          <p class="muted scrub-src">Every line is an event from the recorded run. <a class="link" href="/proof">Watch it play</a></p>
-        </div>
-        <div class="scrub-window"><ol class="scrub-feed"></ol></div>
-      </div>
-    </div>
   </section>
 
   <section class="band" id="proof" aria-labelledby="h-proof">
@@ -274,12 +389,12 @@
       <h2 id="h-proof" data-reveal>Real runs you can open</h2>
       <p class="sub" data-reveal>Every number here comes from recorded runs you can open and replay.</p>
 
-      <div class="wall" id="wall" data-audit="real-16-v2" aria-label="The 16 audited repositories and their verdicts"></div>
+      <div class="wall" id="wall" data-audit="auto" aria-label="Audited repositories and their verdicts"></div>
       <p class="wall-note muted" id="wall-note"></p>
       <div class="gallery" id="gallery" data-reveal>
         <figure class="card-shot" data-motion="proof">
           <img src="/assets/img/audit-dashboard.jpg" width="1522" height="784" loading="lazy" alt="The HUMBLE audit dashboard: 9 of 16 READMEs broke on a clean machine, 22 breaks found, 11 fixed with evidence, one card per repository with its verdict.">
-          <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3>16 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
+          <figcaption class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-scout) 18%,transparent);color:var(--c-scout)">Audit</span><h3 data-stat="caption">31 public repos, pinned to exact commits</h3><p>Every card is a real run you can open, step by step.</p><a class="link" href="/audit">Open the audit</a></figcaption>
         </figure>
         <article class="card-diff-slider">
           <div class="diff-slider" id="diff-slider" style="--split: 50%;">
@@ -287,35 +402,33 @@
             <div class="diff-layer diff-after">
               <div class="diff-header">
                 <span class="diff-pill pill-after">+ AS PROVEN BY HUMBLE</span>
-                <span class="diff-meta">4/4 breaks fixed · 53s replay</span>
+                <span class="diff-meta" data-run="v2-31-final-GeekyAnts__express-typescript">5/5 breaks fixed · 1 m 53 s replay</span>
               </div>
-              <pre class="diff-code mono"><code><span class="c-comment"># 1. Install dependencies with legacy peer deps</span>
+              <pre class="diff-code mono"><code><span class="c-comment"># Install NPM dependencies.</span>
 <span class="c-add"><span class="c-sym">+</span> npm install --legacy-peer-deps</span>
 
-<span class="c-comment"># 2. Boot dependencies and global runner</span>
-<span class="c-add"><span class="c-sym">+</span> docker compose up -d mongo</span>
-<span class="c-add"><span class="c-sym">+</span> docker compose up -d redis</span>
-<span class="c-add"><span class="c-sym">+</span> npm install --global nodemon <span class="prove-tag">[recorded run]</span></span>
+<span class="c-comment"># Run the app</span>
+<span class="c-add"><span class="c-sym">+</span> npm install --global nodemon</span>
+<span class="c-add"><span class="c-sym">+</span> docker compose -f docker-compose.yaml up -d mongo</span>
+<span class="c-add"><span class="c-sym">+</span> docker compose -f docker-compose.yaml up -d redis</span>
+<span class="c-ctx">  npm run dev;</span>
 
-<span class="c-comment"># 3. Start TypeScript dev server</span>
-<span class="c-ctx">  npm run dev;</span></code></pre>
+<span class="c-comment" data-run="v2-31-final-GeekyAnts__express-typescript"># FIRSTRUN.md prerequisite: MongoDB 4.4 (the driver can't talk to MongoDB 6+)</span> <span class="prove-tag">[recorded run]</span></code></pre>
             </div>
 
             <!-- Top layer: AS WRITTEN (README) clipped by clip-path -->
             <div class="diff-layer diff-before">
               <div class="diff-header">
                 <span class="diff-pill pill-before">AS WRITTEN IN README</span>
-                <span class="diff-meta">4 breaks on clean machine</span>
+                <span class="diff-meta" data-run="v2-31-final-GeekyAnts__express-typescript">5 breaks on a clean machine</span>
               </div>
-              <pre class="diff-code mono"><code><span class="c-comment"># 1. Install dependencies</span>
-<span class="c-del"><span class="c-sym">-</span> npm install;</span> <span class="c-err"># ERESOLVE peer dep tree conflict</span>
+              <pre class="diff-code mono"><code><span class="c-comment"># Install NPM dependencies.</span>
+<span class="c-del"><span class="c-sym">-</span> npm install;</span> <span class="c-err"># npm error ERESOLVE unable to resolve dependency tree</span>
 
-<span class="c-comment"># 2. Missing database and background services</span>
-<span class="c-dim">  (docs omit MongoDB &amp; Redis containers)</span>
-<span class="c-dim">  (docs omit global nodemon compiler) <span class="prove-tag">[recorded run]</span></span>
-
-<span class="c-comment"># 3. Start TypeScript dev server</span>
-<span class="c-del"><span class="c-sym">-</span> npm run dev;</span> <span class="c-err"># ECONNREFUSED 127.0.0.1:27017</span></code></pre>
+<span class="c-comment"># Run the app</span>
+<span class="c-dim">  (docs never install nodemon)</span>
+<span class="c-dim">  (docs never start MongoDB or Redis, or say which MongoDB)</span>
+<span class="c-del"><span class="c-sym">-</span> npm run dev;</span> <span class="c-err"># nodemon: not found · MongoDB · Redis · OP_QUERY</span> <span class="prove-tag">[recorded run]</span></code></pre>
             </div>
 
             <!-- Interactive drag handle -->
@@ -332,12 +445,12 @@
           <div class="cap">
             <span class="tag" style="background:color-mix(in srgb,var(--c-scribe) 18%,transparent);color:var(--c-scribe)">README DIFF</span>
             <h3>GeekyAnts/express-typescript</h3>
-            <p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that broke four times. Drag to see the exact four lines HUMBLE proved to get it to pass.</p>
+            <p>The README said <code>npm install</code> then <code>npm run dev</code>. On a clean machine that broke five times. Drag to see the four lines HUMBLE changed in the README, plus the MongoDB version it wrote down.</p>
           </div>
         </article>
         <article>
-          <div class="big" style="color:var(--c-verifier)">53s</div>
-          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p>GeekyAnts was PARTIAL in the audit. We traced it to our own runner (it gave up on a watcher still compiling), fixed it, and the rerun went 4 breaks found, 4 fixed, replayed from zero in 53 seconds, ending on the app's home page.</p></div>
+          <div class="big" style="color:var(--c-verifier)" data-run="v2-31-final-GeekyAnts__express-typescript">1m53s</div>
+          <div class="cap"><span class="tag" style="background:color-mix(in srgb,var(--c-verifier) 18%,transparent);color:var(--c-verifier)">Verified from zero</span><h3>From PARTIAL to verified</h3><p data-run="real-16-v2-GeekyAnts__express-typescript v2-31-final-GeekyAnts__express-typescript">PARTIAL in our first audit: 4 breaks found, 1 fixed. We fixed our own runner and reran it in the final audit: 5 breaks found, 5 fixed, replayed from zero in 1 m 53 s.</p></div>
         </article>
         <article>
           <div class="big" style="color:var(--c-doctor)">5/5</div>
@@ -350,7 +463,7 @@
 
   <section class="wrap" id="try" aria-labelledby="h-try">
     <h2 id="h-try" data-reveal>Check a README</h2>
-    <p class="sub" data-reveal>Paste a public GitHub repository. HUMBLE reads its docs next to its manifests, CI and code and shows where they disagree. It takes a few seconds and runs nothing from the repo.</p>
+    <p class="sub" data-reveal>Paste a public GitHub repo. In a few seconds HUMBLE shows where its docs and its code disagree, without running anything.</p>
     <form class="check" id="form" autocomplete="off" data-reveal>
       <label for="repo" class="lbl">Repository</label>
       <div class="row">
@@ -366,13 +479,24 @@
     <div class="wrap split">
       <h2 id="h-bob" data-reveal>Built on IBM Bob</h2>
       <div class="prose" data-reveal>
-        <p><b>Doctor.</b> When no rule recognises a failure, Bob reads the repository and returns a structured fix. HUMBLE refuses anything that would change the application itself and keeps it as a suggestion for the maintainer.</p>
+        <p><b>DR.BO.</b> When no rule recognises a failure, Bob reads the repository and returns a structured fix. HUMBLE refuses anything that would change the application itself and keeps it as a suggestion for the maintainer.</p>
         <p><b>Guide mode.</b> A newcomer switches Bob to Guide mode and gets walked through the verified steps on their own machine, one at a time.</p>
         <p><b>Lens.</b> Circle an error anywhere on screen. If HUMBLE has already proven a fix for it, you get that fix instantly; otherwise Bob explains it.</p>
       </div>
     </div>
   </section>
 
+  <section class="outro" aria-label="HUMBLE">
+    <svg class="outro-guides" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+      <line class="g" x1="0" y1="58" x2="1200" y2="58"/><line class="g" x1="0" y1="252" x2="1200" y2="252"/>
+      <line class="g v" x1="200" y1="0" x2="200" y2="300"/><line class="g v" x1="600" y1="0" x2="600" y2="300"/><line class="g v" x1="1000" y1="0" x2="1000" y2="300"/>
+    </svg>
+    <svg class="outro-guides outro-arcs" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <circle class="arc" cx="600" cy="155" r="128"/><circle class="arc a2" cx="200" cy="155" r="96"/><circle class="arc a3" cx="1000" cy="155" r="96"/>
+    </svg>
+    <p class="outro-word" aria-hidden="true"><span>H</span><span>U</span><span>M</span><span>B</span><span>L</span><span>E</span></p>
+    <p class="outro-line mono">Your README, proven on a clean machine.</p>
+  </section>
 </main>
 
 <footer class="foot">
@@ -388,12 +512,14 @@
   </div>
 </footer>
 
+<script src="/assets/intro.js" defer></script>
+<script src="/assets/heal.js" defer></script>
 <script src="/assets/check.js" defer></script>
 <script src="/assets/prove-live.js" defer></script>
 <script src="/assets/site.js" defer></script>
-<script src="/assets/hero-gl.js" defer></script>
+<script src="/assets/fluid.js" defer></script>
+<script src="/assets/sections.js" defer></script>
 <script src="/assets/wall.js" defer></script>
-<script src="/assets/scrub.js" defer></script>
 <script src="/assets/diff-slider.js" defer></script>
 <script type="module" src="/assets/motion/index.js"></script>
 <script type="module" src="/humble-console/autoload.js"></script>

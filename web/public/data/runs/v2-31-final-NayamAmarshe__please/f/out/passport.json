@@ -1,0 +1,26 @@
+{
+  "repo": "NayamAmarshe/please",
+  "commit": "10e94b3e7e",
+  "verifiedAt": "2026-09-27T00:15:38.936Z",
+  "verdict": "PARTIAL",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 7,
+  "stepsFromReadme": 7,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 1,
+  "humbleUnknowns": 0,
+  "replaySeconds": 84,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "fromCI": false
+}

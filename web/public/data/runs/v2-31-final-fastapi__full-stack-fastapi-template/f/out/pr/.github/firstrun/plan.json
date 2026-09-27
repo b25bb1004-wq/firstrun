@@ -1,0 +1,85 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T00:40:37.021Z",
+  "commit": "cb740b656d",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "docker compose up -d db mailpit",
+      "kind": "services"
+    },
+    {
+      "id": "S2",
+      "command": "uv sync",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v uv >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install uv || pip3 install uv); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; fi; }"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "command": "cd backend && uv run bash scripts/prestart.sh",
+      "kind": "other"
+    },
+    {
+      "id": "S5",
+      "command": "bun install",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v bun >/dev/null || { if command -v npm >/dev/null; then npm install -g bun; else apt-get update -qq && apt-get install -y -qq unzip curl >/dev/null && curl -fsSL https://bun.sh/install | bash && ln -sf \"$HOME/.bun/bin/bun\" /usr/local/bin/bun; fi; }"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "command": "uv run prek install -f",
+      "kind": "other"
+    },
+    {
+      "id": "S9",
+      "command": "git commit",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "uv run prek run --all-files",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 5: uv: command not found",
+      "cause": "`uv` is not installed; the docs assume it is.",
+      "fix": "uv",
+      "evidence": "E1"
+    },
+    {
+      "signature": "bash: scripts/prestart.sh: No such file or directory",
+      "cause": "`uv run bash scripts/prestart.sh` must run inside `backend/` (the file is `backend/scripts/prestart.sh`), but the docs never say to change into that folder.",
+      "fix": "cd backend && uv run bash scripts/prestart.sh",
+      "evidence": "E2"
+    },
+    {
+      "signature": "/firstrun/step-6.sh: line 5: bun: command not found",
+      "cause": "`bun` is not installed; the docs assume it is.",
+      "fix": "bun",
+      "evidence": "E3"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "id": "E1",
+  "stepId": "S9",
+  "before": {
+    "stepId": "S9",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 1517,
+    "logTail": "\n> axios@1.20.0 test\n> npm run test:vitest\n\n\n> axios@1.20.0 test:vitest\n> vitest run\n\n\n⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯\nfile:///workspace/node_modules/rolldown/dist/shared/rolldown-build-DR0wzp0V.mjs:9\nimport { formatWithOptions, styleText } from \"node:util\";\n                            ^^^^^^^^^\nSyntaxError: The requested module 'node:util' does not provide an export named 'styleText'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:123:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:189:5)",
+    "logFile": "logs/S9-1.log"
+  },
+  "diagnosis": {
+    "class": "runtime-version",
+    "cause": "Node.js 19 (what the docs say) is too old: the project's toolchain uses `styleText` from node:util, which that version doesn't have. CI runs Node 26, 26, 26, 26, 12, 14, 16, 18, 20, 22, 24, 26, 12, 14, 16, 18, 20, 22, 24, 26, 26, 26, 12, 14, 16, 18, 20, 22, 24, 26, 12, 14, 16, 18, 20, 22, 24, 26, 26.",
+    "by": "rules",
+    "ruleId": "node-builtin-missing",
+    "confidence": 0.85
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "rebase",
+        "image": "node:24",
+        "runtime": {
+          "name": "node",
+          "version": "24",
+          "source": "CI (.github/workflows/bundle-size.yml)"
+        }
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Node.js 24+",
+      "runtime": {
+        "name": "node",
+        "version": "24"
+      }
+    },
+    "log": "rebased onto node:24"
+  },
+  "after": {
+    "stepId": "S9",
+    "n": 2,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 92108,
+    "logTail": " ❯ tests/unit/adapters/http.test.js:5422:7\n    5420|\n    5421|     it('should handle errors', async () => {\n    5422|       await assert.rejects(async () => {\n       |       ^\n    5423|         await axios.get('https://no-such-domain-987654.com', {\n    5424|           lookup: (hostname, opt, cb) => {\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯\n\n⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯\n\nVitest caught 1 unhandled error during the test run.\nThis might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.\n\n⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯\nError: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝\n ❯ node_modules/@vitest/browser-playwright/dist/index.js:941:55\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\nSerialized Error: { log: [] }\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n\n Test Files  1 failed | 57 passed (142)\n      Tests  6 failed | 1069 passed (1075)\n     Errors  1 error\n   Start at  00:49:45\n   Duration  91.01s (transform 21.89s, setup 0ms, import 41.21s, tests 118.64s, environment 20ms)\n\nerror during close browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝\n    at /workspace/node_modules/@vitest/browser-playwright/dist/index.js:941:55 {\n  log: [],\n  name: 'Error',\n  type: 'Unhandled Error',\n  stacks: [\n    {\n      method: '',\n      file: '/workspace/node_modules/@vitest/browser-playwright/dist/index.js',\n      line: 941,\n      column: 55\n    }\n  ]\n}",
+    "logFile": "logs/S9-2.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-27T00:51:16.792Z"
+}
