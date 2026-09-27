@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { readJson } from '../util.js';
+import { asManualGuideStep, buildPlatformGuide, translate } from './platform.js';
 
 /**
  * The REPORT state: which steps are already satisfied on this machine,
@@ -10,6 +11,7 @@ export function buildReport(guide, hostProbe, plan) {
   const report = {
     summary: '',
     steps: [],
+    platformGuide: buildPlatformGuide(guide, hostProbe.os === 'win32' ? 'win32' : hostProbe.os === 'darwin' ? 'darwin' : 'linux'),
     platformGaps: [],
     security: guide.security,
     hostProfile: {
@@ -52,15 +54,29 @@ export function buildReport(guide, hostProbe, plan) {
 }
 
 function analyzeStep(step, hostProbe, plan, missingTools) {
+  const hostPlatform = hostProbe.os === 'win32' ? 'win32' : hostProbe.os === 'darwin' ? 'darwin' : 'linux';
+  const platformTranslation = translate(step, hostPlatform);
   const result = {
     id: step.id,
     title: step.title,
-    status: 'pending', // satisfied, pending, needs-human, skipped, gap
+    status: 'pending', // satisfied, pending, needs-human, skipped, gap, manual
     reason: '',
     platform: step.platform,
+    platformStatus: platformTranslation.status,
+    provenCommand: platformTranslation.status === 'translated' ? platformTranslation.proven?.command ?? '' : '',
+    translatedCommand: platformTranslation.status === 'translated' ? platformTranslation.command : '',
+    translatedCommands: platformTranslation.status === 'translated' ? platformTranslation.commands : [],
     check: step.check,
     alreadySatisfiedIf: step.alreadySatisfiedIf
   };
+
+  if (platformTranslation.status === 'manual' || platformTranslation.status === 'needs-wsl') {
+    result.status = 'manual';
+    result.manual = asManualGuideStep(step, platformTranslation);
+    result.reason = platformTranslation.text;
+    result.hint = platformTranslation.hint;
+    return result;
+  }
 
   // Check if already satisfied based on host probe
   if (step.alreadySatisfiedIf) {
@@ -72,8 +88,7 @@ function analyzeStep(step, hostProbe, plan, missingTools) {
   }
 
   // Check for platform gaps
-  const hostPlatform = hostProbe.os === 'win32' ? 'win32' : hostProbe.os === 'darwin' ? 'darwin' : 'linux';
-  const platformStatus = step.platform[hostPlatform] || 'translated';
+  const platformStatus = platformTranslation.status;
 
   if (platformStatus === 'recommend-wsl-or-docker') {
     result.status = 'gap';
@@ -153,20 +168,24 @@ function buildPlatformGaps(steps, hostProbe) {
   }
 
   for (const step of steps) {
-    const platformStatus = step.platform[hostPlatform] || 'translated';
+    const translation = translate(step, hostPlatform);
+    const platformStatus = translation.status;
     if (platformStatus === 'translated') {
       gaps.push({
         type: 'translated',
         stepId: step.id,
         stepTitle: step.title,
-        message: `Command "${step.do?.command || step.title}" may need translation for ${hostPlatform} (proven on Linux).`
+        message: `Translated, not proven on ${hostPlatform}: ${step.do?.command || step.title}`,
+        provenCommand: translation.proven.command,
+        translatedCommand: translation.command,
       });
-    } else if (platformStatus === 'recommend-wsl-or-docker') {
+    } else if (platformStatus === 'manual' || platformStatus === 'needs-wsl') {
       gaps.push({
-        type: 'recommend-wsl-or-docker',
+        type: platformStatus,
         stepId: step.id,
         stepTitle: step.title,
-        message: `Step "${step.title}" is Linux-specific. Recommend WSL or Docker on ${hostPlatform}.`
+        message: translation.text,
+        hint: translation.hint,
       });
     }
   }

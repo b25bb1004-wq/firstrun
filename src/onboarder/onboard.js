@@ -6,6 +6,9 @@ import { readJson } from '../util.js';
 import { buildGuide } from './guide.js';
 import { probeHost } from './probe.js';
 import { buildReport } from './report.js';
+import { runManualChecker } from './manual-checker.js';
+import { runEnvWizard } from './env-wizard.js';
+import { sessionEnvironment } from './platform.js';
 
 /**
  * HUMBLE onboarder MVP CLI
@@ -71,6 +74,12 @@ export async function onboard(args) {
     for (const gap of report.platformGaps) {
       if (gap.type !== 'neutral') {
         console.log(`  ${yellow('⚠')} ${gap.message}`);
+        if (gap.type === 'translated') {
+          console.log(`     ${dim('Proven on Linux:')} ${gap.provenCommand}`);
+          console.log(`     ${yellow('Translated, not proven:')} ${gap.translatedCommand}`);
+        } else if (gap.hint) {
+          console.log(`     ${dim('Hint:')} ${gap.hint}`);
+        }
       }
     }
     console.log();
@@ -102,8 +111,8 @@ export async function onboard(args) {
       const status = report.steps[i]?.status || 'pending';
       const statusIcon = status === 'satisfied' ? green('✓') : status === 'needs-human' ? yellow('!') : status === 'gap' ? yellow('⚠') : dim('○');
       console.log(`  ${statusIcon} ${i + 1}. ${step.title} (${step.id})`);
-      console.log(`     ${dim('Command:')} ${step.do?.command || step.do?.type}`);
-      console.log(`     ${dim('Check:')} ${JSON.stringify(step.check)}`);
+      console.log(`     ${dim('Command:')} ${stepReportCommand(step, report.steps[i])}`);
+      console.log(`     ${dim('Check:')} ${JSON.stringify(stepReport?.manual?.checker || step.check)}`);
       console.log(`     ${dim('Timeout:')} ${step.timeoutMs}ms`);
       console.log(`     ${dim('Undo:')} ${JSON.stringify(step.undo)}`);
       console.log(`     ${dim('Status:')} ${status}`);
@@ -131,16 +140,26 @@ async function runGuide(guide, report) {
   console.log(bold('GUIDE MODE - Walk through each step'));
   console.log(dim('Press Enter to run each step, "s" to skip, "q" to quit\n'));
 
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const shell = process.platform === 'win32' ? 'bash' : '/bin/bash';
+  let rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const shell = process.platform === 'win32' ? 'powershell.exe' : '/bin/bash';
+  const sessionEnv = {};
 
   try {
     for (let i = 0; i < guide.steps.length; i++) {
       const step = guide.steps[i];
       const stepReport = report.steps[i];
 
-      console.log(`${bold(`${i + 1}/${guide.steps.length}`)} ${step.say.new}`);
-      console.log(`   ${cyan('$')} ${step.do?.command || step.do?.type}`);
+      console.log(`${bold(`${i + 1}/${guide.steps.length}`)} ${step.say?.new || step.title || step.text || 'Manual setup step'}`);
+      if (stepReport?.platformStatus === 'translated') {
+        console.log(`   ${dim('Proven on Linux:')} ${stepReport.provenCommand}`);
+        console.log(`   ${yellow('Translated, not proven:')} ${stepReport.translatedCommand}`);
+      } else if (stepReport?.status === 'manual' || step.kind === 'manual') {
+        console.log(`   ${yellow('Manual step:')} ${stepReport?.manual?.text || step.text}`);
+        console.log(`   ${dim('Why:')} ${stepReport?.manual?.why || step.why}`);
+        if (stepReport?.hint) console.log(`   ${dim('Hint:')} ${stepReport.hint}`);
+      } else {
+        console.log(`   ${cyan('$')} ${step.do?.command || step.do?.type}`);
+      }
       console.log(`   ${dim('Why:')} ${step.why?.cause || 'Verified step from clean machine run'}`);
 
       if (stepReport?.status === 'satisfied') {
@@ -152,7 +171,17 @@ async function runGuide(guide, report) {
       if (stepReport?.status === 'needs-human') {
         console.log(`   ${yellow('! Requires human input:')} ${stepReport.reason}`);
         if (step.do?.type === 'secret') {
-          console.log(`   ${dim('A masked field will open in the console for this secret.')}`);
+          rl.close();
+          try {
+            const result = await runEnvWizard({ projectDir: process.cwd() });
+            console.log(`   ${green('Saved locally to .env.')} ${result.keysWritten} field(s) written; values were not displayed or transmitted.`);
+            const checked = await runManualChecker(step.check, { cwd: process.cwd() });
+            if (!checked.passed) console.log(`   ${yellow('Check not satisfied yet.')} ${checked.message}`);
+          } catch (error) {
+            console.log(`   ${yellow('Could not write .env:')} ${error.message}`);
+          } finally {
+            rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          }
         }
         console.log();
         continue;
@@ -161,6 +190,18 @@ async function runGuide(guide, report) {
       if (stepReport?.status === 'gap') {
         console.log(`   ${yellow('⚠ Platform gap:')} ${stepReport.reason}`);
         console.log();
+        continue;
+      }
+
+      if (stepReport?.status === 'manual' || step.kind === 'manual') {
+        const answer = await rl.question(dim('   Complete the manual step, then press Enter to check it (q=quit): '));
+        if (answer.trim().toLowerCase() === 'q') return 0;
+        const checked = await runManualChecker(stepReport?.manual?.checker || step.checker, { cwd: process.cwd() });
+        if (checked.passed) console.log(`   ${green('Done.')} ${checked.message}\n`);
+        else {
+          console.log(`   ${yellow('Not complete yet.')} ${checked.message}\n`);
+          i--;
+        }
         continue;
       }
 
@@ -179,7 +220,8 @@ async function runGuide(guide, report) {
 
       // Run the step
       console.log(dim('   Running...'));
-      const result = await runStep(shell, step, process.cwd());
+      Object.assign(sessionEnv, sessionEnvironment(step, process.platform, { repoRoot: process.cwd(), baseEnv: { ...process.env, ...sessionEnv } }));
+      const result = await runStep(shell, step, process.cwd(), stepReport?.translatedCommand, sessionEnv);
 
       if (result.code === 0) {
         console.log(`   ${green('✓ done')}\n`);
@@ -214,15 +256,31 @@ async function runGuide(guide, report) {
   }
 }
 
-function runStep(shell, step, cwd) {
+function stepReportCommand(step, stepReport) {
+  if (stepReport?.status === 'manual') return '[manual step; no command]';
+  if (stepReport?.platformStatus === 'translated') {
+    return `${stepReport.provenCommand} -> ${stepReport.translatedCommand} (translated, not proven)`;
+  }
+  return step.do?.command || step.do?.type || step.text || '[manual step]';
+}
+
+function runStep(shell, step, cwd, commandOverride = null, sessionEnv = {}) {
   return new Promise((resolve) => {
-    const command = step.do?.command;
+    const command = commandOverride ?? step.do?.command;
     if (!command) {
       resolve({ code: 0, output: 'No command to run' });
       return;
     }
 
-    const child = spawn(shell, ['-c', command], { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
+    const shellArgs = process.platform === 'win32'
+      ? ['-NoProfile', '-NonInteractive', '-Command', command]
+      : ['-c', command];
+    const child = spawn(shell, shellArgs, {
+      cwd,
+      env: { ...process.env, ...sessionEnv },
+      stdio: ['inherit', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
     let output = '';
 
     const onData = (d) => {
