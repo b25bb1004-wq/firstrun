@@ -1,0 +1,213 @@
+{
+  "id": "v2-31-rerun-1",
+  "startedAt": "2026-09-27T11:31:16.141Z",
+  "source": "audit/v2-31-repos.json",
+  "concurrency": 4,
+  "brain": "rules",
+  "repos": [
+    {
+      "slug": "JKHeadley__rest-hapi",
+      "url": "https://github.com/JKHeadley/rest-hapi",
+      "ref": "708ecbcd4f5d3ec1d11c987a4741d505358e7de9",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/JKHeadley__rest-hapi",
+      "startedAt": "2026-09-27T11:31:16.145Z",
+      "phase": "replay",
+      "current": "npm install"
+    },
+    {
+      "slug": "teamhide__fastapi-boilerplate",
+      "url": "https://github.com/teamhide/fastapi-boilerplate",
+      "ref": "df4e6d4f817ec187eeaf2d1c5a877b27c06bb77b",
+      "stack": "python",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/teamhide__fastapi-boilerplate",
+      "startedAt": "2026-09-27T11:31:16.155Z",
+      "phase": "repair",
+      "current": "poetry install"
+    },
+    {
+      "slug": "maitraysuthar__rest-api-nodejs-mongodb",
+      "url": "https://github.com/maitraysuthar/rest-api-nodejs-mongodb",
+      "ref": "6a1ba2da70a26b010d5aa1791a778a69b8ce7396",
+      "stack": "node",
+      "status": "done",
+      "verdict": "PARTIAL",
+      "passport": {
+        "repo": "maitraysuthar/rest-api-nodejs-mongodb",
+        "commit": "6a1ba2da70",
+        "verifiedAt": "2026-09-27T11:35:57.877Z",
+        "verdict": "PARTIAL",
+        "image": "node:16",
+        "runtime": "Node.js 16",
+        "stepsTotal": 4,
+        "stepsFromReadme": 4,
+        "breaksFound": 2,
+        "breaksFixed": 2,
+        "needsHuman": 1,
+        "repoBreaks": 2,
+        "suiteIssues": 1,
+        "needsPerson": 0,
+        "humbleUnknowns": 0,
+        "replaySeconds": 98,
+        "packageCache": false,
+        "bobcoins": 0,
+        "diagnosedByBob": 0,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:3000/"
+        },
+        "fromCI": false
+      },
+      "runDir": "runs/maitraysuthar__rest-api-nodejs-mongodb",
+      "startedAt": "2026-09-27T11:31:16.162Z",
+      "phase": "done",
+      "firstFailure": null,
+      "finishedAt": "2026-09-27T11:35:58.268Z"
+    },
+    {
+      "slug": "vargasjona__fastapi-alembic-sqlmodel-async",
+      "url": "https://github.com/vargasjona/fastapi-alembic-sqlmodel-async",
+      "ref": "96f10870e7a9cd0fb7fcc678674d7b409545b942",
+      "stack": "python",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/vargasjona__fastapi-alembic-sqlmodel-async",
+      "startedAt": "2026-09-27T11:31:16.168Z",
+      "phase": "repair",
+      "current": "poetry --version"
+    },
+    {
+      "slug": "edwinhern__express-typescript",
+      "url": "https://github.com/edwinhern/express-typescript",
+      "ref": "983fa0413659cd921c5754b00f7817903eb91364",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/edwinhern__express-typescript",
+      "startedAt": "2026-09-27T11:35:58.269Z",
+      "phase": "repair",
+      "current": "pnpm test"
+    },
+    {
+      "slug": "NayamAmarshe__please",
+      "url": "https://github.com/NayamAmarshe/please",
+      "ref": "10e94b3e7ea929037bcbe68bbc2567404be0aa27",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/NayamAmarshe__please"
+    },
+    {
+      "slug": "sahat__hackathon-starter",
+      "url": "https://github.com/sahat/hackathon-starter",
+      "ref": "410fccec23f6d4b509397b408ba7745f0f469027",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/sahat__hackathon-starter"
+    },
+    {
+      "slug": "koajs__koa",
+      "url": "https://github.com/koajs/koa",
+      "ref": "824c1cf8de9a91a2941973b25dc8a3d3029b9e4f",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/koajs__koa"
+    },
+    {
+      "slug": "fastapi__full-stack-fastapi-template",
+      "url": "https://github.com/fastapi/full-stack-fastapi-template",
+      "ref": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/fastapi__full-stack-fastapi-template"
+    },
+    {
+      "slug": "httpie__cli",
+      "url": "https://github.com/httpie/cli",
+      "ref": "5b604c37c6c67e18e7c3e9aee6c88a8c22b98345",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/httpie__cli"
+    },
+    {
+      "slug": "shadcn-ui__taxonomy",
+      "url": "https://github.com/shadcn-ui/taxonomy",
+      "ref": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/shadcn-ui__taxonomy"
+    },
+    {
+      "slug": "axios__axios",
+      "url": "https://github.com/axios/axios",
+      "ref": "961241f6c19798eff16b0869486c125430a17961",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/axios__axios"
+    },
+    {
+      "slug": "tj__commander.js",
+      "url": "https://github.com/tj/commander.js",
+      "ref": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/tj__commander.js"
+    },
+    {
+      "slug": "fastify__fastify",
+      "url": "https://github.com/fastify/fastify",
+      "ref": "f7f73aa7d0233f5f8455ac75a828ab3862419fc4",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/fastify__fastify"
+    },
+    {
+      "slug": "fastapi__fastapi",
+      "url": "https://github.com/fastapi/fastapi",
+      "ref": "192b12197eb04c2b4a691cce7d87261b21716714",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/fastapi__fastapi"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "done": 1,
+    "brokeOnCleanMachine": 1,
+    "verified": 0,
+    "partial": 1,
+    "inconclusive": 0,
+    "ciOnly": 0,
+    "failed": 0,
+    "breaksFound": 2,
+    "breaksFixed": 2,
+    "repairedAutomatically": 1
+  }
+}

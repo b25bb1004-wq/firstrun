@@ -1,0 +1,87 @@
+{
+  "id": "v2-31-rerun-1-edwinhern__express-typescript",
+  "repo": "edwinhern/express-typescript",
+  "commit": "983fa04136",
+  "startedAt": "2026-09-27T11:36:03.226Z",
+  "phase": "repair",
+  "steps": {
+    "S1": {
+      "status": "failed",
+      "attempts": 1
+    }
+  },
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "23 (.tool-versions)",
+      "source": "README.md"
+    },
+    {
+      "what": "Setup path",
+      "docs": "none documented",
+      "truth": "CI runs `pnpm test`",
+      "source": "README.md",
+      "ci": ".github/workflows/ci.yml:43",
+      "from": "ci-reference"
+    }
+  ],
+  "plan": {
+    "repo": "edwinhern/express-typescript",
+    "commit": "983fa04136",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "pnpm test",
+        "kind": "test",
+        "workflow": ".github/workflows/ci.yml",
+        "line": 43,
+        "job": "test",
+        "origin": "ci",
+        "source": {
+          "file": ".github/workflows/ci.yml",
+          "line": 43,
+          "section": "CI: test"
+        },
+        "status": "pending"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "not stated",
+        "truth": "23 (.tool-versions)",
+        "source": "README.md"
+      },
+      {
+        "what": "Setup path",
+        "docs": "none documented",
+        "truth": "CI runs `pnpm test`",
+        "source": "README.md",
+        "ci": ".github/workflows/ci.yml:43",
+        "from": "ci-reference"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "pnpm test"
+    },
+    "docsUsed": [],
+    "fromCI": true,
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  }
+}

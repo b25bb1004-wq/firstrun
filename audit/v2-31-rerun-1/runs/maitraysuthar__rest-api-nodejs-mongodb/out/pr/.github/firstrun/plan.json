@@ -1,0 +1,55 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-27T11:35:57.877Z",
+  "commit": "6a1ba2da70",
+  "image": "node:16",
+  "runtime": {
+    "name": "node",
+    "version": "16",
+    "source": "bcrypt ^3.0.6 in package.json supports Node.js 12–16 only (bcrypt's compatibility table); Node.js 18+ needs bcrypt >= 6"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S4",
+      "command": "cp .env.example .env",
+      "kind": "env"
+    },
+    {
+      "id": "S5",
+      "command": "npm run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 3000
+      },
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "touch .env && { grep -v '^MONGODB_URL=' .env; printf '%s=%s\\n' 'MONGODB_URL' 'mongodb://127.0.0.1:27017/rest-api-nodejs-mongodb'; } > /tmp/firstrun.env && mv /tmp/firstrun.env .env"
+        }
+      ]
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "npm error node-pre-gyp ERR! stack Error: Failed to execute '/usr/local/bin/node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js build --fallback-to-build --module=/workspace/node",
+      "cause": "bcrypt ^3.0.6 does not build on Node.js 22: bcrypt ^3.0.6 in package.json supports Node.js 12–16 only (bcrypt's compatibility table); Node.js 18+ needs bcrypt >= 6. Node.js 16 is end-of-life, so upgrading bcrypt is the lasting fix.",
+      "fix": "Node.js 16 (see bcrypt's compatibility table: bcrypt ^3.0.6 supports Node.js 12–16; upgrading to bcrypt >= 6 lets you use a current Node.js)",
+      "evidence": "E1"
+    },
+    {
+      "signature": "App starting error: Invalid connection string",
+      "cause": "MONGODB_URL=YourConnectionString is a placeholder in .env.example, and the app fails on it; HUMBLE sets MONGODB_URL=mongodb://127.0.0.1:27017/rest-api-nodejs-mongodb (the commented example in .env.example).",
+      "fix": "`.env.example` now has a working local value for `MONGODB_URL` instead of a placeholder.",
+      "evidence": "E2"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "E1",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "npm start",
+    "exitCode": 1,
+    "durationMs": 4937,
+    "logTail": "npm error Missing script: \"start\"\nnpm error\nnpm error Did you mean one of these?\nnpm error   npm star # Mark your favorite packages\nnpm error   npm stars # View packages marked as favorites\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-27T11_34_11_237Z-debug-0.log\n\n[firstrun] server process exited before becoming ready on port 8080",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "docs-mismatch",
+    "cause": "The setup steps are for a different repository: they clone `JKHeadley/rest-hapi-demo` (README.md:84), not `JKHeadley/rest-hapi`. Someone following them in this repo gets commands that don't exist here.",
+    "by": "rules",
+    "ruleId": "docs-for-other-repo",
+    "confidence": 0.8
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T11:34:16.957Z"
+}
