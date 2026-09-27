@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" class="humble-robot humble-robot-sleep" aria-label="HUMBLE Lamplighter: Sleep">
+  <defs>
+    <filter id="hb-blur-sleep" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <radialGradient id="hb-disc-sleep" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.6"/>
+      <stop offset="60%" stop-color="#ff9a3c" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hb-lantern-sleep" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffc47a" stop-opacity="0.5"/>
+      <stop offset="70%" stop-color="#ff9a3c" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#e0701c" stop-opacity="0.1"/>
+    </radialGradient>
+    <linearGradient id="hb-body-sleep" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe6"/>
+      <stop offset="100%" stop-color="#dbd0be"/>
+    </linearGradient>
+  </defs>
+  <style>
+    :root {
+      --robot-core: #ff9a3c; --robot-hi: #ffc47a; --robot-deep: #e0701c;
+      --robot-out: #2b2622; --robot-screen: #2a1406; --robot-blue: #2440ff; --robot-pink: #ff2d87;
+    }
+    .bot-sleep-float { animation: hb-sleep-float 3.4s ease-in-out infinite; }
+    .disc-pulse { animation: hb-disc-breathe 3.4s ease-in-out infinite; }
+    @keyframes hb-sleep-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+    @keyframes hb-disc-breathe {
+      0%, 100% { transform: scaleX(1); opacity: 0.6; }
+      50% { transform: scaleX(0.88); opacity: 0.35; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bot-sleep-float, .disc-pulse { animation: none !important; }
+    }
+  </style>
+
+  <!-- Hover disc on floor -->
+  <ellipse class="disc-pulse" cx="100" cy="236" rx="34" ry="6" fill="url(#hb-disc-sleep)"/>
+
+  <g class="bot-sleep-float">
+    <!-- Backpack (behind body) with agent cartridges -->
+    <rect x="74" y="128" width="52" height="48" rx="8" fill="#242b35" stroke="var(--robot-out)" stroke-width="3"/>
+    <!-- Cartridges: Blue (Harvey), Purple (Unity), Cobalt (Mach), Coral (DR.BO) -->
+    <rect x="78" y="134" width="7" height="12" rx="2" fill="#4589ff" opacity="0.6"/>
+    <rect x="89" y="134" width="7" height="12" rx="2" fill="#8a3ffc" opacity="0.6"/>
+    <rect x="100" y="134" width="7" height="12" rx="2" fill="#0072c3" opacity="0.6"/>
+    <rect x="111" y="134" width="7" height="12" rx="2" fill="#fa4d56" opacity="0.6"/>
+    <rect x="84" y="152" width="7" height="12" rx="2" fill="#1192e8" opacity="0.6"/>
+    <rect x="95" y="152" width="7" height="12" rx="2" fill="#009d9a" opacity="0.6"/>
+
+    <!-- Left Arm (resting) -->
+    <path d="M62 144 Q46 166 52 188" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="53" cy="189" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Right Arm (resting) -->
+    <path d="M138 144 Q154 166 148 188" fill="none" stroke="var(--robot-out)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="147" cy="189" r="8" fill="#f0e9dd" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Capsule Body -->
+    <rect x="58" y="122" width="84" height="92" rx="42" fill="url(#hb-body-sleep)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Dimmed Belly Lantern (asleep) -->
+    <path d="M74 168 C74 150 86 142 100 142 C114 142 126 150 126 168 C126 186 114 196 100 196 C86 196 74 186 74 168 Z"
+          fill="url(#hb-lantern-sleep)" stroke="var(--robot-out)" stroke-width="2.5"/>
+    <circle cx="100" cy="168" r="9" fill="#ffc47a" opacity="0.3" filter="url(#hb-blur-sleep)"/>
+
+    <!-- Receipt slot mouth -->
+    <rect x="86" y="132" width="28" height="3" rx="1.5" fill="#2b2622"/>
+
+    <!-- Telescoping neck (segmented collar rings) -->
+    <rect x="88" y="112" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="85" y="116" width="30" height="4" rx="2" fill="#887b6d" stroke="var(--robot-out)" stroke-width="2"/>
+    <rect x="88" y="120" width="24" height="4" rx="2" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Head Dome -->
+    <path d="M56 82 C56 52 74 38 100 38 C126 38 144 52 144 82 C144 104 128 112 100 112 C72 112 56 104 56 82 Z"
+          fill="url(#hb-body-sleep)" stroke="var(--robot-out)" stroke-width="3.5"/>
+
+    <!-- Top antenna curl -->
+    <path d="M100 38 C98 24 106 18 104 12" fill="none" stroke="var(--robot-out)" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="104" cy="11" r="4.5" fill="#665c52" stroke="var(--robot-out)" stroke-width="2"/>
+
+    <!-- Dark Goggle Faceplate -->
+    <rect x="66" y="58" width="68" height="38" rx="19" fill="#1e1814" stroke="var(--robot-out)" stroke-width="2.5"/>
+
+    <!-- Sleeping closed eyes (gentle arcs) -->
+    <path d="M74 77 Q83 83 91 77" fill="none" stroke="#ffaa33" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+    <path d="M109 77 Q117 83 126 77" fill="none" stroke="#ffaa33" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+  </g>
+</svg>
