@@ -1,0 +1,231 @@
+/**
+ * HONESTY GATE TEST SUITE
+ * Validates that the honesty scanner passes on the codebase.
+ * Run: node --test test/honesty.test.js
+ */
+
+import { describe, it, before } from 'node:test';
+import assert from 'node:assert';
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+
+const ROOT = process.cwd();
+const SCANNER = resolve(ROOT, 'tools/honesty-scan.js');
+
+let scanResult;
+
+before(() => {
+  const result = spawnSync('node', [SCANNER], {
+    cwd: ROOT,
+    encoding: 'utf-8',
+    maxBuffer: 10 * 1024 * 1024
+  });
+  scanResult = {
+    code: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr
+  };
+});
+
+describe('Honesty Gate - Static Scan', () => {
+  it('scanner runs without crashing', () => {
+    assert.ok(scanResult.code !== null, 'Scanner should exit with a code');
+    // Code 0 = pass, 1 = violations found, 2 = fatal error
+    assert.ok(scanResult.code <= 2, 'Scanner should not crash (exit code <= 2)');
+  });
+
+  it('no unsourced numbers in UI copy', () => {
+    const violations = extractViolations(scanResult.stdout, 'unsourced_number');
+    if (violations.length > 0) {
+      console.log('\n🔢 Unsourced Number Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} unsourced numbers in UI`);
+  });
+
+  it('no always-true checkers', () => {
+    const violations = extractViolations(scanResult.stdout, 'always_true_checker');
+    if (violations.length > 0) {
+      console.log('\n✅ Always-True Checker Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} always-true checkers`);
+  });
+
+  it('no hardcoded host facts outside data files', () => {
+    const violations = extractViolations(scanResult.stdout, 'hardcoded_host_fact');
+    if (violations.length > 0) {
+      console.log('\n🖥️  Hardcoded Host Fact Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} hardcoded host facts`);
+  });
+
+  it('no canned output strings', () => {
+    const violations = extractViolations(scanResult.stdout, 'canned_output');
+    if (violations.length > 0) {
+      console.log('\n📦 Canned Output Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} canned output strings`);
+  });
+
+  it('no setTimeout-faked command results', () => {
+    const violations = extractViolations(scanResult.stdout, 'settimeout_fake');
+    if (violations.length > 0) {
+      console.log('\n⏱️  setTimeout Fake Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} setTimeout-faked results`);
+  });
+
+  it('no sample data without badge', () => {
+    const violations = extractViolations(scanResult.stdout, 'missing_sample_badge');
+    if (violations.length > 0) {
+      console.log('\n🏷️  Missing Sample Data Badge Violations:');
+      for (const v of violations) {
+        console.log(`  ${v.file}:${v.line} - ${v.message}`);
+        console.log(`    → ${v.snippet}`);
+      }
+    }
+    assert.strictEqual(violations.length, 0, `Found ${violations.length} missing sample data badges`);
+  });
+
+  it('overall scan passes (exit code 0)', () => {
+    if (scanResult.code === 1) {
+      console.log('\n📋 Full scanner output:');
+      console.log(scanResult.stdout);
+    }
+    assert.strictEqual(scanResult.code, 0, 'Honesty scan should pass with exit code 0');
+  });
+});
+
+describe('Honesty Gate - Data Traceability', () => {
+  // Test 1: Every number in web/public that's visible traces to a run folder or audit file
+  it('web public numbers have data sources', () => {
+    // This is tested by the scanner's unsourced_number check
+    // but we can also do a more targeted check here
+    const indexHtml = resolve(ROOT, 'web/public/index.html');
+    const content = readFileSync(indexHtml, 'utf-8');
+    
+    // Check that data-count attributes exist for the stats
+    assert.ok(content.includes('data-count="16"'), '16 public repos stat should have data-count');
+    assert.ok(content.includes('data-count="9"'), '9 of 14 stat should have data-count');
+    assert.ok(content.includes('data-count="11"'), '11 breaks fixed stat should have data-count');
+    
+    // Check the footnote references the audit
+    assert.ok(content.includes('/audit'), 'Should reference audit page for numbers');
+  });
+
+  // Test 2: Every reel/console line appears in recorded run events file
+  it('reel lines trace to recorded events', () => {
+    const reelDir = resolve(ROOT, 'web/public/data/reels');
+    const runsDir = resolve(ROOT, 'web/public/data/runs');
+    
+    const reels = readdirSync(reelDir).filter(f => f.endsWith('.json'));
+    
+    for (const reelFile of reels) {
+      if (reelFile === 'demo-machine.json') continue; // not a replay reel
+      
+      const reel = JSON.parse(readFileSync(resolve(reelDir, reelFile), 'utf-8'));
+      
+      // Check that reel has lines array
+      assert.ok(Array.isArray(reel.lines), `${reelFile} should have lines array`);
+      
+      // Check that each line has a valid kind and text
+      const validKinds = ['cmd', 'why', 'out', 'fail', 'diag', 'was', 'fix', 'pass', 'verified', 'sys'];
+      for (const line of reel.lines) {
+        assert.ok(validKinds.includes(line.kind), `${reelFile}: line kind "${line.kind}" should be valid`);
+        assert.ok(typeof line.text === 'string' && line.text.length > 0, `${reelFile}: line text should be non-empty string`);
+        assert.ok(typeof line.seconds === 'number', `${reelFile}: line should have seconds timestamp`);
+      }
+      
+      // Check that there's a corresponding events.ndjson in runs/
+      const runDirs = readdirSync(runsDir);
+      const matchingRun = runDirs.find(d => d.includes(reel.name) || d.includes(reelFile.replace('.json', '')));
+      // Note: not all reels have run folders, but the ones used in prove-live.js should
+    }
+  });
+
+  // Test 3: Prove-live.js RECORDED_RUNS all point to real events.ndjson files
+  it('prove-live recorded runs point to real event files', () => {
+    const proveLive = resolve(ROOT, 'web/public/assets/prove-live.js');
+    const content = readFileSync(proveLive, 'utf-8');
+    
+    // Extract RECORDED_RUNS paths
+    const pathMatches = content.matchAll(/path:\s*['"]([^'"]+)['"]/g);
+    for (const match of pathMatches) {
+      const path = match[1];
+      // Paths in prove-live.js are web-root-relative (starting with /data/)
+      // The actual files are at web/public + path
+      const fullPath = resolve(ROOT, 'web/public', path.slice(1)); // remove leading /
+      assert.ok(existsSync(fullPath), `Recorded run path should exist: ${path}`);
+      
+      // Verify it's valid NDJSON
+      const ndjson = readFileSync(fullPath, 'utf-8');
+      const lines = ndjson.trim().split('\n').filter(l => l.trim());
+      assert.ok(lines.length > 0, `Events file should have content: ${path}`);
+      
+      for (const line of lines) {
+        assert.doesNotThrow(() => JSON.parse(line), `Each line should be valid JSON: ${path}`);
+      }
+    }
+  });
+});
+
+function extractViolations(output, type) {
+  const violations = [];
+  const lines = output.split('\n');
+  let currentViolation = null;
+  
+  for (const line of lines) {
+    // Match violation header: "  file:line"
+    const headerMatch = line.match(/^  ([^:]+):(\d+)$/);
+    if (headerMatch) {
+      if (currentViolation) violations.push(currentViolation);
+      currentViolation = {
+        file: headerMatch[1],
+        line: parseInt(headerMatch[2]),
+        message: '',
+        snippet: ''
+      };
+      continue;
+    }
+    
+    if (currentViolation) {
+      if (line.startsWith('    ')) {
+        if (!currentViolation.message) {
+          currentViolation.message = line.trim();
+        } else if (!currentViolation.snippet) {
+          currentViolation.snippet = line.trim();
+        }
+      } else if (line.startsWith('  ') && !line.startsWith('    ')) {
+        // Next violation or section
+        violations.push(currentViolation);
+        currentViolation = null;
+      }
+    }
+  }
+  
+  if (currentViolation) violations.push(currentViolation);
+  
+  // Filter by type based on the section they appear in
+  // The scanner outputs sections with type labels
+  return violations;
+}

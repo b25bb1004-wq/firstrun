@@ -44,6 +44,8 @@ function safeRepoPath(input, repoRoot) {
   const target = path.resolve(root, input.replaceAll('\\', path.sep));
   const relative = path.relative(root, target);
   if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return null;
+  // Also reject Windows absolute paths like C:\secrets or C:/secrets when translating for Windows
+  if (/^[A-Za-z]:[\\/]/.test(input)) return null;
   return relative;
 }
 

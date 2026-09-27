@@ -4,7 +4,8 @@
   "description": "Your README, proven. FirstRun follows a repo's setup docs in a clean container, repairs what breaks with evidence, and publishes a verified guide.",
   "type": "module",
   "bin": {
-    "firstrun": "bin/firstrun.js"
+    "firstrun": "bin/firstrun.js",
+    "humble": "bin/firstrun.js"
   },
   "engines": {
     "node": ">=20"
@@ -12,7 +13,11 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "ui": "node bin/firstrun.js ui",
-    "web:build": "node web/build.js"
+    "web:build": "node web/build.js",
+    "ship-gate": "bash tools/ship-gate.sh",
+    "pack:dry": "npm pack --dry-run",
+    "lens:build": "cd lens && npm run build",
+    "dist": "npm run pack:dry && npm run test"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -21,5 +26,24 @@
     "tar": "^7.5.22",
     "yaml": "^2.9.1",
     "zod": "^3.25.76"
-  }
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "lens/",
+    "audit/",
+    "!lens/node_modules",
+    "!lens/dist",
+    "!audit/repos.json",
+    "!audit/real-16",
+    "!audit/v2-31-repos.json",
+    "!web/public/data/runs",
+    "!web/public/cover.jpg",
+    "!web/public/assets",
+    "!web/public/app",
+    "!web/build.js",
+    "!web/static-shim.js",
+    "!test/fixtures",
+    "!test/*.test.js"
+  ]
 }

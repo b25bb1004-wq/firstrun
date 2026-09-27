@@ -1,0 +1,13 @@
+{
+  "name": "node-express-realworld-example-app",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "npx prisma generate && npx prisma migrate deploy && npx nx serve api && npx prisma db seed",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

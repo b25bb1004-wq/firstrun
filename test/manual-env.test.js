@@ -104,6 +104,6 @@ test('env wizard refuses a symlink output file', async (t) => {
     throw error;
   }
   await assert.rejects(writeEnvFile({ projectDir: second, values: {} }), /regular file/);
-  env = fs.readFileSync(target, 'utf8');
+  let env = fs.readFileSync(target, 'utf8');
   assert.equal(env, 'outside=true\n');
 });

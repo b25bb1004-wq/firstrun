@@ -1,0 +1,23 @@
+{
+  "id": "E4",
+  "stepId": "S8",
+  "before": {
+    "stepId": "S8",
+    "n": 2,
+    "command": "source \"$(poetry env info --path)/bin/activate\"",
+    "exitCode": 1,
+    "durationMs": 1126,
+    "logTail": "/firstrun/step-8.sh: line 5: /bin/activate: No such file or directory",
+    "logFile": "logs/S8-2.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T00:11:00.046Z"
+}

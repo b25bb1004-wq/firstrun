@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+dist/
+build/
+*.egg-info/
+.github/
+_config.yml
+.vscode/
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

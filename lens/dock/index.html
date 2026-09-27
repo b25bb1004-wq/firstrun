@@ -5,14 +5,15 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src data:">
   <title>HUMBLE Dock</title>
   <link rel="stylesheet" href="dock.css">
+  <link rel="stylesheet" href="../humble/robot.css">
 </head>
 <body>
   <div class="dock-window">
     <!-- Header with IBM Bob mascot button -->
     <header class="dock-header">
-      <div class="bob-avatar-btn" id="bob-btn" title="IBM Bob Assistant · Toggle Guide Mode">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2a4 4 0 0 1 4 4v1h1a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4h1V6a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v1h4V6a2 2 0 0 0-2-2zm-3 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm6 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-6 5h6v1.5H9V17z"/>
+      <div class="bob-avatar-btn" id="bob-btn" title="HUMBLE · Toggle Guide Mode">
+        <svg viewBox="0 0 716.94 537.7" aria-hidden="true"><!-- brand face, lens/assets/humble-face.svg -->
+          <polygon points="0 358.46 179.23 358.46 179.23 537.7 268.85 537.7 268.85 268.85 0 268.85 0 358.46"/><polygon points="537.7 179.23 537.7 0 268.85 0 268.85 268.85 358.47 268.85 358.47 89.61 448.09 89.61 448.09 268.85 716.94 268.85 716.94 179.23 537.7 179.23"/>
         </svg>
       </div>
       <div class="dock-title-wrap">
@@ -20,6 +21,19 @@
         <div class="dock-subtitle" id="bob-prompt">I'm Bob. Give me a repo and I'll send the Scout in first.</div>
       </div>
       <div class="dock-controls">
+        <button class="icon-btn" id="console-btn" title="Open HUMBLE Console" aria-label="Open HUMBLE Console">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+            <line x1="6" y1="9" x2="18" y2="9" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 13h12M6 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="btn-look-screen" title="Look at my screen (Ctrl+Shift+L) — local OCR, private, in-memory" aria-label="Look at screen">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="audio-toggle" title="Toggle audio status announcements" aria-label="Speech audio toggle">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -236,6 +250,7 @@
   </div>
 
   <script src="recorded-events.js"></script>
+  <script type="module" src="../humble/spatial-bridge.js"></script>
   <script src="dock.js"></script>
 </body>
 </html>

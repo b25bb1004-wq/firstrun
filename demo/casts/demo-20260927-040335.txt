@@ -1,0 +1,196 @@
+Script started on 2026-09-27 04:03:35+00:00 [COMMAND="/home/dev/firstrun4/tools/demo/run-cli-demo.sh" <not executed on terminal>]
+
+═══════════════════════════════════════════════════════════════
+  HUMBLE verify on acme-shop (shows EBADENGINE break)
+═══════════════════════════════════════════════════════════════
+
+$ node bin/firstrun.js verify /home/dev/firstrun4/examples/acme-shop --verbose
+HUMBLE · /home/dev/firstrun4/examples/acme-shop
+
+■ Reading the docs and manifests
+  node project · docs: README.md, CONTRIBUTING.md · compose: postgres · .env.example
+
+■ Planning the setup as a newcomer would
+  7 commands to follow (2 skipped) on node:16 · done when GET http://127.0.0.1:3000/health
+  ⚠ Node.js version: docs say Node.js 16+, code says 20 (.nvmrc) (README.md:28)
+  ⚠ file .env.sample: docs say cp .env.sample .env, code says does not exist in the repo (README.md:44)
+  ⚠ npm script "migrate": docs say npm run migrate, code says not in package.json scripts (README.md:56)
+  ⚠ env var SESSION_SECRET: docs say not documented, code says read in src/config.js:22 (.env.example)
+  ⚠ redis service: docs say setup never starts it, code says dependency "redis" (package.json)
+
+■ Following the docs on a clean machine
+  · pulling node:16…
+
+✗ cannot pull node:16: We recommend to activate the WSL integration in Docker Desktop settings.
+
+For details about using Docker Desktop with WSL 2, visit:
+
+https://docs.docker.com/go/wsl2/
+
+
+═══════════════════════════════════════════════════════════════
+  HUMBLE plan on acme-shop (static docs-vs-code conflicts)
+═══════════════════════════════════════════════════════════════
+
+$ node bin/firstrun.js plan /home/dev/firstrun4/examples/acme-shop
+Setup plan for /home/dev/firstrun4/examples/acme-shop  (node:16: README.md:28 ("Node.js 16+"))
+  S1 git clone https://github.com/acme-commerce/acme-shop.git  (skip: git clone: HUMBLE starts from a fresh clone already)
+  S2 cd acme-shop  (skip: cd into the clone: already there)
+  S3 npm install [install] README.md:38
+  S4 cp .env.sample .env [env] README.md:44
+  S5 docker compose up -d [services] README.md:50
+  S6 npm run migrate [migrate] README.md:56
+  S7 npm run db:seed [migrate] README.md:57
+  S8 npm run dev [serve] README.md:63
+  S9 npm test [test] README.md:74
+  done when: GET http://127.0.0.1:3000/health
+
+Docs vs code
+  ⚠ Node.js version: docs say Node.js 16+, code says 20 (.nvmrc) (README.md:28)
+  ⚠ file .env.sample: docs say cp .env.sample .env, code says does not exist in the repo (README.md:44)
+  ⚠ npm script "migrate": docs say npm run migrate, code says not in package.json scripts (README.md:56)
+  ⚠ env var SESSION_SECRET: docs say not documented, code says read in src/config.js:22 (.env.example)
+  ⚠ redis service: docs say setup never starts it, code says dependency "redis" (package.json)
+
+
+═══════════════════════════════════════════════════════════════
+  HUMBLE guard on three commands (ok, warn, block)
+═══════════════════════════════════════════════════════════════
+
+$ node bin/firstrun.js guard npm install
+{
+  "verdict": "ok",
+  "reason": "no issues found",
+  "ruleId": "ok"
+}
+
+$ node bin/firstrun.js guard sudo npm install -g foo
+{
+  "verdict": "warn",
+  "reason": "requires sudo/admin elevation",
+  "ruleId": "warn-sudo"
+}
+
+$ node bin/firstrun.js guard rm -rf /
+{
+  "verdict": "block",
+  "reason": "deletes outside repo",
+  "ruleId": "block-rm-rf-root"
+}
+
+
+═══════════════════════════════════════════════════════════════
+  HUMBLE guard --self (self-check)
+═══════════════════════════════════════════════════════════════
+
+$ node bin/firstrun.js guard --self
+HUMBLE Guard Self-Check
+Testing guard rules against HUMBLE's own setup commands...
+
+Command | Verdict | Rule | Reason
+────────────────────────────────────────────────────────────────────────────────
+npm install                                        | ok      | ok                        | no issues found
+npm ci                                             | ok      | ok                        | no issues found
+npm test                                           | ok      | ok                        | no issues found
+npm run build                                      | ok      | ok                        | no issues found
+npm run lint                                       | ok      | ok                        | no issues found
+node bin/firstrun.js verify .                      | ok      | ok                        | no issues found
+node bin/firstrun.js plan .                        | ok      | ok                        | no issues found
+node bin/firstrun.js scout .                       | ok      | ok                        | no issues found
+node bin/firstrun.js doctor --log /tmp/test.log    | ok      | ok                        | no issues found
+node bin/firstrun.js onboard test --from .first... | ok      | ok                        | no issues found
+node bin/firstrun.js guard "npm install"           | ok      | ok                        | no issues found
+node bin/firstrun.js guard "rm -rf /"              | block   | block-rm-rf-root-abs      | deletes from root
+node bin/firstrun.js guard "sudo npm install -g... | warn    | warn-npm-global           | global npm install
+node bin/firstrun.js guard "curl example.com | sh" | warn    | warn-curl-pipe-shell      | pipe-to-shell
+node bin/firstrun.js guard "chmod -R 777 ~"        | ok      | ok                        | no issues found
+node bin/firstrun.js guard "echo secret >> ~/.s... | ok      | ok                        | no issues found
+node bin/firstrun.js guard --self                  | ok      | ok                        | no issues found
+npm run test                                       | ok      | ok                        | no issues found
+npm run ui                                         | ok      | ok                        | no issues found
+npm run web:build                                  | ok      | ok                        | no issues found
+npm run pack:dry                                   | ok      | ok                        | no issues found
+npm run lens:build                                 | ok      | ok                        | no issues found
+npm run dist                                       | ok      | ok                        | no issues found
+
+────────────────────────────────────────────────────────────────────────────────
+Passed: 20  Warned: 2  Blocked: 1  Errors: 0
+
+PASS: No HUMBLE commands are blocked.
+
+
+═══════════════════════════════════════════════════════════════
+  HUMBLE onboard --dry-run (verified guide from fixture run)
+═══════════════════════════════════════════════════════════════
+
+$ node bin/firstrun.js onboard /home/dev/firstrun4/examples/acme-shop --from /home/dev/firstrun4/fixtures/runs/acme-shop/.firstrun --dry-run
+HUMBLE Onboarder · /home/dev/firstrun4/examples/acme-shop
+Using verified run: /home/dev/firstrun4/fixtures/runs/acme-shop/.firstrun
+
+Building guide.json from verified run...
+✓ Guide built with 5 proven steps
+Probing host machine...
+✓ Host probe complete
+Building report...
+✓ Report complete
+
+REPORT:
+I set this repo up on a clean machine, fixed what broke and proved it from zero in 0s.
+Proven for you: 5 steps (0 already done on your machine).
+Missing tools: docker.
+Security: clear (0 findings).
+
+PLATFORM GAPS:
+
+MISSING TOOLS:
+  ✗ docker: Docker not installed (required for services)
+
+DRY RUN - All steps:
+  ○ 1. Install (S2)
+     Command: npm install
+     Check: {"type":"file-has","file":"package.json","pattern":"\"dependencies\""}
+     Timeout: 1500000ms
+     Undo: {"type":"run","command":"rm -rf node_modules package-lock.json"}
+     Status: pending
+     Why: package.json requires Node >=20.11.0 and .npmrc sets engine-strict, but the README says Node 16.
+
+  ○ 2. Env (S3)
+     Command: cp .env.example .env
+     Check: {"type":"file-has","file":".env","pattern":"^"}
+     Timeout: 30000ms
+     Undo: {"type":"restore-file","file":".env"}
+     Status: pending
+     Why: .env.sample does not exist; the repository ships .env.example instead.
+
+  ○ 3. Migrate (S5)
+     Command: npm run db:migrate
+     Check: {"type":"exit","code":0}
+     Timeout: 300000ms
+     Undo: {"type":"none"}
+     Status: pending
+     Why: package.json has no "migrate" script; the migration script is "db:migrate".
+
+  ○ 4. Other (S6)
+     Command: npm run seed
+     Check: {"type":"exit","code":0}
+     Timeout: 60000ms
+     Undo: {"type":"none"}
+     Status: pending
+     Why: src/config/env.ts requires SESSION_SECRET of at least 32 characters, but .env.example leaves it empty and the README never mentions it.
+
+  ○ 5. Serve (S8)
+     Command: npm run dev
+     Check: {"type":"http","url":"http://127.0.0.1:3000/health","expect":200}
+     Timeout: 150000ms
+     Undo: {"type":"run","command":"pkill -f \"node.*server.js\" || true"}
+     Status: pending
+     Why: The session store connects to Redis on 127.0.0.1:6379, but the README only starts Postgres.
+
+DONE check: {"type":"http","url":"http://localhost:3000/health","expect":200}
+
+
+═══════════════════════════════════════════════════════════════
+  DEMO COMPLETE
+═══════════════════════════════════════════════════════════════
+
+Script done on 2026-09-27 04:03:54+00:00 [COMMAND_EXIT_CODE="0"]

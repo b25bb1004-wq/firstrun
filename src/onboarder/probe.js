@@ -37,7 +37,9 @@ export async function probeHost() {
 
 async function runCmd(cmd, args, timeoutMs = 5000) {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { timeout: timeoutMs, windowsHide: true });
+    // On Windows, npm and other tools may be .cmd files; use shell to resolve them
+    const useShell = process.platform === 'win32';
+    const child = spawn(cmd, args, { timeout: timeoutMs, windowsHide: true, shell: useShell });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', d => { stdout += d; });

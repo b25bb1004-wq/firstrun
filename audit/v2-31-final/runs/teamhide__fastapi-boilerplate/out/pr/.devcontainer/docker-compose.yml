@@ -1,0 +1,20 @@
+services:
+  app:
+    image: python:3.11.7
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+  mysql:
+    image: mysql:8.0.33
+    network_mode: service:app
+    restart: unless-stopped
+    environment:
+      MYSQL_USER: fastapi
+      MYSQL_PASSWORD: fastapi
+      MYSQL_DATABASE: fastapi
+      MYSQL_ROOT_PASSWORD: fastapi
+      TZ: Asia/Seoul
+  redis:
+    image: redis:6.2.6
+    network_mode: service:app
+    restart: unless-stopped

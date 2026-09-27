@@ -1,0 +1,92 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T23:06:04.129Z",
+  "commit": "df4e6d4f81",
+  "image": "python:3.11.7",
+  "runtime": {
+    "name": "python",
+    "version": "3.11.7",
+    "source": "pyproject.toml poetry python (\"3.11.7\")"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/"
+  },
+  "steps": [
+    {
+      "id": "S2",
+      "command": "poetry install --no-root",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "command -v poetry >/dev/null || { if command -v pip >/dev/null || command -v pip3 >/dev/null; then (pip install poetry || pip3 install poetry); else apt-get update -qq && apt-get install -y -qq curl >/dev/null && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && ln -sf /opt/poetry/bin/poetry /usr/local/bin/poetry; fi; }"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "command": "source \"$(poetry env info --path)/bin/activate\"",
+      "kind": "env"
+    },
+    {
+      "id": "R1",
+      "command": "docker compose -f docker/docker-compose.yml up -d mysql",
+      "kind": "services",
+      "origin": "repair"
+    },
+    {
+      "id": "S4",
+      "command": "alembic upgrade head",
+      "kind": "migrate",
+      "prereqs": [
+        {
+          "type": "service",
+          "name": "mysql",
+          "image": "mysql:8.0.33",
+          "env": {
+            "MYSQL_ROOT_PASSWORD": "fastapi",
+            "MYSQL_DATABASE": "fastapi",
+            "MYSQL_USER": "fastapi",
+            "MYSQL_PASSWORD": "fastapi",
+            "TZ": "Asia/Seoul"
+          },
+          "port": 3306,
+          "volumes": [
+            "./init.sql:/docker-entrypoint-initdb.d/init.sql",
+            "mysqldb:/var/lib/mysql"
+          ],
+          "composeDir": "docker"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "python3 main.py --env local --debug",
+      "kind": "serve",
+      "serve": {
+        "port": 8000
+      }
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 5: poetry: command not found",
+      "cause": "`poetry` is not installed; the docs assume it is.",
+      "fix": "poetry",
+      "evidence": "E1"
+    },
+    {
+      "signature": "Error: The current project could not be installed: No file/folder found for package fastapi-boilerplate",
+      "cause": "The dependencies installed, but current Poetry also installs the project itself, and this repo is an app, not a package. Older Poetry skipped that silently.",
+      "fix": "poetry install --no-root",
+      "evidence": "E3"
+    },
+    {
+      "signature": "sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 111] Connection refused)\")",
+      "cause": "The app connects to MySQL on localhost:3306, but the docs never start it.",
+      "fix": "docker compose -f docker/docker-compose.yml up -d mysql",
+      "evidence": "E4"
+    }
+  ]
+}

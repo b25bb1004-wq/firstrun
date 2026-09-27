@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.env
+data
+.vscode
+
+# HUMBLE local run output (the verified plan lives in .github/firstrun/)
+.firstrun/

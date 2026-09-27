@@ -1,0 +1,302 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -71,6 +71,8 @@ Please note we recently accidentally made this repo private for a moment, and Gi
+ 
+ ## Examples
+ 
++🟡 **Partly verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-27 from a clean `python:3.7` machine at `5b604c37c6`: clone to running in 1m19s.
++
+ Hello World:
+ 
+ ```bash
+diff --git a/FIRSTRUN.md b/FIRSTRUN.md
+--- /dev/null
++++ b/FIRSTRUN.md
+@@ -0,0 +1,72 @@
++# Setup Passport: httpie/cli
++
++🟡 **PARTIAL**: HUMBLE followed this project's setup docs on a clean `python:3.7` machine, repaired what broke, then replayed the corrected guide from zero.
++
++| | |
++|---|---|
++| Commit | `5b604c37c6` |
++| Verified | 2026-09-27 00:46 UTC |
++| Runtime | Python 3.7 (`python:3.7`) |
++| Clone to running, from zero | **1m19s** |
++| Steps followed | 0 from the docs, 2 added by HUMBLE |
++| Breaks found / fixed | 0 / 0 |
++| Needs a human | 1 |
++| Done when | `make test` passes |
++
++**Before HUMBLE**, a newcomer following the docs got stuck at `make test` (CI:0).
++
++## Verified setup
++
++```bash
++make install
++```
++
++## Evidence
++
++Every change to the docs is backed by a command that failed before the fix and passed after it.
++
++### E1: failing-tests <a id="e1"></a>
++
++- **Docs said:** `make test` (CI:0)
++- **Cause:** The test suite runs, but 3 of 1017 tests fail on a clean setup.
++- **Diagnosed by:** HUMBLE rule `failing-tests`, confidence 80%
++- **Result:** needs a maintainer
++
++<details><summary>Before (failing output)</summary>
++
++```
++-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
++=========================== short test summary info ============================
++FAILED tests/test_config.py::test_config_file_inaccessible - assert 'cannot read config file' in '\nhttp: warning: invalid config file: Expecting value: line 1 column 1 (char 0) [/tmp/httpie_config_g5tsnae7/config.json]\n\n\n'
++ +  where '\nhttp: warning: invalid config file: Expecting value: line 1 column 1 (char 0) [/tmp/httpie_config_g5tsnae7/config.json]\n\n\n' = 'HTTP/1.1 200 OK\r\nAccess-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Origin: *\r\nConnection: Close\r\nC...      "User-Agent": "HTTPie/3.2.4"\n    },\n    "origin": "127.0.0.1",\n    "url": "http://127.0.0.1:45265/get"\n}\n\n'.stderr
++FAILED tests/test_encoding.py::test_terminal_output_response_charset_detection[big5-\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996] - AssertionError: assert '卷首卷首卷首卷首卷卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首' in 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n뻥솤뻥솤뻥솤뻥솤뻥뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤\n\n'
++FAILED tests/test_encoding.py::test_terminal_output_request_charset_detection[big5-\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996\u5377\u9996] - AssertionError: assert '卷首卷首卷首卷首卷卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首卷首' in 'POST / HTTP/1.1\r\nAccept: application/json, */*;q=0.5\r\nAccept-Encoding: gzip, deflate, br\r\nConnection: keep-aliv...xt/plain\r\nHost: this-should.never-resolve\r\nUser-Agent: HTTPie/3.2.4\r\n\r\n뻥솤뻥솤뻥솤뻥솤뻥뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤뻥솤\n\n'
++= 3 failed, 1014 passed, 7 skipped, 3 xfailed, 1 xpassed, 132 warnings in 150.30s (0:02:30) =
++sys:1: ResourceWarning: unclosed file <_io.TextIOWrapper name=29 mode='w+t' encoding='utf-8'>
++ResourceWarning: Enable tracemalloc to get the object allocation traceback
++sys:1: ResourceWarning: unclosed file <_io.TextIOWrapper name=33 mode='w+t' encoding='utf-8'>
++ResourceWarning: Enable tracemalloc to get the object allocation traceback
++sys:1: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w+' encoding='UTF-8'>
++ResourceWarning: Enable tracemalloc to get the object allocation traceback
++make: *** [Makefile:107: test] Error 1
++```
++</details>
++
++## Docs vs. code
++
++Found by reading the docs next to the manifests, compose file, CI and source:
++
++| What | Docs say | Code says | Where |
++|---|---|---|---|
++| Python version | Python 3.7+ | 3.9 (CI (.github/workflows/benchmark.yml)) | README.md:281 |
++| env var HTTPIE_BUILDING_MAN_PAGES | not documented | read in extras/scripts/generate_man_pages.py:9 | README |
++| Setup path | none documented | CI runs `make test` | README.md |
++
++## Keeping it true
++
++The workflow in `.github/workflows/firstrun.yml` re-checks setup on every pull request that touches the README, manifests, env files or compose files, and comments when a change would break a newcomer's first run.
++
++Newcomers using IBM Bob can switch to the **HUMBLE Guide** mode (`.bob/custom_modes.yaml`), which walks them through this verified setup one step at a time and recognises the known failure signatures above.
++
++---
++Generated by HUMBLE. Verified plan: `.github/firstrun/plan.json`.
+diff --git a/.github/firstrun/passport.svg b/.github/firstrun/passport.svg
+--- /dev/null
++++ b/.github/firstrun/passport.svg
+@@ -0,0 +1,15 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="264" height="20" role="img" aria-label="HUMBLE: partly verified · 0/0 fixed">
++  <title>HUMBLE: partly verified · 0/0 fixed</title>
++  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
++  <clipPath id="r"><rect width="264" height="20" rx="3" fill="#fff"/></clipPath>
++  <g clip-path="url(#r)">
++    <rect width="70" height="20" fill="#16181d"/>
++    <rect x="70" width="194" height="20" fill="#d97706"/>
++    <rect width="264" height="20" fill="url(#s)"/>
++  </g>
++  <g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10.5l2.2 2.2L13.5 8"/></g>
++  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
++    <text x="42" y="14">HUMBLE</text>
++    <text x="167" y="14">partly verified · 0/0 fixed</text>
++  </g>
++</svg>
+diff --git a/.github/firstrun/passport.json b/.github/firstrun/passport.json
+--- /dev/null
++++ b/.github/firstrun/passport.json
+@@ -0,0 +1,27 @@
++{
++  "repo": "httpie/cli",
++  "commit": "5b604c37c6",
++  "verifiedAt": "2026-09-27T00:46:07.228Z",
++  "verdict": "PARTIAL",
++  "image": "python:3.7",
++  "runtime": "Python 3.7",
++  "stepsTotal": 2,
++  "stepsFromReadme": 0,
++  "breaksFound": 0,
++  "breaksFixed": 0,
++  "needsHuman": 1,
++  "repoBreaks": 0,
++  "suiteIssues": 1,
++  "needsPerson": 0,
++  "humbleUnknowns": 0,
++  "replaySeconds": 79,
++  "packageCache": false,
++  "bobcoins": 0,
++  "diagnosedByBob": 0,
++  "verify": {
++    "kind": "command",
++    "target": "make test"
++  },
++  "fromCI": true,
++  "note": "The docs give no setup; HUMBLE followed the CI workflow instead."
++}
+diff --git a/.github/firstrun/plan.json b/.github/firstrun/plan.json
+--- /dev/null
++++ b/.github/firstrun/plan.json
+@@ -0,0 +1,23 @@
++{
++  "firstrun": 1,
++  "verifiedAt": "2026-09-27T00:46:07.228Z",
++  "commit": "5b604c37c6",
++  "image": "python:3.7",
++  "runtime": {
++    "name": "python",
++    "version": "3.7",
++    "source": "README.md:281 (\"Python 3.7+\")"
++  },
++  "verify": {
++    "kind": "command",
++    "target": "make test"
++  },
++  "steps": [
++    {
++      "id": "S5",
++      "command": "make install",
++      "kind": "install"
++    }
++  ],
++  "knownFailures": []
++}
+diff --git a/.github/workflows/firstrun.yml b/.github/workflows/firstrun.yml
+--- /dev/null
++++ b/.github/workflows/firstrun.yml
+@@ -0,0 +1,40 @@
++name: HUMBLE setup guard
++on:
++  pull_request:
++    paths:
++      - 'README*'
++      - 'CONTRIBUTING*'
++      - 'docs/**'
++      - 'package.json'
++      - 'package-lock.json'
++      - 'pnpm-lock.yaml'
++      - 'yarn.lock'
++      - '.nvmrc'
++      - '.node-version'
++      - 'pyproject.toml'
++      - 'requirements*.txt'
++      - '.python-version'
++      - 'docker-compose*.yml'
++      - 'compose*.yml'
++      - '.env.example'
++      - '.env.sample'
++      - '.github/firstrun/plan.json'
++      - '**/*.py'
++      - 'src/**'
++permissions:
++  contents: read
++  pull-requests: write
++jobs:
++  guard:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - name: Check for setup drift and replay the verified plan
++        env:
++          GH_TOKEN: ${{ github.token }}
++        run: npx -y github:b25bb1004-wq/firstrun guard --base origin/${{ github.base_ref }} --replay --comment ${{ github.event.pull_request.number }}
+diff --git a/.bob/custom_modes.yaml b/.bob/custom_modes.yaml
+--- /dev/null
++++ b/.bob/custom_modes.yaml
+@@ -0,0 +1,42 @@
++customModes:
++  - slug: firstrun-guide
++    name: 🧭 HUMBLE Guide
++    description: Walks you from git clone to a running app using the verified setup
++    roleDefinition: You are HUMBLE Guide, a patient onboarding buddy for this
++      repository. You help a new contributor get the project running on their
++      machine for the first time, using a setup procedure that HUMBLE has
++      verified from a clean machine.
++    whenToUse: Use when someone is setting up this repository for the first time, or
++      their local setup is broken.
++    customInstructions: >-
++      Read .bob/rules-firstrun-guide/verified-setup.md before anything else. It
++      is the source of truth; the README may be older.
++
++      Go one step at a time. Before each step, say in one sentence what it does
++      and why. Then run exactly the verified command, and check the result
++      against "Expect".
++
++      Ask before running anything that installs software globally or starts
++      containers.
++
++      If a command fails, compare the output with the "Known failure signatures"
++      table first. If one matches, explain the cause in plain words and apply
++      the recorded fix. Otherwise read the relevant config or source file and
++      explain what you find before changing anything.
++
++      Detect the OS first (macOS, Linux, Windows/WSL). The verified run was on
++      Linux; translate package-manager commands for the user's OS when needed
++      and say so.
++
++      Never invent secrets. For variables marked "your own key", tell the user
++      where to get one.
++
++      When the app is running, point the user to where key features live (open
++      the files) and suggest a good first issue, then stop.
++    groups:
++      - read
++      - command
++      - - edit
++        - fileRegex: (^|/)\.env$
++          description: Only the local .env file
++    source: project
+diff --git a/.bob/rules-firstrun-guide/verified-setup.md b/.bob/rules-firstrun-guide/verified-setup.md
+--- /dev/null
++++ b/.bob/rules-firstrun-guide/verified-setup.md
+@@ -0,0 +1,16 @@
++# Verified setup for httpie/cli
++
++Verified by HUMBLE on 2026-09-27 at commit `5b604c37c6` on a clean `python:3.7` machine. Clone to running took 79s.
++
++Prerequisites: Python 3.7.
++
++## Steps
++
++1. `make install`
++   - Kind: install
++   - Expect: exits with code 0.
++
++## Known failure signatures
++
++| If you see | Cause | Fix |
++|---|---|---|
+diff --git a/.devcontainer/devcontainer.json b/.devcontainer/devcontainer.json
+--- /dev/null
++++ b/.devcontainer/devcontainer.json
+@@ -0,0 +1,13 @@
++{
++  "name": "cli",
++  "image": "python:3.7",
++  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
++  "postCreateCommand": "make install",
++  "customizations": {
++    "vscode": {
++      "extensions": [
++        "ms-python.python"
++      ]
++    }
++  }
++}
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore
++++ b/.gitignore
+@@ -153,3 +153,6 @@ dmypy.json
+ *.nupkg
+ 
+ artifacts/
++
++# HUMBLE local run output (the verified plan lives in .github/firstrun/)
++.firstrun/

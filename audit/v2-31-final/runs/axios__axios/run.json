@@ -1,0 +1,250 @@
+{
+  "id": "v2-31-final-axios__axios",
+  "repo": "axios/axios",
+  "commit": "961241f6c1",
+  "startedAt": "2026-09-27T00:48:22.053Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S7": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S8": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "needs-human",
+      "attempts": 2
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "Node.js v19.0.0",
+      "truth": "26 (CI (.github/workflows/bundle-size.yml))",
+      "source": "README.md:1117"
+    }
+  ],
+  "plan": {
+    "repo": "axios/axios",
+    "commit": "961241f6c1",
+    "image": "node:24",
+    "runtime": {
+      "name": "node",
+      "version": "24",
+      "source": "CI (.github/workflows/bundle-size.yml)"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 555,
+          "endLine": 555,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "yarn add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 561,
+          "endLine": 561,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "pnpm add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 567,
+          "endLine": 567,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S4",
+        "command": "bun add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 573,
+          "endLine": 573,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S5",
+        "command": "deno add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 579,
+          "endLine": 579,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S6",
+        "command": "npm ci",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 2852,
+          "endLine": 2852,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S7",
+        "command": "npm rebuild husky",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 2853,
+          "endLine": 2853,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S8",
+        "command": "npx husky",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 2853,
+          "endLine": 2853,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      },
+      {
+        "id": "S9",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "package.json",
+          "line": 0,
+          "section": "scripts.test"
+        },
+        "origin": "package",
+        "synthetic": "the package's own test script",
+        "status": "needs-human",
+        "evidence": [
+          "E1"
+        ]
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "Node.js v19.0.0",
+        "truth": "26 (CI (.github/workflows/bundle-size.yml))",
+        "source": "README.md:1117"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "fromCI": false,
+    "originalImage": "node:19",
+    "originalRuntime": {
+      "name": "node",
+      "version": "19",
+      "source": "README.md:1117 (\"Node.js v19.0.0\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 21758
+  },
+  "passport": {
+    "repo": "axios/axios",
+    "commit": "961241f6c1",
+    "verifiedAt": "2026-09-27T00:51:42.420Z",
+    "verdict": "PARTIAL",
+    "image": "node:24",
+    "runtime": "Node.js 24",
+    "stepsTotal": 3,
+    "stepsFromReadme": 2,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "repoBreaks": 1,
+    "suiteIssues": 1,
+    "needsPerson": 0,
+    "humbleUnknowns": 0,
+    "replaySeconds": 22,
+    "packageCache": false,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "fromCI": false
+  },
+  "finishedAt": "2026-09-27T00:51:43.030Z"
+}

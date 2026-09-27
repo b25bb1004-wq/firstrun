@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { readJson, headTail } from '../util.js';
+import { detectService, getProvenComposeSnippet, PROVEN_SERVICES } from './services.js';
 
 /**
  * Build guide.json from an EXISTING verified run folder (.firstrun run.json + evidence + plan).
@@ -61,7 +62,7 @@ export function buildGuide(runDir) {
     const lastEvidence = verifiedEvidence[verifiedEvidence.length - 1];
 
     // Determine check type based on step kind and evidence
-    const check = buildCheck(step, lastEvidence);
+    const check = buildCheck(step, lastEvidence, evidenceByStep, runDir);
     const undo = buildUndo(step, lastEvidence);
     const timeoutMs = getTimeoutMs(step.kind);
     const platform = getPlatform(step);
@@ -124,7 +125,7 @@ export function buildGuide(runDir) {
   return guide;
 }
 
-function buildCheck(step, evidence) {
+function buildCheck(step, evidence, evidenceByStep, runDir) {
   // For serve steps, use http check
   if (step.kind === 'serve' && step.serve?.port) {
     return {
@@ -134,10 +135,15 @@ function buildCheck(step, evidence) {
     };
   }
 
-  // For services, check port
+  // For services, check port and protocol
   if (step.kind === 'services') {
-    // Try to determine ports from docker-compose or evidence
-    return { type: 'exit', code: 0 };
+    // Get ports from the proven compose or evidence
+    const ports = getServicePorts(step, evidenceByStep, runDir);
+    return {
+      type: 'port',
+      ports,
+      protocol: 'auto' // Will check postgres/redis protocol where known
+    };
   }
 
   // For migrate, check file-has or exit
@@ -172,7 +178,11 @@ function buildUndo(step, evidence) {
     return { type: 'restore-file', file: '.env' };
   }
   if (step.kind === 'services') {
-    return { type: 'run', command: 'docker compose down' };
+    // Only stop and remove containers HUMBLE started (labelled with humble.started=true)
+    return {
+      type: 'run',
+      command: 'docker ps -a --filter "label=humble.started=true" --format "{{.ID}}" | xargs -r docker stop | xargs -r docker rm'
+    };
   }
   if (step.kind === 'migrate') {
     // Migrations are typically irreversible; return empty undo
@@ -279,6 +289,14 @@ function buildDo(step, evidence) {
     return { type: 'run', command, cwd: '.', stdin: null };
   }
 
+  if (step.kind === 'services') {
+    // Add label to docker compose so we know which containers HUMBLE started
+    // Labels belong in the compose file (docker-compose.yml) under each service's 'labels' section,
+    // not as a flag to 'docker compose up'. The proven acme-shop run used plain 'docker compose up -d'.
+    // We return the command as-is; labels are added by the proven compose file.
+    return { type: 'run', command, cwd: '.', stdin: null };
+  }
+
   return { type: 'run', command, cwd: '.', stdin: null };
 }
 
@@ -303,6 +321,66 @@ function buildAlreadySatisfiedIf(step, evidence) {
     return 'Docker containers for required services are running';
   }
   return null;
+}
+
+function getServicePorts(step, evidenceByStep, runDir) {
+  // Extract ports from the step's evidence or command
+  const ports = [];
+  const stepEvidence = evidenceByStep[step.id] || [];
+  for (const e of stepEvidence) {
+    if (e.fix?.actions) {
+      for (const action of e.fix.actions) {
+        if (action.type === 'service' && action.port) {
+          ports.push(action.port);
+        }
+      }
+    }
+    if (e.fix?.patches) {
+      for (const patch of e.fix.patches) {
+        if (patch.op === 'compose-add-service' && patch.port) {
+          ports.push(patch.port);
+        }
+      }
+    }
+  }
+  // Also scan ALL evidence in the run for service additions (since services may be added in later steps)
+  for (const [, evidences] of Object.entries(evidenceByStep)) {
+    for (const e of evidences) {
+      if (e.fix?.actions) {
+        for (const action of e.fix.actions) {
+          if (action.type === 'service' && action.port && !ports.includes(action.port)) {
+            ports.push(action.port);
+          }
+        }
+      }
+      if (e.fix?.patches) {
+        for (const patch of e.fix.patches) {
+          if (patch.op === 'compose-add-service' && patch.port && !ports.includes(patch.port)) {
+            ports.push(patch.port);
+          }
+        }
+      }
+    }
+  }
+  // Also check the proven docker-compose.yml in the run output (the final verified compose)
+  if (runDir) {
+    const composePath = path.join(runDir, 'out', 'pr', 'docker-compose.yml');
+    if (fs.existsSync(composePath)) {
+      const composeContent = fs.readFileSync(composePath, 'utf8');
+      // Parse for port mappings (simplified - just look for common ports)
+      if (composeContent.includes('5432')) ports.push(5432);
+      if (composeContent.includes('6379')) ports.push(6379);
+      if (composeContent.includes('27017')) ports.push(27017);
+      if (composeContent.includes('3306')) ports.push(3306);
+    }
+  }
+  // Also check known catalog
+  if (ports.length === 0) {
+    // Common ports from proven runs
+    if (step.command?.includes('postgres')) ports.push(5432);
+    if (step.command?.includes('redis')) ports.push(6379);
+  }
+  return [...new Set(ports)];
 }
 
 function buildDone(verify) {

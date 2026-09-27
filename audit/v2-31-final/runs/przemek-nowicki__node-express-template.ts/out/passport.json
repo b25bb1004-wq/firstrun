@@ -1,0 +1,26 @@
+{
+  "repo": "przemek-nowicki/node-express-template.ts",
+  "commit": "d731e5cef4",
+  "verifiedAt": "2026-09-27T00:00:39.859Z",
+  "verdict": "VERIFIED",
+  "image": "node:16",
+  "runtime": "Node.js 16",
+  "stepsTotal": 4,
+  "stepsFromReadme": 2,
+  "breaksFound": 2,
+  "breaksFixed": 2,
+  "needsHuman": 0,
+  "repoBreaks": 2,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 0,
+  "replaySeconds": 30,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "fromCI": false
+}
