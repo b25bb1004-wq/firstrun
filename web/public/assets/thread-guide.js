@@ -318,8 +318,12 @@ export class ThreadGuide {
         const pace = replay ? REPLAY_PACE : PACE;
         
         if (ev.type === 'cmd') {
-          this.fit();
+          // Add the row BEFORE measuring it: a detached row has offsetTop 0, which drew every node at the top.
           const row = this.createRow(ev);
+          this.content.append(row);
+          this.currentRow = row;
+          this.follow(row);
+          this.fit();
           const y = this.cy(row);
           
           // Draw thread from last position
@@ -332,16 +336,14 @@ export class ThreadGuide {
           this.svg.append(row._node);
           this.lastY = y;
           this.broken = null;
-          
-          this.content.append(row);
           await sleep(pace.cmd / this.speed, this.reduced);
           
         } else if (ev.type === 'fail') {
           this.fit();
           this.setDockState(CRACK_COLOR);
           this.status.textContent = 'a step broke';
-          
-          const row = this.content.lastElementChild;
+
+          const row = this.currentRow;
           if (row) {
             row.classList.add('is-fail');
             row.querySelector('.thread-text').style.color = CRACK_COLOR;
@@ -360,6 +362,7 @@ export class ThreadGuide {
           const row = this.content.lastElementChild;
           const note = this.createNote(row, 'diag', ev.text);
           note.classList.add('unfold');
+          this.follow(note);
           this.setDockState('#5e9eff');
           this.status.textContent = 'DR.BO is reading the log';
           await sleep(pace.diag / this.speed, this.reduced);
@@ -369,6 +372,7 @@ export class ThreadGuide {
           const row = this.content.lastElementChild;
           const note = this.createNote(row, 'fix', ev.text);
           note.classList.add('unfold');
+          this.follow(note);
           this.setDockState(THREAD_COLOR);
           this.status.textContent = 'stitching the fix into the README';
           
@@ -384,7 +388,7 @@ export class ThreadGuide {
           await sleep(pace.fix / this.speed, this.reduced);
           
         } else if (ev.type === 'pass') {
-          const row = this.content.lastElementChild;
+          const row = this.currentRow;
           if (row) {
             row.classList.remove('is-fail');
             row.classList.add('is-pass');
@@ -405,6 +409,7 @@ export class ThreadGuide {
           this.status.textContent = 'replaying from zero';
           
           const banner = this.createPhaseBanner();
+          this.follow(banner);
           const top = 10;
           const bottom = this.cy(banner);
           
@@ -419,6 +424,7 @@ export class ThreadGuide {
           this.status.textContent = 'verified';
           
           const stamp = this.createVerdict(ev.text);
+          this.follow(stamp);
           const y = this.cy(stamp);
           await this.segment(this.lastY + 4, y - 6);
           await this.drawKnot(y);
@@ -431,6 +437,13 @@ export class ThreadGuide {
     }
     
     this.playing = false;
+  }
+
+  /** Keep the newest line in view: scroll the log (not the page) so the node sits a little above the middle. */
+  follow(node) {
+    if (!this.term || !node) return;
+    const top = node.offsetTop - this.term.clientHeight * 0.45;
+    this.term.scrollTo({ top: Math.max(0, top), behavior: this.reduced ? 'auto' : 'smooth' });
   }
 
   secsText(s) {
