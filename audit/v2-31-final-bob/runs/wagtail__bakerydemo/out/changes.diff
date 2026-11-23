@@ -34,7 +34,7 @@ diff --git a/readme.md b/readme.md
  ```bash
  uv tool install wagtail-cli
  
--export WAGTAIL_CLI_TOKEN=wagtail_C3qhlJUUj75vWvK5bbcb73bZ4JC4cQKWt
+-export WAGTAIL_CLI_TOKEN=<redacted-by-firstrun>
 +export WAGTAIL_CLI_TOKEN=<redacted-by-firstrun>
  export WAGTAIL_CLI_BASE_URL=http://localhost:8000/api/v3-preview
  
