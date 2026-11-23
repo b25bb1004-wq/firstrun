@@ -1,0 +1,168 @@
+{
+  "repo": "teamhide/fastapi-boilerplate",
+  "commit": "df4e6d4f81",
+  "image": "python:3.11",
+  "runtime": {
+    "name": "python",
+    "version": "3.11",
+    "source": "pyproject.toml poetry python (\"3.11.7\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "poetry shell",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 21,
+        "endLine": 21,
+        "section": "Features › Run › Install dependency"
+      },
+      "origin": "readme",
+      "skip": "interactive subshell: FirstRun activates the same environment after install",
+      "subshell": "poetry",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "poetry install",
+      "kind": "install",
+      "source": {
+        "file": "README.md",
+        "line": 22,
+        "endLine": 22,
+        "section": "Features › Run › Install dependency"
+      },
+      "origin": "readme",
+      "status": "needs-human",
+      "evidence": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "id": "S3",
+      "command": "source \"$(poetry env info --path)/bin/activate\"",
+      "kind": "env",
+      "source": {
+        "file": "README.md",
+        "line": 21,
+        "endLine": 21,
+        "section": "Features › Run › Install dependency"
+      },
+      "origin": "readme",
+      "synthetic": "emulates `poetry shell`",
+      "status": "blocked"
+    },
+    {
+      "id": "S4",
+      "command": "alembic upgrade head",
+      "kind": "migrate",
+      "source": {
+        "file": "README.md",
+        "line": 27,
+        "endLine": 27,
+        "section": "Features › Run › Apply alembic revision"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S5",
+      "command": "python3 main.py --env local --debug",
+      "kind": "serve",
+      "source": {
+        "file": "README.md",
+        "line": 32,
+        "endLine": 32,
+        "section": "Features › Run › Run server"
+      },
+      "origin": "readme",
+      "docCommand": "python3 main.py --env local|dev|prod --debug",
+      "serve": {
+        "port": 3000
+      },
+      "status": "blocked"
+    },
+    {
+      "id": "S6",
+      "command": "make test",
+      "kind": "test",
+      "source": {
+        "file": "README.md",
+        "line": 37,
+        "endLine": 37,
+        "section": "Features › Run › Run test codes"
+      },
+      "origin": "readme",
+      "status": "blocked"
+    },
+    {
+      "id": "S7",
+      "command": "make cov",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 42,
+        "endLine": 42,
+        "section": "Features › Run › Make coverage report"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    },
+    {
+      "id": "S8",
+      "command": "pre-commit",
+      "kind": "other",
+      "source": {
+        "file": "README.md",
+        "line": 48,
+        "endLine": 48,
+        "section": "Features › Run › Formatting"
+      },
+      "origin": "readme",
+      "skip": "developer tooling, not needed to run the project",
+      "status": "skipped"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.11 (pyproject.toml poetry python (\"3.11.7\"))",
+      "source": "README.md"
+    },
+    {
+      "what": "env var ENV",
+      "docs": "not documented",
+      "truth": "read in core/config.py:36",
+      "source": "README"
+    },
+    {
+      "what": "redis service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"celery\"",
+      "source": "Python requirements"
+    },
+    {
+      "what": "mysql service",
+      "docs": "setup never starts it",
+      "truth": "dependency \"pymysql\"",
+      "source": "Python requirements"
+    }
+  ],
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  },
+  "docsUsed": [
+    "README.md"
+  ],
+  "originalImage": "python:3.12",
+  "originalRuntime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

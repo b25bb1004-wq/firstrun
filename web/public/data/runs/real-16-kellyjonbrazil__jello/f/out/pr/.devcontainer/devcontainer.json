@@ -1,0 +1,13 @@
+{
+  "name": "jello",
+  "image": "python:3.12",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "jello _.foo -f data.json && jello '_[\"foo\"]' -f data.json && echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello && { && \"foo\": \"bar\", && \"baz\": [ && 1, && 2, && 3 && ] && } && echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -c && {\"foo\":\"bar\",\"baz\":[1,2,3]} && echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -l _.baz && 1 && 2 && 3 && echo '[{\"foo\":\"bar\",\"baz\":[1,2,3]},{\"fiz\":\"boo\",\"buz\":[4,5,6]}]' | jello -l && {\"foo\":\"bar\",\"baz\":[1,2,3]} && {\"fiz\":\"boo\",\"buz\":[4,5,6]} && echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -s && _ = {} && _.foo = \"bar\" && _.baz = [] && _.baz[0] = 1 && _.baz[1] = 2 && _.baz[2] = 3 && cat values.yaml && jello -Rr ' && echo '{\"login_name\": \"joeuser\"}' | jello 'os.getenv(\"LOGNAME\") == _.login_name' && true",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

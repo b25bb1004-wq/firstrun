@@ -1,0 +1,60 @@
+{
+  "repo": "koajs/koa",
+  "commit": "824c1cf8de",
+  "image": "node:7",
+  "runtime": {
+    "name": "node",
+    "version": "7",
+    "source": "Readme.md:54 (\"node v7.6+\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install koa",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 23,
+        "endLine": 23,
+        "section": "Installation"
+      },
+      "origin": "readme",
+      "skip": "installs the published package; you already have its source",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "Readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Running tests"
+      },
+      "origin": "readme",
+      "status": "needs-human"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "node v7.6+",
+      "truth": "18 (package.json engines (\">= 18\"))",
+      "source": "Readme.md:54"
+    }
+  ],
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "docsUsed": [
+    "Readme.md"
+  ],
+  "originalImage": "node:7",
+  "originalRuntime": {
+    "name": "node",
+    "version": "7",
+    "source": "Readme.md:54 (\"node v7.6+\")"
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "id": "real-16-przemek-nowicki__node-express-template.ts",
+  "repo": "przemek-nowicki/node-express-template.ts",
+  "commit": "d731e5cef4",
+  "startedAt": "2026-09-24T22:18:30.990Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "S3": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "passed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "przemek-nowicki/node-express-template.ts",
+    "commit": "d731e5cef4",
+    "image": "node:16",
+    "runtime": {
+      "name": "node",
+      "version": "16",
+      "source": "README.md:60 (\"node version 16\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "docker-compose build",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 33,
+          "endLine": 33,
+          "section": "Node Express Template (NET.ts) › Getting started"
+        },
+        "origin": "readme",
+        "skip": "container-based alternative workflow",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "docker-compose up",
+        "kind": "services",
+        "source": {
+          "file": "README.md",
+          "line": 39,
+          "endLine": 39,
+          "section": "Node Express Template (NET.ts) › Getting started"
+        },
+        "origin": "readme",
+        "status": "passed"
+      },
+      {
+        "id": "S5",
+        "command": "npm install",
+        "kind": "install",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Node Express Template (NET.ts) › Testing",
+          "insertedBefore": "S3"
+        }
+      },
+      {
+        "id": "S3",
+        "command": "npm test",
+        "kind": "test",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "Node Express Template (NET.ts) › Testing"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S4",
+        "command": "docker-compose run web npm run test",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 96,
+          "endLine": 96,
+          "section": "Node Express Template (NET.ts) › Testing"
+        },
+        "origin": "readme",
+        "skip": "container-based alternative workflow",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [],
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:16",
+    "originalRuntime": {
+      "name": "node",
+      "version": "16",
+      "source": "README.md:60 (\"node version 16\")"
+    }
+  },
+  "replay": {
+    "status": "passed",
+    "durationMs": 60433
+  },
+  "passport": {
+    "repo": "przemek-nowicki/node-express-template.ts",
+    "commit": "d731e5cef4",
+    "verifiedAt": "2026-09-24T22:20:15.013Z",
+    "verdict": "PARTIAL",
+    "image": "node:16",
+    "runtime": "Node.js 16",
+    "stepsTotal": 3,
+    "stepsFromReadme": 2,
+    "breaksFound": 2,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 60,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "command",
+      "target": "npm test"
+    }
+  },
+  "finishedAt": "2026-09-24T22:20:15.290Z"
+}

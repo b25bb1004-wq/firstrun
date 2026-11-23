@@ -1,0 +1,45 @@
+{
+  "id": "v2-proof-2",
+  "startedAt": "2026-09-26T20:49:36.905Z",
+  "source": "audit/v2-proof-2.json",
+  "concurrency": 1,
+  "brain": "rules",
+  "repos": [
+    {
+      "slug": "axios__axios",
+      "url": "https://github.com/axios/axios",
+      "ref": "961241f6c19798eff16b0869486c125430a17961",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/axios__axios",
+      "startedAt": "2026-09-26T20:49:36.907Z",
+      "phase": "coldstart",
+      "current": "npm test"
+    },
+    {
+      "slug": "tj__commander.js",
+      "url": "https://github.com/tj/commander.js",
+      "ref": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/tj__commander.js"
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "done": 0,
+    "brokeOnCleanMachine": 0,
+    "verified": 0,
+    "partial": 0,
+    "inconclusive": 0,
+    "ciOnly": 0,
+    "failed": 0,
+    "breaksFound": 0,
+    "breaksFixed": 0,
+    "repairedAutomatically": 0
+  }
+}

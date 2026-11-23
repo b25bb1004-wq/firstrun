@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -351,6 +351,8 @@ See .env.example for further details
+ 
+ ## Getting Started
+ 
++❌ **Not verified by [FirstRun](FIRSTRUN.md)** on 2026-09-24 from a clean `node:22` machine at `fc6722badf`.
++
+ <!-- Prerequisites -->
+ 
+ ### Prerequisites
+@@ -436,6 +438,7 @@ Start the server in production mode
+ 
+ ```bash
+   yarn start
++  # FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ <!-- Run with Docker -->

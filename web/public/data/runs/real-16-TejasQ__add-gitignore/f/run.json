@@ -1,0 +1,36 @@
+{
+  "id": "real-16-TejasQ__add-gitignore",
+  "repo": "TejasQ/add-gitignore",
+  "commit": "0552635306",
+  "startedAt": "2026-09-24T22:21:08.945Z",
+  "phase": "error",
+  "steps": {},
+  "evidence": [],
+  "bobcoins": 0,
+  "conflicts": [],
+  "plan": {
+    "repo": "TejasQ/add-gitignore",
+    "commit": "0552635306",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [],
+    "conflicts": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "error": "The docs contain no setup commands FirstRun can follow.",
+  "finishedAt": "2026-09-24T22:21:08.980Z"
+}

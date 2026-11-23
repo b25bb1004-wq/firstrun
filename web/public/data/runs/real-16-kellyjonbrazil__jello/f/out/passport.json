@@ -1,0 +1,20 @@
+{
+  "repo": "kellyjonbrazil/jello",
+  "commit": "b43c9b2460",
+  "verifiedAt": "2026-09-24T22:20:33.165Z",
+  "verdict": "FAILED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 32,
+  "stepsFromReadme": 32,
+  "breaksFound": 1,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 0,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  }
+}

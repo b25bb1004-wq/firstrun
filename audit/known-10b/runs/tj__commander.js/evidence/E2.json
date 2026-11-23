@@ -1,0 +1,25 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "node examples/string-util.js split --separator=- a-b-c",
+    "exitCode": 1,
+    "durationMs": 4916,
+    "logTail": "[ 'a', 'b', 'c' ]\n\n[firstrun] server process exited before becoming ready on port 8080",
+    "logFile": "logs/S5-2.log"
+  },
+  "diagnosis": {
+    "class": "platform-specific",
+    "cause": "The command `node examples/string-util.js split --separator=- a-b-c` succeeds and prints `[ 'a', 'b', 'c' ]` as shown in Readme.md line 142, then exits cleanly — it is a one-shot CLI tool, not a server, so the sandbox's 'serve' step monitor falsely flags the normal process exit as a failure because nothing ever binds port 8080.",
+    "confidence": 0.93,
+    "by": "bob",
+    "bobcoins": 0.05692799999999999,
+    "taskId": "005961911ce086802e2ea1f584ca4b4c"
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T11:47:42.944Z"
+}

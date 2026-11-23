@@ -1,0 +1,287 @@
+{
+  "id": "real-16-GeekyAnts__express-typescript",
+  "repo": "GeekyAnts/express-typescript",
+  "commit": "6b9bb70e23",
+  "startedAt": "2026-09-24T22:10:02.606Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S4": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S6": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "failed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "env var MONGOOSE_URL",
+      "docs": "not documented",
+      "truth": "read in src/middlewares/Http.ts:60",
+      "source": "README"
+    },
+    {
+      "what": "env var PORT",
+      "docs": "not documented",
+      "truth": "read in src/providers/Locals.ts:19",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_ID",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Google.ts:14",
+      "source": "README"
+    },
+    {
+      "what": "env var GOOGLE_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Google.ts:15",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_KEY",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Twitter.ts:14",
+      "source": "README"
+    },
+    {
+      "what": "env var TWITTER_SECRET",
+      "docs": "not documented",
+      "truth": "read in src/services/strategies/Twitter.ts:15",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "GeekyAnts/express-typescript",
+    "commit": "6b9bb70e23",
+    "image": "node:22",
+    "runtime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "git clone https://github.com/GeekyAnts/express-typescript.git",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 126,
+          "endLine": 126,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "skip": "git clone: FirstRun starts from a fresh clone already",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "cd nodets",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 129,
+          "endLine": 129,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "skip": "cd into the clone: already there",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "npm install --legacy-peer-deps",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 140,
+          "endLine": 140,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "readmeCommand": "npm install",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S4",
+        "command": "vim .env",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 145,
+          "endLine": 145,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "skip": "opens an editor",
+        "status": "skipped"
+      },
+      {
+        "id": "S8",
+        "command": "npm install",
+        "kind": "install",
+        "origin": "repair",
+        "status": "failed",
+        "source": {
+          "file": "README.md",
+          "line": 148,
+          "endLine": 148,
+          "section": "Install, Configure & Run",
+          "insertedBefore": "S5"
+        }
+      },
+      {
+        "id": "S5",
+        "command": "npm run dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 148,
+          "endLine": 148,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 4040
+        },
+        "status": "needs-human",
+        "evidence": [
+          "E2"
+        ]
+      },
+      {
+        "id": "S6",
+        "command": "docker-compose up",
+        "kind": "services",
+        "source": {
+          "file": "README.md",
+          "line": 157,
+          "endLine": 157,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S7",
+        "command": "docker-compose up -d",
+        "kind": "services",
+        "source": {
+          "file": "README.md",
+          "line": 160,
+          "endLine": 160,
+          "section": "Install, Configure & Run"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "env var MONGOOSE_URL",
+        "docs": "not documented",
+        "truth": "read in src/middlewares/Http.ts:60",
+        "source": "README"
+      },
+      {
+        "what": "env var PORT",
+        "docs": "not documented",
+        "truth": "read in src/providers/Locals.ts:19",
+        "source": "README"
+      },
+      {
+        "what": "env var GOOGLE_ID",
+        "docs": "not documented",
+        "truth": "read in src/services/strategies/Google.ts:14",
+        "source": "README"
+      },
+      {
+        "what": "env var GOOGLE_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/services/strategies/Google.ts:15",
+        "source": "README"
+      },
+      {
+        "what": "env var TWITTER_KEY",
+        "docs": "not documented",
+        "truth": "read in src/services/strategies/Twitter.ts:14",
+        "source": "README"
+      },
+      {
+        "what": "env var TWITTER_SECRET",
+        "docs": "not documented",
+        "truth": "read in src/services/strategies/Twitter.ts:15",
+        "source": "README"
+      }
+    ],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:4040/"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:22",
+    "originalRuntime": {
+      "name": "node",
+      "version": "22",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "GeekyAnts/express-typescript",
+    "commit": "6b9bb70e23",
+    "verifiedAt": "2026-09-24T22:13:56.132Z",
+    "verdict": "FAILED",
+    "image": "node:22",
+    "runtime": "Node.js 22",
+    "stepsTotal": 5,
+    "stepsFromReadme": 4,
+    "breaksFound": 3,
+    "breaksFixed": 1,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:4040/"
+    }
+  },
+  "finishedAt": "2026-09-24T22:13:56.469Z"
+}

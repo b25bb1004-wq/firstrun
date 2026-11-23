@@ -1,0 +1,579 @@
+<title>The FirstRun Casebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --ground: #0E1726; --ground-2: #0A111D; --panel: #132035; --panel-2: #192a43; --raise: #213551;
+  --rule: #22354f; --rule-2: #2f4667; --ink: #E6ECF5; --ink-2: #A3B4CB; --ink-3: #6D819D;
+  --pass: #3DD68C; --fail: #FF6167; --repair: #FFB224; --bob: #5E9EFF; --human: #D6A2FF; --live: #8CD4FF;
+  --pass-t: rgba(61,214,140,.11); --fail-t: rgba(255,97,103,.11); --repair-t: rgba(255,178,36,.10);
+  --bob-t: rgba(94,158,255,.13); --human-t: rgba(214,162,255,.12); --live-t: rgba(140,212,255,.10);
+  --term: #081019; --term-ink: #CFE0F2;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground: #E8EDF3; --ground-2: #DDE4EC; --panel: #FFFFFF; --panel-2: #F2F5F9; --raise: #E6ECF3;
+    --rule: #CBD4DF; --rule-2: #B3C0CF; --ink: #0F1B2D; --ink-2: #44556C; --ink-3: #6A7B91;
+    --pass: #13865A; --fail: #C9333A; --repair: #A8650A; --bob: #2F6BD8; --human: #8A4FC2; --live: #1D7FB8;
+    --pass-t: rgba(19,134,90,.10); --fail-t: rgba(201,51,58,.09); --repair-t: rgba(168,101,10,.10);
+    --bob-t: rgba(47,107,216,.10); --human-t: rgba(138,79,194,.10); --live-t: rgba(29,127,184,.09);
+    --term: #0F1B2D; --term-ink: #DCE7F3;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --ground: #E8EDF3; --ground-2: #DDE4EC; --panel: #FFFFFF; --panel-2: #F2F5F9; --raise: #E6ECF3;
+  --rule: #CBD4DF; --rule-2: #B3C0CF; --ink: #0F1B2D; --ink-2: #44556C; --ink-3: #6A7B91;
+  --pass: #13865A; --fail: #C9333A; --repair: #A8650A; --bob: #2F6BD8; --human: #8A4FC2; --live: #1D7FB8;
+  --pass-t: rgba(19,134,90,.10); --fail-t: rgba(201,51,58,.09); --repair-t: rgba(168,101,10,.10);
+  --bob-t: rgba(47,107,216,.10); --human-t: rgba(138,79,194,.10); --live-t: rgba(29,127,184,.09);
+  --term: #0F1B2D; --term-ink: #DCE7F3;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 400 16px/1.6 var(--body); margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+a { color: var(--live); }
+:focus-visible { outline: 2px solid var(--live); outline-offset: 2px; border-radius: 3px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; font-weight: 700; }
+h3 { font-size: 20px; font-weight: 600; }
+p { margin: 0; max-width: 66ch; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.mono { font-family: var(--mono); }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-2); }
+
+/* top bar */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.bar .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; }
+.brand { font: 700 18px/1 var(--display); letter-spacing: .02em; white-space: nowrap; }
+.brand b { color: var(--pass); }
+.nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+.nav a { font: 500 13px/1 var(--body); color: var(--ink-2); text-decoration: none; padding: 8px 10px; border-radius: 6px; white-space: nowrap; }
+.nav a:hover, .nav a.on { color: var(--ink); background: var(--panel-2); }
+.clock { font: 500 12px/1.2 var(--mono); color: var(--repair); white-space: nowrap; text-align: right; }
+.clock small { display: block; color: var(--ink-3); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+
+section { padding-block: 72px; border-bottom: 1px solid var(--rule); }
+.head { display: grid; gap: 12px; margin-bottom: 36px; }
+
+/* hero */
+.hero { padding-block: 56px 64px; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+.hero h1 { font-size: clamp(44px, 7vw, 84px); line-height: .95; font-weight: 700; letter-spacing: -.025em; }
+.hero h1 .strike { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--fail); text-decoration-thickness: 4px; }
+.hero h1 .proven { color: var(--pass); }
+.hero .lede { font-size: 19px; color: var(--ink-2); margin-top: 20px; }
+.facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.chip { font: 500 12px/1 var(--mono); padding: 7px 10px; border-radius: 999px; border: 1px solid var(--rule-2); color: var(--ink-2); }
+.chip.pass { border-color: var(--pass); color: var(--pass); background: var(--pass-t); }
+.chip.bob { border-color: var(--bob); color: var(--bob); background: var(--bob-t); }
+.chip.human { border-color: var(--human); color: var(--human); background: var(--human-t); }
+
+/* terminal replay */
+.term { background: var(--term); color: var(--term-ink); border: 1px solid var(--rule-2); border-radius: 10px; overflow: hidden; box-shadow: 0 24px 48px -24px rgba(0,0,0,.6); }
+.term-top { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08); font: 500 12px/1 var(--mono); color: #8FA3BC; }
+.term-top .dots { display: flex; gap: 6px; }
+.term-top .dots i { width: 10px; height: 10px; border-radius: 50%; background: #2A3B55; }
+.term-top .ttl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term-body { font: 400 13px/1.65 var(--mono); padding: 14px 16px; min-height: 330px; overflow-x: auto; }
+.term-body .ln { white-space: pre-wrap; animation: in .25s ease-out both; }
+.ln.step { color: #E6ECF5; font-weight: 600; }
+.ln.fail { color: #FF7C81; } .ln.pass { color: #4FE39C; } .ln.doc { color: #FFC24D; } .ln.bob { color: #7DB2FF; } .ln.fix { color: #B9C7D9; } .ln.sum { color: #8CD4FF; }
+@keyframes in { from { opacity: .2; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.term-ctl { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.08); flex-wrap: wrap; }
+button { font: 600 13px/1 var(--body); cursor: pointer; border-radius: 7px; padding: 9px 13px; border: 1px solid var(--rule-2); background: var(--panel-2); color: var(--ink); }
+button:hover { background: var(--raise); }
+.term-ctl button { background: #16243A; color: #E6ECF5; border-color: #2f4667; }
+.term-ctl button:hover { background: #213551; }
+.term-ctl button.primary { background: #3DD68C; color: #062014; border-color: #3DD68C; }
+.term-ctl .note { font: 400 11px/1.4 var(--mono); color: #6D819D; margin-left: auto; }
+
+/* problem */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.quote { font: 500 22px/1.4 var(--display); color: var(--ink); border-left: 3px solid var(--fail); padding-left: 18px; }
+.breaks { display: grid; gap: 10px; margin-top: 22px; }
+.brk { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px dashed var(--rule-2); }
+.brk .k { font: 600 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--fail); }
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+.stat { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; }
+.stat .v { font: 700 40px/1 var(--display); font-variant-numeric: tabular-nums; }
+.stat .l { color: var(--ink-2); font-size: 14px; margin-top: 8px; }
+.verdicts { margin-top: 26px; }
+.vbar { display: flex; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid var(--rule); }
+.vbar div { display: flex; align-items: center; justify-content: center; font: 600 13px/1 var(--mono); color: #07121F; cursor: default; transition: filter .15s; }
+.vbar div:hover { filter: brightness(1.12); }
+.vkey { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+.vkey i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.src { font: 400 12px/1.5 var(--mono); color: var(--ink-3); margin-top: 14px; max-width: none; }
+
+/* pipeline */
+.pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.stage { text-align: left; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 12px; display: grid; gap: 6px; position: relative; }
+.stage .n { font: 600 11px/1 var(--mono); color: var(--ink-3); }
+.stage .t { font: 700 18px/1.1 var(--display); }
+.stage .s { font: 400 12px/1.35 var(--body); color: var(--ink-2); }
+.stage[aria-selected="true"] { border-color: var(--live); background: var(--live-t); }
+.stage:not(:last-child)::after { content: ""; position: absolute; right: -8px; top: 50%; width: 8px; height: 1px; background: var(--rule-2); }
+.stage-detail { margin-top: 16px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 24px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; }
+.stage-detail ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); display: grid; gap: 6px; }
+.files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.files code { font: 500 12px/1 var(--mono); padding: 5px 7px; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--rule); color: var(--ink-2); }
+.record { border: 1px solid var(--rule-2); border-radius: 8px; overflow: hidden; font-size: 13px; }
+.record div { padding: 10px 12px; display: grid; grid-template-columns: 76px 1fr; gap: 10px; border-top: 1px solid var(--rule); }
+.record div:first-child { border-top: 0; }
+.record b { font: 600 11px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.verdict-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 28px; }
+.vcard { border: 1px solid var(--rule); border-radius: 8px; padding: 14px; background: var(--panel); }
+.vcard .stamp { display: inline-block; font: 700 12px/1 var(--mono); letter-spacing: .08em; padding: 5px 8px; border: 1.5px solid currentColor; border-radius: 4px; transform: rotate(-2deg); }
+.vcard p { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+
+/* why */
+.cmp-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 14px; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); background: var(--panel-2); }
+tr:last-child td { border-bottom: 0; }
+tr.us td { background: var(--pass-t); }
+td .y { color: var(--pass); font-weight: 600; } td .n { color: var(--ink-3); } td .p { color: var(--repair); }
+.reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
+.reason { border-top: 2px solid var(--pass); padding-top: 14px; display: grid; gap: 8px; }
+.reason p { color: var(--ink-2); font-size: 15px; }
+
+/* bob */
+.bob-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.use { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.use .tag { font: 600 11px/1 var(--mono); color: var(--bob); letter-spacing: .08em; text-transform: uppercase; }
+.use p { font-size: 14px; color: var(--ink-2); }
+.use .cost { font: 500 12px/1.4 var(--mono); color: var(--ink-3); }
+.cmd { font: 400 12px/1.6 var(--mono); background: var(--term); color: var(--term-ink); padding: 12px 14px; border-radius: 8px; overflow-x: auto; white-space: pre; margin-top: 18px; }
+
+/* team */
+.team-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; align-items: start; }
+.orbit { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; }
+.orbit svg { width: 100%; height: auto; display: block; }
+.orbit .node { cursor: pointer; }
+.orbit .node circle { transition: stroke-width .15s; }
+.orbit .node:hover circle, .orbit .node.on circle { stroke-width: 3; }
+.orbit text { font-family: var(--mono); }
+.agent-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 22px; display: grid; gap: 12px; }
+.agent-card .who { display: flex; align-items: center; gap: 12px; }
+.agent-card .av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 700 18px/1 var(--display); color: #07121F; }
+.agent-card .role { font: 500 12px/1.3 var(--mono); color: var(--ink-3); }
+.agent-card ul { margin: 0; padding-left: 18px; color: var(--ink-2); display: grid; gap: 6px; font-size: 14px; }
+.state { font: 600 11px/1 var(--mono); padding: 5px 8px; border-radius: 999px; justify-self: start; }
+.mech { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 28px; }
+.mech div { border-top: 1px solid var(--rule-2); padding-top: 12px; }
+.mech h3 { font-size: 17px; }
+.mech p { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+
+/* timeline */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.filters button { font-size: 12px; padding: 7px 11px; border-radius: 999px; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.tl { display: grid; gap: 0; border-left: 1px solid var(--rule-2); margin-left: 6px; }
+.ev { position: relative; padding: 0 0 18px 22px; display: grid; grid-template-columns: 128px 1fr; gap: 14px; }
+.ev::before { content: ""; position: absolute; left: -5px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--ev, var(--ink-3)); }
+.ev time { font: 500 12px/1.6 var(--mono); color: var(--ink-3); }
+.ev .who { font: 600 11px/1 var(--mono); color: var(--ev); letter-spacing: .06em; text-transform: uppercase; }
+.ev p { font-size: 15px; margin-top: 4px; }
+.ev .day { grid-column: 1 / -1; }
+
+/* proof */
+.proof { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.case { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.case .ba { display: flex; align-items: center; gap: 10px; font: 700 14px/1 var(--mono); }
+.case .ba .from { color: var(--fail); } .case .ba .to { color: var(--repair); } .case .ba .to.v { color: var(--pass); }
+.case dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; }
+.case dt { color: var(--ink-3); font: 500 12px/1.6 var(--mono); }
+.case dd { margin: 0; }
+.case .lbl { font: 600 11px/1 var(--mono); color: var(--repair); }
+
+/* status */
+.status { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.list { display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: start; padding: 10px 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; font-size: 14px; }
+.item .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; }
+.item .own { font: 500 11px/1.6 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 28px; }
+.rules div { border: 1px solid var(--rule); border-radius: 8px; padding: 14px; font-size: 14px; color: var(--ink-2); }
+.rules b { color: var(--ink); display: block; margin-bottom: 4px; font-weight: 600; }
+footer { padding-block: 40px 56px; color: var(--ink-3); font-size: 13px; }
+
+@media (max-width: 900px) {
+  .hero-grid, .two, .stage-detail, .team-layout, .status { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: repeat(3, 1fr); }
+  .stage:not(:last-child)::after { display: none; }
+  .bob-grid, .proof, .reasons { grid-template-columns: 1fr 1fr; }
+  .mech, .verdict-list { grid-template-columns: 1fr 1fr; }
+  .clock { display: none; }
+}
+@media (max-width: 560px) {
+  .pipe { grid-template-columns: 1fr 1fr; }
+  .bob-grid, .proof, .reasons, .mech, .rules, .stat-row, .verdict-list { grid-template-columns: 1fr; }
+  .ev { grid-template-columns: 1fr; gap: 2px; }
+  .brk { grid-template-columns: 1fr; gap: 2px; }
+  section { padding-block: 52px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">First<b>Run</b></div>
+    <nav class="nav" id="nav">
+      <a href="#problem">Problem</a><a href="#solution">Solution</a><a href="#why">Why this</a>
+      <a href="#bob">IBM Bob</a><a href="#team">The team</a><a href="#timeline">What we did</a>
+      <a href="#proof">Proof</a><a href="#status">Where we stand</a>
+    </nav>
+    <div class="clock"><small>Submission closes in</small><span id="clock" class="num">–</span></div>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">IBM Bob 2.0 Hackathon · lablab.ai · 25–27 Sep 2026</div>
+      <h1 style="margin-top:18px">Your README, <span class="strike">assumed</span> <span class="proven">proven.</span></h1>
+      <p class="lede">FirstRun follows a repository's setup guide on a clean machine, the way a new contributor would. When a step breaks, it finds out why, fixes it, and replays the whole guide from zero to prove the fix. Maintainers get a corrected README and a record of every repair.</p>
+      <div class="facts">
+        <span class="chip pass">9 of 14 real READMEs broke</span>
+        <span class="chip pass">11 of 22 breaks fixed with evidence</span>
+        <span class="chip bob">IBM Bob as the diagnosis brain</span>
+        <span class="chip human">6 agents, 2 humans</span>
+      </div>
+      <p class="src" style="margin-top:18px">Live demo: <a href="https://firstrun-sigma.vercel.app" target="_blank" rel="noopener">firstrun-sigma.vercel.app</a></p>
+    </div>
+    <div class="term" aria-label="Replay of a real FirstRun run">
+      <div class="term-top"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">firstrun verify maitraysuthar/rest-api-nodejs-mongodb</span></div>
+      <div class="term-body" id="term" aria-live="polite"></div>
+      <div class="term-ctl">
+        <button class="primary" id="play">▶ Replay the run</button>
+        <button id="stepBtn">Next line</button>
+        <span class="note">Real Docker run, 25 Sep 2026</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">01 · The problem</div><h2>"Getting started" is the least tested page in most repositories.</h2></div>
+    <div class="two">
+      <div>
+        <p class="quote">A new contributor's first hour decides whether they stay. It usually goes on a setup guide that worked on the maintainer's laptop two years ago.</p>
+        <p class="muted" style="margin-top:20px">Code has tests and CI. The README has neither. It drifts quietly as dependencies, runtimes and services change, and nobody notices, because everyone who could notice already has a working machine. These are the breaks we actually hit:</p>
+        <div class="breaks">
+          <div class="brk"><span class="k">Runtime</span><span>bcrypt ^3.0.6 does not build on Node 22; the README never says which Node to use.</span></div>
+          <div class="brk"><span class="k">Placeholder</span><span><span class="mono">MONGODB_URL=YourConnectionString</span> copied as told, and the app crashes on it.</span></div>
+          <div class="brk"><span class="k">Service</span><span>Tests need MongoDB and an SMTP server that the docs never tell you to start.</span></div>
+          <div class="brk"><span class="k">Drift</span><span>Scripts renamed, Compose v1 commands, a pinned Python the image no longer ships.</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:12px">Audit of 16 real public repositories (rerun 26 Sep)</div>
+        <div class="stat-row">
+          <div class="stat"><div class="v num" style="color:var(--fail)">9<span style="color:var(--ink-3);font-size:24px">/14</span></div><div class="l">followable READMEs broke on a clean machine</div></div>
+          <div class="stat"><div class="v num" style="color:var(--repair)">22</div><div class="l">separate breaks found</div></div>
+          <div class="stat"><div class="v num" style="color:var(--pass)">11</div><div class="l">fixed, each with fail → fix → pass evidence</div></div>
+        </div>
+        <div class="verdicts">
+          <div class="vbar" id="vbar"></div>
+          <div class="vkey" id="vkey"></div>
+        </div>
+        <p class="src">Source: Edith's real-16-v2 audit on current main, 26 Sep 00:57 IST. 2 repos had no setup docs to follow, which leaves 14. This replaces the earlier rules-only figure of "12 of 14", which is no longer accurate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">02 · The solution</div><h2>Six stages, one rule: nothing counts as fixed until a clean replay passes.</h2><p class="muted">Pick a stage to see what it does and where it lives in the code.</p></div>
+    <div class="pipe" role="tablist" id="pipe"></div>
+    <div class="stage-detail" id="stageDetail"></div>
+    <div class="verdict-list">
+      <div class="vcard"><span class="stamp" style="color:var(--pass)">VERIFIED</span><p>Every break was fixed and the repaired guide replayed from zero.</p></div>
+      <div class="vcard"><span class="stamp" style="color:var(--repair)">PARTIAL</span><p>Some breaks fixed and proven; the rest need a human, with the reason written down.</p></div>
+      <div class="vcard"><span class="stamp" style="color:var(--fail)">FAILED</span><p>The guide can't reach a running app, and the report says exactly where it stops.</p></div>
+      <div class="vcard"><span class="stamp" style="color:var(--ink-3)">NO-SETUP-DOCS</span><p>There is no setup guide to test. FirstRun says so instead of guessing one.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">03 · Why this solution</div><h2>The other options each skip the one step that matters: running the docs.</h2></div>
+    <div class="cmp-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th>Runs the README as written</th><th>Finds the root cause</th><th>Proves the fix</th><th>Keeps the docs honest over time</th></tr></thead>
+        <tbody>
+          <tr><td>Docs linters and link checkers</td><td><span class="n">No, checks text only</span></td><td><span class="n">No</span></td><td><span class="n">No</span></td><td><span class="p">Style only</span></td></tr>
+          <tr><td>Devcontainers and Docker images</td><td><span class="n">No, replace the README</span></td><td><span class="n">No</span></td><td><span class="p">For their own path</span></td><td><span class="n">Drift too</span></td></tr>
+          <tr><td>Asking a chat assistant</td><td><span class="n">No</span></td><td><span class="p">A guess, unverified</span></td><td><span class="n">No</span></td><td><span class="n">No</span></td></tr>
+          <tr><td>A senior engineer onboarding someone</td><td><span class="y">Yes</span></td><td><span class="y">Usually</span></td><td><span class="p">On one laptop</span></td><td><span class="n">Rarely written down</span></td></tr>
+          <tr class="us"><td><b>FirstRun</b></td><td><span class="y">Yes, in a clean container</span></td><td><span class="y">Rules, then IBM Bob</span></td><td><span class="y">Replay from zero</span></td><td><span class="y">CI drift guard, passport</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reasons">
+      <div class="reason"><h3>Evidence beats advice</h3><p>Every fix ships with the failing log, the diagnosis and the same step passing. A maintainer can check it in a minute instead of trusting a bot.</p></div>
+      <div class="reason"><h3>Rules first, AI for judgment</h3><p>About 20 deterministic rules handle the common breaks for free and the same way every time. IBM Bob gets only the failures the rules don't recognise, on a Bobcoin budget.</p></div>
+      <div class="reason"><h3>It fixes the docs, not the machine</h3><p>The output is the smallest README diff that works for everyone, plus a devcontainer and a CI guard so the fix doesn't rot again.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="bob">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">04 · How IBM Bob is used</div><h2>Bob is part of the engine and part of how we built it.</h2></div>
+    <div class="bob-grid">
+      <div class="use"><span class="tag">Doctor brain</span><h3>Diagnoses unknown failures</h3><p>When no rule matches, FirstRun calls Bob Shell headlessly in the read-only FirstRun Doctor mode. Bob reads the repo and names the file and line at fault.</p><span class="cost">2 real diagnoses on maitraysuthar · 0.35 Bobcoins</span></div>
+      <div class="use"><span class="tag">Custom modes</span><h3>Four FirstRun modes</h3><p>FirstRun, Doctor, Planner and Guide ship in <span class="mono">.bob/custom_modes.yaml</span>, each with its own role, rules and file permissions.</p><span class="cost">Fixed on 26 Sep: Bob Shell 2.x reads ~/.bob/settings/</span></div>
+      <div class="use"><span class="tag">MCP server</span><h3>FirstRun inside Bob IDE</h3><p>Plan, verify, status, evidence, guide and drift are exposed as MCP tools, so Bob IDE can run FirstRun and read its evidence.</p><span class="cost">src/mcp.js · .bob/mcp.json</span></div>
+      <div class="use"><span class="tag">Guide mode</span><h3>An onboarding buddy</h3><p>Every verified repo gets a Guide mode that walks a newcomer through the proven steps one at a time.</p><span class="cost">Written by the Scribe stage</span></div>
+      <div class="use"><span class="tag">Lens</span><h3>Circle anything, ask Bob</h3><p>Ctrl+Shift+Space, draw around an error on screen, and Lens reads it. It returns a proven fix if one exists; otherwise it asks Bob.</p><span class="cost">Electron · lens/</span></div>
+      <div class="use"><span class="tag">Bob IDE, as a builder</span><h3>Real features coded in Bob</h3><p>Friday drives Bob IDE on Arnav's PC and saves each task's consumption summary. Bob also answers the team on Discord (<span class="mono">!bob</span>).</p><span class="cost">Task 1: SMTP → Mailpit fix · 1.16 Bobcoins · 45/45 tests</span></div>
+    </div>
+    <div class="cmd">bob run --format json --mode firstrun-doctor --max-cost 1.5 --max-turns 12 \
+    --accept-license --trust -w &lt;repo&gt; "Read .firstrun/bob/request.md and answer with the JSON it asks for"</div>
+  </div>
+</section>
+
+<section id="team">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">05 · The team</div><h2>Two people and six AI agents from four companies, working as one team.</h2><p class="muted">Pick anyone on the map. Nobody holds work only in their own head: GitHub holds the tasks, Discord the conversation, and the Obsidian vault the memory.</p></div>
+    <div class="team-layout">
+      <div class="orbit"><svg viewBox="0 0 560 440" id="orbit" role="group" aria-label="Team map"></svg></div>
+      <div class="agent-card" id="agentCard" aria-live="polite"></div>
+    </div>
+    <div class="mech">
+      <div><h3>GitHub is the shared state</h3><p>Every task is an issue with a lane label. One branch per issue, and the other side's agent reviews every PR.</p></div>
+      <div><h3>Discord for talk</h3><p>#firstrun_1 on the Helios server. Each agent has its own bot. Only Arnav and Karmanya give orders.</p></div>
+      <div><h3>The vault for memory</h3><p>An Obsidian vault of status, decisions, lessons and findings. Logging there is now every agent's first priority.</p></div>
+      <div><h3>Recovery mode</h3><p>Usage limits hit without warning. Work idle for 45 minutes can be taken over after saying so in chat. It has been used twice.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="timeline">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">06 · What we've done</div><h2>From a 16-repo audit to a working product in about two days.</h2></div>
+    <div class="filters" id="filters"></div>
+    <div class="tl" id="tl"></div>
+  </div>
+</section>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">07 · Proof</div><h2>Before and after, on real repositories.</h2><p class="muted">Each result comes from a real Docker run. The demo repo is labelled as having seeded breaks.</p></div>
+    <div class="proof">
+      <div class="case">
+        <span class="eyebrow">maitraysuthar / rest-api-nodejs-mongodb</span>
+        <div class="ba"><span class="from">FAILED</span>→<span class="to">PARTIAL</span></div>
+        <dl><dt>fixed</dt><dd>Node 16 for bcrypt 3; a local MongoDB URL for a placeholder</dd><dt>app</dt><dd>running, replay from zero in 25 s</dd><dt>Bob</dt><dd>found the hard-coded test DB and the SMTP chain · 0.35 Bobcoins</dd><dt>next</dt><dd>the Mailpit fix (PR #49) targets the last blocker</dd></dl>
+      </div>
+      <div class="case">
+        <span class="eyebrow">teamhide / fastapi-boilerplate</span>
+        <div class="ba"><span class="from">FAILED</span>→<span class="to">PARTIAL</span></div>
+        <dl><dt>fixed</dt><dd>4 breaks, including an exact Python pin the image no longer ships</dd><dt>replay</dt><dd>3 min 41 s from zero</dd></dl>
+      </div>
+      <div class="case">
+        <span class="eyebrow">acme-shop</span><span class="lbl">DEMO REPO · SEEDED BREAKS</span>
+        <div class="ba"><span class="from">5 breaks</span>→<span class="to v">VERIFIED</span></div>
+        <dl><dt>time</dt><dd>about 45 s end to end</dd><dt>use</dt><dd>the live demo walk-through; never presented as a real-world result</dd></dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <div class="head"><div class="eyebrow">08 · Where we stand · 26 Sep, 01:00 IST</div><h2>The engine works. The pitch hasn't started.</h2></div>
+    <div class="status">
+      <div>
+        <div class="eyebrow" style="margin-bottom:10px">Done</div>
+        <div class="list" id="done"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:10px">Still to do before Sun 27 Sep, 8:30 PM IST</div>
+        <div class="list" id="todo"></div>
+      </div>
+    </div>
+    <div class="rules">
+      <div><b>No credentials, anywhere</b>Keys live in Arnav's user environment or a gitignored .env. IBM suspends accounts that leak them, and a history scan runs before the repo goes public.</div>
+      <div><b>No synthetic data presented as real</b>Test fixtures stay test fixtures. The hosted site exports real runs only, and seeded demo repos are labelled.</div>
+      <div><b>Humans own the commits</b>Commits are authored by Arnav or Karmanya, with no AI co-author line. Nothing goes public without a human's word.</div>
+      <div><b>Disclosed prep</b>Parts of FirstRun existed before kickoff on 25 Sep 8:30 PM IST. The submission says so.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">FirstRun · built for the lablab.ai IBM Bob 2.0 Hackathon by Arnav and Karmanya with Friday, Edith, Zeus, DaVinci, Hermes and IBM Bob. Every number on this page comes from a real run or the team's own records.</div></footer>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+  /* countdown to 27 Sep 2026 15:00 UTC */
+  const end = Date.UTC(2026, 8, 27, 15, 0, 0);
+  const tick = () => {
+    const ms = end - Date.now();
+    if (ms <= 0) { $('#clock').textContent = 'closed'; return; }
+    const h = Math.floor(ms / 3.6e6), m = Math.floor(ms % 3.6e6 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
+    $('#clock').textContent = `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+  };
+  tick(); setInterval(tick, 1000);
+
+  /* terminal replay (real run output, 25 Sep 2026) */
+  const lines = [
+    ['step', '▸ S3 npm install'], ['fail', '  ✗ exit 1  24s'],
+    ['doc', '  ⚕ bcrypt ^3.0.6 supports Node.js 12–16 only; the image runs Node 22  [rule node-native-build]'],
+    ['fix', '  ⚒ use Node.js 16 (or upgrade bcrypt to >= 6)'],
+    ['step', '▸ S3 npm install (attempt 2)'], ['pass', '  ✓ 15s   ✔ evidence E1: fixed and verified'],
+    ['step', '▸ S5 npm run dev'], ['fail', '  ✗ exit 1  8s'],
+    ['doc', '  ⚕ MONGODB_URL=YourConnectionString is a placeholder  [rule env-placeholder-value]'],
+    ['fix', '  ⚒ .env.example gets the local URL from its own commented example'],
+    ['pass', '  ✓ 1s    ✔ evidence E2: fixed and verified'],
+    ['step', '▸ S6 npm test'], ['fail', '  ✗ exit 2  21s'],
+    ['bob', '  ⚕ test/testConfig.js:3 hard-codes MongoDB, no daemon runs  [IBM Bob · 0.12 Bobcoins]'],
+    ['bob', '  ⚕ helpers/mailer.js needs a real SMTP server  [IBM Bob · 0.23 Bobcoins]'],
+    ['fix', '  ✋ E5: needs a maintainer  (PR #49 adds a local mail catcher)'],
+    ['step', '■ Replaying the repaired guide from zero'],
+    ['pass', '  ✓ S3 npm install 22s   ✓ S4 cp .env.example .env   ✓ S5 npm run dev 1s'],
+    ['sum', '  PARTIAL · breaks found 5 · fixed 2 · needs a human 1 · clone → running: 25s'],
+  ];
+  const term = $('#term'); let i = 0, timer = null;
+  const show = (k) => { for (; i < k && i < lines.length; i++) { const [c, t] = lines[i]; const d = el('div', 'ln ' + c); d.textContent = t; term.append(d); } };
+  const reset = () => { clearInterval(timer); term.innerHTML = ''; i = 0; };
+  $('#play').onclick = () => { reset(); timer = setInterval(() => { show(i + 1); if (i >= lines.length) clearInterval(timer); }, 420); };
+  $('#stepBtn').onclick = () => { clearInterval(timer); if (i >= lines.length) reset(); show(i + 1); };
+  show(lines.length); // complete at rest
+
+  /* verdict bar */
+  const v = [['VERIFIED', 6, 'var(--pass)'], ['PARTIAL', 4, 'var(--repair)'], ['FAILED', 4, 'var(--fail)'], ['NO-SETUP-DOCS', 2, 'var(--ink-3)']];
+  v.forEach(([n, c, col]) => {
+    const d = el('div', null, c); d.style.flex = c; d.style.background = col; d.title = `${n}: ${c} of 16 repos`; $('#vbar').append(d);
+    $('#vkey').append(el('span', null, `<i style="background:${col}"></i>${n} <b class="num">${c}</b>`));
+  });
+
+  /* pipeline */
+  const stages = [
+    { t: 'Scout', s: 'reads docs and ground truth', d: 'Reads what a newcomer reads (README, CONTRIBUTING, docs/setup) next to what is actually true: lockfiles, .nvmrc, pyproject, compose files, .env.example, CI workflows, env vars the code reads, and the project\'s own CLI names.', b: ['Finds a nested project folder when the root has no manifest', 'Records facts, not guesses: facts.cli, facts.projectDir, ports, services'], f: ['src/scout/index.js'] },
+    { t: 'Planner', s: 'turns prose into steps', d: 'Turns README prose into ordered shell steps, the way a person reads them. It skips what a newcomer wouldn\'t run and lists docs-vs-code conflicts before running anything.', b: ['Skips usage examples, placeholders, pasted output, log tails, profile edits and OS-specific lines', 'Flags wrong runtime versions, missing env vars, Compose v1 and scripts that no longer exist'], f: ['src/plan.js', 'src/markdown.js'] },
+    { t: 'Runner', s: 'clean Docker sandbox', d: 'Runs each step in a fresh container that keeps shell state between steps. Databases start as sidecar containers on localhost, and dev servers are started and health-checked on the port they announce.', b: ['Shims translate laptop habits: sudo, apt asking for Y, docker compose called from a Makefile', 'Picks up the port the app prints, ignoring database and sidecar ports'], f: ['src/sandbox.js', 'src/services-shim.js'] },
+    { t: 'Doctor', s: 'rules first, then IBM Bob', d: 'When a step fails, about 20 deterministic rules try first. They are free, instant and reproducible. Failures they don\'t recognise go to IBM Bob in the read-only Doctor mode, with a Bobcoin cap.', b: ['Rules cover runtimes, native builds, missing tools, peer deps, placeholder and blank env values, missing services and renamed scripts', 'Every fix becomes an evidence record'], f: ['src/doctor/rules.js', 'src/doctor/services.js', 'src/brain/bob.js'] },
+    { t: 'Verifier', s: 'replay from zero', d: 'Throws the machine away and replays the repaired guide in a new container, including everything each fix set up. Nothing counts as fixed until this replay passes.', b: ['Fix prerequisites are replayed in order', 'A fix whose own command fails is marked not applied'], f: ['src/pipeline.js', 'src/drift.js'] },
+    { t: 'Scribe', s: 'writes the fixes', d: 'Writes the smallest README diff, patched .env.example and compose files, a Setup Passport badge, an evidence report, a devcontainer matching the verified machine, a CI drift guard and a Bob Guide mode.', b: ['FIRSTRUN.md is the evidence report', 'The drift guard replays the plan on every PR'], f: ['src/scribe/'] },
+  ];
+  const pipe = $('#pipe'), det = $('#stageDetail');
+  const pick = (k) => {
+    [...pipe.children].forEach((b, j) => b.setAttribute('aria-selected', j === k));
+    const st = stages[k];
+    det.innerHTML = `<div><div class="eyebrow">Stage ${k + 1} of 6</div><h3 style="font-size:26px;margin-top:8px">${st.t}</h3><p class="muted" style="margin-top:10px">${st.d}</p><ul>${st.b.map((x) => `<li>${x}</li>`).join('')}</ul><div class="files">${st.f.map((x) => `<code>${x}</code>`).join('')}</div></div>
+      <div><div class="eyebrow" style="margin-bottom:10px">An evidence record looks like this</div><div class="record">
+      <div><b style="color:var(--fail)">Failed</b><span class="mono" style="font-size:12px">npm install · exit 1 · node-gyp error building bcrypt</span></div>
+      <div><b style="color:var(--repair)">Cause</b><span>bcrypt ^3.0.6 supports Node 12–16; the image runs Node 22</span></div>
+      <div><b style="color:var(--bob)">Fix</b><span>Run on Node 16 (rule node-native-build, 0 Bobcoins)</span></div>
+      <div><b style="color:var(--pass)">Passed</b><span class="mono" style="font-size:12px">npm install · exit 0 · then again in the clean replay</span></div></div></div>`;
+  };
+  stages.forEach((st, k) => {
+    const b = el('button', 'stage', `<span class="n">${String(k + 1).padStart(2, '0')}</span><span class="t">${st.t}</span><span class="s">${st.s}</span>`);
+    b.setAttribute('role', 'tab'); b.onclick = () => pick(k); pipe.append(b);
+  });
+  pick(3);
+
+  /* team */
+  const people = [
+    { id: 'arnav', n: 'Arnav', r: 'Human · product owner', c: 'var(--human)', x: 150, y: 70, st: ['Decides', 'var(--human-t)', 'var(--human)'], p: ['Sets direction, makes the final calls and approves anything public', 'Runs Bob IDE, Docker and Hermes on his PC', 'Owns Friday and Zeus'] },
+    { id: 'karmanya', n: 'Karmanya', r: 'Human · teammate', c: 'var(--human)', x: 410, y: 70, st: ['Decides', 'var(--human-t)', 'var(--human)'], p: ['Plans the secondary features (time lost, day-two tour, version matrix)', 'Reviews PRs, owns the video script and slide deck', 'Owns Edith and DaVinci'] },
+    { id: 'friday', n: 'Friday', r: 'Claude Code · Arnav\'s agent', c: 'var(--live)', x: 90, y: 215, st: ['Near weekly limit · resets 4:30 PM IST', 'var(--repair-t)', 'var(--repair)'], p: ['Engine: planner, sandbox, pipeline, hosted site, Lens, Discord team chat', 'Drives Bob IDE and saves the task screenshots', 'Set up Hermes, the vault and the recovery rules'] },
+    { id: 'edith', n: 'Edith', r: 'Claude Code · Karmanya\'s agent', c: 'var(--live)', x: 470, y: 215, st: ['Active', 'var(--pass-t)', 'var(--pass)'], p: ['Wrote most of the Doctor\'s rules and the real-16-v2 audit', 'Toughest reviewer: caught the DB-port bug, the fake-proof badge and the missing Mailpit doc step', 'Fixing audit crashes on Windows (#51, #53)'] },
+    { id: 'bob', n: 'IBM Bob', r: 'IBM · diagnosis brain and builder', c: 'var(--bob)', x: 280, y: 225, st: ['38.8 of 40 Bobcoins left (Arnav)', 'var(--bob-t)', 'var(--bob)'], p: ['Diagnoses failures the rules don\'t know, headless via Bob Shell', 'Codes features in Bob IDE, with each task\'s screenshot saved as evidence', 'Answers the team on Discord with !bob, read-only'] },
+    { id: 'zeus', n: 'Zeus', r: 'Google Antigravity · Arnav\'s MacBook', c: 'var(--pass)', x: 150, y: 370, st: ['Back on Google AI Pro', 'var(--pass-t)', 'var(--pass)'], p: ['Frontend: landing page, NO-SETUP-DOCS styling (#55), Lens section (#52)', 'Before/after proof card for maitraysuthar (#45)', 'Works in small PRs to save quota'] },
+    { id: 'davinci', n: 'DaVinci', r: 'Google Antigravity · Karmanya\'s', c: 'var(--pass)', x: 280, y: 395, st: ['Out of credits', 'var(--fail-t)', 'var(--fail)'], p: ['Dashboard replay controls (#23)', 'Was set to do the slides until its credits ran out'] },
+    { id: 'hermes', n: 'Hermes', r: 'Nous Hermes Agent · NVIDIA Nemotron 3 Ultra', c: 'var(--repair)', x: 410, y: 370, st: ['Every 30 min', 'var(--pass-t)', 'var(--pass)'], p: ['Judge: scores us against the rubric and files judge issues', 'Builds major features (hosted "Verify it for real", #38)', 'Checks every 30 min that every agent logged in the vault'] },
+  ];
+  const links = [['arnav','friday'],['arnav','zeus'],['karmanya','edith'],['karmanya','davinci'],['friday','bob'],['edith','bob'],['hermes','bob'],['friday','edith'],['arnav','karmanya'],['hermes','friday'],['hermes','edith'],['zeus','bob']];
+  const svg = $('#orbit'), NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const byId = Object.fromEntries(people.map((p) => [p.id, p]));
+  links.forEach(([a, b]) => svg.append(mk('line', { x1: byId[a].x, y1: byId[a].y, x2: byId[b].x, y2: byId[b].y, stroke: 'var(--rule-2)', 'stroke-width': 1.2, 'stroke-dasharray': a === 'arnav' && b === 'karmanya' ? '0' : '4 4' })));
+  const card = $('#agentCard');
+  const select = (id) => {
+    const p = byId[id];
+    svg.querySelectorAll('.node').forEach((n) => n.classList.toggle('on', n.dataset.id === id));
+    card.innerHTML = `<div class="who"><div class="av" style="background:${p.c}">${p.n[0]}</div><div><h3>${p.n}</h3><div class="role">${p.r}</div></div></div>
+      <span class="state" style="background:${p.st[1]};color:${p.st[2]}">${p.st[0]}</span><ul>${p.p.map((x) => `<li>${x}</li>`).join('')}</ul>`;
+  };
+  people.forEach((p) => {
+    const g = mk('g', { class: 'node', tabindex: 0, role: 'button', 'aria-label': p.n }); g.dataset.id = p.id;
+    const big = p.id === 'bob';
+    g.append(mk('circle', { cx: p.x, cy: p.y, r: big ? 40 : 30, fill: 'var(--panel-2)', stroke: p.c, 'stroke-width': 1.5 }));
+    const t = mk('text', { x: p.x, y: p.y + 5, 'text-anchor': 'middle', 'font-size': big ? 14 : 13, 'font-weight': 600, fill: 'var(--ink)' }); t.textContent = p.n; g.append(t);
+    g.addEventListener('click', () => select(p.id));
+    g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(p.id); } });
+    svg.append(g);
+  });
+  select('bob');
+
+  /* timeline */
+  const col = { Friday: 'var(--live)', Edith: 'var(--live)', Zeus: 'var(--pass)', DaVinci: 'var(--pass)', Hermes: 'var(--repair)', Bob: 'var(--bob)', Team: 'var(--human)' };
+  const evs = [
+    ['24 Sep', 'Team', 'Idea locked: treat a README as an executable procedure and prove it on a clean machine.'],
+    ['24 Sep', 'Friday', 'First 16-repo audit, rules only. Showed that most real READMEs break; later replaced by the rerun.'],
+    ['25 Sep', 'Friday', 'Hosted demo live at firstrun-sigma.vercel.app: paste a public repo for a 2-second docs-vs-code check, and watch real runs replay.'],
+    ['25 Sep', 'Friday', 'Built FirstRun Lens: hotkey, circle an error, OCR, proven fix or ask Bob.'],
+    ['25 Sep', 'Team', 'Karmanya joined with Edith. Discord team chat set up, since Telegram is blocked in India.'],
+    ['25 Sep', 'Hermes', 'Hermes Agent installed in WSL on NVIDIA Nemotron 3 Ultra as judge and major-feature builder. First judge round scored us P/B/A/O 2/3/4/4.'],
+    ['25 Sep', 'Zeus', 'Antigravity joined for the frontend (Zeus on the MacBook, DaVinci on Karmanya\'s side).'],
+    ['25 Sep', 'Edith', 'Most of the Doctor\'s rule set, plus reviews that caught a database-port bug and a dropped <span class="mono">[ -f .env ]</span> guard.'],
+    ['25 Sep 20:30', 'Team', 'Kickoff. Bob IDE and Bob Shell signed in. Arnav called a halt so every agent read the same official requirements.'],
+    ['25 Sep 23:30', 'Friday', 'Obsidian vault created as team memory: status, decisions, lessons, findings, daily logs.'],
+    ['26 Sep 00:05', 'Bob', 'First real IBM Bob diagnoses in a run: a hard-coded test database and the SMTP chain, 0.35 Bobcoins.'],
+    ['26 Sep 00:25', 'Bob', 'First Bob IDE task: the SMTP → Mailpit fix, 1.16 Bobcoins, all 45 tests passing, screenshot saved.'],
+    ['26 Sep 00:40', 'Bob', 'Bob joined Discord: !bob answers questions from the repo, read-only, 0.5 Bobcoins per question.'],
+    ['26 Sep 00:57', 'Edith', 'real-16-v2 audit: 9 of 14 followable READMEs broke, 11 of 22 breaks fixed with evidence.'],
+    ['26 Sep 01:00', 'Zeus', 'Back on Google AI Pro. Opened #52 (Lens section) and #55 (NO-SETUP-DOCS styling).'],
+    ['26 Sep 01:10', 'Hermes', 'Now runs every 30 minutes, logs to the vault first and names any agent that skipped it.'],
+  ];
+  const filters = $('#filters'), tl = $('#tl');
+  let who = 'All';
+  const draw = () => {
+    tl.innerHTML = '';
+    evs.filter((e) => who === 'All' || e[1] === who).forEach(([t, w, txt]) => {
+      const d = el('div', 'ev'); d.style.setProperty('--ev', col[w]);
+      d.innerHTML = `<time>${t}</time><div><span class="who">${w === 'Bob' ? 'IBM Bob' : w}</span><p>${txt}</p></div>`;
+      tl.append(d);
+    });
+  };
+  ['All', 'Team', 'Friday', 'Edith', 'Bob', 'Hermes', 'Zeus'].forEach((w) => {
+    const b = el('button', null, w === 'Bob' ? 'IBM Bob' : w); b.setAttribute('aria-pressed', w === who);
+    b.onclick = () => { who = w; [...filters.children].forEach((x) => x.setAttribute('aria-pressed', x === b)); draw(); };
+    filters.append(b);
+  });
+  draw();
+
+  /* status */
+  const item = (c, t, o) => { const d = el('div', 'item'); d.innerHTML = `<span class="dot" style="background:${c}"></span><span>${t}</span><span class="own">${o}</span>`; return d; };
+  [['Engine: all six stages, 45 tests passing', 'all'], ['Hosted demo with real runs only', 'Friday'], ['Four Bob custom modes and the MCP server', 'Friday'], ['16-repo audit rerun with current rules', 'Edith'], ['First Bob IDE task and screenshot', 'Friday + Bob'], ['Bob on Discord (PR #50)', 'Friday'], ['Team memory vault, logging made priority one', 'Friday + Hermes']]
+    .forEach(([t, o]) => $('#done').append(item('var(--pass)', t, o)));
+  [['var(--fail)', '3-minute video, slides PDF, 16:9 cover', 'Karmanya + Arnav'], ['var(--fail)', 'Bob IDE tasks from Karmanya\'s account too', 'Karmanya'], ['var(--repair)', 'PR #49: add the Mailpit doc step and the .md export', 'Friday'], ['var(--repair)', 'Market sizing and competitor content (#29, #30)', 'Hermes → Zeus'], ['var(--repair)', 'Review queue: #50–#56, #45 approved', 'Edith + Hermes'], ['var(--repair)', 'Two statements of up to 500 words', 'Arnav'], ['var(--human)', 'Team name, product name, MIT licence', 'Arnav decides'], ['var(--human)', 'Make the repo public after the secrets scan', 'Arnav decides']]
+    .forEach(([c, t, o]) => $('#todo').append(item(c, t, o)));
+
+  /* nav highlight */
+  const links2 = [...document.querySelectorAll('.nav a')];
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links2.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
+  document.querySelectorAll('main section[id]').forEach((s) => io.observe(s));
+})();
+</script>

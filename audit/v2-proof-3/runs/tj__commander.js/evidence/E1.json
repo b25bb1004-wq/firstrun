@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S16",
+  "before": {
+    "stepId": "S16",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 1617,
+    "logTail": "      type: 'test'\n      ...\n    # Subtest: FORCE_COLOR environment variable tests\n        # Subtest: when FORCE_COLOR=true then returns true\n        ok 1 - when FORCE_COLOR=true then returns true\n          ---\n          duration_ms: 0.245546\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=false then returns false\n        ok 2 - when FORCE_COLOR=false then returns false\n          ---\n          duration_ms: 0.135124\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=0 then returns false\n        ok 3 - when FORCE_COLOR=0 then returns false\n          ---\n          duration_ms: 0.235078\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=1 then returns true\n        ok 4 - when FORCE_COLOR=1 then returns true\n          ---\n          duration_ms: 0.253756\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=2 then returns true\n        ok 5 - when FORCE_COLOR=2 then returns true\n          ---\n          duration_ms: 0.150884\n          type: 'test'\n          ...\n        # Subtest: when FORCE_COLOR=3 then returns true\n        ok 6 - when FORCE_COLOR=3 then returns true\n          ---\n          duration_ms: 0.101542\n          type: 'test'\n          ...\n        1..6\n    ok 7 - FORCE_COLOR environment variable tests\n      ---\n      duration_ms: 1.471486\n      type: 'suite'\n      ...\n    1..7\nok 141 - internal useColor environment variable support\n  ---\n  duration_ms: 4.544536\n  type: 'suite'\n  ...\n1..141\n# tests 1373\n# suites 210\n# pass 1368\n# fail 4\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 1359.439189",
+    "logFile": "logs/S16-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T20:40:54.084Z"
+}

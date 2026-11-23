@@ -1,0 +1,28 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T20:40:42.559Z",
+  "commit": "961241f6c1+dirty",
+  "image": "node:24",
+  "runtime": {
+    "name": "node",
+    "version": "24",
+    "source": "CI (.github/workflows/bundle-size.yml)"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S6",
+      "command": "npm ci",
+      "kind": "install"
+    },
+    {
+      "id": "S7",
+      "command": "npm rebuild husky",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

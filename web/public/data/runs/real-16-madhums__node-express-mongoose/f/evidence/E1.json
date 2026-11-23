@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S4",
+  "before": {
+    "stepId": "S4",
+    "n": 1,
+    "command": "docker-compose logs -f",
+    "exitCode": 127,
+    "durationMs": 128,
+    "logTail": "/firstrun/step-3.sh: line 4: docker-compose: command not found",
+    "logFile": "logs/S4-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-24T22:21:19.995Z"
+}

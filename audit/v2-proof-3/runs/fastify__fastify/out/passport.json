@@ -1,0 +1,25 @@
+{
+  "repo": "fastify/fastify",
+  "commit": "f7f73aa7d0+dirty",
+  "verifiedAt": "2026-09-26T20:45:17.171Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 2,
+  "stepsFromReadme": 0,
+  "breaksFound": 1,
+  "breaksFixed": 1,
+  "needsHuman": 1,
+  "repoBreaks": 1,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 115,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "yarn test"
+  }
+}

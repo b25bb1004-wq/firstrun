@@ -1,0 +1,150 @@
+{
+  "id": "known-10b",
+  "startedAt": "2026-09-26T11:46:33.534Z",
+  "source": "audit/known-10b-repos.json",
+  "concurrency": 3,
+  "brain": "auto",
+  "repos": [
+    {
+      "slug": "shadcn-ui__taxonomy",
+      "url": "https://github.com/shadcn-ui/taxonomy",
+      "ref": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/shadcn-ui__taxonomy",
+      "startedAt": "2026-09-26T11:46:33.538Z",
+      "phase": "repair",
+      "current": "corepack use pnpm@8"
+    },
+    {
+      "slug": "axios__axios",
+      "url": "https://github.com/axios/axios",
+      "ref": "961241f6c19798eff16b0869486c125430a17961",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/axios__axios",
+      "startedAt": "2026-09-26T11:46:33.547Z",
+      "phase": "coldstart"
+    },
+    {
+      "slug": "tj__commander.js",
+      "url": "https://github.com/tj/commander.js",
+      "ref": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+      "stack": "node",
+      "status": "done",
+      "verdict": "FAILED",
+      "passport": {
+        "repo": "tj/commander.js",
+        "commit": "ba6d13ddb4",
+        "verifiedAt": "2026-09-26T11:47:43.250Z",
+        "verdict": "FAILED",
+        "image": "node:22",
+        "runtime": "Node.js 22",
+        "stepsTotal": 9,
+        "stepsFromReadme": 9,
+        "breaksFound": 2,
+        "breaksFixed": 0,
+        "needsHuman": 1,
+        "replaySeconds": 0,
+        "packageCache": false,
+        "bobcoins": 0.15,
+        "diagnosedByBob": 2,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:8080/"
+        }
+      },
+      "runDir": "runs/tj__commander.js",
+      "startedAt": "2026-09-26T11:46:33.553Z",
+      "phase": "done",
+      "firstFailure": "node string-util.js split --separator=- a-b-c",
+      "finishedAt": "2026-09-26T11:47:43.721Z"
+    },
+    {
+      "slug": "fastify__fastify",
+      "url": "https://github.com/fastify/fastify",
+      "ref": "f7f73aa7d0233f5f8455ac75a828ab3862419fc4",
+      "stack": "node",
+      "status": "running",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/fastify__fastify",
+      "startedAt": "2026-09-26T11:47:43.722Z"
+    },
+    {
+      "slug": "trpc__examples-next-prisma-starter",
+      "url": "https://github.com/trpc/examples-next-prisma-starter",
+      "ref": "b8c6af48d5d67f7ef81f981d82fa493e1bb12bee",
+      "stack": "node",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/trpc__examples-next-prisma-starter"
+    },
+    {
+      "slug": "Kludex__starlette",
+      "url": "https://github.com/Kludex/starlette",
+      "ref": "9774b08ef457e91e37e38c8a1abbfa3510427f21",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/Kludex__starlette"
+    },
+    {
+      "slug": "pallets__click",
+      "url": "https://github.com/pallets/click",
+      "ref": "06b2a678741131fd577ce170e23e5ca0aeba0309",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/pallets__click"
+    },
+    {
+      "slug": "Textualize__rich",
+      "url": "https://github.com/Textualize/rich",
+      "ref": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/Textualize__rich"
+    },
+    {
+      "slug": "fastapi__fastapi",
+      "url": "https://github.com/fastapi/fastapi",
+      "ref": "192b12197eb04c2b4a691cce7d87261b21716714",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/fastapi__fastapi"
+    },
+    {
+      "slug": "django__djangoproject.com",
+      "url": "https://github.com/django/djangoproject.com",
+      "ref": "901dd6b014c5f7fb55c8300ccdaf7e7e20bb36ee",
+      "stack": "python",
+      "status": "queued",
+      "verdict": null,
+      "passport": null,
+      "runDir": "runs/django__djangoproject.com"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "done": 1,
+    "brokeOnCleanMachine": 1,
+    "verified": 0,
+    "partial": 0,
+    "failed": 1,
+    "breaksFound": 2,
+    "breaksFixed": 0,
+    "repairedAutomatically": 0
+  }
+}

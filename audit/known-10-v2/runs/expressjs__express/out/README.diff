@@ -1,0 +1,22 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -88,6 +88,8 @@ for more information.
+ 
+ ## Quick Start
+ 
++🟡 **Partly verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:18` machine at `9a34acf03c`: clone to running in 11s.
++
+   The quickest way to get started with express is to utilize the executable [`express(1)`](https://github.com/expressjs/generator) to generate an application as shown below:
+ 
+   Install the executable. The executable's major version will match Express's:
+@@ -171,7 +173,8 @@ npm install
+ Then run `npm test`:
+ 
+ ```bash
+-npm test
++npm test-ci
++# FirstRun: this step still fails on a clean machine: No rule recognises this failure (run with --brain auto to ask IBM Bob).
+ ```
+ 
+ ## Current project team members

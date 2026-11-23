@@ -1,0 +1,631 @@
+{
+  "id": "real-16-kellyjonbrazil__jello",
+  "repo": "kellyjonbrazil/jello",
+  "commit": "b43c9b2460",
+  "startedAt": "2026-09-24T22:20:31.630Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 1
+    },
+    "S2": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S5": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S6": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S9": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S10": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S11": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S12": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S13": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S14": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S15": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S16": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S17": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S18": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S19": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S20": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S21": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S22": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S23": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S24": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S25": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S26": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S27": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S28": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S29": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S30": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S31": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S32": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1"
+  ],
+  "bobcoins": 0,
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.8 (CI (.github/workflows/pythonapp.yml))",
+      "source": "README.md"
+    },
+    {
+      "what": "env var APPDATA",
+      "docs": "not documented",
+      "truth": "read in jello/lib.py:425",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "kellyjonbrazil/jello",
+    "commit": "b43c9b2460",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "cat data.json | jello _.foo",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 54,
+          "endLine": 54,
+          "section": "jello › Install › Usage"
+        },
+        "origin": "readme",
+        "status": "needs-human"
+      },
+      {
+        "id": "S2",
+        "command": "jello _.foo -f data.json",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 58,
+          "endLine": 58,
+          "section": "jello › Install › Usage"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S3",
+        "command": "jello '_[\"foo\"]' -f data.json",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 62,
+          "endLine": 62,
+          "section": "jello › Install › Usage"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S4",
+        "command": "echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 85,
+          "endLine": 85,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S5",
+        "command": "{",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 87,
+          "endLine": 87,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S6",
+        "command": "\"foo\": \"bar\",",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 88,
+          "endLine": 88,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S7",
+        "command": "\"baz\": [",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 89,
+          "endLine": 89,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S8",
+        "command": "1,",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 90,
+          "endLine": 90,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S9",
+        "command": "2,",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 91,
+          "endLine": 91,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S10",
+        "command": "3",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 92,
+          "endLine": 92,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S11",
+        "command": "]",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 93,
+          "endLine": 93,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S12",
+        "command": "}",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 94,
+          "endLine": 94,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S13",
+        "command": "echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -c",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 99,
+          "endLine": 99,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S14",
+        "command": "{\"foo\":\"bar\",\"baz\":[1,2,3]}",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 101,
+          "endLine": 101,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S15",
+        "command": "echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -l _.baz",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 106,
+          "endLine": 106,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S16",
+        "command": "1",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 108,
+          "endLine": 108,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S17",
+        "command": "2",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 109,
+          "endLine": 109,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S18",
+        "command": "3",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 110,
+          "endLine": 110,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S19",
+        "command": "echo '[{\"foo\":\"bar\",\"baz\":[1,2,3]},{\"fiz\":\"boo\",\"buz\":[4,5,6]}]' | jello -l",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 115,
+          "endLine": 115,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S20",
+        "command": "{\"foo\":\"bar\",\"baz\":[1,2,3]}",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 117,
+          "endLine": 117,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S21",
+        "command": "{\"fiz\":\"boo\",\"buz\":[4,5,6]}",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 118,
+          "endLine": 118,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S22",
+        "command": "echo '{\"foo\":\"bar\",\"baz\":[1,2,3]}' | jello -s",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 123,
+          "endLine": 123,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S23",
+        "command": "_ = {}",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 125,
+          "endLine": 125,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S24",
+        "command": "_.foo = \"bar\"",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 126,
+          "endLine": 126,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S25",
+        "command": "_.baz = []",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 127,
+          "endLine": 127,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S26",
+        "command": "_.baz[0] = 1",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 128,
+          "endLine": 128,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S27",
+        "command": "_.baz[1] = 2",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 129,
+          "endLine": 129,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S28",
+        "command": "_.baz[2] = 3",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 130,
+          "endLine": 130,
+          "section": "jello › Install › Usage › Simple Examples"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S29",
+        "command": "cat values.yaml",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 161,
+          "endLine": 161,
+          "section": "jello › Install › Non-JSON Data Input (YAML, CSV, etc.)"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S30",
+        "command": "jello -Rr '",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 167,
+          "endLine": 167,
+          "section": "jello › Install › Non-JSON Data Input (YAML, CSV, etc.)"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S31",
+        "command": "echo '{\"login_name\": \"joeuser\"}' | jello 'os.getenv(\"LOGNAME\") == _.login_name'",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 379,
+          "endLine": 379,
+          "section": "jello › Examples: › Expressions and Environment Variables"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S32",
+        "command": "true",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 381,
+          "endLine": 381,
+          "section": "jello › Examples: › Expressions and Environment Variables"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Python version",
+        "docs": "not stated",
+        "truth": "3.8 (CI (.github/workflows/pythonapp.yml))",
+        "source": "README.md"
+      },
+      {
+        "what": "env var APPDATA",
+        "docs": "not documented",
+        "truth": "read in jello/lib.py:425",
+        "source": "README"
+      }
+    ],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "kellyjonbrazil/jello",
+    "commit": "b43c9b2460",
+    "verifiedAt": "2026-09-24T22:20:33.165Z",
+    "verdict": "FAILED",
+    "image": "python:3.12",
+    "runtime": "Python 3.12",
+    "stepsTotal": 32,
+    "stepsFromReadme": 32,
+    "breaksFound": 1,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "bobcoins": 0,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    }
+  },
+  "finishedAt": "2026-09-24T22:20:33.452Z"
+}

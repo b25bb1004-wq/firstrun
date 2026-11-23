@@ -1,0 +1,20 @@
+{
+  "repo": "przemek-nowicki/node-express-template.ts",
+  "commit": "d731e5cef4",
+  "verifiedAt": "2026-09-24T22:20:15.013Z",
+  "verdict": "PARTIAL",
+  "image": "node:16",
+  "runtime": "Node.js 16",
+  "stepsTotal": 3,
+  "stepsFromReadme": 2,
+  "breaksFound": 2,
+  "breaksFixed": 0,
+  "needsHuman": 1,
+  "replaySeconds": 60,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  }
+}

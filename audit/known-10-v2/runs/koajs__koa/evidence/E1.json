@@ -1,0 +1,23 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 562,
+    "logTail": "npm info it worked if it ends with ok\nnpm info using npm@4.2.0\nnpm info using node@v7.10.1\nnpm info lifecycle koa@3.2.1~pretest: koa@3.2.1\nnpm info lifecycle koa@3.2.1~test: koa@3.2.1\n\n> koa@3.2.1 test /workspace\n> node --test\n\nnode: bad option: --test\nnpm info lifecycle koa@3.2.1~test: Failed to exec test script\nnpm ERR! Test failed.  See above for more details.\nnpm WARN Local package.json exists, but node_modules missing, did you mean to install?",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T20:41:43.663Z"
+}
