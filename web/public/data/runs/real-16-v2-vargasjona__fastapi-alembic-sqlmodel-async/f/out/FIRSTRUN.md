@@ -29,7 +29,7 @@ make add-dev-migration
 sonar.organization=my_organization
 sonar.projectKey=fastapi-alembic-sqlmodel-async
 sonar.host.url=http://host.docker.internal:9000
-sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7
+sonar.login=<redacted-by-humble>
 sonar.projectName=fastapi-alembic-sqlmodel-async
 sonar.projectVersion=1.0
 sonar.sources=app

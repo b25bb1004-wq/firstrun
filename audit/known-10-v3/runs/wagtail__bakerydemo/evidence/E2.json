@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "uv venv .venv",
+    "exitCode": 2,
+    "durationMs": 7854,
+    "logTail": "Downloading cpython-3.12.14-linux-x86_64-gnu (download) (32.7MiB)\n Downloaded cpython-3.12.14-linux-x86_64-gnu (download)\nUsing CPython 3.12.14\nCreating virtual environment at: .venv\nerror: Failed to create virtual environment\n  cause: A virtual environment already exists at: .venv\n\nhint: Use the `--clear` flag or set `UV_VENV_CLEAR=1` to replace the existing virtual environment",
+    "logFile": "logs/S2-2.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-25T21:17:38.914Z"
+}

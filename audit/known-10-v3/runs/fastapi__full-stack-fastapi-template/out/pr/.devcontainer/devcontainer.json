@@ -1,0 +1,17 @@
+{
+  "name": "full-stack-fastapi-template",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "uv sync && bun install && bun run build && uv run prek install -f && git commit && uv run prek run --all-files",
+  "forwardPorts": [
+    8000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}

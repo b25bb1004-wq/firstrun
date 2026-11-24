@@ -1,0 +1,47 @@
+{
+  "id": "E3",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+    "exitCode": 35,
+    "durationMs": 2715,
+    "logTail": ""
+  },
+  "diagnosis": {
+    "class": "wrong-order",
+    "cause": "README.md:579 documents `deno add axios` but Deno v2 requires an explicit registry specifier; the correct command is `deno add npm:axios` (bare names without `npm:` or `jsr:` prefix are not valid Deno package specifiers and exit with code 35).",
+    "confidence": 0.82,
+    "by": "bob",
+    "bobcoins": 0.095192,
+    "taskId": "d9f72b7ad7b57f1adf38a235ec1fa192"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "deno add npm:axios",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "Replace `deno add axios` with `deno add npm:axios` at README.md:579 so the Deno specifier is valid for Deno v2."
+    },
+    "log": "step command → deno add npm:axios"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "deno add npm:axios",
+    "exitCode": 127,
+    "durationMs": 132,
+    "logTail": "/firstrun/step-6.sh: line 5: deno: command not found",
+    "logFile": "logs/S5-2.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-26T12:04:44.451Z",
+  "revealed": "E4"
+}

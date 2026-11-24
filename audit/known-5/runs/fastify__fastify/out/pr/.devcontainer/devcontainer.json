@@ -1,0 +1,16 @@
+{
+  "name": "fastify",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "xattr -dr com.apple.quarantine /Applications/VSCodeFastify/Visual\\ Studio\\ Code.app && mkdir -p /Applications/VSCodeFastify/code-portable-data/{user-data,extensions} && alias code-fastify=\"/Applications/VSCodeFastify/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code\" && ❯ code-fastify --version && 1.50.0 && 93c2f0fbf16c5a4b10e4d5f89737d9c2c25488a3 && x64 && code-fastify --install-extension dbaeumer.vscode-eslint && [ -d /Applications/VSCodeFastify/code-portable-data/extensions/dbaeumer.vscode-eslint-* ] && echo \"found\" && code-fastify . && npm i fastify-plugin @fastify/mongodb && npm i fastify-cli",
+  "forwardPorts": [
+    3000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

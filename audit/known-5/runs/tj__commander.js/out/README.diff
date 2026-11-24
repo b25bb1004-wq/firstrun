@@ -1,0 +1,22 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -66,6 +66,8 @@ npm install commander
+ 
+ ## Quick Start
+ 
++❌ **Not verified by [HUMBLE](FIRSTRUN.md)** on 2026-09-26 from a clean `node:22` machine at `ba6d13ddb4+dirty`.
++
+ You write code to describe your command line interface.
+ Commander looks after parsing the arguments into options and command-arguments,
+ displays usage errors for problems, and implements a help system.
+@@ -138,7 +140,8 @@ Options:
+   -s, --separator <char>  separator character (default: ",")
+   -h, --help              display help for command
+ 
+-$ node string-util.js split --separator=- a-b-c
++$ node examples/string-util.js split --separator=- a-b-c
++# HUMBLE: this step still fails on a clean machine: The command `node examples/string-util.js split --separator=- a-b-c` is a one-shot CLI tool that prints its output and exits normally (shown by the correct output `[ 'a', 'b', 'c' ]` in the log); it is not a server, so the firstrun 'serve' step type wrongly waits for a port-8080 listener and declares failure when the process exits cleanly.
+ [ 'a', 'b', 'c' ]
+ ```
+ 

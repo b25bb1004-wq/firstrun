@@ -1,0 +1,75 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T21:17:26.951Z",
+  "commit": "cb740b656d",
+  "image": "python:3.12",
+  "runtime": {
+    "name": "python",
+    "version": "3.12",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "docker compose up -d db mailpit",
+      "kind": "services"
+    },
+    {
+      "id": "S2",
+      "command": "uv sync",
+      "kind": "install",
+      "prereqs": [
+        {
+          "type": "exec",
+          "command": "pip install uv"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "command": "bun install",
+      "kind": "install"
+    },
+    {
+      "id": "S6",
+      "command": "bun run dev",
+      "kind": "serve",
+      "serve": {
+        "port": 8000
+      }
+    },
+    {
+      "id": "S7",
+      "command": "bun run build",
+      "kind": "build"
+    },
+    {
+      "id": "S8",
+      "command": "uv run prek install -f",
+      "kind": "other"
+    },
+    {
+      "id": "S9",
+      "command": "git commit",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "uv run prek run --all-files",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": [
+    {
+      "signature": "/firstrun/step-1.sh: line 4: uv: command not found",
+      "cause": "`uv` is not installed; the docs assume it is.",
+      "fix": "uv",
+      "evidence": "E1"
+    }
+  ]
+}

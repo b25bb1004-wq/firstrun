@@ -1,0 +1,47 @@
+{
+  "id": "E1",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "node string-util.js split --separator=- a-b-c",
+    "exitCode": 1,
+    "durationMs": 4945,
+    "logTail": "node:internal/modules/cjs/loader:1433\n  throw err;\n  ^\n\nError: Cannot find module '/workspace/string-util.js'\n    at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)\n    at Function._load (node:internal/modules/cjs/loader:1216:25)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)\n    at node:internal/main/run_main_module:36:49 {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: []\n}\n\nNode.js v22.23.3\n\n[firstrun] server process exited before becoming ready on port 8080",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-file",
+    "cause": "Readme.md line 141 shows `node string-util.js split --separator=- a-b-c`, but `string-util.js` only exists at `examples/string-util.js` — there is no such file in the repo root.",
+    "confidence": 0.99,
+    "by": "bob",
+    "bobcoins": 0.106406,
+    "taskId": "184a460570b45c0b4338478a01cb768f"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "node examples/string-util.js split --separator=- a-b-c",
+        "kind": "other"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "Replace `node string-util.js split --separator=- a-b-c` with `node examples/string-util.js split --separator=- a-b-c` (and likewise `node string-util.js help split` with `node examples/string-util.js help split`) so the path matches the actual location of the file in the repository."
+    },
+    "log": "step command → node examples/string-util.js split --separator=- a-b-c"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "node examples/string-util.js split --separator=- a-b-c",
+    "exitCode": 1,
+    "durationMs": 4953,
+    "logTail": "[ 'a', 'b', 'c' ]\n\n[firstrun] server process exited before becoming ready on port 8080",
+    "logFile": "logs/S5-2.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-26T11:50:13.308Z"
+}

@@ -1,0 +1,46 @@
+{
+  "id": "E1",
+  "stepId": "S2",
+  "before": {
+    "stepId": "S2",
+    "n": 1,
+    "command": "uv sync",
+    "exitCode": 127,
+    "durationMs": 139,
+    "logTail": "/firstrun/step-1.sh: line 4: uv: command not found",
+    "logFile": "logs/S2-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "`uv` is not installed; the docs assume it is.",
+    "by": "rules",
+    "ruleId": "missing-tool",
+    "confidence": 0.8
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "exec",
+        "command": "pip install uv"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "uv",
+      "command": "pip install uv"
+    },
+    "log": "$ pip install uv\nCollecting uv\n  Downloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)\nDownloading uv-0.12.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20.5 MB)\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.0/20.5 MB ? eta -:--:--\r   ╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.3/20.5 MB ? eta -:--:--\r   ╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.3/20.5 MB ? eta -:--:--\r   ━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0.8/20.5 MB 1.3 MB/s eta 0:00:16\r   ━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/20.5 MB 1.5 MB/s eta 0:00:13\r   ━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/20.5 MB 1.5 MB/s eta 0:00:13\r   ━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/20.5 MB 1.5 MB/s eta 0:00:13\r   ━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/20.5 MB 1.1 MB/s eta 0:00:17\r   ━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/20.5 MB 1.3 MB/s eta 0:00:15\r   ━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/20.5 MB 1.3 MB/s eta 0:00:15\r   ━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.9/20.5 MB 1.4 MB/s eta 0:00:13\r   ━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/20.5 MB 1.6 MB/s eta 0:00:11\r   ━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/20.5 MB 1.8 MB/s eta 0:00:10\r   ━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/20.5 MB 1.9 MB/s eta 0:00:09\r   ━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/20.5 MB 2.0 MB/s eta 0:00:08\r   ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/20.5 MB 2.2 MB/s eta 0:00:07\r   ━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.8/20.5 MB 2.2 MB/s eta 0:00:07\r   ━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━ 7.3/20.5 MB 2.3 MB/s eta 0:00:06\r   ━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━ 7.9/20.5 MB 2.2 MB/s eta 0:00:06\r   ━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━ 8.7/20.5 MB 2.3 MB/s eta 0:00:06\r   ━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━ 9.2/20.5 MB 2.3 MB/s eta 0:00:05\r   ━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━ 10.0/20.5 MB 2.4 MB/s eta 0:00:05\r   ━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━ 10.5/20.5 MB 2.4 MB/s eta 0:00:05\r   ━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━ 11.3/20.5 MB 2.5 MB/s eta 0:00:04\r   ━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━━━ 12.6/20.5 MB 2.7 MB/s eta 0:00:03\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━ 13.6/20.5 MB 2.8 MB/s eta 0:00:03\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━ 14.7/20.5 MB 2.9 MB/s eta 0:00:03\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━ 15.2/20.5 MB 2.9 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━ 16.3/20.5 MB 2.9 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 17.3/20.5 MB 3.0 MB/s eta 0:00:02\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━ 17.6/20.5 MB 3.0 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━ 19.1/20.5 MB 3.1 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸ 20.4/20.5 MB 3.2 MB/s eta 0:00:01\r   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 3.2 MB/s eta 0:00:00\nInstalling collected packages: uv\nSuccessfully installed uv-0.12.19"
+  },
+  "after": {
+    "stepId": "S2",
+    "n": 2,
+    "command": "uv sync",
+    "exitCode": 0,
+    "durationMs": 26154,
+    "logTail": " + emails==1.1.2\n + fastapi==0.141.1\n + fastapi-cli==0.0.32\n + fastapi-cloud-cli==0.21.0\n + fastar==0.11.0\n + greenlet==3.5.2\n + h11==0.16.0\n + httpcore==1.0.9\n + httptools==0.8.0\n + httpx==0.28.1\n + idna==3.18\n + iniconfig==2.3.0\n + jinja2==3.1.6\n + librt==0.15.0\n + mako==1.3.12\n + markdown-it-py==4.2.0\n + markupsafe==3.0.3\n + mdurl==0.1.2\n + mypy==2.3.1\n + mypy-extensions==1.1.0\n + packaging==26.2\n + pathspec==1.1.1\n + pluggy==1.6.0\n + prek==0.4.14\n + psycopg==3.3.4\n + psycopg-binary==3.3.4\n + puremagic==2.2.0\n + pwdlib==0.3.1\n + pycparser==3.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pydantic-extra-types==2.11.1\n + pydantic-settings==2.15.0\n + pygments==2.20.0\n + pyjwt==2.13.0\n + pytest==9.1.1\n + python-dateutil==2.9.0.post0\n + python-dotenv==1.2.2\n + python-multipart==0.0.32\n + pyyaml==6.0.3\n + rich==15.0.0\n + rich-toolkit==0.20.1\n + rignore==0.7.6\n + ruff==0.16.4\n + sentry-sdk==2.68.1\n + shellingham==1.5.4\n + six==1.17.0\n + sqlalchemy==2.0.51\n + sqlmodel==0.0.39\n + starlette==1.3.1\n + ty==0.0.74\n + typer==0.27.1\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + urllib3==2.7.0\n + uvicorn==0.49.0\n + uvloop==0.22.1\n + watchfiles==1.2.0\n + websockets==16.0\n + zizmor==1.29.0",
+    "logFile": "logs/S2-2.log"
+  },
+  "status": "verified",
+  "at": "2026-09-25T21:17:25.582Z"
+}

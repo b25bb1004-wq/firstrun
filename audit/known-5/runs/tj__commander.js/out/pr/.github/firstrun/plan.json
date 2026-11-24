@@ -1,0 +1,58 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T11:50:37.690Z",
+  "commit": "ba6d13ddb4+dirty",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/"
+  },
+  "steps": [
+    {
+      "id": "S6",
+      "command": "extra --help",
+      "kind": "other"
+    },
+    {
+      "id": "S7",
+      "command": "extra --drink huge",
+      "kind": "other"
+    },
+    {
+      "id": "S8",
+      "command": "PORT=80 extra --donate --free-drink",
+      "kind": "other"
+    },
+    {
+      "id": "S9",
+      "command": "extra --disable-server --port 8000",
+      "kind": "other"
+    },
+    {
+      "id": "S10",
+      "command": "program -b subcommand",
+      "kind": "other"
+    },
+    {
+      "id": "S11",
+      "command": "program subcommand -b",
+      "kind": "other"
+    },
+    {
+      "id": "S12",
+      "command": "program --port=80 arg",
+      "kind": "other"
+    },
+    {
+      "id": "S13",
+      "command": "program arg --port=80",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

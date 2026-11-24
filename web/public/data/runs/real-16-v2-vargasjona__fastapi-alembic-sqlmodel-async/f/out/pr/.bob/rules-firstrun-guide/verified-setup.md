@@ -39,7 +39,7 @@ Prerequisites: Python 3.10.
 11. `sonar.host.url=http://host.docker.internal:9000`
    - Kind: other
    - Expect: exits with code 0.
-12. `sonar.login=157cc42f5b2702f470af3466610eebf38551fdd7`
+12. `sonar.login=<redacted-by-humble>`
    - Kind: other
    - Expect: exits with code 0.
 13. `sonar.projectName=fastapi-alembic-sqlmodel-async`

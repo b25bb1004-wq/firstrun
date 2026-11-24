@@ -1,0 +1,192 @@
+{
+  "id": "known-5",
+  "startedAt": "2026-09-26T11:49:35.177Z",
+  "source": "audit/known-5-repos.json",
+  "concurrency": 3,
+  "brain": "auto",
+  "repos": [
+    {
+      "slug": "shadcn-ui__taxonomy",
+      "url": "https://github.com/shadcn-ui/taxonomy",
+      "ref": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "stack": "node",
+      "status": "done",
+      "verdict": "PARTIAL",
+      "passport": {
+        "repo": "shadcn-ui/taxonomy",
+        "commit": "298a8857c7+dirty",
+        "verifiedAt": "2026-09-26T12:01:07.139Z",
+        "verdict": "PARTIAL",
+        "image": "node:22",
+        "runtime": "Node.js 22",
+        "stepsTotal": 4,
+        "stepsFromReadme": 3,
+        "breaksFound": 3,
+        "breaksFixed": 2,
+        "needsHuman": 1,
+        "replaySeconds": 227,
+        "packageCache": false,
+        "bobcoins": 0.57,
+        "diagnosedByBob": 2,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:3000/"
+        }
+      },
+      "runDir": "runs/shadcn-ui__taxonomy",
+      "startedAt": "2026-09-26T11:49:35.180Z",
+      "phase": "done",
+      "firstFailure": null,
+      "finishedAt": "2026-09-26T12:01:07.657Z"
+    },
+    {
+      "slug": "axios__axios",
+      "url": "https://github.com/axios/axios",
+      "ref": "961241f6c19798eff16b0869486c125430a17961",
+      "stack": "node",
+      "status": "done",
+      "verdict": "FAILED",
+      "passport": {
+        "repo": "axios/axios",
+        "commit": "961241f6c1",
+        "verifiedAt": "2026-09-26T12:05:13.494Z",
+        "verdict": "FAILED",
+        "image": "node:19",
+        "runtime": "Node.js 19",
+        "stepsTotal": 7,
+        "stepsFromReadme": 4,
+        "breaksFound": 5,
+        "breaksFixed": 1,
+        "needsHuman": 1,
+        "replaySeconds": 0,
+        "packageCache": false,
+        "bobcoins": 1.23,
+        "diagnosedByBob": 4,
+        "verify": {
+          "kind": "exit",
+          "target": "all steps exit 0"
+        }
+      },
+      "runDir": "runs/axios__axios",
+      "startedAt": "2026-09-26T11:49:35.188Z",
+      "phase": "done",
+      "firstFailure": null,
+      "finishedAt": "2026-09-26T12:05:14.019Z"
+    },
+    {
+      "slug": "tj__commander.js",
+      "url": "https://github.com/tj/commander.js",
+      "ref": "ba6d13ddb4243e5913367734f8c159089ffe7834",
+      "stack": "node",
+      "status": "done",
+      "verdict": "FAILED",
+      "passport": {
+        "repo": "tj/commander.js",
+        "commit": "ba6d13ddb4+dirty",
+        "verifiedAt": "2026-09-26T11:50:37.690Z",
+        "verdict": "FAILED",
+        "image": "node:22",
+        "runtime": "Node.js 22",
+        "stepsTotal": 9,
+        "stepsFromReadme": 9,
+        "breaksFound": 2,
+        "breaksFixed": 0,
+        "needsHuman": 1,
+        "replaySeconds": 0,
+        "packageCache": false,
+        "bobcoins": 0.19,
+        "diagnosedByBob": 2,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:8080/"
+        }
+      },
+      "runDir": "runs/tj__commander.js",
+      "startedAt": "2026-09-26T11:49:35.194Z",
+      "phase": "done",
+      "firstFailure": "node string-util.js split --separator=- a-b-c",
+      "finishedAt": "2026-09-26T11:50:38.157Z"
+    },
+    {
+      "slug": "fastify__fastify",
+      "url": "https://github.com/fastify/fastify",
+      "ref": "f7f73aa7d0233f5f8455ac75a828ab3862419fc4",
+      "stack": "node",
+      "status": "done",
+      "verdict": "FAILED",
+      "passport": {
+        "repo": "fastify/fastify",
+        "commit": "f7f73aa7d0",
+        "verifiedAt": "2026-09-26T11:50:53.386Z",
+        "verdict": "FAILED",
+        "image": "node:22",
+        "runtime": "Node.js 22",
+        "stepsTotal": 14,
+        "stepsFromReadme": 14,
+        "breaksFound": 1,
+        "breaksFixed": 0,
+        "needsHuman": 1,
+        "replaySeconds": 0,
+        "packageCache": false,
+        "bobcoins": 0.24,
+        "diagnosedByBob": 1,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:3000/"
+        }
+      },
+      "runDir": "runs/fastify__fastify",
+      "startedAt": "2026-09-26T11:50:38.160Z",
+      "phase": "done",
+      "firstFailure": null,
+      "finishedAt": "2026-09-26T11:50:53.925Z"
+    },
+    {
+      "slug": "fastapi__fastapi",
+      "url": "https://github.com/fastapi/fastapi",
+      "ref": "192b12197eb04c2b4a691cce7d87261b21716714",
+      "stack": "python",
+      "status": "done",
+      "verdict": "FAILED",
+      "passport": {
+        "repo": "fastapi/fastapi",
+        "commit": "192b12197e",
+        "verifiedAt": "2026-09-26T12:04:56.564Z",
+        "verdict": "FAILED",
+        "image": "python:3.12",
+        "runtime": "Python 3.12",
+        "stepsTotal": 2,
+        "stepsFromReadme": 2,
+        "breaksFound": 2,
+        "breaksFixed": 0,
+        "needsHuman": 1,
+        "replaySeconds": 0,
+        "packageCache": false,
+        "bobcoins": 1.14,
+        "diagnosedByBob": 0,
+        "verify": {
+          "kind": "http",
+          "target": "http://127.0.0.1:8000/docs",
+          "fromDocs": true
+        }
+      },
+      "runDir": "runs/fastapi__fastapi",
+      "startedAt": "2026-09-26T11:50:53.927Z",
+      "phase": "done",
+      "firstFailure": null,
+      "finishedAt": "2026-09-26T12:04:57.017Z"
+    }
+  ],
+  "finishedAt": "2026-09-26T12:05:14.020Z",
+  "summary": {
+    "total": 5,
+    "done": 5,
+    "brokeOnCleanMachine": 5,
+    "verified": 0,
+    "partial": 1,
+    "failed": 4,
+    "breaksFound": 13,
+    "breaksFixed": 3,
+    "repairedAutomatically": 2
+  }
+}

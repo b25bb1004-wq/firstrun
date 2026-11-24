@@ -1,0 +1,23 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T21:22:25.949Z",
+  "commit": "611c6162cb",
+  "image": "python:3.10",
+  "runtime": {
+    "name": "python",
+    "version": "3.10",
+    "source": "README.md:38 (\"Python 3.10+\")"
+  },
+  "verify": {
+    "kind": "exit",
+    "target": "all steps exit 0"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "python -m pip install requests",
+      "kind": "install"
+    }
+  ],
+  "knownFailures": []
+}

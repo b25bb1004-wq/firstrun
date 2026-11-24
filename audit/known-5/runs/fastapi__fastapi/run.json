@@ -1,0 +1,138 @@
+{
+  "id": "known-5-fastapi__fastapi",
+  "repo": "fastapi/fastapi",
+  "commit": "192b12197e",
+  "startedAt": "2026-09-26T11:58:37.370Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S2": {
+      "status": "blocked",
+      "attempts": 0
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2"
+  ],
+  "bobcoins": 1.1353719999999998,
+  "conflicts": [
+    {
+      "what": "Python version",
+      "docs": "not stated",
+      "truth": "3.11 (.python-version)",
+      "source": "README.md"
+    },
+    {
+      "what": "env var DYLD_FALLBACK_LIBRARY_PATH",
+      "docs": "not documented",
+      "truth": "read in scripts/docs.py:129",
+      "source": "README"
+    }
+  ],
+  "plan": {
+    "repo": "fastapi/fastapi",
+    "commit": "192b12197e",
+    "image": "python:3.12",
+    "runtime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "uv add \"fastapi[standard]\"",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 136,
+          "endLine": 136,
+          "section": "Installation"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "prereqs": [
+          {
+            "type": "exec",
+            "command": "pip install uv"
+          }
+        ],
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "S2",
+        "command": "uv run fastapi dev",
+        "kind": "serve",
+        "source": {
+          "file": "README.md",
+          "line": 203,
+          "endLine": 203,
+          "section": "Example › Run it"
+        },
+        "origin": "readme",
+        "serve": {
+          "port": 8000
+        },
+        "status": "blocked"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Python version",
+        "docs": "not stated",
+        "truth": "3.11 (.python-version)",
+        "source": "README.md"
+      },
+      {
+        "what": "env var DYLD_FALLBACK_LIBRARY_PATH",
+        "docs": "not documented",
+        "truth": "read in scripts/docs.py:129",
+        "source": "README"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8000/docs",
+      "fromDocs": true
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "python:3.12",
+    "originalRuntime": {
+      "name": "python",
+      "version": "3.12",
+      "source": "docs do not say; a newcomer installs the current LTS"
+    }
+  },
+  "passport": {
+    "repo": "fastapi/fastapi",
+    "commit": "192b12197e",
+    "verifiedAt": "2026-09-26T12:04:56.564Z",
+    "verdict": "FAILED",
+    "image": "python:3.12",
+    "runtime": "Python 3.12",
+    "stepsTotal": 2,
+    "stepsFromReadme": 2,
+    "breaksFound": 2,
+    "breaksFixed": 0,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "packageCache": false,
+    "bobcoins": 1.14,
+    "diagnosedByBob": 0,
+    "verify": {
+      "kind": "http",
+      "target": "http://127.0.0.1:8000/docs",
+      "fromDocs": true
+    }
+  },
+  "finishedAt": "2026-09-26T12:04:57.015Z"
+}

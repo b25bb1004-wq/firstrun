@@ -1,0 +1,78 @@
+{
+  "repo": "koajs/koa",
+  "commit": "824c1cf8de",
+  "image": "node:18",
+  "runtime": {
+    "name": "node",
+    "version": "18",
+    "source": "the error (\"node: bad option: --test\"): `--test` requires Node.js 18+"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install koa",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 23,
+        "endLine": 23,
+        "section": "Installation"
+      },
+      "origin": "readme",
+      "skip": "installs the published package; you already have its source",
+      "status": "skipped"
+    },
+    {
+      "id": "R1",
+      "command": "npm install",
+      "kind": "install",
+      "origin": "repair",
+      "status": "passed",
+      "source": {
+        "file": "Readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Running tests",
+        "insertedBefore": "S2"
+      }
+    },
+    {
+      "id": "S2",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "Readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Running tests"
+      },
+      "origin": "readme",
+      "status": "repaired",
+      "evidence": [
+        "E1",
+        "E2"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "node v7.6+",
+      "truth": "18 (package.json engines (\">= 18\"))",
+      "source": "Readme.md:54"
+    }
+  ],
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "docsUsed": [
+    "Readme.md"
+  ],
+  "originalImage": "node:7",
+  "originalRuntime": {
+    "name": "node",
+    "version": "7",
+    "source": "Readme.md:54 (\"node v7.6+\")"
+  }
+}

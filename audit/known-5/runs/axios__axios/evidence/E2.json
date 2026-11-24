@@ -1,0 +1,46 @@
+{
+  "id": "E2",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "deno add axios",
+    "exitCode": 127,
+    "durationMs": 117,
+    "logTail": "/firstrun/step-4.sh: line 5: deno: command not found",
+    "logFile": "logs/S5-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-tool",
+    "cause": "The `node:19` Docker image does not include Deno; README.md:579 documents `deno add axios` but Deno must be installed first, producing exit code 127 (`deno: command not found`).",
+    "confidence": 0.97,
+    "by": "bob",
+    "bobcoins": 0.06788799999999999,
+    "taskId": "6e9fe6ff96c06f2a78039ad441e75a3e"
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "insert-before",
+        "command": "curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+        "kind": "install"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "prerequisite",
+      "text": "Before running `deno add axios`, install Deno: `curl -fsSL https://deno.land/install.sh | sh` and add `$HOME/.deno/bin` to your PATH."
+    },
+    "log": "$ curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\" → exit 35\nfix not applied: `curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"` exited 35"
+  },
+  "after": {
+    "stepId": "S5",
+    "n": 1,
+    "command": "curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+    "exitCode": 35,
+    "durationMs": 2715,
+    "logTail": ""
+  },
+  "status": "failed",
+  "at": "2026-09-26T12:04:16.172Z"
+}

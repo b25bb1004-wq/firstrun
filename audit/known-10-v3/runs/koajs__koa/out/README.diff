@@ -1,0 +1,23 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -51,7 +51,7 @@ Koa is a middleware framework that can take two different kinds of functions as
+ 
+ Here is an example of logger middleware with each of the different functions:
+ 
+-### ___async___ functions (node v7.6+)
++### ___async___ functions (node v18+)
+ 
+ ```js
+ app.use(async (ctx, next) => {
+@@ -164,7 +164,10 @@ the general Koa guide.
+ 
+ ## Running tests
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:18` machine at `824c1cf8de`: clone to running in 8s.
++
+ ```
++$ npm install
+ $ npm test
+ ```
+ 

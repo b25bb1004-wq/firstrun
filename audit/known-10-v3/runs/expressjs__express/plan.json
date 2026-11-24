@@ -1,0 +1,136 @@
+{
+  "repo": "expressjs/express",
+  "commit": "9a34acf03c",
+  "image": "node:18",
+  "runtime": {
+    "name": "node",
+    "version": "18",
+    "source": "Readme.md:56 (\"Node.js 18 or higher\")"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install express",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 65,
+        "endLine": 65,
+        "section": "Installation"
+      },
+      "origin": "readme",
+      "skip": "installs the published package; you already have its source",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "npm install -g express-generator@4",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "Readme.md",
+        "line": 96,
+        "endLine": 96,
+        "section": "Quick Start"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S3",
+      "command": "express /tmp/foo",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "Readme.md",
+        "line": 102,
+        "endLine": 102,
+        "section": "Quick Start"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S4",
+      "command": "cd /tmp/foo",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "Readme.md",
+        "line": 102,
+        "endLine": 102,
+        "section": "Quick Start"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S5",
+      "command": "npm install",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "Readme.md",
+        "line": 108,
+        "endLine": 108,
+        "section": "Quick Start"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S6",
+      "command": "npm start",
+      "kind": "other",
+      "skip": "scaffolds a new app for users; not this repo's setup",
+      "source": {
+        "file": "Readme.md",
+        "line": 114,
+        "endLine": 114,
+        "section": "Quick Start"
+      },
+      "origin": "readme",
+      "status": "skipped"
+    },
+    {
+      "id": "S7",
+      "command": "npm install",
+      "kind": "install",
+      "source": {
+        "file": "Readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Contributing › Running Tests"
+      },
+      "origin": "readme",
+      "status": "passed"
+    },
+    {
+      "id": "S8",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "Readme.md",
+        "line": 174,
+        "endLine": 174,
+        "section": "Contributing › Running Tests"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [],
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "docsUsed": [
+    "Readme.md"
+  ],
+  "originalImage": "node:18",
+  "originalRuntime": {
+    "name": "node",
+    "version": "18",
+    "source": "Readme.md:56 (\"Node.js 18 or higher\")"
+  }
+}

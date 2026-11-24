@@ -1,0 +1,29 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-25T21:20:35.742Z",
+  "commit": "410fccec23",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8080/auth/facebook/callback",
+    "fromDocs": true
+  },
+  "steps": [
+    {
+      "id": "S3",
+      "command": "npm install",
+      "kind": "install"
+    },
+    {
+      "id": "S5",
+      "command": "npm test",
+      "kind": "test"
+    }
+  ],
+  "knownFailures": []
+}

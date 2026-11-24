@@ -1,0 +1,22 @@
+{
+  "id": "E5",
+  "stepId": "S5",
+  "before": {
+    "stepId": "S5",
+    "n": 2,
+    "command": "curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+    "exitCode": 35,
+    "durationMs": 1739,
+    "logTail": ""
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure and the Bobcoin budget for this run is spent.",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T12:05:12.663Z"
+}

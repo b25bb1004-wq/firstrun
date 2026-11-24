@@ -1,0 +1,12 @@
+diff --git a/Readme.md b/Readme.md
+--- a/Readme.md
++++ b/Readme.md
+@@ -148,6 +148,8 @@ node examples/content-negotiation
+ 
+ ## Contributing
+ 
++✅ **Verified by [FirstRun](FIRSTRUN.md)** on 2026-09-25 from a clean `node:18` machine at `9a34acf03c`: clone to running in 22s.
++
+ The Express.js project welcomes all constructive contributions. Contributions take many forms,
+ from code for bug fixes and enhancements, to additions and fixes to documentation, additional
+ tests, triaging incoming pull requests and issues, and more!

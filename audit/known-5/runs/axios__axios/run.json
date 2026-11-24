@@ -1,0 +1,284 @@
+{
+  "id": "known-5-axios__axios",
+  "repo": "axios/axios",
+  "commit": "961241f6c1",
+  "startedAt": "2026-09-26T11:49:35.481Z",
+  "phase": "done",
+  "steps": {
+    "S1": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S2": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S3": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "S4": {
+      "status": "repaired",
+      "attempts": 2
+    },
+    "S5": {
+      "status": "needs-human",
+      "attempts": 2
+    },
+    "S6": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S7": {
+      "status": "blocked",
+      "attempts": 0
+    },
+    "S8": {
+      "status": "skipped",
+      "attempts": 0
+    },
+    "R1": {
+      "status": "passed",
+      "attempts": 1
+    },
+    "R2": {
+      "status": "failed",
+      "attempts": 1
+    },
+    "R3": {
+      "status": "failed",
+      "attempts": 1
+    }
+  },
+  "evidence": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5"
+  ],
+  "bobcoins": 1.23202,
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "Node.js v19.0.0",
+      "truth": "26 (CI (.github/workflows/bundle-size.yml))",
+      "source": "README.md:1117"
+    }
+  ],
+  "plan": {
+    "repo": "axios/axios",
+    "commit": "961241f6c1",
+    "image": "node:19",
+    "runtime": {
+      "name": "node",
+      "version": "19",
+      "source": "README.md:1117 (\"Node.js v19.0.0\")"
+    },
+    "steps": [
+      {
+        "id": "S1",
+        "command": "npm install axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 555,
+          "endLine": 555,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S2",
+        "command": "yarn add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 561,
+          "endLine": 561,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "S3",
+        "command": "pnpm add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 567,
+          "endLine": 567,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "skip": "installs the published package; you already have its source",
+        "status": "skipped"
+      },
+      {
+        "id": "R1",
+        "command": "curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL=\"$HOME/.bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"",
+        "kind": "install",
+        "origin": "repair",
+        "status": "passed",
+        "source": {
+          "file": "README.md",
+          "line": 573,
+          "endLine": 573,
+          "section": "Installing › Package manager",
+          "insertedBefore": "S4"
+        }
+      },
+      {
+        "id": "S4",
+        "command": "bun add axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 573,
+          "endLine": 573,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "status": "repaired",
+        "evidence": [
+          "E1"
+        ]
+      },
+      {
+        "id": "R2",
+        "command": "curl -fsSL https://deno.land/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+        "kind": "install",
+        "origin": "repair",
+        "status": "failed",
+        "source": {
+          "file": "README.md",
+          "line": 579,
+          "endLine": 579,
+          "section": "Installing › Package manager",
+          "insertedBefore": "S5"
+        }
+      },
+      {
+        "id": "R3",
+        "command": "curl -fsSL https://deno.land/x/install/install.sh | sh && export DENO_INSTALL=\"$HOME/.deno\" && export PATH=\"$DENO_INSTALL/bin:$PATH\"",
+        "kind": "install",
+        "origin": "repair",
+        "status": "failed",
+        "source": {
+          "file": "README.md",
+          "line": 579,
+          "endLine": 579,
+          "section": "Installing › Package manager",
+          "insertedBefore": "S5"
+        }
+      },
+      {
+        "id": "S5",
+        "command": "deno add npm:axios",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 579,
+          "endLine": 579,
+          "section": "Installing › Package manager"
+        },
+        "origin": "readme",
+        "status": "needs-human",
+        "evidence": [
+          "E2",
+          "E3",
+          "E4"
+        ],
+        "readmeCommand": "deno add axios"
+      },
+      {
+        "id": "S6",
+        "command": "npm ci",
+        "kind": "install",
+        "source": {
+          "file": "README.md",
+          "line": 2852,
+          "endLine": 2852,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S7",
+        "command": "npm rebuild husky",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 2853,
+          "endLine": 2853,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "status": "blocked"
+      },
+      {
+        "id": "S8",
+        "command": "npx husky",
+        "kind": "other",
+        "source": {
+          "file": "README.md",
+          "line": 2853,
+          "endLine": 2853,
+          "section": "Contributing › Local setup"
+        },
+        "origin": "readme",
+        "skip": "developer tooling, not needed to run the project",
+        "status": "skipped"
+      }
+    ],
+    "conflicts": [
+      {
+        "what": "Node.js version",
+        "docs": "Node.js v19.0.0",
+        "truth": "26 (CI (.github/workflows/bundle-size.yml))",
+        "source": "README.md:1117"
+      }
+    ],
+    "notes": [],
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    },
+    "docsUsed": [
+      "README.md"
+    ],
+    "originalImage": "node:19",
+    "originalRuntime": {
+      "name": "node",
+      "version": "19",
+      "source": "README.md:1117 (\"Node.js v19.0.0\")"
+    }
+  },
+  "passport": {
+    "repo": "axios/axios",
+    "commit": "961241f6c1",
+    "verifiedAt": "2026-09-26T12:05:13.494Z",
+    "verdict": "FAILED",
+    "image": "node:19",
+    "runtime": "Node.js 19",
+    "stepsTotal": 7,
+    "stepsFromReadme": 4,
+    "breaksFound": 5,
+    "breaksFixed": 1,
+    "needsHuman": 1,
+    "replaySeconds": 0,
+    "packageCache": false,
+    "bobcoins": 1.23,
+    "diagnosedByBob": 4,
+    "verify": {
+      "kind": "exit",
+      "target": "all steps exit 0"
+    }
+  },
+  "finishedAt": "2026-09-26T12:05:14.015Z"
+}
