@@ -1,0 +1,16 @@
+{
+  "name": "commander.js",
+  "image": "node:22",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "extra --drink huge && PORT=80 extra --donate --free-drink && extra --disable-server --port 8000 && program subcommand -b && program --port=80 arg && program arg --port=80",
+  "forwardPorts": [
+    3000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

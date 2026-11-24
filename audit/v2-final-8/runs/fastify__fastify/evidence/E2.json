@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S23",
+  "before": {
+    "stepId": "S23",
+    "n": 1,
+    "command": "npm start",
+    "exitCode": 1,
+    "durationMs": 5014,
+    "logTail": "npm error Missing script: \"start\"\nnpm error\nnpm error Did you mean one of these?\nnpm error   npm star # Mark your favorite packages\nnpm error   npm stars # View packages marked as favorites\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-26T19_17_50_761Z-debug-0.log\n\n[firstrun] server process exited before becoming ready on port 3000",
+    "logFile": "logs/S23-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T19:17:55.539Z"
+}

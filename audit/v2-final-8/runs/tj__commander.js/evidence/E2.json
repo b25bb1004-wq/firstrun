@@ -1,0 +1,23 @@
+{
+  "id": "E2",
+  "stepId": "S6",
+  "before": {
+    "stepId": "S6",
+    "n": 1,
+    "command": "extra --help",
+    "exitCode": 127,
+    "durationMs": 112,
+    "logTail": "/firstrun/step-2.sh: line 5: extra: command not found",
+    "logFile": "logs/S6-1.log"
+  },
+  "diagnosis": {
+    "class": "unknown",
+    "cause": "No rule recognises this failure (run with --brain auto to ask IBM Bob).",
+    "by": "rules",
+    "confidence": 0
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-26T19:15:30.814Z"
+}

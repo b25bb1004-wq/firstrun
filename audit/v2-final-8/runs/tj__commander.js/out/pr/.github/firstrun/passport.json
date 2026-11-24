@@ -1,0 +1,25 @@
+{
+  "repo": "tj/commander.js",
+  "commit": "ba6d13ddb4",
+  "verifiedAt": "2026-09-26T19:15:33.283Z",
+  "verdict": "PARTIAL",
+  "image": "node:22",
+  "runtime": "Node.js 22",
+  "stepsTotal": 9,
+  "stepsFromReadme": 9,
+  "breaksFound": 0,
+  "breaksFixed": 0,
+  "needsHuman": 3,
+  "repoBreaks": 0,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 3,
+  "replaySeconds": 1,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:3000/"
+  }
+}

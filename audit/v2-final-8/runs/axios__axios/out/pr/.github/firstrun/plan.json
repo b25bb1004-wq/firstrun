@@ -1,0 +1,28 @@
+{
+  "firstrun": 1,
+  "verifiedAt": "2026-09-26T19:15:11.747Z",
+  "commit": "961241f6c1",
+  "image": "node:19",
+  "runtime": {
+    "name": "node",
+    "version": "19",
+    "source": "README.md:1117 (\"Node.js v19.0.0\")"
+  },
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "steps": [
+    {
+      "id": "S6",
+      "command": "npm ci",
+      "kind": "install"
+    },
+    {
+      "id": "S7",
+      "command": "npm rebuild husky",
+      "kind": "other"
+    }
+  ],
+  "knownFailures": []
+}

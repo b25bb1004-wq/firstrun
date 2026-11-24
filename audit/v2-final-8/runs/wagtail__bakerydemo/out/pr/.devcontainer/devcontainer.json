@@ -1,0 +1,14 @@
+{
+  "name": "bakerydemo",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "python -m venv .venv && source .venv/bin/activate && pip install -r requirements/development.txt && cp bakerydemo/settings/local.py.example bakerydemo/settings/local.py && cp .env.example .env && ./manage.py load_initial_data && ./manage.py runserver",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}
