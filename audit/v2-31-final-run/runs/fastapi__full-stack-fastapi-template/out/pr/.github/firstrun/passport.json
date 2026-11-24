@@ -1,0 +1,27 @@
+{
+  "repo": "fastapi/full-stack-fastapi-template",
+  "commit": "cb740b656d",
+  "verifiedAt": "2026-09-27T12:57:16.497Z",
+  "verdict": "FAILED",
+  "image": "python:3.12",
+  "runtime": "Python 3.12",
+  "stepsTotal": 9,
+  "stepsFromReadme": 9,
+  "breaksFound": 4,
+  "breaksFixed": 3,
+  "needsHuman": 2,
+  "repoBreaks": 4,
+  "suiteIssues": 0,
+  "needsPerson": 0,
+  "humbleUnknowns": 1,
+  "replaySeconds": 0,
+  "packageCache": false,
+  "bobcoins": 0,
+  "diagnosedByBob": 0,
+  "verify": {
+    "kind": "http",
+    "target": "http://127.0.0.1:8000/docs",
+    "fromDocs": true
+  },
+  "fromCI": false
+}

@@ -1,0 +1,75 @@
+{
+  "repo": "koajs/koa",
+  "commit": "824c1cf8de",
+  "image": "node:22",
+  "runtime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "command": "npm install koa",
+      "kind": "other",
+      "source": {
+        "file": "Readme.md",
+        "line": 23,
+        "endLine": 23,
+        "section": "Installation"
+      },
+      "origin": "readme",
+      "skip": "installs the published package; you already have its source",
+      "status": "skipped"
+    },
+    {
+      "id": "S2",
+      "command": "npm ci",
+      "kind": "install",
+      "source": {
+        "file": "CI",
+        "line": 0,
+        "section": "GitHub Actions"
+      },
+      "origin": "ci",
+      "synthetic": "from CI workflow",
+      "status": "passed"
+    },
+    {
+      "id": "S3",
+      "command": "npm test",
+      "kind": "test",
+      "source": {
+        "file": "Readme.md",
+        "line": 168,
+        "endLine": 168,
+        "section": "Running tests"
+      },
+      "origin": "readme",
+      "status": "passed"
+    }
+  ],
+  "conflicts": [
+    {
+      "what": "Node.js version",
+      "docs": "not stated",
+      "truth": "18 (package.json engines (\">= 18\"))",
+      "source": "Readme.md"
+    }
+  ],
+  "notes": [],
+  "verify": {
+    "kind": "command",
+    "target": "npm test"
+  },
+  "docsUsed": [
+    "Readme.md"
+  ],
+  "fromCI": true,
+  "originalImage": "node:22",
+  "originalRuntime": {
+    "name": "node",
+    "version": "22",
+    "source": "docs do not say; a newcomer installs the current LTS"
+  }
+}

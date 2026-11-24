@@ -1,0 +1,16 @@
+{
+  "name": "rest-api-nodejs-mongodb",
+  "image": "node:16",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "npm install && cp .env.example .env",
+  "forwardPorts": [
+    3000
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

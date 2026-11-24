@@ -1,0 +1,45 @@
+{
+  "id": "E2",
+  "stepId": "S1",
+  "before": {
+    "stepId": "S1",
+    "n": 2,
+    "command": "pnpm install",
+    "exitCode": 1,
+    "durationMs": 148795,
+    "logTail": "! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-12.6.0.tgz\nDownloading the pnpm 12.6.0 binary for linux-x64...\nError: ERR_PNPM_BROKEN_LOCKFILE\n\n  × The lockfile at \"/workspace/pnpm-lock.yaml\" is broken: The lockfileVersion\n  │ of 6.0 is incompatible with the supported formats (1:18)",
+    "logFile": "logs/S1-2.log"
+  },
+  "diagnosis": {
+    "class": "missing-dependency",
+    "cause": "The committed pnpm-lock.yaml uses lockfileVersion 6, which current pnpm versions (supporting 1-18) cannot read. The lockfile must be regenerated with a current pnpm.",
+    "by": "rules",
+    "ruleId": "pnpm-broken-lockfile",
+    "confidence": 0.9
+  },
+  "fix": {
+    "actions": [
+      {
+        "type": "replace-step",
+        "command": "pnpm install --no-frozen-lockfile"
+      }
+    ],
+    "patches": [],
+    "doc": {
+      "kind": "replace-command",
+      "text": "pnpm install --no-frozen-lockfile"
+    },
+    "log": "step command → pnpm install --no-frozen-lockfile"
+  },
+  "after": {
+    "stepId": "S1",
+    "n": 3,
+    "command": "pnpm install --no-frozen-lockfile",
+    "exitCode": 1,
+    "durationMs": 337426,
+    "logTail": "+ next 13.3.2-canary.13\n+ next-auth 4.22.1\n+ next-contentlayer 0.3.4\n+ next-themes 0.2.1\n+ nodemailer 6.10.1\n+ postmark 3.11.0\n+ prop-types 15.8.1\n+ react 18.3.1\n+ react-day-picker 8.10.2\n+ react-dom 18.3.1\n+ react-editor-js 2.1.0\n+ react-hook-form 7.89.0\n+ react-textarea-autosize 8.5.9\n+ sharp 0.31.3\n+ shiki 0.11.1\n+ stripe 11.18.0\n+ tailwind-merge 1.14.0\n+ tailwindcss-animate 1.0.7\n+ zod 3.25.76\n\ndevDependencies:\n+ @commitlint/cli 17.8.1\n+ @commitlint/config-conventional 17.8.1\n+ @ianvs/prettier-plugin-sort-imports 3.7.2\n+ @tailwindcss/line-clamp 0.4.4\n+ @tailwindcss/typography 0.5.20\n+ @types/node 18.19.130\n+ @types/react 18.0.15\n+ @types/react-dom 18.0.6\n+ autoprefixer 10.6.1\n+ eslint 8.57.1\n+ eslint-config-next 13.0.0\n+ eslint-config-prettier 8.10.2\n+ eslint-plugin-react 7.37.5\n+ eslint-plugin-tailwindcss 3.18.3\n+ husky 8.0.3\n+ mdast-util-toc 6.1.1\n+ postcss 8.5.28\n+ prettier 2.8.8\n+ prettier-plugin-tailwindcss 0.1.13\n+ pretty-quick 3.3.1\n+ prisma 4.16.2\n+ rehype 12.0.1\n+ rehype-autolink-headings 6.1.1\n+ rehype-pretty-code 0.9.11\n+ rehype-slug 5.1.0\n+ remark 14.0.3\n+ remark-gfm 3.0.1\n+ tailwindcss 3.4.19\n+ typescript 4.7.4\n+ unist-util-visit 4.1.2\n\nError: ERR_PNPM_IGNORED_BUILDS\n\n  × installing dependencies\n  ╰─▶ Ignored build scripts: @prisma/client@4.16.2, @prisma/engines@4.16.2,\n      contentlayer@0.3.4, esbuild@0.28.2, prisma@4.16.2, protobufjs@7.6.6,\n      sharp@0.31.3\n  help: Run \"pnpm approve-builds\" to pick which dependencies should be allowed\n        to run scripts.",
+    "logFile": "logs/S1-3.log"
+  },
+  "status": "progressed",
+  "at": "2026-09-27T12:53:05.211Z"
+}

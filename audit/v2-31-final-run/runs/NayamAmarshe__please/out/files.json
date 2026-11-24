@@ -1,0 +1,12 @@
+[
+  "README.MD",
+  "FIRSTRUN.md",
+  ".github/firstrun/passport.svg",
+  ".github/firstrun/passport.json",
+  ".github/firstrun/plan.json",
+  ".github/workflows/firstrun.yml",
+  ".bob/custom_modes.yaml",
+  ".bob/rules-firstrun-guide/verified-setup.md",
+  ".devcontainer/devcontainer.json",
+  ".gitignore"
+]

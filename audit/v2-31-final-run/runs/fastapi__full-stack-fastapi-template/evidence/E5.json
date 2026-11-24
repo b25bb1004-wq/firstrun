@@ -1,0 +1,29 @@
+{
+  "id": "E5",
+  "stepId": "S7",
+  "before": {
+    "stepId": "S7",
+    "n": 1,
+    "command": "bun run build",
+    "exitCode": 1,
+    "durationMs": 145,
+    "logTail": "error: Script not found \"build\"",
+    "logFile": "logs/S7-1.log"
+  },
+  "diagnosis": {
+    "class": "missing-script",
+    "cause": "The script \"build\" doesn't exist in package.json and there's no build script defined. The project needs a build step (e.g., \"build\": \"tsc\" or \"vite build\") that the maintainers must add.",
+    "by": "rules",
+    "ruleId": "missing-build-script",
+    "confidence": 0.7,
+    "ask": {
+      "kind": "edit",
+      "file": "package.json",
+      "why": "Add a \"build\" script to package.json (e.g., \"build\": \"tsc\" or \"vite build\")"
+    }
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T12:57:13.972Z"
+}

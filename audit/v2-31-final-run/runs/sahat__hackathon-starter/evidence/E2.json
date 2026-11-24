@@ -1,0 +1,24 @@
+{
+  "id": "E2",
+  "stepId": "S7",
+  "before": {
+    "stepId": "S7",
+    "n": 1,
+    "command": "npm run test:e2e:replay",
+    "exitCode": 124,
+    "durationMs": 289286,
+    "logTail": "\n> hackathon-starter@10.0.0 pretest:e2e:replay\n> npx playwright install chromium\n\nDownloading Chrome for Testing 153.0.8010.12 (playwright chromium v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-linux64.zip\n|                                                                                |   0% of 186.8 MiB\n|■■■■■■■■                                                                        |  10% of 186.8 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 186.8 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 186.8 MiB\n\n[firstrun] step timed out after 300s",
+    "logFile": "logs/S7-1.log"
+  },
+  "fix": null,
+  "after": null,
+  "status": "needs-human",
+  "at": "2026-09-27T12:48:38.187Z",
+  "diagnosis": {
+    "class": "slow-tests",
+    "by": "rules",
+    "ruleId": "test-timeout",
+    "confidence": 0.9,
+    "cause": "`npm run test:e2e:replay` did not finish within 5 min on a clean machine. The setup before it is proven; the docs should name a quick subset for newcomers and say the full suite is for CI."
+  }
+}
